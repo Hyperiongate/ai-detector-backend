@@ -12,20 +12,6 @@ CORS(app)
 
 print("Starting AI Detection Server (OpenAI-Powered Analysis)...")
 
-# DEBUG: Print all environment variables related to OpenAI
-print("DEBUG: Checking environment variables...")
-api_key_value = os.getenv('OPENAI_API_KEY')
-print(f"DEBUG: OPENAI_API_KEY exists: {api_key_value is not None}")
-if api_key_value:
-    print(f"DEBUG: API key starts with: {api_key_value[:10]}...")
-    print(f"DEBUG: API key length: {len(api_key_value)}")
-else:
-    print("DEBUG: OPENAI_API_KEY is None or empty")
-    print("DEBUG: Available environment variables:")
-    for key in os.environ.keys():
-        if 'OPENAI' in key.upper() or 'API' in key.upper():
-            print(f"DEBUG: Found env var: {key}")
-
 # Initialize database
 def init_db():
     conn = sqlite3.connect('analyses.db')
@@ -49,28 +35,22 @@ def get_content_hash(content):
     return hashlib.md5(content.encode()).hexdigest()
 
 def get_openai_client():
-    """Initialize OpenAI client safely"""
+    """Initialize OpenAI client with minimal parameters to avoid conflicts"""
     try:
         import openai
         api_key = os.getenv('OPENAI_API_KEY')
-        print(f"DEBUG: In get_openai_client, api_key exists: {api_key is not None}")
         
         if not api_key:
-            print("DEBUG: No OpenAI API key found in get_openai_client")
+            print("No OpenAI API key found")
             return None
         
-        if len(api_key.strip()) == 0:
-            print("DEBUG: OpenAI API key is empty string")
-            return None
-            
-        print(f"DEBUG: API key first 10 chars: {api_key[:10]}")
-        
-        # Initialize client with minimal parameters to avoid compatibility issues
-        client = openai.OpenAI(api_key=api_key.strip())
-        print("DEBUG: OpenAI client created successfully")
+        # Initialize with ONLY the API key to avoid parameter conflicts
+        client = openai.OpenAI(api_key=api_key)
+        print("OpenAI client created successfully")
         return client
+        
     except Exception as e:
-        print(f"DEBUG: Failed to initialize OpenAI client: {e}")
+        print(f"Failed to initialize OpenAI client: {e}")
         return None
 
 def openai_ai_detection(text):
@@ -78,11 +58,10 @@ def openai_ai_detection(text):
     client = get_openai_client()
     
     if not client:
-        print("DEBUG: OpenAI client not available, using fallback")
+        print("OpenAI client not available, using fallback")
         return fallback_pattern_analysis(text)
     
     try:
-        print("DEBUG: Attempting OpenAI API call...")
         # Craft a sophisticated prompt for AI detection
         prompt = f"""You are an expert AI detection system. Analyze the following text and determine if it was written by AI or a human.
 
@@ -106,20 +85,18 @@ Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
 
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Most cost-effective while maintaining high accuracy
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are an expert AI detection system. Respond only with valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.1,  # Low temperature for consistent results
+            temperature=0.1,
             max_tokens=500
         )
         
-        print("DEBUG: OpenAI API call successful!")
-        
         # Parse the response
         analysis_text = response.choices[0].message.content.strip()
-        print(f"DEBUG: OpenAI response: {analysis_text}")
+        print(f"OpenAI response: {analysis_text}")
         
         # Try to extract JSON from the response
         try:
@@ -131,7 +108,7 @@ Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
             analysis_data = json.loads(analysis_text)
                 
         except (json.JSONDecodeError, ValueError) as e:
-            print(f"DEBUG: JSON parsing failed: {e}")
+            print(f"JSON parsing failed: {e}")
             # Fallback: extract confidence score manually
             import re
             confidence_match = re.search(r'"confidence_score":\s*(\d+)', analysis_text)
@@ -159,13 +136,13 @@ Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
         }
         
     except Exception as e:
-        print(f"DEBUG: OpenAI API Error: {e}")
+        print(f"OpenAI API Error: {e}")
         # Fallback to enhanced pattern analysis if OpenAI fails
         return fallback_pattern_analysis(text)
 
 def fallback_pattern_analysis(text):
     """Enhanced fallback pattern analysis if OpenAI API fails"""
-    print("DEBUG: Using fallback pattern analysis")
+    print("Using fallback pattern analysis")
     words = text.lower().split()
     sentences = text.split('.')
     
@@ -232,38 +209,32 @@ def health_check():
     # Test OpenAI API connection
     client = get_openai_client()
     api_status = "not_available"
-    debug_info = {}
-    
-    # Add debug information
-    api_key_value = os.getenv('OPENAI_API_KEY')
-    debug_info['api_key_exists'] = api_key_value is not None
-    debug_info['api_key_length'] = len(api_key_value) if api_key_value else 0
-    debug_info['api_key_starts_with'] = api_key_value[:10] if api_key_value else "N/A"
     
     if client:
         try:
             # Quick test call
-            print("DEBUG: Testing OpenAI API connection...")
             test_response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "Test"}],
                 max_tokens=1
             )
             api_status = "connected"
-            print("DEBUG: OpenAI API test successful!")
+            print("OpenAI API test successful!")
         except Exception as e:
             api_status = f"error: {str(e)[:50]}"
-            print(f"DEBUG: OpenAI API test failed: {e}")
+            print(f"OpenAI API test failed: {e}")
     else:
-        api_status = "no_api_key"
-        print("DEBUG: No OpenAI client available")
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            api_status = "no_api_key"
+        else:
+            api_status = "client_init_failed"
     
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini with Fallback',
-        'debug': debug_info
+        'detection_method': 'OpenAI GPT-4o-mini with Fallback'
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
