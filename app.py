@@ -6,16 +6,11 @@ import os
 from datetime import datetime
 import sqlite3
 import json
-import openai
 
 app = Flask(__name__)
 CORS(app)
 
 print("Starting AI Detection Server (OpenAI-Powered Analysis)...")
-
-# Initialize OpenAI client
-openai.api_key = os.getenv('OPENAI_API_KEY')
-client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Initialize database
 def init_db():
@@ -39,8 +34,30 @@ init_db()
 def get_content_hash(content):
     return hashlib.md5(content.encode()).hexdigest()
 
+def get_openai_client():
+    """Initialize OpenAI client safely"""
+    try:
+        import openai
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            print("No OpenAI API key found")
+            return None
+        
+        # Initialize client with minimal parameters to avoid compatibility issues
+        client = openai.OpenAI(api_key=api_key)
+        return client
+    except Exception as e:
+        print(f"Failed to initialize OpenAI client: {e}")
+        return None
+
 def openai_ai_detection(text):
     """Real OpenAI-powered AI detection with high accuracy"""
+    client = get_openai_client()
+    
+    if not client:
+        print("OpenAI client not available, using fallback")
+        return fallback_pattern_analysis(text)
+    
     try:
         # Craft a sophisticated prompt for AI detection
         prompt = f"""You are an expert AI detection system. Analyze the following text and determine if it was written by AI or a human.
@@ -58,20 +75,16 @@ Consider these factors:
 Text to analyze:
 "{text}"
 
-Respond with a JSON object containing:
-- "confidence_score": A number from 0-100 (0 = definitely human, 100 = definitely AI)
-- "reasoning": Brief explanation of your analysis
-- "indicators": Array of specific indicators you found
-- "human_markers": Array of human-like traits found
-- "ai_markers": Array of AI-like traits found
+Respond with ONLY a JSON object containing:
+{{"confidence_score": [number from 0-100], "reasoning": "[brief explanation]", "indicators": ["specific indicator 1", "specific indicator 2"], "human_markers": ["human trait 1"], "ai_markers": ["ai trait 1"]}}
 
-Be precise and analytical. Base your score on concrete evidence."""
+Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
 
         # Call OpenAI API
         response = client.chat.completions.create(
             model="gpt-4o-mini",  # Most cost-effective while maintaining high accuracy
             messages=[
-                {"role": "system", "content": "You are an expert AI detection system that provides accurate analysis of text to determine if it was written by AI or humans."},
+                {"role": "system", "content": "You are an expert AI detection system. Respond only with valid JSON."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,  # Low temperature for consistent results
@@ -79,38 +92,32 @@ Be precise and analytical. Base your score on concrete evidence."""
         )
         
         # Parse the response
-        analysis_text = response.choices[0].message.content
+        analysis_text = response.choices[0].message.content.strip()
+        print(f"OpenAI response: {analysis_text}")
         
         # Try to extract JSON from the response
         try:
-            # Find JSON in the response
-            import re
-            json_match = re.search(r'\{.*\}', analysis_text, re.DOTALL)
-            if json_match:
-                analysis_data = json.loads(json_match.group())
-            else:
-                # Fallback parsing if JSON isn't properly formatted
-                raise ValueError("No JSON found")
+            # Clean up the response text
+            if analysis_text.startswith('```json'):
+                analysis_text = analysis_text.replace('```json', '').replace('```', '')
+            
+            # Try to parse as JSON
+            analysis_data = json.loads(analysis_text)
                 
-        except (json.JSONDecodeError, ValueError):
-            # Fallback: parse manually or use pattern matching on response
-            confidence_match = re.search(r'confidence[_\s]*score["\s]*:?\s*(\d+)', analysis_text, re.IGNORECASE)
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"JSON parsing failed: {e}")
+            # Fallback: extract confidence score manually
+            import re
+            confidence_match = re.search(r'"confidence_score":\s*(\d+)', analysis_text)
             if confidence_match:
                 confidence_score = int(confidence_match.group(1))
             else:
-                # Emergency fallback based on keyword analysis
-                ai_keywords = ['systematically', 'furthermore', 'optimization', 'implementation', 'comprehensive']
-                human_keywords = ["i think", "honestly", "you know", "basically", "i've"]
-                
-                ai_count = sum(1 for keyword in ai_keywords if keyword.lower() in text.lower())
-                human_count = sum(1 for keyword in human_keywords if keyword.lower() in text.lower())
-                
-                confidence_score = min(90, max(10, (ai_count * 20) - (human_count * 15) + 50))
+                confidence_score = 50  # Default if parsing fails
             
             analysis_data = {
                 "confidence_score": confidence_score,
-                "reasoning": "OpenAI analysis completed",
-                "indicators": ["Analysis performed using GPT-4o-mini"],
+                "reasoning": "OpenAI analysis completed (parsing fallback)",
+                "indicators": ["OpenAI GPT-4o-mini analysis"],
                 "human_markers": [],
                 "ai_markers": []
             }
@@ -131,58 +138,77 @@ Be precise and analytical. Base your score on concrete evidence."""
         return fallback_pattern_analysis(text)
 
 def fallback_pattern_analysis(text):
-    """Fallback pattern analysis if OpenAI API fails"""
+    """Enhanced fallback pattern analysis if OpenAI API fails"""
+    print("Using fallback pattern analysis")
     words = text.lower().split()
     sentences = text.split('.')
     
-    ai_indicators = 0
-    total_checks = 0
+    ai_score = 0
     
-    # AI-typical phrases
+    # Strong AI indicators (more aggressive detection)
     ai_phrases = [
         'furthermore', 'consequently', 'additionally', 'moreover',
         'implementation', 'optimization', 'systematic', 'comprehensive',
         'paradigm', 'methodology', 'facilitate', 'utilize',
-        'seamlessly', 'efficiently', 'effectively', 'significantly'
+        'seamlessly', 'efficiently', 'effectively', 'significantly',
+        'innovative', 'revolutionary', 'transformative', 'cutting-edge',
+        'streamline', 'optimize', 'maximize', 'enhance', 'elevate',
+        'robust', 'scalable', 'versatile', 'dynamic', 'strategic'
     ]
     
+    # Count AI indicators
     for phrase in ai_phrases:
         if phrase in text.lower():
-            ai_indicators += 2
-        total_checks += 1
+            ai_score += 15
+    
+    # Sentence structure analysis
+    avg_sentence_length = len(words) / max(len(sentences), 1)
+    if avg_sentence_length > 20:  # Very long sentences
+        ai_score += 20
+    
+    # Repetitive patterns
+    repetitive_starters = [
+        'the implementation', 'it is important', 'furthermore', 'in conclusion',
+        'additionally', 'moreover', 'consequently', 'in summary'
+    ]
+    for starter in repetitive_starters:
+        if starter in text.lower():
+            ai_score += 25
     
     # Personal markers (reduce AI score)
-    personal_markers = ['i think', 'i feel', 'in my opinion', 'personally', 'i believe']
+    personal_markers = [
+        'i think', 'i feel', 'in my opinion', 'personally', 'i believe',
+        'honestly', 'my experience', 'i remember', 'i noticed'
+    ]
     personal_count = 0
     for marker in personal_markers:
         if marker in text.lower():
             personal_count += 1
     
-    if personal_count > 0:
-        ai_indicators -= personal_count * 2
+    # Reduce score for human markers
+    ai_score -= personal_count * 20
     
-    # Calculate confidence
-    confidence = (ai_indicators / max(total_checks, 1)) * 100
-    confidence = min(95, max(5, confidence))
+    # Calculate final confidence
+    confidence = min(95, max(5, ai_score))
     
     return {
         "confidence_score": round(confidence, 1),
-        "reasoning": "Fallback pattern analysis used",
-        "indicators": ["Pattern-based analysis"],
+        "reasoning": "Fallback pattern analysis - OpenAI API unavailable",
+        "indicators": [f"Pattern analysis: {ai_score} AI indicators"],
         "human_markers": [f"{personal_count} personal markers found"],
-        "ai_markers": [f"{ai_indicators} AI indicators found"],
-        "method": "Fallback Pattern Analysis",
+        "ai_markers": [f"AI phrases and formal language detected"],
+        "method": "Enhanced Pattern Analysis (Fallback)",
         "tokens_used": 0
     }
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     # Test OpenAI API connection
-    api_status = "connected"
-    try:
-        if not os.getenv('OPENAI_API_KEY'):
-            api_status = "no_api_key"
-        else:
+    client = get_openai_client()
+    api_status = "not_available"
+    
+    if client:
+        try:
             # Quick test call
             test_response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -190,14 +216,16 @@ def health_check():
                 max_tokens=1
             )
             api_status = "connected"
-    except Exception as e:
-        api_status = f"error: {str(e)[:50]}"
+        except Exception as e:
+            api_status = f"error: {str(e)[:50]}"
+    else:
+        api_status = "no_api_key"
     
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini'
+        'detection_method': 'OpenAI GPT-4o-mini with Fallback'
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
@@ -216,7 +244,7 @@ def analyze_text():
         
         start_time = time.time()
         
-        # Use OpenAI for AI detection
+        # Use OpenAI for AI detection (with fallback)
         detection_result = openai_ai_detection(text)
         confidence_score = detection_result['confidence_score']
         
@@ -254,7 +282,7 @@ def analyze_text():
             'reasoning': detection_result.get('reasoning', ''),
             'ai_markers': detection_result.get('ai_markers', []),
             'human_markers': detection_result.get('human_markers', []),
-            'note': 'Real OpenAI-powered detection - industry-leading accuracy!'
+            'note': 'Real OpenAI-powered detection with pattern fallback'
         }
         
         # Store in database
@@ -307,7 +335,7 @@ def get_stats():
     return jsonify({
         'total_analyses': result[0] if result else 0,
         'average_confidence': round(result[1], 1) if result and result[1] else 0,
-        'detection_method': 'OpenAI GPT-4o-mini',
+        'detection_method': 'OpenAI GPT-4o-mini with Enhanced Fallback',
         'api_status': 'active'
     })
 
