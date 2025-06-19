@@ -11,7 +11,7 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-print("Starting AI Detection Server (Direct OpenAI API)...")
+print("Starting AI Detection Server (Conversational Analysis)...")
 
 # Initialize database
 def init_db():
@@ -52,11 +52,11 @@ def direct_openai_call(prompt):
         data = {
             'model': 'gpt-4o-mini',
             'messages': [
-                {'role': 'system', 'content': 'You are an expert AI detection system. Respond only with valid JSON.'},
+                {'role': 'system', 'content': 'You are an expert AI detection analyst who provides detailed, conversational explanations. Be thorough but accessible.'},
                 {'role': 'user', 'content': prompt}
             ],
-            'temperature': 0.1,
-            'max_tokens': 500
+            'temperature': 0.2,
+            'max_tokens': 800
         }
         
         response = requests.post(
@@ -78,34 +78,32 @@ def direct_openai_call(prompt):
         return None
 
 def openai_ai_detection(text):
-    """Real OpenAI-powered AI detection using direct HTTP calls"""
+    """Conversational OpenAI-powered AI detection"""
     
-    # Craft a sophisticated prompt for AI detection
-    prompt = f"""You are an expert AI detection system. Analyze the following text and determine if it was written by AI or a human.
-
-Consider these factors:
-1. Writing style and flow
-2. Vocabulary patterns and word choice
-3. Sentence structure consistency
-4. Personal voice and authenticity
-5. Error patterns (humans make small mistakes, AI tends to be too perfect)
-6. Emotional expression and subjectivity
-7. Conversational markers and informalities
-8. Knowledge presentation style
+    # Enhanced conversational prompt for detailed analysis
+    prompt = f"""You are an expert AI detection analyst. Analyze this text to determine if it was written by AI or a human, then provide a conversational, detailed explanation.
 
 Text to analyze:
 "{text}"
 
-Respond with ONLY a JSON object containing:
-{{"confidence_score": [number from 0-100], "reasoning": "[brief explanation]", "indicators": ["specific indicator 1", "specific indicator 2"], "human_markers": ["human trait 1"], "ai_markers": ["ai trait 1"]}}
+Please provide your analysis in this JSON format:
+{{
+  "confidence_score": [number from 0-100 where 0=definitely human, 100=definitely AI],
+  "conversational_explanation": "[A detailed, conversational explanation in 2-3 paragraphs that: 1) States your confidence level in plain English, 2) Explains the specific indicators you found with examples from the text, 3) Provides context about why these patterns suggest AI or human authorship. Write like you're explaining to an intelligent person who wants to understand your reasoning.]",
+  "key_indicators": ["3-5 specific examples from the text that influenced your decision"],
+  "writing_style_notes": "[Brief assessment of the writing style - is it academic, casual, business, creative, etc.]",
+  "human_elements": ["Any human-like characteristics you found"],
+  "ai_elements": ["Any AI-like characteristics you found"]
+}}
 
-Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
+Be specific, cite actual phrases from the text, and explain your reasoning clearly. Make it educational and conversational.
+"""
 
     result = direct_openai_call(prompt)
     
     if not result:
         print("OpenAI API call failed, using fallback")
-        return fallback_pattern_analysis(text)
+        return fallback_conversational_analysis(text)
     
     try:
         # Extract the response
@@ -123,98 +121,107 @@ Be precise and analytical. 0 = definitely human, 100 = definitely AI."""
                 
         except (json.JSONDecodeError, ValueError) as e:
             print(f"JSON parsing failed: {e}")
-            # Fallback: extract confidence score manually
+            # Fallback: try to extract confidence score and create conversational response
             import re
-            confidence_match = re.search(r'"confidence_score":\s*(\d+)', analysis_text)
+            confidence_match = re.search(r'"?confidence_score"?\s*:?\s*(\d+)', analysis_text)
             if confidence_match:
                 confidence_score = int(confidence_match.group(1))
             else:
-                confidence_score = 50  # Default if parsing fails
+                confidence_score = 50
             
+            # Create a conversational fallback
             analysis_data = {
                 "confidence_score": confidence_score,
-                "reasoning": "OpenAI analysis completed (parsing fallback)",
-                "indicators": ["OpenAI GPT-4o-mini analysis"],
-                "human_markers": [],
-                "ai_markers": []
+                "conversational_explanation": f"I'm {confidence_score}% confident about this analysis. The text shows characteristics that suggest {'AI generation' if confidence_score > 50 else 'human authorship'}, but I encountered some difficulty processing the detailed analysis. The writing style and patterns I can detect point toward this confidence level.",
+                "key_indicators": ["Analysis completed with limited detail extraction"],
+                "writing_style_notes": "Style analysis partially completed",
+                "human_elements": [],
+                "ai_elements": []
             }
         
         return {
             "confidence_score": analysis_data.get("confidence_score", 50),
-            "reasoning": analysis_data.get("reasoning", "Analysis completed"),
-            "indicators": analysis_data.get("indicators", []),
-            "human_markers": analysis_data.get("human_markers", []),
-            "ai_markers": analysis_data.get("ai_markers", []),
-            "method": "OpenAI GPT-4o-mini Direct API",
+            "conversational_explanation": analysis_data.get("conversational_explanation", "Analysis completed"),
+            "key_indicators": analysis_data.get("key_indicators", []),
+            "writing_style_notes": analysis_data.get("writing_style_notes", ""),
+            "human_elements": analysis_data.get("human_elements", []),
+            "ai_elements": analysis_data.get("ai_elements", []),
+            "method": "OpenAI GPT-4o-mini Conversational Analysis",
             "tokens_used": result['usage']['total_tokens'] if 'usage' in result else 0
         }
         
     except Exception as e:
         print(f"OpenAI response processing error: {e}")
-        # Fallback to enhanced pattern analysis if OpenAI fails
-        return fallback_pattern_analysis(text)
+        return fallback_conversational_analysis(text)
 
-def fallback_pattern_analysis(text):
-    """Enhanced fallback pattern analysis if OpenAI API fails"""
-    print("Using fallback pattern analysis")
+def fallback_conversational_analysis(text):
+    """Conversational fallback analysis if OpenAI API fails"""
+    print("Using fallback conversational analysis")
     words = text.lower().split()
     sentences = text.split('.')
     
     ai_score = 0
+    ai_indicators = []
+    human_indicators = []
     
-    # Strong AI indicators (more aggressive detection)
-    ai_phrases = [
-        'furthermore', 'consequently', 'additionally', 'moreover',
-        'implementation', 'optimization', 'systematic', 'comprehensive',
-        'paradigm', 'methodology', 'facilitate', 'utilize',
-        'seamlessly', 'efficiently', 'effectively', 'significantly',
-        'innovative', 'revolutionary', 'transformative', 'cutting-edge',
-        'streamline', 'optimize', 'maximize', 'enhance', 'elevate',
-        'robust', 'scalable', 'versatile', 'dynamic', 'strategic'
-    ]
+    # AI indicators with explanations
+    ai_phrases = {
+        'furthermore': 'formal transition word',
+        'consequently': 'formal transition word', 
+        'additionally': 'formal transition word',
+        'moreover': 'formal transition word',
+        'implementation': 'business jargon',
+        'optimization': 'technical terminology',
+        'systematic': 'formal descriptor',
+        'comprehensive': 'corporate language',
+        'facilitate': 'business terminology',
+        'utilize': 'formal alternative to "use"'
+    }
     
-    # Count AI indicators
-    for phrase in ai_phrases:
+    # Check for AI indicators
+    for phrase, explanation in ai_phrases.items():
         if phrase in text.lower():
             ai_score += 15
+            ai_indicators.append(f"'{phrase}' - {explanation}")
     
-    # Sentence structure analysis
-    avg_sentence_length = len(words) / max(len(sentences), 1)
-    if avg_sentence_length > 20:  # Very long sentences
-        ai_score += 20
-    
-    # Repetitive patterns
-    repetitive_starters = [
-        'the implementation', 'it is important', 'furthermore', 'in conclusion',
-        'additionally', 'moreover', 'consequently', 'in summary'
-    ]
-    for starter in repetitive_starters:
-        if starter in text.lower():
-            ai_score += 25
-    
-    # Personal markers (reduce AI score)
-    personal_markers = [
-        'i think', 'i feel', 'in my opinion', 'personally', 'i believe',
-        'honestly', 'my experience', 'i remember', 'i noticed'
-    ]
-    personal_count = 0
+    # Check for human indicators
+    personal_markers = ['i think', 'i feel', 'honestly', 'in my opinion', 'i believe']
     for marker in personal_markers:
         if marker in text.lower():
-            personal_count += 1
+            ai_score -= 20
+            human_indicators.append(f"Personal expression: '{marker}'")
     
-    # Reduce score for human markers
-    ai_score -= personal_count * 20
+    # Sentence structure
+    avg_length = len(words) / max(len(sentences), 1)
+    if avg_length > 20:
+        ai_score += 20
+        ai_indicators.append(f"Very long sentences (avg {avg_length:.1f} words)")
     
-    # Calculate final confidence
     confidence = min(95, max(5, ai_score))
+    
+    # Create conversational explanation
+    if confidence >= 70:
+        explanation = f"I'm {confidence:.0f}% confident this text was generated by AI. The writing shows several telltale signs of artificial generation, including formal language patterns and structured presentation that AI models tend to produce. "
+    elif confidence >= 30:
+        explanation = f"This is a mixed case - I'm {confidence:.0f}% confident it might be AI-generated. The text has some characteristics that could suggest AI, but also retains elements that feel more human. "
+    else:
+        explanation = f"I'm only {confidence:.0f}% confident this is AI-generated, which means it likely appears more human. The writing style and language patterns suggest human authorship. "
+    
+    if ai_indicators:
+        explanation += f"Key AI indicators I found include: {', '.join(ai_indicators[:3])}. "
+    if human_indicators:
+        explanation += f"However, I also noticed human elements like: {', '.join(human_indicators)}. "
+    
+    explanation += "This analysis uses pattern recognition since the advanced AI analysis wasn't available."
     
     return {
         "confidence_score": round(confidence, 1),
-        "reasoning": "Fallback pattern analysis - OpenAI API unavailable",
-        "indicators": [f"Pattern analysis: {ai_score} AI indicators"],
-        "human_markers": [f"{personal_count} personal markers found"],
-        "ai_markers": [f"AI phrases and formal language detected"],
-        "method": "Enhanced Pattern Analysis (Fallback)",
+        "conversational_explanation": explanation,
+        "key_indicators": ai_indicators[:5] if ai_indicators else ["Pattern-based analysis completed"],
+        "writing_style_notes": "Analyzed using fallback pattern recognition",
+        "human_elements": human_indicators,
+        "ai_elements": ai_indicators,
+        "method": "Enhanced Conversational Pattern Analysis",
         "tokens_used": 0
     }
 
@@ -243,7 +250,7 @@ def health_check():
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini Direct HTTP API'
+        'detection_method': 'OpenAI GPT-4o-mini Conversational Analysis'
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
@@ -262,7 +269,7 @@ def analyze_text():
         
         start_time = time.time()
         
-        # Use OpenAI for AI detection (with fallback)
+        # Use conversational OpenAI analysis
         detection_result = openai_ai_detection(text)
         confidence_score = detection_result['confidence_score']
         
@@ -297,10 +304,12 @@ def analyze_text():
             'method': detection_result['method'],
             'verdict_emoji': verdict_emoji,
             'tokens_used': detection_result.get('tokens_used', 0),
-            'reasoning': detection_result.get('reasoning', ''),
-            'ai_markers': detection_result.get('ai_markers', []),
-            'human_markers': detection_result.get('human_markers', []),
-            'note': 'Real OpenAI-powered detection via direct HTTP API'
+            'conversational_explanation': detection_result.get('conversational_explanation', ''),
+            'key_indicators': detection_result.get('key_indicators', []),
+            'writing_style_notes': detection_result.get('writing_style_notes', ''),
+            'human_elements': detection_result.get('human_elements', []),
+            'ai_elements': detection_result.get('ai_elements', []),
+            'note': 'Advanced conversational AI analysis'
         }
         
         # Store in database
@@ -323,7 +332,7 @@ def analyze_text():
             'confidence_score': round(confidence_score, 1),
             'verdict': f"{verdict_emoji} {verdict}",
             'analysis_details': analysis_details,
-            'analysis_id': f'OAI-{get_content_hash(text)[:8]}',
+            'analysis_id': f'CONV-{get_content_hash(text)[:8]}',
             'timestamp': datetime.now().isoformat()
         }
         
@@ -353,7 +362,7 @@ def get_stats():
     return jsonify({
         'total_analyses': result[0] if result else 0,
         'average_confidence': round(result[1], 1) if result and result[1] else 0,
-        'detection_method': 'OpenAI GPT-4o-mini Direct HTTP API',
+        'detection_method': 'OpenAI GPT-4o-mini Conversational Analysis',
         'api_status': 'active'
     })
 
