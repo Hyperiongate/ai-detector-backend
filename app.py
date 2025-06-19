@@ -7,11 +7,13 @@ from datetime import datetime
 import sqlite3
 import json
 import requests
+import io
+import base64
 
 app = Flask(__name__)
 CORS(app)
 
-print("Starting AI Detection Server (Conversational Analysis)...")
+print("Starting AI Detection Server (Document Upload + Conversational Analysis)...")
 
 # Initialize database
 def init_db():
@@ -24,6 +26,7 @@ def init_db():
             confidence_score REAL,
             verdict TEXT,
             analysis_details TEXT,
+            file_metadata TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -34,6 +37,82 @@ init_db()
 
 def get_content_hash(content):
     return hashlib.md5(content.encode()).hexdigest()
+
+def extract_text_from_pdf(file_content):
+    """Extract text from PDF using PyPDF2"""
+    try:
+        import PyPDF2
+        pdf_file = io.BytesIO(file_content)
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        
+        return text.strip()
+    except ImportError:
+        return "PDF processing library not available. Please install PyPDF2."
+    except Exception as e:
+        return f"Error extracting PDF text: {str(e)}"
+
+def extract_text_from_docx(file_content):
+    """Extract text from Word document using python-docx"""
+    try:
+        import docx
+        doc_file = io.BytesIO(file_content)
+        doc = docx.Document(doc_file)
+        
+        text = ""
+        for paragraph in doc.paragraphs:
+            text += paragraph.text + "\n"
+        
+        return text.strip()
+    except ImportError:
+        return "Word document processing library not available. Please install python-docx."
+    except Exception as e:
+        return f"Error extracting Word document text: {str(e)}"
+
+def process_uploaded_file(file_content, filename, file_type):
+    """Process uploaded file and extract text"""
+    
+    file_size = len(file_content)
+    
+    # File size limit (5MB)
+    if file_size > 5 * 1024 * 1024:
+        return None, {"error": "File too large. Maximum size is 5MB."}
+    
+    # Extract text based on file type
+    extracted_text = ""
+    
+    if file_type == 'application/pdf' or filename.lower().endswith('.pdf'):
+        extracted_text = extract_text_from_pdf(file_content)
+    elif file_type in ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'] or filename.lower().endswith(('.docx', '.doc')):
+        extracted_text = extract_text_from_docx(file_content)
+    elif file_type == 'text/plain' or filename.lower().endswith('.txt'):
+        try:
+            extracted_text = file_content.decode('utf-8')
+        except:
+            try:
+                extracted_text = file_content.decode('latin-1')
+            except:
+                extracted_text = "Error: Could not decode text file."
+    else:
+        return None, {"error": f"Unsupported file type: {file_type}. Supported types: PDF, Word (.docx, .doc), Plain text (.txt)"}
+    
+    if not extracted_text or len(extracted_text.strip()) < 100:
+        return None, {"error": "Could not extract sufficient text from file. Minimum 100 characters required."}
+    
+    # File metadata
+    metadata = {
+        "filename": filename,
+        "file_type": file_type,
+        "file_size": file_size,
+        "word_count": len(extracted_text.split()),
+        "character_count": len(extracted_text),
+        "extracted_length": len(extracted_text)
+    }
+    
+    return extracted_text, metadata
 
 def direct_openai_call(prompt):
     """Call OpenAI API directly using requests to avoid client library issues"""
@@ -146,7 +225,7 @@ Be specific, cite actual phrases from the text, and explain your reasoning clear
             "writing_style_notes": analysis_data.get("writing_style_notes", ""),
             "human_elements": analysis_data.get("human_elements", []),
             "ai_elements": analysis_data.get("ai_elements", []),
-            "method": "OpenAI GPT-4o-mini Conversational Analysis",
+            "method": "OpenAI GPT-4o-mini Document Analysis",
             "tokens_used": result['usage']['total_tokens'] if 'usage' in result else 0
         }
         
@@ -250,7 +329,9 @@ def health_check():
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini Conversational Analysis'
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis',
+        'supported_formats': ['PDF', 'Word (.docx, .doc)', 'Plain Text (.txt)'],
+        'max_file_size': '5MB'
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
@@ -309,7 +390,8 @@ def analyze_text():
             'writing_style_notes': detection_result.get('writing_style_notes', ''),
             'human_elements': detection_result.get('human_elements', []),
             'ai_elements': detection_result.get('ai_elements', []),
-            'note': 'Advanced conversational AI analysis'
+            'note': 'Advanced conversational AI analysis',
+            'content_type': 'text'
         }
         
         # Store in database
@@ -318,10 +400,10 @@ def analyze_text():
             conn = sqlite3.connect('analyses.db')
             conn.execute('''
                 INSERT OR REPLACE INTO analyses 
-                (content_hash, content_type, confidence_score, verdict, analysis_details)
-                VALUES (?, ?, ?, ?, ?)
+                (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
             ''', (content_hash, 'text', confidence_score, f"{verdict_emoji} {verdict}", 
-                  json.dumps(analysis_details)))
+                  json.dumps(analysis_details), json.dumps({})))
             conn.commit()
             conn.close()
         except Exception as e:
@@ -345,24 +427,130 @@ def analyze_text():
             'error': 'Analysis failed. Please try again.'
         }), 500
 
+@app.route('/api/analyze/document', methods=['POST'])
+def analyze_document():
+    try:
+        # Check if file is in request
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        # Read file content
+        file_content = file.read()
+        filename = file.filename
+        file_type = file.content_type
+        
+        print(f"Processing uploaded file: {filename} ({file_type})")
+        
+        # Process the uploaded file
+        extracted_text, metadata = process_uploaded_file(file_content, filename, file_type)
+        
+        if extracted_text is None:
+            return jsonify({'success': False, 'error': metadata['error']}), 400
+        
+        start_time = time.time()
+        
+        # Use conversational OpenAI analysis on extracted text
+        detection_result = openai_ai_detection(extracted_text)
+        confidence_score = detection_result['confidence_score']
+        
+        processing_time = time.time() - start_time
+        
+        # Determine verdict with emojis
+        if confidence_score >= 80:
+            verdict = "High AI Probability"
+            verdict_emoji = "🤖"
+        elif confidence_score >= 60:
+            verdict = "Likely AI Generated"
+            verdict_emoji = "🔴"
+        elif confidence_score >= 40:
+            verdict = "Mixed Signals"
+            verdict_emoji = "🤔"
+        elif confidence_score >= 20:
+            verdict = "Likely Human"
+            verdict_emoji = "📝"
+        else:
+            verdict = "High Human Probability"
+            verdict_emoji = "✅"
+        
+        # Analysis details with file metadata
+        words = extracted_text.split()
+        sentences = extracted_text.split('.')
+        
+        analysis_details = {
+            'word_count': len(words),
+            'sentence_count': len(sentences),
+            'avg_words_per_sentence': round(len(words) / max(len(sentences), 1), 1),
+            'processing_time_ms': round(processing_time * 1000, 2),
+            'method': detection_result['method'],
+            'verdict_emoji': verdict_emoji,
+            'tokens_used': detection_result.get('tokens_used', 0),
+            'conversational_explanation': detection_result.get('conversational_explanation', ''),
+            'key_indicators': detection_result.get('key_indicators', []),
+            'writing_style_notes': detection_result.get('writing_style_notes', ''),
+            'human_elements': detection_result.get('human_elements', []),
+            'ai_elements': detection_result.get('ai_elements', []),
+            'note': 'Document analysis with text extraction',
+            'content_type': 'document',
+            'file_info': metadata
+        }
+        
+        # Store in database
+        content_hash = get_content_hash(extracted_text)
+        try:
+            conn = sqlite3.connect('analyses.db')
+            conn.execute('''
+                INSERT OR REPLACE INTO analyses 
+                (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (content_hash, 'document', confidence_score, f"{verdict_emoji} {verdict}", 
+                  json.dumps(analysis_details), json.dumps(metadata)))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        response = {
+            'success': True,
+            'confidence_score': round(confidence_score, 1),
+            'verdict': f"{verdict_emoji} {verdict}",
+            'analysis_details': analysis_details,
+            'file_metadata': metadata,
+            'analysis_id': f'DOC-{get_content_hash(extracted_text)[:8]}',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"Error in document analysis: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Document analysis failed. Please try again.'
+        }), 500
+
 @app.route('/api/analyze/image', methods=['POST'])
 def analyze_image():
     return jsonify({
         'success': False,
-        'error': 'Image detection coming soon! Currently only text analysis is available.'
+        'error': 'Image detection coming soon! Currently PDF, Word, and text analysis are available.'
     }), 501
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     conn = sqlite3.connect('analyses.db')
-    cursor = conn.execute('SELECT COUNT(*), AVG(confidence_score) FROM analyses')
+    cursor = conn.execute('SELECT COUNT(*), AVG(confidence_score), COUNT(CASE WHEN content_type = "document" THEN 1 END) FROM analyses')
     result = cursor.fetchone()
     conn.close()
     
     return jsonify({
         'total_analyses': result[0] if result else 0,
         'average_confidence': round(result[1], 1) if result and result[1] else 0,
-        'detection_method': 'OpenAI GPT-4o-mini Conversational Analysis',
+        'document_analyses': result[2] if result else 0,
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis',
         'api_status': 'active'
     })
 
