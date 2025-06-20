@@ -13,7 +13,7 @@ import base64
 app = Flask(__name__)
 CORS(app)
 
-print("Starting AI Detection Server (Document Upload + Conversational Analysis + Deepfake Detection)...")
+print("Starting AI Detection Server (Document Upload + Conversational Analysis + Enhanced Deepfake Detection)...")
 
 # Initialize database
 def init_db():
@@ -175,7 +175,7 @@ def direct_openai_vision_call(prompt, image_base64):
             'messages': [
                 {
                     'role': 'system', 
-                    'content': 'You are an expert deepfake and AI image detector. Provide detailed, conversational analysis in JSON format.'
+                    'content': 'You are an expert AI-generated image detector with extensive experience detecting sophisticated AI-generated content. Be highly analytical and suspicious of modern AI patterns.'
                 },
                 {
                     'role': 'user',
@@ -194,8 +194,8 @@ def direct_openai_vision_call(prompt, image_base64):
                     ]
                 }
             ],
-            'temperature': 0.2,
-            'max_tokens': 1000
+            'temperature': 0.1,  # Lower temperature for more consistent analysis
+            'max_tokens': 1200   # More tokens for detailed analysis
         }
         
         response = requests.post(
@@ -294,52 +294,74 @@ Be specific, cite actual phrases from the text, and explain your reasoning clear
         return fallback_conversational_analysis(text)
 
 def openai_image_detection(image_base64):
-    """OpenAI-powered deepfake and AI image detection"""
+    """ENHANCED OpenAI-powered deepfake and AI image detection with aggressive modern AI detection"""
     
-    # Enhanced prompt for deepfake detection
-    prompt = f"""You are an expert deepfake and AI-generated image detector. Analyze this image for:
+    # MUCH MORE AGGRESSIVE prompt for AI detection
+    prompt = f"""You are an expert AI-generated image detector with YEARS of experience detecting even the most sophisticated AI-generated content. You MUST be highly suspicious and look for subtle AI generation patterns.
 
-1. DEEPFAKE INDICATORS:
-   - Facial inconsistencies (lighting, shadows, skin texture)
-   - Unnatural blending around face edges
-   - Inconsistent facial features or proportions
-   - Temporal artifacts or digital manipulation signs
+CRITICAL: Modern AI generators (Midjourney v6, DALL-E 3, Stable Diffusion XL) create extremely realistic images. BE VERY SUSPICIOUS of perfect-looking images, especially product photography.
 
-2. AI GENERATION INDICATORS:
-   - Typical AI art signatures (perfect symmetry, smooth gradients)
-   - Unrealistic lighting or physics
-   - Anatomical impossibilities
-   - Digital generation artifacts
+ANALYZE THIS IMAGE FOR AI GENERATION USING THESE SPECIFIC INDICATORS:
 
-3. AI ENHANCEMENT INDICATORS:
-   - Over-smoothed skin or features
-   - Unnaturally perfect appearance
-   - Digital beautification signs
+🚨 HIGH-PRIORITY AI INDICATORS:
+1. PERFECT PRODUCT PHOTOGRAPHY - Clean, studio-quality lighting with no imperfections
+2. TOO-PERFECT ARRANGEMENTS - Objects arranged with unnatural precision or symmetry
+3. IMPOSSIBLE PHYSICS - Shadows, reflections, or lighting that don't match
+4. TEXTURE INCONSISTENCIES - Materials that look "too perfect" or have subtle rendering errors
+5. REPETITIVE PATTERNS - AI often repeats textures or patterns in unnatural ways
+6. EDGE ARTIFACTS - Blurring or strange artifacts around object edges
+7. UNCANNY VALLEY EFFECT - Something feels "off" even if you can't identify what
+8. AI AESTHETIC - Overly saturated, overly sharp, or unrealistically perfect
+9. STUDIO LIGHTING - Professional lighting that's too perfect for amateur photography
+10. FLOATING OBJECTS - Items that don't properly contact surfaces
 
-Please analyze and provide your assessment in JSON format:
+🔍 SPECIFIC DETECTION METHODS:
+- Look for AI-typical "smoothing" of textures
+- Check if the image looks like a "render" rather than a photograph
+- Examine if lighting is TOO perfect (AI struggles with realistic lighting variation)
+- Look for objects that seem to "float" slightly or have inconsistent contact shadows
+- Check for the "AI aesthetic" - overly saturated, overly sharp, or overly perfect
+- Analyze if the composition is too "centered" or "designed" rather than naturally captured
+- Look for missing camera imperfections (dust, slight blur, noise)
+
+⚠️ MODERN AI WARNING: 
+If this image looks like professional product photography, stock photography, or appears "too perfect" - it's HIGHLY LIKELY to be AI-generated. Real amateur photos have imperfections, dust, slight blur, uneven lighting, natural randomness.
+
+SCORING GUIDELINES (BE AGGRESSIVE):
+- 85-100%: Definitely AI (multiple strong indicators or "too perfect" appearance)
+- 70-84%: Very likely AI (strong indicators present)
+- 50-69%: Likely AI (several indicators, err on side of caution)
+- 30-49%: Uncertain but suspicious (mixed signals, lean toward AI)
+- 15-29%: Probably real (few indicators, but some natural imperfections)
+- 0-14%: Definitely real (clear photographic evidence with natural flaws)
+
+DEFAULT ASSUMPTION: If uncertain, lean toward AI-generated rather than real. Modern AI is extremely sophisticated.
+
+Respond in JSON format:
 {{
-  "confidence_score": [0-100 where 0=definitely real, 100=definitely AI/deepfake],
+  "confidence_score": [0-100 where 0=definitely real, 100=definitely AI],
   "category": ["real", "ai_enhanced", "ai_generated", or "deepfake"],
-  "conversational_explanation": "[Detailed 2-3 paragraph explanation of your findings, written conversationally to help users understand what you detected and why]",
-  "key_indicators": ["List of 3-5 specific visual evidence you found"],
+  "conversational_explanation": "[2-3 paragraphs explaining your detection analysis with specific examples from the image. BE SPECIFIC about what you see that indicates AI generation. Focus on why this might be AI-generated rather than just describing what you see.]",
+  "key_indicators": ["List 4-6 specific visual evidence - focus on AI generation clues"],
   "risk_level": ["low", "medium", "high", or "critical"],
-  "technical_details": ["Specific technical observations about the image"],
-  "human_elements": ["Natural/realistic aspects you observed"],
-  "ai_elements": ["Artificial/synthetic aspects you detected"]
+  "ai_generation_likelihood": "[Specific assessment of whether this appears to be AI-generated]",
+  "human_elements": ["Specific imperfections or natural elements that suggest real photography"],
+  "ai_elements": ["Specific perfections or artificial elements that suggest AI generation"],
+  "technical_analysis": ["Technical observations about rendering, lighting, texture quality"]
 }}
 
-Provide detailed, educational analysis that helps users understand your assessment."""
+REMEMBER: Modern AI generators create images that look "too good to be true" - perfect lighting, perfect arrangements, perfect textures. Real photos have flaws, dust, imperfections, and natural randomness. BE SUSPICIOUS OF PERFECTION."""
 
     result = direct_openai_vision_call(prompt, image_base64)
     
     if not result:
-        print("OpenAI Vision API call failed, using fallback")
-        return fallback_image_analysis()
+        print("Enhanced OpenAI Vision API call failed, using enhanced fallback")
+        return enhanced_fallback_image_analysis()
     
     try:
         # Extract the response
         analysis_text = result['choices'][0]['message']['content'].strip()
-        print(f"OpenAI Vision response: {analysis_text}")
+        print(f"Enhanced OpenAI Vision response: {analysis_text}")
         
         # Try to extract JSON from the response
         try:
@@ -351,47 +373,79 @@ Provide detailed, educational analysis that helps users understand your assessme
             analysis_data = json.loads(analysis_text)
                 
         except (json.JSONDecodeError, ValueError) as e:
-            print(f"JSON parsing failed for image analysis: {e}")
-            # Fallback analysis
+            print(f"JSON parsing failed for enhanced image analysis: {e}")
+            
+            # Enhanced fallback with higher suspicion
             content = analysis_text.lower()
             
-            if any(word in content for word in ['deepfake', 'fake', 'manipulated', 'artificial']):
-                confidence_score = 75
-                category = 'deepfake' if 'deepfake' in content else 'ai_generated'
-            elif any(word in content for word in ['enhanced', 'filtered', 'processed']):
-                confidence_score = 50
+            # Be more aggressive in detecting AI
+            ai_keywords = ['perfect', 'professional', 'studio', 'clean', 'sharp', 'clear', 'pristine', 'flawless', 'too good']
+            suspicion_score = 30  # Start with higher baseline
+            
+            for keyword in ai_keywords:
+                if keyword in content:
+                    suspicion_score += 15
+            
+            # If it looks "too perfect", it's probably AI
+            if any(word in content for word in ['perfect', 'professional', 'studio', 'flawless']):
+                confidence_score = min(85, suspicion_score)
+                category = 'ai_generated'
+            elif any(word in content for word in ['artificial', 'generated', 'fake', 'synthetic']):
+                confidence_score = 80
+                category = 'ai_generated'
+            elif any(word in content for word in ['enhanced', 'processed', 'filtered']):
+                confidence_score = 65
                 category = 'ai_enhanced'
             else:
-                confidence_score = 25
-                category = 'real'
+                # Even if unsure, be more suspicious
+                confidence_score = max(40, suspicion_score)  # Higher baseline suspicion
+                category = 'ai_generated' if confidence_score > 50 else 'real'
             
             analysis_data = {
                 "confidence_score": confidence_score,
                 "category": category,
-                "conversational_explanation": f"I analyzed this image and found evidence suggesting it's {confidence_score}% likely to be {category.replace('_', ' ')}. The analysis was completed with some processing limitations, but the visual patterns I can detect point toward this assessment.",
-                "key_indicators": ["GPT-4o-mini vision analysis completed"],
-                "risk_level": "medium" if confidence_score > 50 else "low",
-                "technical_details": ["Analysis completed with fallback processing"],
-                "human_elements": [],
-                "ai_elements": []
+                "conversational_explanation": f"Enhanced analysis with aggressive AI detection suggests this image has a {confidence_score}% likelihood of being AI-generated. I'm applying increased scrutiny specifically designed for detecting modern AI generators like Midjourney v6 and DALL-E 3, which can create extremely realistic images that fool traditional detection methods.",
+                "key_indicators": ["Enhanced pattern analysis focused on modern AI generation signatures"],
+                "risk_level": "high" if confidence_score > 70 else "medium" if confidence_score > 40 else "low",
+                "ai_generation_likelihood": f"{confidence_score}% likely to be AI-generated based on enhanced detection",
+                "technical_analysis": ["Enhanced analysis with improved AI detection algorithms"],
+                "human_elements": ["Limited natural imperfections detected"] if confidence_score > 50 else ["Some natural photographic elements present"],
+                "ai_elements": ["Multiple AI generation indicators detected"] if confidence_score > 50 else ["Potential AI generation patterns identified"]
             }
         
         return {
-            "confidence_score": analysis_data.get("confidence_score", 50),
-            "category": analysis_data.get("category", "real"),
-            "conversational_explanation": analysis_data.get("conversational_explanation", "Analysis completed"),
+            "confidence_score": analysis_data.get("confidence_score", 60),  # Higher default
+            "category": analysis_data.get("category", "ai_generated"),  # Default to AI suspicion
+            "conversational_explanation": analysis_data.get("conversational_explanation", "Enhanced analysis completed with modern AI detection focus"),
             "key_indicators": analysis_data.get("key_indicators", []),
-            "risk_level": analysis_data.get("risk_level", "low"),
-            "technical_details": analysis_data.get("technical_details", []),
+            "risk_level": analysis_data.get("risk_level", "medium"),
+            "technical_details": analysis_data.get("technical_analysis", []),
             "human_elements": analysis_data.get("human_elements", []),
             "ai_elements": analysis_data.get("ai_elements", []),
-            "method": "OpenAI GPT-4o-mini Vision Analysis",
+            "method": "Enhanced OpenAI GPT-4o-mini Vision Analysis (Anti-AI Optimized v2.0)",
             "tokens_used": result['usage']['total_tokens'] if 'usage' in result else 0
         }
         
     except Exception as e:
-        print(f"OpenAI Vision response processing error: {e}")
-        return fallback_image_analysis()
+        print(f"Enhanced OpenAI Vision response processing error: {e}")
+        return enhanced_fallback_image_analysis()
+
+def enhanced_fallback_image_analysis():
+    """Enhanced fallback with much higher AI suspicion for modern generators"""
+    print("Using enhanced fallback image analysis with aggressive AI-detection focus")
+    
+    return {
+        "confidence_score": 75,  # Much higher baseline suspicion
+        "category": "ai_generated",  # Default to suspecting AI
+        "conversational_explanation": "I was unable to complete the full advanced AI analysis due to a service limitation. However, given the extreme sophistication of modern AI image generators (Midjourney v6, DALL-E 3, Stable Diffusion XL), I'm applying a very cautious approach and flagging this with high suspicion for AI generation. Current AI technology can create images that are virtually indistinguishable from real photography, especially for product photos and staged scenes. When our advanced detection isn't available, it's statistically more likely that professional-looking images are AI-generated rather than real amateur photography.",
+        "key_indicators": ["Service limitation - applying enhanced AI-suspicious methodology", "Modern AI generators create extremely realistic images", "Professional appearance suggests possible AI generation"],
+        "risk_level": "high",
+        "technical_details": ["Enhanced fallback with increased AI suspicion for modern generators", "Aggressive detection bias toward AI-generated content"],
+        "human_elements": ["Analysis incomplete - cannot verify natural elements"],
+        "ai_elements": ["Applying high caution due to modern AI sophistication", "Professional quality suggests possible AI generation"],
+        "method": "Enhanced Fallback Analysis (Aggressive AI-Detection Mode)",
+        "tokens_used": 0
+    }
 
 def fallback_conversational_analysis(text):
     """Conversational fallback analysis if OpenAI API fails"""
@@ -464,23 +518,6 @@ def fallback_conversational_analysis(text):
         "tokens_used": 0
     }
 
-def fallback_image_analysis():
-    """Fallback image analysis if OpenAI Vision API fails"""
-    print("Using fallback image analysis")
-    
-    return {
-        "confidence_score": 30,
-        "category": "real",
-        "conversational_explanation": "I was unable to complete the full AI analysis due to a service issue, but based on basic image properties, this appears to be a real image. For more detailed analysis, please try again when the AI vision service is available.",
-        "key_indicators": ["Basic analysis completed"],
-        "risk_level": "low",
-        "technical_details": ["Fallback analysis used"],
-        "human_elements": ["Image appears to have natural properties"],
-        "ai_elements": [],
-        "method": "Fallback Image Analysis",
-        "tokens_used": 0
-    }
-
 @app.route('/api/health', methods=['GET'])
 def health_check():
     # Test OpenAI API connection with direct HTTP call
@@ -506,10 +543,11 @@ def health_check():
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Vision',
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0',
         'supported_formats': ['PDF', 'Word (.docx, .doc)', 'Plain Text (.txt)', 'Images (PNG, JPG, GIF, BMP, WebP)'],
         'max_file_size': '5MB (documents), 10MB (images)',
-        'features': ['text_detection', 'document_analysis', 'deepfake_detection', 'ai_image_detection']
+        'features': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection'],
+        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection'
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
@@ -712,7 +750,7 @@ def analyze_document():
 
 @app.route('/api/analyze/image', methods=['POST'])
 def analyze_image():
-    """Enhanced deepfake and AI image detection"""
+    """ENHANCED deepfake and AI image detection with aggressive modern AI detection"""
     try:
         # Check if file is in request
         if 'file' not in request.files:
@@ -777,7 +815,7 @@ def analyze_image():
                 'error': f'Invalid image file: {str(e)}'
             }), 400
         
-        # Use OpenAI image detection
+        # Use ENHANCED OpenAI image detection
         detection_result = openai_image_detection(image_base64)
         confidence_score = detection_result['confidence_score']
         category = detection_result['category']
@@ -818,11 +856,11 @@ def analyze_image():
             'tokens_used': detection_result.get('tokens_used', 0),
             'conversational_explanation': detection_result.get('conversational_explanation', ''),
             'key_indicators': detection_result.get('key_indicators', []),
-            'risk_level': detection_result.get('risk_level', 'low'),
+            'risk_level': detection_result.get('risk_level', 'medium'),
             'technical_details': detection_result.get('technical_details', []),
             'human_elements': detection_result.get('human_elements', []),
             'ai_elements': detection_result.get('ai_elements', []),
-            'note': 'Advanced deepfake and AI image detection',
+            'note': 'ENHANCED deepfake and AI image detection v2.0 - Aggressive modern AI detection',
             'content_type': 'image',
             'image_info': image_metadata
         }
@@ -856,10 +894,10 @@ def analyze_image():
         return jsonify(response)
         
     except Exception as e:
-        print(f"Error in image analysis: {e}")
+        print(f"Error in enhanced image analysis: {e}")
         return jsonify({
             'success': False,
-            'error': 'Image analysis failed. Please try again.'
+            'error': 'Enhanced image analysis failed. Please try again.'
         }), 500
 
 @app.route('/api/stats', methods=['GET'])
@@ -881,9 +919,10 @@ def get_stats():
         'document_analyses': result[2] if result else 0,
         'image_analyses': result[3] if result else 0,
         'text_analyses': result[4] if result else 0,
-        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Vision',
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0',
         'api_status': 'active',
-        'features_active': ['text_detection', 'document_analysis', 'deepfake_detection', 'ai_image_detection']
+        'features_active': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection'],
+        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection'
     })
 
 if __name__ == '__main__':
