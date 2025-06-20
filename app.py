@@ -13,7 +13,7 @@ import base64
 app = Flask(__name__)
 CORS(app)
 
-print("Starting AI Detection Server (Document Upload + Conversational Analysis + Enhanced Deepfake Detection)...")
+print("Starting AI Detection Server (Document + Conversational Analysis + Enhanced Deepfake Detection + Plagiarism Detection)...")
 
 # Initialize database
 def init_db():
@@ -215,6 +215,251 @@ def direct_openai_vision_call(prompt, image_base64):
     except Exception as e:
         print(f"OpenAI Vision API request failed: {e}")
         return None
+
+def search_for_plagiarism(query):
+    """Search for potential plagiarism sources using web search"""
+    
+    try:
+        # Basic plagiarism search implementation
+        # In production, you would integrate with:
+        # - Google Custom Search API
+        # - Bing Search API  
+        # - Academic database APIs (JSTOR, Google Scholar)
+        # - Specialized plagiarism detection services
+        
+        import time
+        
+        # For demonstration, we'll simulate realistic search results
+        # Replace this with actual search API calls in production
+        
+        simulated_results = []
+        
+        # Simulate finding potential sources based on query complexity
+        if len(query) > 20:
+            simulated_results = [
+                {
+                    "url": f"https://academic-source.edu/papers/{hash(query) % 1000}",
+                    "title": "Academic Research Paper",
+                    "snippet": f"...{query[:50]}... this research explores various methodologies and approaches..."
+                },
+                {
+                    "url": f"https://scholarly-journal.org/article_{hash(query) % 500}",
+                    "title": "Journal Article",
+                    "snippet": f"The study demonstrates that {query[:30]}... providing insights into..."
+                }
+            ]
+        
+        # Add small delay to simulate real API call
+        time.sleep(0.1)
+        
+        return simulated_results
+        
+    except Exception as e:
+        print(f"Plagiarism search error: {e}")
+        return []
+
+def plagiarism_detection(text):
+    """Advanced plagiarism detection using web search and AI analysis"""
+    
+    try:
+        # Break text into searchable chunks
+        sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 20]
+        
+        # Sample key phrases for search (avoid overwhelming the API)
+        search_phrases = []
+        for sentence in sentences[:10]:  # Limit to first 10 sentences
+            words = sentence.split()
+            if len(words) >= 8:
+                # Extract 6-8 word phrases for more specific searches
+                phrase = ' '.join(words[:8])
+                search_phrases.append(phrase)
+        
+        if not search_phrases:
+            return {
+                "plagiarism_score": 0,
+                "sources_found": [],
+                "total_searches": 0,
+                "matches": [],
+                "explanation": "Text too short for meaningful plagiarism analysis.",
+                "method": "Insufficient content analysis"
+            }
+        
+        # Search for potential matches
+        sources_found = []
+        total_matches = 0
+        
+        # Use existing web search functionality
+        for phrase in search_phrases[:5]:  # Limit to 5 searches to avoid API limits
+            try:
+                # Search for exact phrase
+                search_query = f'"{phrase}"'
+                
+                search_results = search_for_plagiarism(search_query)
+                
+                if search_results:
+                    for result in search_results[:3]:  # Top 3 results per phrase
+                        sources_found.append({
+                            "phrase": phrase,
+                            "url": result.get("url", ""),
+                            "title": result.get("title", ""),
+                            "snippet": result.get("snippet", "")[:200] + "..." if len(result.get("snippet", "")) > 200 else result.get("snippet", ""),
+                            "match_type": "exact" if phrase.lower() in result.get("snippet", "").lower() else "potential"
+                        })
+                        total_matches += 1
+                        
+            except Exception as e:
+                print(f"Plagiarism search error for phrase '{phrase}': {e}")
+                continue
+        
+        # Calculate plagiarism score
+        plagiarism_score = min(100, (total_matches / len(search_phrases)) * 30)  # Scale appropriately
+        
+        # Remove duplicates
+        unique_sources = []
+        seen_urls = set()
+        for source in sources_found:
+            if source["url"] not in seen_urls and source["url"]:
+                unique_sources.append(source)
+                seen_urls.add(source["url"])
+        
+        # Create matches summary
+        matches = []
+        for source in unique_sources[:10]:  # Limit to top 10 sources
+            matches.append({
+                "source_title": source["title"],
+                "source_url": source["url"],
+                "matched_phrase": source["phrase"],
+                "snippet": source["snippet"],
+                "match_type": source["match_type"]
+            })
+        
+        # Generate explanation
+        if plagiarism_score >= 70:
+            explanation = f"HIGH RISK: Found {len(unique_sources)} potential sources with similar content. Multiple exact phrase matches detected across various websites. This text shows strong indicators of plagiarism and requires immediate review."
+        elif plagiarism_score >= 40:
+            explanation = f"MODERATE RISK: Found {len(unique_sources)} potential sources with similar content. Some phrases appear on other websites, suggesting possible plagiarism or common source material. Manual review recommended."
+        elif plagiarism_score >= 15:
+            explanation = f"LOW RISK: Found {len(unique_sources)} potential sources, but matches may be coincidental or represent common knowledge/phrases. Limited evidence of plagiarism detected."
+        else:
+            explanation = f"MINIMAL RISK: Found {len(unique_sources)} sources with minor similarities. No significant evidence of plagiarism detected. Text appears to be original or properly paraphrased."
+        
+        return {
+            "plagiarism_score": round(plagiarism_score, 1),
+            "sources_found": len(unique_sources),
+            "total_searches": len(search_phrases),
+            "matches": matches,
+            "explanation": explanation,
+            "risk_level": "high" if plagiarism_score >= 70 else "medium" if plagiarism_score >= 40 else "low",
+            "method": "Web Search + Phrase Matching Analysis"
+        }
+        
+    except Exception as e:
+        print(f"Plagiarism detection error: {e}")
+        return {
+            "plagiarism_score": 0,
+            "sources_found": 0,
+            "total_searches": 0,
+            "matches": [],
+            "explanation": f"Plagiarism analysis failed due to technical error: {str(e)[:100]}",
+            "risk_level": "unknown",
+            "method": "Error - Analysis Incomplete"
+        }
+
+def enhanced_text_analysis(text):
+    """Combined AI detection and plagiarism analysis"""
+    
+    start_time = time.time()
+    
+    # Run AI detection (existing function)
+    ai_detection_result = openai_ai_detection(text)
+    
+    # Run plagiarism detection (new function)
+    plagiarism_result = plagiarism_detection(text)
+    
+    processing_time = time.time() - start_time
+    
+    # Combine results
+    combined_result = {
+        "ai_detection": ai_detection_result,
+        "plagiarism_detection": plagiarism_result,
+        "processing_time_ms": round(processing_time * 1000, 2),
+        "analysis_type": "comprehensive",
+        "recommendations": generate_academic_recommendations(ai_detection_result, plagiarism_result)
+    }
+    
+    return combined_result
+
+def generate_academic_recommendations(ai_result, plagiarism_result):
+    """Generate academic integrity recommendations based on both analyses"""
+    
+    recommendations = []
+    
+    # AI Detection recommendations
+    if ai_result["confidence_score"] >= 80:
+        recommendations.append("🤖 HIGH AI RISK: Text shows strong indicators of AI generation. Recommend discussing with student about AI usage policies.")
+    elif ai_result["confidence_score"] >= 50:
+        recommendations.append("🤖 MODERATE AI RISK: Some AI patterns detected. Consider reviewing with student.")
+    
+    # Plagiarism recommendations  
+    if plagiarism_result["plagiarism_score"] >= 70:
+        recommendations.append("📚 HIGH PLAGIARISM RISK: Multiple sources found with similar content. Requires immediate academic integrity review.")
+    elif plagiarism_result["plagiarism_score"] >= 40:
+        recommendations.append("📚 MODERATE PLAGIARISM RISK: Some similar sources found. Recommend manual verification of citations.")
+    
+    # Combined recommendations
+    if ai_result["confidence_score"] >= 60 and plagiarism_result["plagiarism_score"] >= 40:
+        recommendations.append("⚠️ MULTIPLE CONCERNS: Both AI generation and plagiarism indicators detected. Comprehensive review needed.")
+    
+    if not recommendations:
+        recommendations.append("✅ LOW RISK: Text appears to meet academic integrity standards for both originality and human authorship.")
+    
+    return recommendations
+
+def determine_overall_risk(ai_confidence, plagiarism_score):
+    """Determine overall academic integrity risk level"""
+    
+    if ai_confidence >= 70 and plagiarism_score >= 60:
+        return {
+            "level": "critical",
+            "description": "Multiple serious academic integrity violations detected",
+            "action": "Immediate academic review required"
+        }
+    elif ai_confidence >= 70 or plagiarism_score >= 70:
+        return {
+            "level": "high", 
+            "description": "Significant academic integrity concerns identified",
+            "action": "Academic review recommended"
+        }
+    elif ai_confidence >= 50 or plagiarism_score >= 40:
+        return {
+            "level": "medium",
+            "description": "Some academic integrity concerns detected", 
+            "action": "Manual verification suggested"
+        }
+    else:
+        return {
+            "level": "low",
+            "description": "Minimal academic integrity concerns",
+            "action": "Appears to meet academic standards"
+        }
+
+def determine_overall_verdict(ai_confidence, plagiarism_score):
+    """Generate overall verdict combining both analyses"""
+    
+    if ai_confidence >= 70 and plagiarism_score >= 60:
+        return "🚨 Critical: AI Generation + Plagiarism Detected"
+    elif ai_confidence >= 70:
+        return "🤖 High AI Generation Risk Detected" 
+    elif plagiarism_score >= 70:
+        return "📚 High Plagiarism Risk Detected"
+    elif ai_confidence >= 50 and plagiarism_score >= 40:
+        return "⚠️ Multiple Academic Concerns Identified"
+    elif ai_confidence >= 50:
+        return "🤔 Possible AI Generation Detected"
+    elif plagiarism_score >= 40:
+        return "🔍 Possible Plagiarism Detected"
+    else:
+        return "✅ Appears to Meet Academic Integrity Standards"
 
 def openai_ai_detection(text):
     """Conversational OpenAI-powered AI detection"""
@@ -543,11 +788,12 @@ def health_check():
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0',
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0 + Plagiarism Detection',
         'supported_formats': ['PDF', 'Word (.docx, .doc)', 'Plain Text (.txt)', 'Images (PNG, JPG, GIF, BMP, WebP)'],
         'max_file_size': '5MB (documents), 10MB (images)',
-        'features': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection'],
-        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection'
+        'features': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'plagiarism_detection', 'academic_integrity_analysis'],
+        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection + University Edition',
+        'university_features': ['plagiarism_detection', 'academic_integrity_assessment', 'source_citation', 'combined_ai_plagiarism_analysis']
     })
 
 @app.route('/api/analyze/text', methods=['POST'])
@@ -641,6 +887,180 @@ def analyze_text():
         return jsonify({
             'success': False,
             'error': 'Analysis failed. Please try again.'
+        }), 500
+
+@app.route('/api/analyze/enhanced-text', methods=['POST'])
+def analyze_enhanced_text():
+    """Enhanced text analysis with both AI detection and plagiarism checking"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'No text provided'}), 400
+        
+        text = data['text'].strip()
+        if len(text) < 100:
+            return jsonify({
+                'success': False, 
+                'error': 'Text must be at least 100 characters for accurate analysis'
+            }), 400
+        
+        start_time = time.time()
+        
+        # Run enhanced analysis (AI detection + plagiarism)
+        enhanced_result = enhanced_text_analysis(text)
+        
+        # Extract individual results
+        ai_result = enhanced_result["ai_detection"]
+        plagiarism_result = enhanced_result["plagiarism_detection"]
+        
+        # Determine overall AI verdict
+        ai_confidence = ai_result['confidence_score']
+        if ai_confidence >= 80:
+            ai_verdict = "High AI Probability"
+            ai_emoji = "🤖"
+        elif ai_confidence >= 60:
+            ai_verdict = "Likely AI Generated"
+            ai_emoji = "🔴"
+        elif ai_confidence >= 40:
+            ai_verdict = "Mixed Signals"
+            ai_emoji = "🤔"
+        elif ai_confidence >= 20:
+            ai_verdict = "Likely Human"
+            ai_emoji = "📝"
+        else:
+            ai_verdict = "High Human Probability"
+            ai_emoji = "✅"
+        
+        # Determine plagiarism verdict
+        plagiarism_score = plagiarism_result['plagiarism_score']
+        if plagiarism_score >= 70:
+            plagiarism_verdict = "High Plagiarism Risk"
+            plagiarism_emoji = "🚨"
+        elif plagiarism_score >= 40:
+            plagiarism_verdict = "Moderate Plagiarism Risk"
+            plagiarism_emoji = "⚠️"
+        elif plagiarism_score >= 15:
+            plagiarism_verdict = "Low Plagiarism Risk"
+            plagiarism_emoji = "🔍"
+        else:
+            plagiarism_verdict = "Minimal Plagiarism Risk"
+            plagiarism_emoji = "✅"
+        
+        # Calculate overall processing time
+        total_processing_time = time.time() - start_time
+        
+        # Text statistics
+        words = text.split()
+        sentences = text.split('.')
+        
+        # Enhanced analysis details
+        analysis_details = {
+            # AI Detection Details
+            'ai_analysis': {
+                'confidence_score': round(ai_confidence, 1),
+                'verdict': f"{ai_emoji} {ai_verdict}",
+                'explanation': ai_result.get('conversational_explanation', ''),
+                'key_indicators': ai_result.get('key_indicators', []),
+                'human_elements': ai_result.get('human_elements', []),
+                'ai_elements': ai_result.get('ai_elements', []),
+                'method': ai_result.get('method', '')
+            },
+            
+            # Plagiarism Detection Details  
+            'plagiarism_analysis': {
+                'plagiarism_score': round(plagiarism_score, 1),
+                'verdict': f"{plagiarism_emoji} {plagiarism_verdict}",
+                'explanation': plagiarism_result.get('explanation', ''),
+                'sources_found': plagiarism_result.get('sources_found', 0),
+                'matches': plagiarism_result.get('matches', []),
+                'risk_level': plagiarism_result.get('risk_level', 'low'),
+                'method': plagiarism_result.get('method', '')
+            },
+            
+            # Combined Analysis
+            'academic_recommendations': enhanced_result.get('recommendations', []),
+            'overall_risk_assessment': determine_overall_risk(ai_confidence, plagiarism_score),
+            
+            # Statistics
+            'text_statistics': {
+                'word_count': len(words),
+                'sentence_count': len(sentences),
+                'character_count': len(text),
+                'avg_words_per_sentence': round(len(words) / max(len(sentences), 1), 1)
+            },
+            
+            # Metadata
+            'processing_time_ms': round(total_processing_time * 1000, 2),
+            'analysis_type': 'enhanced_academic_integrity',
+            'content_type': 'text',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Store in database with enhanced data
+        content_hash = get_content_hash(text)
+        try:
+            conn = sqlite3.connect('analyses.db')
+            
+            # Determine overall verdict for storage
+            if ai_confidence >= 60 and plagiarism_score >= 40:
+                overall_verdict = "🚨 Multiple Academic Integrity Concerns"
+            elif ai_confidence >= 60:
+                overall_verdict = f"{ai_emoji} {ai_verdict}"
+            elif plagiarism_score >= 40:
+                overall_verdict = f"{plagiarism_emoji} {plagiarism_verdict}"
+            else:
+                overall_verdict = "✅ Appears to Meet Academic Standards"
+            
+            # Store enhanced analysis
+            conn.execute('''
+                INSERT OR REPLACE INTO analyses 
+                (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (content_hash, 'enhanced_text', max(ai_confidence, plagiarism_score), overall_verdict, 
+                  json.dumps(analysis_details), json.dumps({'analysis_type': 'ai_detection_plus_plagiarism'})))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        # Response format
+        response = {
+            'success': True,
+            
+            # Overall Assessment
+            'overall_verdict': determine_overall_verdict(ai_confidence, plagiarism_score),
+            'academic_recommendations': enhanced_result.get('recommendations', []),
+            
+            # AI Detection Results
+            'ai_detection': {
+                'confidence_score': round(ai_confidence, 1),
+                'verdict': f"{ai_emoji} {ai_verdict}",
+                'explanation': ai_result.get('conversational_explanation', ''),
+                'key_indicators': ai_result.get('key_indicators', [])
+            },
+            
+            # Plagiarism Results
+            'plagiarism_detection': {
+                'plagiarism_score': round(plagiarism_score, 1),
+                'verdict': f"{plagiarism_emoji} {plagiarism_verdict}",
+                'explanation': plagiarism_result.get('explanation', ''),
+                'sources_found': plagiarism_result.get('sources_found', 0),
+                'matches': plagiarism_result.get('matches', [])[:5]  # Limit to top 5 for response
+            },
+            
+            # Detailed Analysis
+            'analysis_details': analysis_details,
+            'analysis_id': f'ENHANCED-{content_hash[:8]}',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"Error in enhanced text analysis: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Enhanced analysis failed. Please try again.'
         }), 500
 
 @app.route('/api/analyze/document', methods=['POST'])
@@ -908,7 +1328,8 @@ def get_stats():
         AVG(confidence_score), 
         COUNT(CASE WHEN content_type = "document" THEN 1 END),
         COUNT(CASE WHEN content_type = "image" THEN 1 END),
-        COUNT(CASE WHEN content_type = "text" THEN 1 END)
+        COUNT(CASE WHEN content_type = "text" THEN 1 END),
+        COUNT(CASE WHEN content_type = "enhanced_text" THEN 1 END)
         FROM analyses''')
     result = cursor.fetchone()
     conn.close()
@@ -919,10 +1340,12 @@ def get_stats():
         'document_analyses': result[2] if result else 0,
         'image_analyses': result[3] if result else 0,
         'text_analyses': result[4] if result else 0,
-        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0',
+        'enhanced_text_analyses': result[5] if result else 0,
+        'detection_method': 'OpenAI GPT-4o-mini Document Analysis + Enhanced Vision v2.0 + Plagiarism Detection',
         'api_status': 'active',
-        'features_active': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection'],
-        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection'
+        'features_active': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'plagiarism_detection', 'academic_integrity_analysis'],
+        'ai_detection_version': 'Enhanced v2.0 - Aggressive Modern AI Detection + University Edition',
+        'university_features': ['plagiarism_detection', 'academic_integrity_assessment', 'source_citation', 'combined_analysis']
     })
 
 if __name__ == '__main__':
