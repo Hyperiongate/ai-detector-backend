@@ -11,12 +11,13 @@ import io
 import base64
 import re
 from difflib import SequenceMatcher
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app)
 
-print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI Detection + Deepfake Detection)...")
+print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI Detection + Deepfake Detection + News Misinformation Checker)...")
 
 # Initialize database
 def init_db():
@@ -47,11 +48,9 @@ def extract_text_from_pdf(file_content):
         import PyPDF2
         pdf_file = io.BytesIO(file_content)
         pdf_reader = PyPDF2.PdfReader(pdf_file)
-        
         text = ""
         for page in pdf_reader.pages:
             text += page.extract_text() + "\n"
-        
         return text.strip()
     except ImportError:
         return "PDF processing library not available. Please install PyPDF2."
@@ -64,11 +63,9 @@ def extract_text_from_docx(file_content):
         import docx
         doc_file = io.BytesIO(file_content)
         doc = docx.Document(doc_file)
-        
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text + "\n"
-        
         return text.strip()
     except ImportError:
         return "Word document processing library not available. Please install python-docx."
@@ -77,7 +74,6 @@ def extract_text_from_docx(file_content):
 
 def process_uploaded_file(file_content, filename, file_type):
     """Process uploaded file and extract text"""
-    
     file_size = len(file_content)
     
     # File size limit (5MB)
@@ -86,7 +82,6 @@ def process_uploaded_file(file_content, filename, file_type):
     
     # Extract text based on file type
     extracted_text = ""
-    
     if file_type == 'application/pdf' or filename.lower().endswith('.pdf'):
         extracted_text = extract_text_from_pdf(file_content)
     elif file_type in ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'] or filename.lower().endswith(('.docx', '.doc')):
@@ -120,7 +115,6 @@ def process_uploaded_file(file_content, filename, file_type):
 def direct_openai_call(prompt):
     """Call OpenAI API directly using requests to avoid client library issues"""
     api_key = os.getenv('OPENAI_API_KEY')
-    
     if not api_key:
         print("No OpenAI API key found")
         return None
@@ -162,7 +156,6 @@ def direct_openai_call(prompt):
 def direct_openai_vision_call(prompt, image_base64):
     """Call OpenAI Vision API directly for image analysis"""
     api_key = os.getenv('OPENAI_API_KEY')
-    
     if not api_key:
         print("No OpenAI API key found for image analysis")
         return None
@@ -177,7 +170,7 @@ def direct_openai_vision_call(prompt, image_base64):
             'model': 'gpt-4o-mini',
             'messages': [
                 {
-                    'role': 'system', 
+                    'role': 'system',
                     'content': 'You are an expert AI-generated image detector with extensive experience detecting sophisticated AI-generated content. Be highly analytical and suspicious of modern AI patterns.'
                 },
                 {
@@ -223,7 +216,6 @@ def direct_openai_vision_call(prompt, image_base64):
 
 def preprocess_text_for_plagiarism(text):
     """Advanced text preprocessing for multiple detection methods"""
-    
     # Clean and normalize text
     clean_text = re.sub(r'\s+', ' ', text.strip())
     
@@ -264,7 +256,6 @@ def preprocess_text_for_plagiarism(text):
 
 def extract_academic_terminology(text):
     """Extract academic terms and concepts for targeted searching"""
-    
     # Academic indicators and terminology
     academic_patterns = [
         r'\b(?:according to|research shows|studies indicate|analysis reveals|evidence suggests)\b',
@@ -281,8 +272,8 @@ def extract_academic_terminology(text):
     # Extract potential author names and years (citations)
     citation_patterns = [
         r'\(([A-Z][a-z]+),\s*(\d{4})\)',  # (Author, Year)
-        r'([A-Z][a-z]+)\s+\((\d{4})\)',   # Author (Year)
-        r'\[(\d+)\]'                       # [1] style
+        r'([A-Z][a-z]+)\s+\((\d{4})\)',  # Author (Year)
+        r'\[(\d+)\]'  # [1] style
     ]
     
     for pattern in citation_patterns:
@@ -293,7 +284,6 @@ def extract_academic_terminology(text):
 
 def google_search_for_plagiarism(phrase):
     """Enhanced Google search for plagiarism detection"""
-    
     try:
         # Google Custom Search API integration
         # You'll need to set up Google Custom Search API and get:
@@ -325,7 +315,6 @@ def google_search_for_plagiarism(phrase):
             
             for item in data.get('items', []):
                 similarity_score = calculate_text_similarity(phrase, item.get('snippet', ''))
-                
                 if similarity_score > 0.6:  # Significant similarity threshold
                     results.append({
                         "url": item.get('link', ''),
@@ -346,7 +335,6 @@ def google_search_for_plagiarism(phrase):
 
 def search_academic_databases(academic_phrases):
     """Search academic databases for scholarly plagiarism"""
-    
     academic_results = []
     
     # CrossRef API for academic papers (free)
@@ -355,7 +343,6 @@ def search_academic_databases(academic_phrases):
             crossref_results = search_crossref(phrase)
             academic_results.extend(crossref_results)
             time.sleep(0.5)  # Rate limiting
-            
         except Exception as e:
             print(f"Academic search error: {e}")
             continue
@@ -364,7 +351,6 @@ def search_academic_databases(academic_phrases):
 
 def search_crossref(phrase):
     """Search CrossRef database for academic papers"""
-    
     try:
         # CrossRef API is free for basic searches
         crossref_url = "https://api.crossref.org/works"
@@ -421,7 +407,6 @@ def search_crossref(phrase):
 
 def detect_semantic_plagiarism_with_ai(sentences):
     """AI-powered semantic similarity detection using OpenAI"""
-    
     semantic_matches = []
     
     for sentence in sentences[:8]:  # Limit expensive AI calls
@@ -437,7 +422,6 @@ def detect_semantic_plagiarism_with_ai(sentences):
                     "paraphrase_type": semantic_analysis.get("paraphrase_type", ""),
                     "explanation": semantic_analysis.get("explanation", "")
                 })
-                
         except Exception as e:
             print(f"Semantic analysis error: {e}")
             continue
@@ -446,7 +430,6 @@ def detect_semantic_plagiarism_with_ai(sentences):
 
 def analyze_sentence_semantic_plagiarism(sentence):
     """Use OpenAI to analyze sentence for semantic plagiarism patterns"""
-    
     prompt = f"""You are an expert plagiarism detector. Analyze this sentence for patterns that suggest it might be paraphrased or rewritten from existing sources.
 
 Sentence: "{sentence}"
@@ -460,17 +443,16 @@ Look for these plagiarism indicators:
 
 Respond in JSON format:
 {{
-  "similarity_likelihood": [0-100 probability this is paraphrased from existing source],
-  "indicators": ["list of specific indicators found"],
-  "paraphrase_type": ["academic_rewriting", "tool_assisted", "manual_paraphrase", "original", "unclear"],
-  "explanation": "[brief explanation of your assessment]",
-  "sophistication_mismatch": [true/false if ideas seem too sophisticated for writing style]
+    "similarity_likelihood": [0-100 probability this is paraphrased from existing source],
+    "indicators": ["list of specific indicators found"],
+    "paraphrase_type": ["academic_rewriting", "tool_assisted", "manual_paraphrase", "original", "unclear"],
+    "explanation": "[brief explanation of your assessment]",
+    "sophistication_mismatch": [true/false if ideas seem too sophisticated for writing style]
 }}
 
 Be conservative - only flag high-probability cases."""
-    
+
     result = direct_openai_call(prompt)
-    
     if not result:
         return None
     
@@ -490,7 +472,6 @@ Be conservative - only flag high-probability cases."""
 
 def analyze_citations_comprehensive(text):
     """Comprehensive citation analysis and format checking"""
-    
     citation_issues = []
     
     # Check for various citation formats
@@ -557,10 +538,8 @@ def calculate_text_similarity(text1, text2):
 
 def enhanced_plagiarism_detection(text):
     """University-grade plagiarism detection with multiple detection methods"""
-    
     try:
         start_time = time.time()
-        
         print(f"Starting enhanced plagiarism detection for {len(text)} characters")
         
         # 1. ENHANCED TEXT PREPROCESSING
@@ -616,7 +595,6 @@ def enhanced_plagiarism_detection(text):
 
 def calculate_comprehensive_plagiarism_score(web_results, academic_results, semantic_results, citation_issues, text):
     """Calculate weighted plagiarism score from multiple detection methods"""
-    
     # Enhanced weighting for university-grade detection
     weights = {
         "exact_matches": 0.35,      # Web exact phrase matching
@@ -627,7 +605,6 @@ def calculate_comprehensive_plagiarism_score(web_results, academic_results, sema
     
     # Calculate individual scores with enhanced algorithms
     exact_score = min(100, len(web_results) * 12 + sum(result.get('similarity_score', 0) * 100 for result in web_results) / max(len(web_results), 1))
-    
     academic_score = min(100, len(academic_results) * 20)  # Academic sources are heavily weighted
     
     semantic_score = 0
@@ -661,7 +638,6 @@ def calculate_comprehensive_plagiarism_score(web_results, academic_results, sema
 
 def compile_detailed_matches(web_results, academic_results, semantic_results):
     """Compile all matches into a unified format for detailed reporting"""
-    
     all_matches = []
     
     # Web search matches
@@ -708,7 +684,6 @@ def compile_detailed_matches(web_results, academic_results, semantic_results):
 
 def determine_plagiarism_risk(score):
     """Determine risk level based on comprehensive university-grade scoring"""
-    
     if score >= 85:
         return {
             "level": "critical",
@@ -725,7 +700,7 @@ def determine_plagiarism_risk(score):
         }
     elif score >= 50:
         return {
-            "level": "medium", 
+            "level": "medium",
             "description": "Moderate plagiarism concerns detected requiring careful review",
             "action": "Manual verification of sources and student discussion required",
             "institutional_action": "Instructor review with potential academic integrity referral"
@@ -747,7 +722,6 @@ def determine_plagiarism_risk(score):
 
 def generate_enhanced_academic_recommendations(analysis, citation_issues):
     """Generate detailed academic recommendations for university use"""
-    
     recommendations = []
     
     if analysis["exact_score"] >= 60:
@@ -803,7 +777,6 @@ def simulate_enhanced_web_search(phrase):
 
 def basic_fallback_plagiarism_analysis(text):
     """Enhanced fallback analysis for when APIs fail"""
-    
     # Basic pattern analysis
     sentences = text.split('.')
     words = text.split()
@@ -837,11 +810,11 @@ def basic_fallback_plagiarism_analysis(text):
     }
 
 # Continue with existing AI detection and image detection functions...
+
 # [Previous AI detection functions remain the same]
 
 def enhanced_text_analysis(text):
     """Combined AI detection and enhanced plagiarism analysis"""
-    
     start_time = time.time()
     
     # Run AI detection (existing function)
@@ -865,7 +838,6 @@ def enhanced_text_analysis(text):
 
 def generate_combined_academic_recommendations(ai_result, plagiarism_result):
     """Generate comprehensive academic recommendations combining AI and plagiarism detection"""
-    
     recommendations = []
     
     # AI Detection recommendations
@@ -876,7 +848,7 @@ def generate_combined_academic_recommendations(ai_result, plagiarism_result):
     elif ai_result["confidence_score"] >= 40:
         recommendations.append("🤖 MODERATE AI RISK: Some AI patterns detected. Consider discussing acceptable AI usage guidelines.")
     
-    # Enhanced Plagiarism recommendations  
+    # Enhanced Plagiarism recommendations
     if plagiarism_result["plagiarism_score"] >= 80:
         recommendations.append("📚 CRITICAL PLAGIARISM: Severe plagiarism detected across multiple sources and methods. Formal academic misconduct proceedings recommended.")
     elif plagiarism_result["plagiarism_score"] >= 60:
@@ -907,7 +879,6 @@ def generate_combined_academic_recommendations(ai_result, plagiarism_result):
 
 def openai_ai_detection(text):
     """Conversational OpenAI-powered AI detection (unchanged from previous version)"""
-    
     prompt = f"""You are an expert AI detection analyst. Analyze this text to determine if it was written by AI or a human, then provide a conversational, detailed explanation.
 
 Text to analyze:
@@ -915,15 +886,16 @@ Text to analyze:
 
 Please provide your analysis in this JSON format:
 {{
-  "confidence_score": [number from 0-100 where 0=definitely human, 100=definitely AI],
-  "conversational_explanation": "[A detailed, conversational explanation in 2-3 paragraphs that: 1) States your confidence level in plain English, 2) Explains the specific indicators you found with examples from the text, 3) Provides context about why these patterns suggest AI or human authorship. Write like you're explaining to an intelligent person who wants to understand your reasoning.]",
-  "key_indicators": ["3-5 specific examples from the text that influenced your decision"],
-  "writing_style_notes": "[Brief assessment of the writing style - is it academic, casual, business, creative, etc.]",
-  "human_elements": ["Any human-like characteristics you found"],
-  "ai_elements": ["Any AI-like characteristics you found"]
+    "confidence_score": [number from 0-100 where 0=definitely human, 100=definitely AI],
+    "conversational_explanation": "[A detailed, conversational explanation in 2-3 paragraphs that: 1) States your confidence level in plain English, 2) Explains the specific indicators you found with examples from the text, 3) Provides context about why these patterns suggest AI or human authorship. Write like you're explaining to an intelligent person who wants to understand your reasoning.]",
+    "key_indicators": ["3-5 specific examples from the text that influenced your decision"],
+    "writing_style_notes": "[Brief assessment of the writing style - is it academic, casual, business, creative, etc.]",
+    "human_elements": ["Any human-like characteristics you found"],
+    "ai_elements": ["Any AI-like characteristics you found"]
 }}
 
 Be specific, cite actual phrases from the text, and explain your reasoning clearly. Make it educational and conversational.
+
 """
 
     result = direct_openai_call(prompt)
@@ -957,7 +929,6 @@ Be specific, cite actual phrases from the text, and explain your reasoning clear
 
 def fallback_conversational_analysis(text):
     """Conversational fallback analysis if OpenAI API fails"""
-    
     words = text.lower().split()
     sentences = text.split('.')
     
@@ -968,7 +939,7 @@ def fallback_conversational_analysis(text):
     # AI indicators with explanations
     ai_phrases = {
         'furthermore': 'formal transition word',
-        'consequently': 'formal transition word', 
+        'consequently': 'formal transition word',
         'additionally': 'formal transition word',
         'moreover': 'formal transition word',
         'implementation': 'business jargon',
@@ -1008,7 +979,601 @@ def fallback_conversational_analysis(text):
         "tokens_used": 0
     }
 
-# [Include previous image detection functions unchanged]
+# =================================================================
+# NEWS MISINFORMATION CHECKER - PHASE 1: CORE FUNCTIONALITY
+# =================================================================
+
+def extract_article_content(url):
+    """Extract content from news article URLs"""
+    try:
+        # Get the webpage
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; FactsAndFakes/1.0; +https://factsandfakes.ai)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+        }
+        
+        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Extract metadata
+            metadata = extract_article_metadata(soup, url)
+            
+            # Extract title
+            title = soup.find('title')
+            title_text = title.get_text().strip() if title else "No title found"
+            
+            # Extract main article text using multiple strategies
+            article_text = extract_clean_article_text(soup)
+            
+            # Extract publication info
+            publication_info = extract_publication_info(soup, url)
+            
+            return {
+                "success": True,
+                "title": title_text,
+                "content": article_text[:5000],  # First 5000 characters for analysis
+                "full_content": article_text,
+                "url": url,
+                "metadata": metadata,
+                "publication_info": publication_info,
+                "word_count": len(article_text.split()),
+                "extracted_at": datetime.now().isoformat()
+            }
+        else:
+            return {"success": False, "error": f"Could not access URL: HTTP {response.status_code}"}
+            
+    except requests.exceptions.Timeout:
+        return {"success": False, "error": "Request timed out - website took too long to respond"}
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "error": "Could not connect to website"}
+    except Exception as e:
+        return {"success": False, "error": f"Error reading URL: {str(e)}"}
+
+def extract_clean_article_text(soup):
+    """Extract clean article text using multiple fallback strategies"""
+    # Remove unwanted elements
+    for element in soup(["script", "style", "nav", "header", "footer", "aside", "menu"]):
+        element.decompose()
+    
+    # Strategy 1: Look for common article containers
+    article_selectors = [
+        'article',
+        '[role="main"]',
+        '.article-body',
+        '.entry-content',
+        '.post-content',
+        '.content',
+        '.story-body',
+        '.article-content',
+        '.main-content',
+        '#article-body',
+        '.article-text'
+    ]
+    
+    for selector in article_selectors:
+        try:
+            content = soup.select_one(selector)
+            if content:
+                text = content.get_text(separator=' ', strip=True)
+                if len(text) > 500:  # Substantial content found
+                    return clean_extracted_text(text)
+        except:
+            continue
+    
+    # Strategy 2: Look for the largest text block in common containers
+    container_selectors = ['main', '.main', '#main', '.container', '.wrapper']
+    for selector in container_selectors:
+        try:
+            container = soup.select_one(selector)
+            if container:
+                paragraphs = container.find_all('p')
+                if len(paragraphs) > 3:
+                    text = ' '.join([p.get_text(strip=True) for p in paragraphs])
+                    if len(text) > 500:
+                        return clean_extracted_text(text)
+        except:
+            continue
+    
+    # Strategy 3: Fallback - get all paragraph text
+    paragraphs = soup.find_all('p')
+    text = ' '.join([p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 50])
+    
+    return clean_extracted_text(text) if text else "Could not extract article content"
+
+def clean_extracted_text(text):
+    """Clean and normalize extracted text"""
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text)
+    
+    # Remove common website artifacts
+    artifacts = [
+        r'Subscribe to our newsletter',
+        r'Sign up for.*newsletter',
+        r'Follow us on.*',
+        r'Share this article',
+        r'Read more:.*',
+        r'Related:.*',
+        r'Advertisement',
+        r'This story continues below advertisement'
+    ]
+    
+    for artifact in artifacts:
+        text = re.sub(artifact, '', text, flags=re.IGNORECASE)
+    
+    return text.strip()
+
+def extract_article_metadata(soup, url):
+    """Extract structured metadata from article"""
+    metadata = {}
+    
+    # Meta tags
+    meta_tags = {
+        'description': soup.find('meta', attrs={'name': 'description'}),
+        'keywords': soup.find('meta', attrs={'name': 'keywords'}),
+        'author': soup.find('meta', attrs={'name': 'author'}),
+        'publish_date': soup.find('meta', attrs={'property': 'article:published_time'}),
+        'modified_date': soup.find('meta', attrs={'property': 'article:modified_time'}),
+        'og_title': soup.find('meta', attrs={'property': 'og:title'}),
+        'og_description': soup.find('meta', attrs={'property': 'og:description'}),
+        'og_type': soup.find('meta', attrs={'property': 'og:type'}),
+        'twitter_title': soup.find('meta', attrs={'name': 'twitter:title'})
+    }
+    
+    for key, tag in meta_tags.items():
+        if tag:
+            content = tag.get('content', '').strip()
+            if content:
+                metadata[key] = content
+    
+    # JSON-LD structured data
+    json_ld = soup.find('script', type='application/ld+json')
+    if json_ld:
+        try:
+            structured_data = json.loads(json_ld.string)
+            metadata['structured_data'] = structured_data
+        except:
+            pass
+    
+    return metadata
+
+def extract_publication_info(soup, url):
+    """Extract publication and source information"""
+    domain = urlparse(url).netloc.lower()
+    
+    # Try to find author
+    author_selectors = [
+        '.author',
+        '.byline',
+        '[rel="author"]',
+        '.article-author',
+        '.post-author'
+    ]
+    
+    author = None
+    for selector in author_selectors:
+        element = soup.select_one(selector)
+        if element:
+            author = element.get_text(strip=True)
+            break
+    
+    # Try to find publication date
+    date_selectors = [
+        'time[datetime]',
+        '.publish-date',
+        '.date',
+        '.article-date'
+    ]
+    
+    pub_date = None
+    for selector in date_selectors:
+        element = soup.select_one(selector)
+        if element:
+            pub_date = element.get('datetime') or element.get_text(strip=True)
+            break
+    
+    return {
+        "domain": domain,
+        "author": author,
+        "publication_date": pub_date,
+        "source_type": classify_source_type(domain)
+    }
+
+def classify_source_type(domain):
+    """Classify the type of news source"""
+    news_domains = {
+        'traditional_media': ['bbc.com', 'cnn.com', 'nytimes.com', 'washingtonpost.com', 'reuters.com', 'ap.org', 'npr.org'],
+        'digital_native': ['buzzfeed.com', 'vox.com', 'politico.com', 'huffpost.com', 'axios.com'],
+        'partisan_left': ['msnbc.com', 'motherjones.com', 'thenation.com', 'salon.com'],
+        'partisan_right': ['foxnews.com', 'breitbart.com', 'dailywire.com', 'nationalreview.com'],
+        'conspiracy': ['infowars.com', 'naturalnews.com', 'zerohedge.com'],
+        'satire': ['theonion.com', 'babylonbee.com', 'satirewire.com']
+    }
+    
+    for category, domains in news_domains.items():
+        if any(d in domain for d in domains):
+            return category
+    
+    return 'unknown'
+
+def analyze_source_credibility(domain, publication_info):
+    """Analyze source credibility using multiple factors"""
+    credibility_score = 50  # Start neutral
+    credibility_factors = []
+    
+    # Known high-credibility sources
+    high_credibility = [
+        'reuters.com', 'ap.org', 'bbc.com', 'npr.org', 'pbs.org',
+        'nytimes.com', 'washingtonpost.com', 'wsj.com', 'economist.com'
+    ]
+    
+    # Known low-credibility sources
+    low_credibility = [
+        'infowars.com', 'naturalnews.com', 'beforeitsnews.com',
+        'worldnewsdailyreport.com', 'nationalreport.net'
+    ]
+    
+    # Known satirical sources
+    satire_sources = [
+        'theonion.com', 'babylonbee.com', 'satirewire.com'
+    ]
+    
+    if any(source in domain for source in high_credibility):
+        credibility_score += 30
+        credibility_factors.append("High-credibility news organization")
+    elif any(source in domain for source in low_credibility):
+        credibility_score -= 40
+        credibility_factors.append("Known misinformation source")
+    elif any(source in domain for source in satire_sources):
+        credibility_score = 0
+        credibility_factors.append("Satirical/comedy news source")
+        return {
+            "credibility_score": 0,
+            "credibility_level": "satirical",
+            "factors": credibility_factors,
+            "source_type": "satire"
+        }
+    
+    # Check for common misinformation indicators in domain
+    suspicious_keywords = ['truth', 'patriot', 'freedom', 'real', 'uncensored', 'insider']
+    if any(keyword in domain for keyword in suspicious_keywords):
+        credibility_score -= 15
+        credibility_factors.append("Suspicious domain keywords detected")
+    
+    # Check domain age and structure (simplified)
+    if domain.count('.') > 2:  # Multiple subdomains
+        credibility_score -= 10
+        credibility_factors.append("Complex domain structure")
+    
+    # Determine credibility level
+    if credibility_score >= 80:
+        level = "very_high"
+    elif credibility_score >= 65:
+        level = "high"
+    elif credibility_score >= 50:
+        level = "medium"
+    elif credibility_score >= 30:
+        level = "low"
+    else:
+        level = "very_low"
+    
+    return {
+        "credibility_score": max(0, min(100, credibility_score)),
+        "credibility_level": level,
+        "factors": credibility_factors,
+        "source_type": publication_info.get("source_type", "unknown")
+    }
+
+def detect_bias_patterns(text):
+    """Detect bias and manipulation patterns in text"""
+    bias_indicators = {
+        "emotional_language": 0,
+        "loaded_words": 0,
+        "absolute_statements": 0,
+        "fear_mongering": 0,
+        "ad_hominem": 0
+    }
+    
+    bias_details = []
+    
+    # Emotional/loaded language
+    emotional_words = [
+        'outrageous', 'shocking', 'devastating', 'incredible', 'unbelievable',
+        'explosive', 'bombshell', 'stunning', 'terrifying', 'alarming'
+    ]
+    
+    for word in emotional_words:
+        if word.lower() in text.lower():
+            bias_indicators["emotional_language"] += 1
+            bias_details.append(f"Emotional language: '{word}'")
+    
+    # Absolute statements
+    absolute_patterns = [
+        r'\b(never|always|all|none|every|completely|totally|absolutely)\b',
+        r'\b(everyone knows|it\'s obvious|clearly|undoubtedly)\b'
+    ]
+    
+    for pattern in absolute_patterns:
+        matches = re.findall(pattern, text, re.IGNORECASE)
+        bias_indicators["absolute_statements"] += len(matches)
+        for match in matches:
+            bias_details.append(f"Absolute statement: '{match}'")
+    
+    # Fear-mongering language
+    fear_words = [
+        'crisis', 'disaster', 'emergency', 'threat', 'danger', 'risk',
+        'collapse', 'destruction', 'chaos', 'panic'
+    ]
+    
+    for word in fear_words:
+        if word.lower() in text.lower():
+            bias_indicators["fear_mongering"] += 1
+    
+    # Calculate overall bias score
+    total_indicators = sum(bias_indicators.values())
+    text_length = len(text.split())
+    bias_density = (total_indicators / max(text_length, 1)) * 1000  # Per 1000 words
+    
+    if bias_density > 10:
+        bias_level = "high"
+    elif bias_density > 5:
+        bias_level = "medium"
+    else:
+        bias_level = "low"
+    
+    return {
+        "bias_score": min(100, bias_density * 10),
+        "bias_level": bias_level,
+        "indicators": bias_indicators,
+        "details": bias_details[:10],  # Limit to top 10 examples
+        "density_per_1000_words": round(bias_density, 2)
+    }
+
+def analyze_temporal_context(publication_info, content):
+    """Analyze temporal context and recency"""
+    current_time = datetime.now()
+    
+    # Try to parse publication date
+    pub_date = publication_info.get('publication_date')
+    age_score = 50  # Default neutral
+    
+    if pub_date:
+        try:
+            # Simple date parsing - could be enhanced
+            if 'T' in str(pub_date):  # ISO format
+                parsed_date = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
+            else:
+                # Try common formats
+                for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y']:
+                    try:
+                        parsed_date = datetime.strptime(pub_date, fmt)
+                        break
+                    except:
+                        continue
+                else:
+                    parsed_date = None
+            
+            if parsed_date:
+                days_old = (current_time - parsed_date).days
+                
+                if days_old <= 1:
+                    age_score = 100
+                    age_category = "breaking_news"
+                elif days_old <= 7:
+                    age_score = 90
+                    age_category = "recent"
+                elif days_old <= 30:
+                    age_score = 70
+                    age_category = "current"
+                elif days_old <= 365:
+                    age_score = 50
+                    age_category = "older"
+                else:
+                    age_score = 30
+                    age_category = "outdated"
+            else:
+                age_category = "unknown_date"
+        except:
+            age_category = "unparseable_date"
+    else:
+        age_category = "no_date"
+    
+    # Check for time-sensitive language
+    urgency_indicators = [
+        'breaking', 'urgent', 'immediate', 'emergency', 'just in',
+        'developing', 'live updates', 'happening now'
+    ]
+    
+    urgency_score = 0
+    for indicator in urgency_indicators:
+        if indicator.lower() in content.lower():
+            urgency_score += 1
+    
+    return {
+        "temporal_score": age_score,
+        "age_category": age_category,
+        "urgency_indicators": urgency_score,
+        "publication_date": pub_date,
+        "analysis_date": current_time.isoformat()
+    }
+
+def comprehensive_misinformation_analysis(content, url=None):
+    """Main comprehensive misinformation analysis function"""
+    start_time = time.time()
+    
+    try:
+        # Extract article content if URL provided
+        if url:
+            extraction_result = extract_article_content(url)
+            if not extraction_result["success"]:
+                return {"success": False, "error": extraction_result["error"]}
+            
+            content = extraction_result["content"]
+            metadata = extraction_result["metadata"]
+            publication_info = extraction_result["publication_info"]
+            title = extraction_result["title"]
+        else:
+            # Direct content analysis
+            metadata = {}
+            publication_info = {"domain": "unknown", "source_type": "unknown"}
+            title = "Direct content analysis"
+        
+        # 1. Source Credibility Analysis
+        credibility_analysis = analyze_source_credibility(
+            publication_info.get("domain", "unknown"), 
+            publication_info
+        )
+        
+        # 2. Bias Detection
+        bias_analysis = detect_bias_patterns(content)
+        
+        # 3. Temporal Context Analysis
+        temporal_analysis = analyze_temporal_context(publication_info, content)
+        
+        # 4. AI-powered content analysis using existing OpenAI integration
+        ai_content_analysis = analyze_content_with_ai(content, title)
+        
+        # 5. Calculate overall credibility score
+        overall_credibility = calculate_overall_credibility(
+            credibility_analysis, bias_analysis, temporal_analysis, ai_content_analysis
+        )
+        
+        processing_time = time.time() - start_time
+        
+        return {
+            "success": True,
+            "overall_credibility": overall_credibility,
+            "source_credibility": credibility_analysis,
+            "bias_analysis": bias_analysis,
+            "temporal_context": temporal_analysis,
+            "ai_content_analysis": ai_content_analysis,
+            "metadata": metadata,
+            "publication_info": publication_info,
+            "content_length": len(content),
+            "processing_time_ms": round(processing_time * 1000, 2),
+            "analysis_timestamp": datetime.now().isoformat(),
+            "method": "Comprehensive Misinformation Analysis v1.0"
+        }
+        
+    except Exception as e:
+        print(f"Comprehensive misinformation analysis error: {e}")
+        return {"success": False, "error": f"Analysis failed: {str(e)}"}
+
+def analyze_content_with_ai(content, title):
+    """Use AI to analyze content for misinformation patterns"""
+    prompt = f"""You are an expert misinformation analyst. Analyze this news content for potential misinformation indicators.
+
+Title: "{title}"
+Content: "{content[:2000]}"
+
+Look for these misinformation patterns:
+1. Factual claims that seem suspicious or unverifiable
+2. Use of conspiracy theory language
+3. Lack of credible sources or evidence
+4. Emotional manipulation techniques
+5. Logical fallacies or weak reasoning
+6. Claims that contradict established facts
+
+Respond in JSON format:
+{{
+    "misinformation_risk": [0-100 score],
+    "risk_level": ["low", "medium", "high", "critical"],
+    "suspicious_claims": ["list of specific suspicious claims found"],
+    "manipulation_techniques": ["list of manipulation techniques detected"],
+    "fact_check_needed": ["list of claims that need fact-checking"],
+    "explanation": "[brief explanation of your assessment]"
+}}"""
+
+    result = direct_openai_call(prompt)
+    
+    if not result:
+        return {
+            "misinformation_risk": 50,
+            "risk_level": "unknown",
+            "suspicious_claims": [],
+            "manipulation_techniques": [],
+            "fact_check_needed": [],
+            "explanation": "AI analysis unavailable"
+        }
+    
+    try:
+        analysis_text = result['choices'][0]['message']['content'].strip()
+        
+        if analysis_text.startswith('```json'):
+            analysis_text = analysis_text.replace('```json', '').replace('```', '')
+        
+        analysis_data = json.loads(analysis_text)
+        return analysis_data
+        
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"AI content analysis JSON parsing error: {e}")
+        return {
+            "misinformation_risk": 50,
+            "risk_level": "unknown",
+            "suspicious_claims": [],
+            "manipulation_techniques": [],
+            "fact_check_needed": [],
+            "explanation": "Analysis parsing failed"
+        }
+
+def calculate_overall_credibility(credibility_analysis, bias_analysis, temporal_analysis, ai_analysis):
+    """Calculate overall credibility score from multiple factors"""
+    weights = {
+        "source_credibility": 0.35,
+        "bias_score": 0.25,
+        "temporal_relevance": 0.15,
+        "ai_content_risk": 0.25
+    }
+    
+    # Normalize scores (all should be 0-100, higher = more credible)
+    source_score = credibility_analysis["credibility_score"]
+    bias_score = max(0, 100 - bias_analysis["bias_score"])  # Invert bias score
+    temporal_score = temporal_analysis["temporal_score"]
+    ai_score = max(0, 100 - ai_analysis["misinformation_risk"])  # Invert AI risk
+    
+    overall_score = (
+        source_score * weights["source_credibility"] +
+        bias_score * weights["bias_score"] +
+        temporal_score * weights["temporal_relevance"] +
+        ai_score * weights["ai_content_risk"]
+    )
+    
+    # Determine credibility level
+    if overall_score >= 80:
+        level = "highly_credible"
+        verdict = "High Credibility"
+    elif overall_score >= 65:
+        level = "credible"
+        verdict = "Credible"
+    elif overall_score >= 50:
+        level = "mixed"
+        verdict = "Mixed Credibility"
+    elif overall_score >= 30:
+        level = "questionable"
+        verdict = "Questionable"
+    else:
+        level = "not_credible"
+        verdict = "Low Credibility"
+    
+    return {
+        "overall_score": round(overall_score, 1),
+        "credibility_level": level,
+        "verdict": verdict,
+        "component_scores": {
+            "source": source_score,
+            "bias": bias_score,
+            "temporal": temporal_score,
+            "ai_analysis": ai_score
+        }
+    }
+
+# =================================================================
+# FLASK ROUTES
+# =================================================================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -1017,7 +1582,6 @@ def health_check():
     google_cse_id = os.getenv('GOOGLE_CSE_ID')
     
     api_status = "not_available"
-    
     if not api_key:
         api_status = "no_api_key"
     else:
@@ -1036,19 +1600,90 @@ def health_check():
     google_status = "configured" if google_api_key and google_cse_id else "not_configured"
     
     return jsonify({
-        'status': 'healthy', 
+        'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
         'google_search_api': google_status,
-        'detection_method': 'University-Grade: OpenAI GPT-4o-mini + Enhanced Vision v2.0 + Professional Plagiarism Detection v3.0',
-        'supported_formats': ['PDF', 'Word (.docx, .doc)', 'Plain Text (.txt)', 'Images (PNG, JPG, GIF, BMP, WebP)'],
+        'detection_method': 'University-Grade: OpenAI GPT-4o-mini + Enhanced Vision v2.0 + Professional Plagiarism Detection v3.0 + News Misinformation Checker v1.0',
+        'supported_formats': ['PDF', 'Word (.docx, .doc)', 'Plain Text (.txt)', 'Images (PNG, JPG, GIF, BMP, WebP)', 'News URLs'],
         'max_file_size': '5MB (documents), 10MB (images)',
-        'features': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'university_grade_plagiarism_detection', 'academic_integrity_analysis', 'semantic_plagiarism_detection', 'citation_analysis'],
-        'ai_detection_version': 'University-Grade v3.0 - Professional Academic Integrity Platform',
+        'features': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'university_grade_plagiarism_detection', 'academic_integrity_analysis', 'semantic_plagiarism_detection', 'citation_analysis', 'news_misinformation_checking', 'source_credibility_analysis', 'bias_detection'],
+        'ai_detection_version': 'University-Grade v3.0 - Professional Academic Integrity Platform + News Misinformation Checker',
         'university_features': ['multi_layer_plagiarism_detection', 'academic_database_search', 'semantic_similarity_analysis', 'comprehensive_citation_analysis', 'institutional_reporting', 'ai_paraphrasing_detection'],
+        'news_features': ['url_content_extraction', 'source_credibility_analysis', 'bias_detection', 'temporal_context_analysis', 'ai_powered_content_analysis', 'comprehensive_misinformation_scoring'],
         'plagiarism_capabilities': ['web_search', 'academic_databases', 'semantic_analysis', 'citation_checking', 'paraphrase_detection'],
-        'api_integrations': ['openai_gpt4o_mini', 'google_custom_search', 'crossref_academic', 'enhanced_ai_analysis']
+        'api_integrations': ['openai_gpt4o_mini', 'google_custom_search', 'crossref_academic', 'enhanced_ai_analysis', 'web_scraping']
     })
+
+@app.route('/api/analyze/news-misinformation', methods=['POST'])
+def analyze_news_misinformation():
+    """Comprehensive news misinformation analysis endpoint"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        url = data.get('url', '').strip()
+        content = data.get('content', '').strip()
+        
+        if not url and not content:
+            return jsonify({
+                'success': False, 
+                'error': 'Either URL or content must be provided'
+            }), 400
+        
+        if url and not content:
+            # URL analysis
+            analysis_result = comprehensive_misinformation_analysis(None, url)
+        elif content:
+            # Direct content analysis
+            analysis_result = comprehensive_misinformation_analysis(content, url if url else None)
+        
+        if not analysis_result["success"]:
+            return jsonify(analysis_result), 400
+        
+        # Store in database
+        content_hash = get_content_hash(url if url else content)
+        overall_score = analysis_result["overall_credibility"]["overall_score"]
+        verdict = analysis_result["overall_credibility"]["verdict"]
+        
+        try:
+            conn = sqlite3.connect('analyses.db')
+            conn.execute('''
+                INSERT OR REPLACE INTO analyses
+                (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (content_hash, 'news_misinformation', overall_score, verdict,
+                  json.dumps(analysis_result), json.dumps({'url': url, 'analysis_type': 'news_misinformation'})))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Database error: {e}")
+        
+        # Format response for frontend
+        response = {
+            'success': True,
+            'analysis_id': f'NEWS-{content_hash[:8]}',
+            'overall_credibility': analysis_result["overall_credibility"],
+            'source_credibility': analysis_result["source_credibility"],
+            'bias_analysis': analysis_result["bias_analysis"],
+            'temporal_context': analysis_result["temporal_context"],
+            'ai_content_analysis': analysis_result["ai_content_analysis"],
+            'metadata': analysis_result.get("metadata", {}),
+            'publication_info': analysis_result.get("publication_info", {}),
+            'processing_time_ms': analysis_result["processing_time_ms"],
+            'timestamp': analysis_result["analysis_timestamp"],
+            'content_length': analysis_result["content_length"]
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"Error in news misinformation analysis: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'News misinformation analysis failed. Please try again.'
+        }), 500
 
 @app.route('/api/analyze/enhanced-text', methods=['POST'])
 def analyze_enhanced_text():
@@ -1061,7 +1696,7 @@ def analyze_enhanced_text():
         text = data['text'].strip()
         if len(text) < 100:
             return jsonify({
-                'success': False, 
+                'success': False,
                 'error': 'Text must be at least 100 characters for accurate analysis'
             }), 400
         
@@ -1095,7 +1730,6 @@ def analyze_enhanced_text():
                 'ai_elements': ai_result.get('ai_elements', []),
                 'method': ai_result.get('method', '')
             },
-            
             'plagiarism_analysis': {
                 'plagiarism_score': round(plagiarism_score, 1),
                 'verdict': determine_plagiarism_verdict(plagiarism_score),
@@ -1107,14 +1741,12 @@ def analyze_enhanced_text():
                 'risk_assessment': plagiarism_result.get('risk_assessment', {}),
                 'method': plagiarism_result.get('method', '')
             },
-            
             'university_assessment': {
                 'overall_risk_level': determine_combined_risk_level(ai_confidence, plagiarism_score),
                 'institutional_action': determine_institutional_action(ai_confidence, plagiarism_score),
                 'academic_recommendations': enhanced_result.get('recommendations', []),
                 'integrity_score': calculate_integrity_score(ai_confidence, plagiarism_score)
             },
-            
             'text_statistics': {
                 'word_count': len(words),
                 'sentence_count': len(sentences),
@@ -1122,7 +1754,6 @@ def analyze_enhanced_text():
                 'avg_words_per_sentence': round(len(words) / max(len(sentences), 1), 1),
                 'academic_indicators': count_academic_indicators(text)
             },
-            
             'processing_metadata': {
                 'processing_time_ms': round(total_processing_time * 1000, 2),
                 'analysis_type': 'university_grade_comprehensive_integrity',
@@ -1140,10 +1771,10 @@ def analyze_enhanced_text():
         try:
             conn = sqlite3.connect('analyses.db')
             conn.execute('''
-                INSERT OR REPLACE INTO analyses 
+                INSERT OR REPLACE INTO analyses
                 (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (content_hash, 'university_enhanced_text', max_score, overall_verdict, 
+            ''', (content_hash, 'university_enhanced_text', max_score, overall_verdict,
                   json.dumps(analysis_details), json.dumps({'analysis_type': 'university_grade_ai_plus_plagiarism'})))
             conn.commit()
             conn.close()
@@ -1153,7 +1784,6 @@ def analyze_enhanced_text():
         # Enhanced response format for universities
         response = {
             'success': True,
-            
             # Executive Summary
             'executive_summary': {
                 'overall_verdict': overall_verdict,
@@ -1161,17 +1791,13 @@ def analyze_enhanced_text():
                 'integrity_score': analysis_details['university_assessment']['integrity_score'],
                 'requires_action': max_score >= 50
             },
-            
             # Individual Analysis Results
             'ai_detection': analysis_details['ai_analysis'],
             'plagiarism_detection': analysis_details['plagiarism_analysis'],
-            
             # University-Specific Assessments
             'university_assessment': analysis_details['university_assessment'],
-            
             # Academic Recommendations
             'academic_recommendations': enhanced_result.get('recommendations', []),
-            
             # Detailed Analysis
             'detailed_analysis': analysis_details,
             'analysis_id': f'UNIV-{content_hash[:8]}',
@@ -1277,19 +1903,20 @@ def determine_overall_verdict_enhanced(ai_confidence, plagiarism_score):
         return "✅ Meets Academic Integrity Standards"
 
 # [Include remaining routes for text, document, image analysis - same as before]
-# [Include stats route - enhanced to show university metrics]
 
+# [Include stats route - enhanced to show university metrics]
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     conn = sqlite3.connect('analyses.db')
-    cursor = conn.execute('''SELECT 
-        COUNT(*), 
-        AVG(confidence_score), 
+    cursor = conn.execute('''SELECT
+        COUNT(*),
+        AVG(confidence_score),
         COUNT(CASE WHEN content_type = "document" THEN 1 END),
         COUNT(CASE WHEN content_type = "image" THEN 1 END),
         COUNT(CASE WHEN content_type = "text" THEN 1 END),
         COUNT(CASE WHEN content_type = "enhanced_text" THEN 1 END),
-        COUNT(CASE WHEN content_type = "university_enhanced_text" THEN 1 END)
+        COUNT(CASE WHEN content_type = "university_enhanced_text" THEN 1 END),
+        COUNT(CASE WHEN content_type = "news_misinformation" THEN 1 END)
         FROM analyses''')
     result = cursor.fetchone()
     conn.close()
@@ -1302,12 +1929,14 @@ def get_stats():
         'text_analyses': result[4] if result else 0,
         'enhanced_text_analyses': result[5] if result else 0,
         'university_grade_analyses': result[6] if result else 0,
-        'detection_method': 'University-Grade: Professional Multi-Layer Detection v3.0',
+        'news_misinformation_analyses': result[7] if result else 0,
+        'detection_method': 'University-Grade: Professional Multi-Layer Detection v3.0 + News Misinformation Checker v1.0',
         'api_status': 'active',
-        'features_active': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'university_grade_plagiarism_detection', 'academic_integrity_analysis', 'semantic_plagiarism_detection', 'citation_analysis'],
-        'ai_detection_version': 'University-Grade v3.0 - Professional Academic Integrity Platform',
+        'features_active': ['text_detection', 'document_analysis', 'enhanced_deepfake_detection', 'aggressive_ai_image_detection', 'university_grade_plagiarism_detection', 'academic_integrity_analysis', 'semantic_plagiarism_detection', 'citation_analysis', 'news_misinformation_checking', 'source_credibility_analysis', 'bias_detection'],
+        'ai_detection_version': 'University-Grade v3.0 - Professional Academic Integrity Platform + News Misinformation Checker',
         'university_capabilities': ['multi_layer_plagiarism', 'academic_database_integration', 'semantic_analysis', 'citation_verification', 'institutional_reporting'],
-        'certification': 'University-Grade Academic Integrity Detection System'
+        'news_capabilities': ['url_content_extraction', 'source_credibility_analysis', 'bias_detection', 'temporal_context_analysis', 'ai_powered_content_analysis'],
+        'certification': 'University-Grade Academic Integrity Detection System + Professional News Misinformation Checker'
     })
 
 if __name__ == '__main__':
