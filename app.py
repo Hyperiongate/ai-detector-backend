@@ -151,8 +151,17 @@ ENHANCED_SOURCE_DATABASE = {
     }
 }
 
-# Enhanced journalist database
+# Enhanced journalist database (no political figures)
 JOURNALIST_DATABASE = {
+    "max_matza": {
+        "outlet": "BBC",
+        "specialization": ["international_affairs", "breaking_news"],
+        "credibility_score": 75,
+        "years_experience": 8,
+        "verification_status": "verified_professional",
+        "bias_rating": "minimal",
+        "expertise_areas": ["US Affairs", "International News"]
+    },
     "sofia_ferreira_santos": {
         "outlet": "BBC",
         "specialization": ["international_affairs", "middle_east", "security"],
@@ -379,8 +388,106 @@ def direct_openai_vision_call(prompt, image_base64):
         return None
 
 # =================================================================
-# NEWS MISINFORMATION CHECKER - ENHANCED WITH NEW SOURCE DATABASE
+# NEWS MISINFORMATION CHECKER - ENHANCED WITH FIXED AUTHOR DETECTION
 # =================================================================
+
+def extract_author_from_content(content):
+    """
+    Extract author from plain text content (when user pastes directly)
+    """
+    lines = content.strip().split('\n')
+    
+    # Look for author in first few lines (common pattern)
+    for i, line in enumerate(lines[:5]):  # Check first 5 lines
+        line = line.strip()
+        
+        # Skip empty lines, timestamps, and headers
+        if not line or 'ago' in line or 'hours' in line or 'minutes' in line:
+            continue
+            
+        # Skip obvious non-author lines
+        if any(skip_word in line.lower() for skip_word in ['getty', 'reuters', 'ap', 'afp', 'copyright', 'image']):
+            continue
+            
+        # Look for name patterns (Capital Letter + lowercase, 2-4 words)
+        name_pattern = r'^([A-Z][a-z]+ [A-Z][a-z]+(?:\s+[A-Z][a-z]+)?(?:\s+[A-Z][a-z]+)?)$'
+        match = re.match(name_pattern, line)
+        
+        if match:
+            potential_author = match.group(1)
+            
+            # Validate it's not a place name or organization
+            exclude_patterns = [
+                'BBC News', 'Reuters', 'Associated Press', 'Getty Images',
+                'New York', 'Los Angeles', 'Washington', 'United States',
+                'President', 'Minister', 'Secretary'
+            ]
+            
+            if not any(exclude in potential_author for exclude in exclude_patterns):
+                return potential_author
+        
+        # Also check for "By [Author Name]" pattern
+        by_pattern = r'^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)'
+        by_match = re.match(by_pattern, line)
+        if by_match:
+            return by_match.group(1)
+    
+    return None
+
+def extract_context_around_phrase(text, phrase, context_length=100):
+    """Extract context around a found phrase"""
+    phrase_pos = text.lower().find(phrase.lower())
+    if phrase_pos == -1:
+        return ""
+    
+    start = max(0, phrase_pos - context_length//2)
+    end = min(len(text), phrase_pos + len(phrase) + context_length//2)
+    
+    return text[start:end].strip()
+
+def detect_content_based_source_recognition(content):
+    """
+    Enhanced content-based source detection
+    """
+    content_lower = content.lower()
+    detected_sources = []
+    
+    # Source indicators in content with better context detection
+    source_indicators = {
+        "bbc": {
+            "patterns": ["bbc news", "bbc world service", "bbc correspondent"],
+            "context_required": True
+        },
+        "reuters": {
+            "patterns": ["reuters reports", "reuters correspondent", "reuters news"],
+            "context_required": True
+        },
+        "ap": {
+            "patterns": ["associated press", "ap news", "ap correspondent"],
+            "context_required": True
+        }
+    }
+    
+    for source, data in source_indicators.items():
+        for pattern in data["patterns"]:
+            if pattern in content_lower:
+                # Extract context around the mention
+                context = extract_context_around_phrase(content, pattern)
+                
+                # Only count if it appears in a byline context, not article content
+                lines = content.split('\n')
+                for i, line in enumerate(lines[:10]):  # Check first 10 lines only
+                    if pattern in line.lower():
+                        detected_sources.append({
+                            "source": source,
+                            "indicator": pattern,
+                            "context": line.strip(),
+                            "line_position": i,
+                            "byline_detection": True
+                        })
+                        break
+    
+    return detected_sources
 
 def extract_article_content(url):
     """Extract content from news article URLs"""
@@ -547,7 +654,7 @@ def extract_publication_info(soup, url):
     # Try to find author
     author_selectors = [
         '.author',
-        '.byline',
+        '.byline', 
         '[rel="author"]',
         '.article-author',
         '.post-author'
@@ -591,7 +698,7 @@ def classify_source_type(domain):
 
 def enhanced_source_credibility_analysis(domain, publication_info, content=""):
     """
-    Enhanced source credibility analysis with comprehensive database
+    FIXED: Enhanced source credibility analysis with proper author detection
     """
     credibility_score = 50  # Start neutral
     credibility_factors = []
@@ -621,23 +728,37 @@ def enhanced_source_credibility_analysis(domain, publication_info, content=""):
             "content_based_detection": "bbc news" in content.lower()
         })
     
-    # Author credibility enhancement
+    # FIXED: Author credibility enhancement with proper author extraction
     author_boost = 0
     detected_journalist = None
-    author = publication_info.get("author", "").lower()
     
-    # Check for known journalists
-    for journalist_key, journalist_data in JOURNALIST_DATABASE.items():
-        journalist_name = journalist_key.replace("_", " ")
-        if journalist_name in author or journalist_name in content.lower():
-            detected_journalist = journalist_data
-            author_boost = (journalist_data["credibility_score"] - 50) * 0.3  # 30% weight
-            credibility_factors.append(
-                f"Recognized journalist: {journalist_name.title()} - "
-                f"{journalist_data['outlet']} correspondent specializing in "
-                f"{', '.join(journalist_data['specialization'])}"
-            )
-            break
+    # Get author from publication_info first, then try content extraction
+    author = publication_info.get("author", "")
+    
+    # If no author from URL parsing, try to extract from content
+    if not author and content:
+        extracted_author = extract_author_from_content(content)
+        if extracted_author:
+            author = extracted_author
+            publication_info["author"] = author  # Update publication_info
+    
+    author_lower = author.lower() if author else ""
+    
+    # Check for known journalists (ONLY in author field, NOT in content)
+    if author_lower:
+        for journalist_key, journalist_data in JOURNALIST_DATABASE.items():
+            journalist_name = journalist_key.replace("_", " ")
+            
+            # FIXED: Only check author field, not entire content
+            if journalist_name in author_lower:
+                detected_journalist = journalist_data
+                author_boost = (journalist_data["credibility_score"] - 50) * 0.3  # 30% weight
+                credibility_factors.append(
+                    f"Recognized journalist: {journalist_name.title()} - "
+                    f"{journalist_data['outlet']} correspondent specializing in "
+                    f"{', '.join(journalist_data['specialization'])}"
+                )
+                break
     
     # Apply author boost
     credibility_score += author_boost
@@ -655,7 +776,7 @@ def enhanced_source_credibility_analysis(domain, publication_info, content=""):
         confidence = "Very High"
     elif credibility_score >= 80:
         level = "very_high"
-        verdict = "Very High Credibility"
+        verdict = "Very High Credibility"  
         confidence = "High"
     elif credibility_score >= 70:
         level = "high"
@@ -690,13 +811,14 @@ def enhanced_source_credibility_analysis(domain, publication_info, content=""):
         "factors": credibility_factors,
         "source_tier": source_tier,
         "detected_journalist": detected_journalist,
+        "detected_author": author,  # Show the detected author
         "credibility_details": credibility_details,
         "domain_analysis": {
             "domain": domain,
             "domain_structure": domain_parts,
             "complexity_score": len(domain_parts)
         },
-        "methodology": "Enhanced Database v2.0 - 500+ Sources with Professional Journalist Recognition"
+        "methodology": "Enhanced Database v2.1 - Fixed Author Detection"
     }
 
 def detect_bias_patterns(text):
@@ -942,7 +1064,7 @@ def calculate_overall_credibility(credibility_analysis, bias_analysis, temporal_
     }
 
 def comprehensive_misinformation_analysis(content, url=None):
-    """Main comprehensive misinformation analysis function"""
+    """UPDATED: Main comprehensive misinformation analysis function with fixed author detection"""
     start_time = time.time()
     
     try:
@@ -957,12 +1079,39 @@ def comprehensive_misinformation_analysis(content, url=None):
             publication_info = extraction_result["publication_info"]
             title = extraction_result["title"]
         else:
-            # Direct content analysis
+            # Direct content analysis - IMPROVED
             metadata = {}
-            publication_info = {"domain": "unknown", "source_type": "unknown"}
+            
+            # Try to extract author from content
+            detected_author = extract_author_from_content(content)
+            
+            # Detect source from content
+            detected_sources = detect_content_based_source_recognition(content)
+            
+            # Determine domain/source
+            if detected_sources:
+                # Use the first detected source
+                source_info = detected_sources[0]
+                if source_info["source"] == "bbc":
+                    domain = "bbc.com"
+                elif source_info["source"] == "reuters":
+                    domain = "reuters.com"
+                elif source_info["source"] == "ap":
+                    domain = "ap.org"
+                else:
+                    domain = "unknown"
+            else:
+                domain = "unknown"
+            
+            publication_info = {
+                "domain": domain,
+                "author": detected_author,
+                "source_type": classify_source_type(domain)
+            }
+            
             title = "Direct content analysis"
         
-        # 1. Enhanced Source Credibility Analysis
+        # 1. Enhanced Source Credibility Analysis (with fixed author detection)
         credibility_analysis = enhanced_source_credibility_analysis(
             publication_info.get("domain", "unknown"),
             publication_info,
@@ -975,7 +1124,7 @@ def comprehensive_misinformation_analysis(content, url=None):
         # 3. Temporal Context Analysis
         temporal_analysis = analyze_temporal_context(publication_info, content)
         
-        # 4. AI-powered content analysis using existing OpenAI integration
+        # 4. AI-powered content analysis
         ai_content_analysis = analyze_content_with_ai(content, title)
         
         # 5. Calculate overall credibility score
@@ -997,7 +1146,7 @@ def comprehensive_misinformation_analysis(content, url=None):
             "content_length": len(content),
             "processing_time_ms": round(processing_time * 1000, 2),
             "analysis_timestamp": datetime.now().isoformat(),
-            "method": "Enhanced Comprehensive Misinformation Analysis v2.0"
+            "method": "Enhanced Comprehensive Misinformation Analysis v2.1 - Fixed Author Detection"
         }
         
     except Exception as e:
@@ -1031,21 +1180,21 @@ def health_check():
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'openai_api': api_status,
-        'detection_method': 'Enhanced News Misinformation Checker v2.0 with 500+ Source Database',
+        'detection_method': 'Enhanced News Misinformation Checker v2.1 with Fixed Author Detection',
         'supported_formats': ['News URLs', 'Direct Content Analysis'],
         'features': [
-            'enhanced_source_recognition', 'journalist_database', 
+            'enhanced_source_recognition', 'fixed_author_detection', 'journalist_database', 
             'bias_detection', 'temporal_analysis', 'ai_content_analysis',
             'comprehensive_credibility_scoring'
         ],
         'source_database_size': sum(len(data["sources"]) for data in ENHANCED_SOURCE_DATABASE.values()),
         'journalist_database_size': len(JOURNALIST_DATABASE),
-        'version': 'Enhanced v2.0 - Professional Grade'
+        'version': 'Enhanced v2.1 - Fixed Author Detection'
     })
 
 @app.route('/api/analyze/news-misinformation', methods=['POST'])
 def analyze_news_misinformation():
-    """Enhanced news misinformation analysis endpoint"""
+    """Enhanced news misinformation analysis endpoint with fixed author detection"""
     try:
         data = request.get_json()
         
@@ -1082,8 +1231,8 @@ def analyze_news_misinformation():
                 INSERT OR REPLACE INTO analyses
                 (content_hash, content_type, confidence_score, verdict, analysis_details, file_metadata)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (content_hash, 'news_misinformation', overall_score, verdict,
-                  json.dumps(analysis_result), json.dumps({'url': url, 'analysis_type': 'enhanced_news_misinformation'})))
+            ''', (content_hash, 'news_misinformation_fixed', overall_score, verdict,
+                  json.dumps(analysis_result), json.dumps({'url': url, 'analysis_type': 'enhanced_news_misinformation_v2.1'})))
             conn.commit()
             conn.close()
         except Exception as e:
@@ -1121,7 +1270,7 @@ def get_stats():
     cursor = conn.execute('''SELECT
         COUNT(*),
         AVG(confidence_score),
-        COUNT(CASE WHEN content_type = "news_misinformation" THEN 1 END)
+        COUNT(CASE WHEN content_type LIKE "%news_misinformation%" THEN 1 END)
         FROM analyses''')
     result = cursor.fetchone()
     conn.close()
@@ -1130,13 +1279,13 @@ def get_stats():
         'total_analyses': result[0] if result else 0,
         'average_confidence': round(result[1], 1) if result and result[1] else 0,
         'news_misinformation_analyses': result[2] if result else 0,
-        'detection_method': 'Enhanced News Misinformation Checker v2.0',
+        'detection_method': 'Enhanced News Misinformation Checker v2.1 - Fixed Author Detection',
         'api_status': 'active',
         'features_active': [
-            'enhanced_source_recognition', 'journalist_database',
+            'enhanced_source_recognition', 'fixed_author_detection', 'journalist_database',
             'bias_detection', 'temporal_analysis', 'ai_content_analysis'
         ],
-        'version': 'Enhanced v2.0 - 500+ Source Database',
+        'version': 'Enhanced v2.1 - Fixed Author Detection',
         'source_database_size': sum(len(data["sources"]) for data in ENHANCED_SOURCE_DATABASE.values()),
         'journalist_database_size': len(JOURNALIST_DATABASE)
     })
