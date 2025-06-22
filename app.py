@@ -42,7 +42,7 @@ PRIORITY_SOURCES = [
 # ============================================================================
 
 # Google Fact Check Tools API Configuration
-GOOGLE_FACTCHECK_API_KEY = "AIzaSyD-gOy9hTMXQ3g9yYqgWv3byXPrEAZxnAk"  # REPLACE WITH YOUR API KEY
+GOOGLE_FACTCHECK_API_KEY = os.getenv('GOOGLE_FACTCHECK_API_KEY', 'not_configured')
 GOOGLE_FACTCHECK_BASE_URL = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
 
 # ============================================================================
