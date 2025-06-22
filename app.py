@@ -2338,8 +2338,8 @@ def analyze_news_misinformation():
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
         
-        url = data.get('url', '').strip()
-        content = data.get('content', '').strip()
+        url = (data.get('url') or '').strip()
+        content = (data.get('content') or '').strip()
         
         if not url and not content:
             return jsonify({
