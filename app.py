@@ -15,7 +15,10 @@ from urllib.parse import quote, urlparse
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['https://factsandfakes.ai'], 
+     methods=['GET', 'POST', 'OPTIONS'],
+     allow_headers=['Content-Type', 'Authorization'],
+     supports_credentials=True)
 
 print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI Detection + Deepfake Detection + Advanced News Misinformation Checker with Multi-Source Verification)...")
 
