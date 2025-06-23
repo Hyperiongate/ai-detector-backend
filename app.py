@@ -31,27 +31,6 @@ print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI 
 NEWSAPI_BASE_URL = "https://newsapi.org/v2"
 NEWSAPI_KEY = "f37c632d98044404a7aae39700f1769c"
 
-Keep it as-is and set the key in Heroku's environment variables (this is more secure for production).
-💡 Which Do You Prefer?
-Quick & Easy: Put the key directly in your GitHub code
-
-✅ Works immediately
-❌ Less secure (key visible in GitHub)
-
-Professional: Use environment variables in Heroku
-
-✅ More secure (key hidden)
-✅ Best practice for production
-⏰ Takes 2 extra minutes to set up
-
-What's your News API key? I'll show you exactly how to add it either way.
-Also, do you want to:
-
-Test first (put key in code, push to GitHub, then deploy)
-Go straight to production (deploy with environment variables)
-
-What feels easier to you?RetryClaude can make mistakes. Please double-check responses.Research Sonnet 4
-
 # Major news sources for cross-verification
 PRIORITY_SOURCES = [
 'bbc-news', 'reuters', 'associated-press', 'cnn', 'fox-news',
@@ -2043,7 +2022,7 @@ def fallback_image_analysis():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     api_key = os.getenv('OPENAI_API_KEY')
-    newsapi_key = os.getenv('NEWSAPI_KEY')
+    newsapi_key = NEWSAPI_KEY
     api_status = "not_available"
 
     if not api_key:
@@ -2061,7 +2040,7 @@ def health_check():
             print(f"OpenAI API test failed: {e}")
 
     newsapi_status = "available" if newsapi_key else "simulated"
-    google_factcheck_status = "configured" if GOOGLE_FACTCHECK_API_KEY != "your_actual_google_api_key_here" else "not_configured"
+    google_factcheck_status = "configured" if GOOGLE_FACTCHECK_API_KEY != "not_configured" else "not_configured"
 
     return jsonify({
         'status': 'healthy',
