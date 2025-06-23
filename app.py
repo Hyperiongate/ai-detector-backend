@@ -15,13 +15,10 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# API Keys and Client
+# API Keys 
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.getenv('GOOGLE_FACT_CHECK_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -44,7 +41,7 @@ def health_check():
         "max_file_size": "5MB (documents), 10MB (images)",
         "newsapi": "available" if NEWS_API_KEY else "not_configured",
         "newsapi_sources": 12,
-        "openai_api": "connected" if openai_client else "not_configured",
+        "openai_api": "connected" if OPENAI_API_KEY else "not_configured",
         "source_database_size": 120,
         "status": "healthy",
         "supported_formats": ["PDF", "Word (.docx, .doc)", "Plain Text (.txt)", "Images (PNG, JPG, GIF, BMP, WebP)", "News URLs"],
@@ -115,13 +112,26 @@ def analyze_news():
 def get_openai_analysis(text):
     """Get comprehensive AI analysis from OpenAI"""
     try:
-        if not openai_client:
+        if not OPENAI_API_KEY:
             return {
                 'status': 'unavailable',
                 'error': 'OpenAI API not configured',
                 'bias_score': 50,
                 'confidence': 0,
                 'explanation': 'AI analysis unavailable - API key not configured'
+            }
+        
+        # Initialize client only when needed
+        try:
+            openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        except Exception as init_error:
+            logger.error(f"Failed to initialize OpenAI client: {str(init_error)}")
+            return {
+                'status': 'error',
+                'error': f'OpenAI client initialization failed: {str(init_error)}',
+                'bias_score': 50,
+                'confidence': 0,
+                'explanation': 'AI analysis temporarily unavailable'
             }
         
         prompt = f"""
