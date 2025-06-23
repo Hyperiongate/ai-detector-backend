@@ -29,7 +29,28 @@ print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI 
 # ============================================================================
 # NewsAPI Configuration (Free tier: 1000 requests/day, 100 requests/hour)
 NEWSAPI_BASE_URL = "https://newsapi.org/v2"
-NEWSAPI_KEY = os.getenv('NEWSAPI_KEY', '') # You'll need to set this
+NEWSAPI_KEY = "f37c632d98044404a7aae39700f1769c"
+🏭 Option B: Keep Environment Variables (Production Ready)
+Keep it as-is and set the key in Heroku's environment variables (this is more secure for production).
+💡 Which Do You Prefer?
+Quick & Easy: Put the key directly in your GitHub code
+
+✅ Works immediately
+❌ Less secure (key visible in GitHub)
+
+Professional: Use environment variables in Heroku
+
+✅ More secure (key hidden)
+✅ Best practice for production
+⏰ Takes 2 extra minutes to set up
+
+What's your News API key? I'll show you exactly how to add it either way.
+Also, do you want to:
+
+Test first (put key in code, push to GitHub, then deploy)
+Go straight to production (deploy with environment variables)
+
+What feels easier to you?RetryClaude can make mistakes. Please double-check responses.Research Sonnet 4
 
 # Major news sources for cross-verification
 PRIORITY_SOURCES = [
