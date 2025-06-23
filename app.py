@@ -30,7 +30,7 @@ print("Starting AI Detection Server (University-Grade: Enhanced Plagiarism + AI 
 # NewsAPI Configuration (Free tier: 1000 requests/day, 100 requests/hour)
 NEWSAPI_BASE_URL = "https://newsapi.org/v2"
 NEWSAPI_KEY = "f37c632d98044404a7aae39700f1769c"
-🏭 Option B: Keep Environment Variables (Production Ready)
+
 Keep it as-is and set the key in Heroku's environment variables (this is more secure for production).
 💡 Which Do You Prefer?
 Quick & Easy: Put the key directly in your GitHub code
