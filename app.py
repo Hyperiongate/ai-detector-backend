@@ -189,6 +189,7 @@ def verify_with_news_api(text):
         
         # Extract key terms for search
         search_terms = extract_key_terms(text)
+        logger.info(f"NewsAPI search terms: {search_terms}")
         
         url = "https://newsapi.org/v2/everything"
         params = {
@@ -196,15 +197,20 @@ def verify_with_news_api(text):
             'apiKey': NEWS_API_KEY,
             'sortBy': 'relevancy',
             'pageSize': 10,
-            'language': 'en',
-            'domains': 'reuters.com,bbc.com,apnews.com,npr.org,cnn.com'
+            'language': 'en'
+            # Removed domain restriction to get more results
         }
         
+        logger.info(f"NewsAPI request URL: {url}")
+        logger.info(f"NewsAPI params: {params}")
+        
         response = requests.get(url, params=params, timeout=15)
+        logger.info(f"NewsAPI response status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
             articles = data.get('articles', [])
+            logger.info(f"NewsAPI found {len(articles)} articles")
             
             # Process articles
             processed_articles = []
@@ -225,9 +231,12 @@ def verify_with_news_api(text):
                 'verification_status': 'completed' if len(articles) > 0 else 'no_matches'
             }
         else:
+            error_msg = f'NewsAPI returned status {response.status_code}'
+            logger.error(f"NewsAPI error: {error_msg}")
+            logger.error(f"NewsAPI response: {response.text[:500]}")
             return {
                 'status': 'error',
-                'error': f'NewsAPI returned status {response.status_code}',
+                'error': error_msg,
                 'sources_found': 0,
                 'verification_status': 'failed'
             }
