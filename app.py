@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI
+import openai
 import requests
 import os
 from datetime import datetime
@@ -19,6 +19,10 @@ CORS(app)
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.getenv('GOOGLE_FACT_CHECK_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+# Set OpenAI API key
+if OPENAI_API_KEY:
+    openai.api_key = OPENAI_API_KEY
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -41,7 +45,7 @@ def health_check():
         "max_file_size": "5MB (documents), 10MB (images)",
         "newsapi": "available" if NEWS_API_KEY else "not_configured",
         "newsapi_sources": 12,
-        "openai_api": "connected" if OPENAI_API_KEY else "not_configured",
+        "openai_api": "connected" if openai.api_key else "not_configured",
         "source_database_size": 120,
         "status": "healthy",
         "supported_formats": ["PDF", "Word (.docx, .doc)", "Plain Text (.txt)", "Images (PNG, JPG, GIF, BMP, WebP)", "News URLs"],
@@ -121,19 +125,6 @@ def get_openai_analysis(text):
                 'explanation': 'AI analysis unavailable - API key not configured'
             }
         
-        # Initialize client only when needed
-        try:
-            openai_client = OpenAI(api_key=OPENAI_API_KEY)
-        except Exception as init_error:
-            logger.error(f"Failed to initialize OpenAI client: {str(init_error)}")
-            return {
-                'status': 'error',
-                'error': f'OpenAI client initialization failed: {str(init_error)}',
-                'bias_score': 50,
-                'confidence': 0,
-                'explanation': 'AI analysis temporarily unavailable'
-            }
-        
         prompt = f"""
         Analyze this text for misinformation, bias, and credibility. Provide a JSON response with:
         - bias_score: number 0-100 (0=extremely biased, 100=completely neutral)
@@ -146,7 +137,7 @@ def get_openai_analysis(text):
         Text to analyze: {text}
         """
         
-        response = openai_client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an expert fact-checker and misinformation analyst. Always respond with valid JSON."},
