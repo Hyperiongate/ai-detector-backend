@@ -1,426 +1,1075 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import openai
-import requests
-import os
-from datetime import datetime
-import logging
-import re
-import json
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-CORS(app)
-
-# API Keys 
-NEWS_API_KEY = os.getenv('NEWS_API_KEY')
-GOOGLE_FACT_CHECK_API_KEY = os.getenv('GOOGLE_FACT_CHECK_API_KEY')
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-# Set OpenAI API key
-if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
-
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({
-        "ai_detection_version": "University-Grade v4.1 - Complete Platform with Multi-Source Verification + Google Fact Check",
-        "detection_method": "University-Grade: Enhanced Plagiarism + AI Detection + Deepfake Detection + Advanced News Misinformation Checker with Multi-Source Verification + Google Fact Check v4.1",
-        "fact_database_entries": 5,
-        "features": [
-            "text_detection", "document_analysis", "enhanced_deepfake_detection",
-            "aggressive_ai_image_detection", "university_grade_plagiarism_detection",
-            "academic_integrity_analysis", "semantic_plagiarism_detection",
-            "citation_analysis", "advanced_news_misinformation_checking",
-            "multi_source_verification", "newsapi_integration", "cross_verification",
-            "source_diversity_analysis", "contradiction_detection", "coverage_analysis",
-            "gpt_powered_fact_checking", "claim_extraction", "semantic_verification",
-            "advanced_bias_analysis", "fixed_author_detection", "google_factcheck_integration"
-        ],
-        "google_factcheck_api": "not_configured" if not GOOGLE_FACT_CHECK_API_KEY else "configured",
-        "journalist_database_size": 4,
-        "max_file_size": "5MB (documents), 10MB (images)",
-        "newsapi": "available" if NEWS_API_KEY else "not_configured",
-        "newsapi_sources": 12,
-        "openai_api": "connected" if openai.api_key else "not_configured",
-        "source_database_size": 120,
-        "status": "healthy",
-        "supported_formats": ["PDF", "Word (.docx, .doc)", "Plain Text (.txt)", "Images (PNG, JPG, GIF, BMP, WebP)", "News URLs"],
-        "timestamp": datetime.now().isoformat(),
-        "version": "Enterprise v4.1 - Multi-Source Verification System with NewsAPI + Google Fact Check Integration"
-    })
-
-@app.route('/api/analyze-news', methods=['POST', 'OPTIONS'])
-def analyze_news():
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-    
-    try:
-        data = request.get_json()
-        logger.info(f"Received request data: {data}")
-        
-        if not data or 'text' not in data:
-            return jsonify({'error': 'No text provided in request'}), 400
-        
-        text = data['text'].strip()
-        if len(text) < 5:
-            return jsonify({'error': 'Text too short for meaningful analysis (minimum 5 characters)'}), 400
-        
-        logger.info(f"Analyzing text of length {len(text)}: {text[:100]}...")
-        
-        # Initialize results
-        results = {
-            'status': 'success',
-            'timestamp': datetime.now().isoformat(),
-            'text_length': len(text),
-            'analysis_complete': True
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facts & Fakes AI - Premium News Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        # Get AI Analysis
-        logger.info("Starting OpenAI analysis...")
-        ai_analysis = get_openai_analysis(text)
-        results['ai_analysis'] = ai_analysis
-        
-        # Get News Verification
-        logger.info("Starting NewsAPI verification...")
-        news_verification = verify_with_news_api(text)
-        results['news_verification'] = news_verification
-        
-        # Get Google Fact Check (if available)
-        logger.info("Starting Google Fact Check...")
-        fact_check = get_google_fact_check(text)
-        results['fact_check_results'] = fact_check
-        
-        # Calculate Overall Credibility Score
-        credibility_score = calculate_credibility_score(ai_analysis, news_verification, fact_check)
-        results['credibility_score'] = credibility_score
-        
-        # Add summary
-        results['summary'] = generate_summary(ai_analysis, news_verification, fact_check, credibility_score)
-        
-        logger.info(f"Analysis complete. Credibility score: {credibility_score}")
-        return jsonify(results)
-        
-    except Exception as e:
-        logger.error(f"Error in analyze_news: {str(e)}")
-        return jsonify({
-            'error': 'Analysis failed',
-            'details': str(e),
-            'status': 'error',
-            'timestamp': datetime.now().isoformat()
-        }), 500
 
-def get_openai_analysis(text):
-    """Get comprehensive AI analysis from OpenAI"""
-    try:
-        if not OPENAI_API_KEY:
-            return {
-                'status': 'unavailable',
-                'error': 'OpenAI API not configured',
-                'bias_score': 50,
-                'confidence': 0,
-                'explanation': 'AI analysis unavailable - API key not configured'
-            }
-        
-        prompt = f"""
-        Analyze this text for misinformation, bias, and credibility. Provide a JSON response with:
-        - bias_score: number 0-100 (0=extremely biased, 100=completely neutral)
-        - confidence: number 0-100 (confidence in this analysis)
-        - credibility_indicators: list of positive credibility signs
-        - red_flags: list of concerning elements
-        - explanation: brief summary of findings
-        - claims: list of main factual claims made
-        
-        Text to analyze: {text}
-        """
-        
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an expert fact-checker and misinformation analyst. Always respond with valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=800,
-            temperature=0.2
-        )
-        
-        ai_content = response.choices[0].message.content.strip()
-        
-        # Try to parse JSON, fallback if needed
-        try:
-            result = json.loads(ai_content)
-            result['status'] = 'success'
-            return result
-        except json.JSONDecodeError:
-            # Fallback structured response
-            return {
-                'status': 'partial',
-                'bias_score': 60,
-                'confidence': 70,
-                'explanation': ai_content[:300] + "..." if len(ai_content) > 300 else ai_content,
-                'claims': ['Analysis completed with basic assessment'],
-                'credibility_indicators': ['Professional language use'],
-                'red_flags': ['Unable to parse detailed analysis']
-            }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #e0e7ff;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-btn {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 500;
+            color: #e0e7ff;
+        }
+
+        .results-container {
+            display: none;
+            gap: 25px;
+        }
+
+        .executive-summary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .credibility-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .credibility-score {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .assessment-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .grade-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .summary-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #e0e7ff;
+        }
+
+        .key-findings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .finding-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .analysis-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .expand-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .expand-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .bias-visualization {
+            margin: 20px 0;
+        }
+
+        .bias-meter {
+            position: relative;
+            height: 40px;
+            background: linear-gradient(90deg, #0066cc 0%, #4488cc 25%, #cccccc 50%, #cc8888 75%, #cc0000 100%);
+            border-radius: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .bias-indicator {
+            position: absolute;
+            top: -10px;
+            width: 20px;
+            height: 60px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: left 0.5s ease;
+        }
+
+        .bias-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .metric-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #e0e7ff;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .source-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .source-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .source-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        .source-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #b0b7c3;
+            margin-bottom: 8px;
+        }
+
+        .credibility-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .expandable-content.expanded {
+            max-height: 1000px;
+        }
+
+        .claim-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .claim-item.verified { border-left-color: #00cc44; }
+        .claim-item.disputed { border-left-color: #ff4444; }
+        .claim-item.mixed { border-left-color: #ffaa00; }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff9999;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .recommendation-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .recommendation-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #e0e7ff;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .analysis-grid { grid-template-columns: 1fr; }
+            .credibility-header { flex-direction: column; }
+            .key-findings { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Facts & Fakes AI</h1>
+            <p>Premium News Misinformation Analysis</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="newsText">Enter News Content for Analysis</label>
+                <textarea 
+                    id="newsText" 
+                    placeholder="Paste the news article, headline, or claim you want to analyze for misinformation, bias, and credibility..."
+                ></textarea>
+                <button class="analyze-btn" onclick="analyzeNews()">
+                    🚀 ANALYZE WITH AI
+                </button>
+            </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Initializing AI Analysis...</div>
+            <div class="loading-spinner" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <!-- Executive Summary -->
+            <div class="executive-summary" id="executiveSummary">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+
+            <!-- Analysis Grid -->
+            <div class="analysis-grid" id="analysisGrid">
+                <!-- Dynamic analysis cards will be inserted here -->
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <!-- Error messages will appear here -->
+        </div>
+    </div>
+
+    <script>
+        let analysisData = null;
+
+        async function analyzeNews() {
+            const text = document.getElementById('newsText').value.trim();
             
-    except Exception as e:
-        logger.error(f"OpenAI analysis error: {str(e)}")
-        return {
-            'status': 'error',
-            'error': str(e),
-            'bias_score': 50,
-            'confidence': 0,
-            'explanation': f'AI analysis failed: {str(e)}'
+            if (!text || text.length < 10) {
+                showError('Please enter at least 10 characters of news content to analyze.');
+                return;
+            }
+
+            // Reset UI
+            hideError();
+            showProgress();
+            hideResults();
+
+            const progressStages = [
+                { progress: 15, text: '🤖 Starting AI Analysis...' },
+                { progress: 30, text: '🎯 Detecting Political Bias...' },
+                { progress: 45, text: '📝 Analyzing Author Credibility...' },
+                { progress: 60, text: '🔍 Verifying Sources...' },
+                { progress: 75, text: '📊 Cross-Platform Analysis...' },
+                { progress: 90, text: '✅ Calculating Credibility Scores...' },
+                { progress: 100, text: '🎉 Analysis Complete!' }
+            ];
+
+            // Animate progress
+            let currentStage = 0;
+            const progressInterval = setInterval(() => {
+                if (currentStage < progressStages.length) {
+                    updateProgress(progressStages[currentStage].progress, progressStages[currentStage].text);
+                    currentStage++;
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 600);
+
+            try {
+                const response = await fetch('https://ai-detector-backend-g4mj.onrender.com/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Analysis failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                analysisData = data;
+
+                // Complete progress animation
+                clearInterval(progressInterval);
+                updateProgress(100, '🎉 Analysis Complete!');
+
+                setTimeout(() => {
+                    hideProgress();
+                    displayResults(data);
+                }, 1000);
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                hideProgress();
+                showError(`Analysis failed: ${error.message}`);
+                console.error('Analysis error:', error);
+            }
         }
 
-def verify_with_news_api(text):
-    """Verify information using NewsAPI with fallback options"""
-    try:
-        if not NEWS_API_KEY:
-            return {
-                'status': 'unavailable',
-                'error': 'NewsAPI key not configured',
-                'sources_found': 0,
-                'verification_status': 'unavailable'
-            }
-        
-        # Extract key terms for search
-        search_terms = extract_key_terms(text)
-        logger.info(f"NewsAPI search terms: {search_terms}")
-        
-        # Try different endpoints to avoid blocking
-        endpoints_to_try = [
-            {
-                'url': 'https://newsapi.org/v2/everything',
-                'params': {
-                    'q': search_terms,
-                    'apiKey': NEWS_API_KEY,
-                    'sortBy': 'relevancy',
-                    'pageSize': 10,
-                    'language': 'en'
-                }
-            },
-            {
-                'url': 'https://newsapi.org/v2/top-headlines',
-                'params': {
-                    'q': search_terms,
-                    'apiKey': NEWS_API_KEY,
-                    'pageSize': 10,
-                    'language': 'en',
-                    'country': 'us'
-                }
-            }
-        ]
-        
-        for i, endpoint in enumerate(endpoints_to_try):
-            try:
-                logger.info(f"Trying NewsAPI endpoint {i+1}: {endpoint['url']}")
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function showProgress() {
+            document.getElementById('progressContainer').style.display = 'block';
+            updateProgress(0, 'Initializing AI Analysis...');
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('resultsContainer').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function displayResults(data) {
+            const container = document.getElementById('resultsContainer');
+            container.style.display = 'block';
+            container.classList.add('fade-in');
+
+            // Display Executive Summary
+            displayExecutiveSummary(data);
+
+            // Display Analysis Cards
+            displayAnalysisCards(data);
+        }
+
+        function displayExecutiveSummary(data) {
+            const summaryDiv = document.getElementById('executiveSummary');
+            const summary = data.executive_summary || {};
+            const scoring = data.scoring || {};
+
+            const credibilityScore = scoring.overall_credibility || 50;
+            const grade = scoring.credibility_grade || 'N/A';
+            const assessment = summary.main_assessment || 'ANALYSIS COMPLETE';
+            const color = summary.assessment_color || 'gray';
+
+            summaryDiv.innerHTML = `
+                <div class="credibility-header">
+                    <div class="credibility-score">
+                        <div class="score-circle" style="background: ${getScoreColor(credibilityScore)};">
+                            ${Math.round(credibilityScore)}
+                        </div>
+                        <div>
+                            <div class="assessment-text" style="color: ${getScoreColor(credibilityScore)};">
+                                ${assessment}
+                            </div>
+                            <div style="font-size: 1rem; opacity: 0.8;">Credibility Analysis</div>
+                        </div>
+                    </div>
+                    <div class="grade-badge" style="background: ${getScoreColor(credibilityScore)};">
+                        Grade: ${grade}
+                    </div>
+                </div>
                 
-                # Add headers to avoid blocking
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept': 'application/json',
-                    'Accept-Language': 'en-US,en;q=0.9'
-                }
+                <div class="summary-text">
+                    ${summary.summary_text || 'Analysis completed successfully.'}
+                </div>
                 
-                response = requests.get(
-                    endpoint['url'], 
-                    params=endpoint['params'], 
-                    headers=headers,
-                    timeout=15
-                )
+                <div class="key-findings">
+                    ${(summary.key_findings || []).map(finding => `
+                        <div class="finding-item">${finding}</div>
+                    `).join('')}
+                </div>
                 
-                logger.info(f"NewsAPI endpoint {i+1} response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    articles = data.get('articles', [])
-                    logger.info(f"NewsAPI found {len(articles)} articles")
+                ${summary.recommendation ? `
+                    <div class="recommendation-box">
+                        <strong>🎯 Recommendation:</strong>
+                        <div class="recommendation-text">${summary.recommendation}</div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function displayAnalysisCards(data) {
+            const gridDiv = document.getElementById('analysisGrid');
+            
+            const cards = [
+                createPoliticalBiasCard(data.political_bias || {}),
+                createAuthorAnalysisCard(data.author_analysis || {}),
+                createSourceVerificationCard(data.source_verification || {}),
+                createAIAnalysisCard(data.ai_analysis || {}),
+                createFactCheckCard(data.fact_check_results || {}),
+                createCrossPlatformCard(data.cross_platform_analysis || {})
+            ];
+
+            gridDiv.innerHTML = cards.join('');
+        }
+
+        function createPoliticalBiasCard(biasData) {
+            const biasScore = biasData.bias_score || 0;
+            const biasLabel = biasData.bias_label || 'Unknown';
+            const objectivity = biasData.objectivity_score || 50;
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🎯</div>
+                            Political Bias Analysis
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Details</button>
+                    </div>
                     
-                    if len(articles) > 0:
-                        # Process articles
-                        processed_articles = []
-                        for article in articles[:5]:  # Limit to top 5
-                            processed_articles.append({
-                                'title': article.get('title', 'No title'),
-                                'source': article.get('source', {}).get('name', 'Unknown'),
-                                'url': article.get('url', ''),
-                                'published': article.get('publishedAt', ''),
-                                'description': article.get('description', '')[:200] + "..." if article.get('description') and len(article.get('description', '')) > 200 else article.get('description', '')
-                            })
+                    <div class="bias-visualization">
+                        <div class="metric-item">
+                            <span class="metric-label">Bias Rating:</span>
+                            <span class="metric-value" style="color: ${getBiasColor(biasScore)};">
+                                ${biasLabel} (${biasScore > 0 ? '+' : ''}${biasScore})
+                            </span>
+                        </div>
                         
-                        return {
-                            'status': 'success',
-                            'sources_found': len(articles),
-                            'articles': processed_articles,
-                            'search_terms': search_terms,
-                            'verification_status': 'completed',
-                            'endpoint_used': f'endpoint_{i+1}'
-                        }
-                
-                elif response.status_code == 403:
-                    logger.warning(f"NewsAPI endpoint {i+1} blocked (403), trying next...")
-                    continue
-                else:
-                    logger.warning(f"NewsAPI endpoint {i+1} error {response.status_code}: {response.text[:200]}")
-                    continue
+                        <div class="bias-meter">
+                            <div class="bias-indicator" style="left: ${(biasScore + 100) / 2}%;"></div>
+                        </div>
+                        
+                        <div class="bias-labels">
+                            <span>Far Left</span>
+                            <span>Center</span>
+                            <span>Far Right</span>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <span class="metric-label">Objectivity Score:</span>
+                            <span class="metric-value">${objectivity}/100</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: ${objectivity}%;"></div>
+                        </div>
+                    </div>
                     
-            except Exception as endpoint_error:
-                logger.warning(f"NewsAPI endpoint {i+1} failed: {str(endpoint_error)}")
-                continue
-        
-        # If all endpoints failed, try a simple web search simulation
-        logger.info("All NewsAPI endpoints failed, providing simulated verification")
-        return {
-            'status': 'partial',
-            'sources_found': 1,
-            'articles': [{
-                'title': f'Related content found for: {search_terms}',
-                'source': 'Web Search',
-                'url': f'https://news.google.com/search?q={search_terms.replace(" ", "+")}',
-                'published': datetime.now().isoformat(),
-                'description': f'Multiple sources discuss topics related to: {search_terms}. External verification recommended.'
-            }],
-            'search_terms': search_terms,
-            'verification_status': 'limited',
-            'note': 'NewsAPI temporarily unavailable - showing alternative search'
-        }
-            
-    except Exception as e:
-        logger.error(f"NewsAPI verification error: {str(e)}")
-        return {
-            'status': 'error',
-            'error': str(e),
-            'sources_found': 0,
-            'verification_status': 'failed'
+                    <div class="expandable-content">
+                        <div style="margin-top: 15px;">
+                            <strong>Political Keywords:</strong>
+                            <p>${(biasData.political_keywords || []).join(', ') || 'None identified'}</p>
+                            
+                            <strong style="margin-top: 10px; display: block;">Explanation:</strong>
+                            <p>${biasData.bias_explanation || 'No detailed explanation available.'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-def get_google_fact_check(text):
-    """Get fact check results from Google Fact Check API"""
-    try:
-        if not GOOGLE_FACT_CHECK_API_KEY:
-            return {
-                'status': 'unavailable',
-                'error': 'Google Fact Check API not configured',
-                'fact_checks_found': 0
+        function createAuthorAnalysisCard(authorData) {
+            const writingScore = authorData.writing_style_score || 50;
+            const professionalism = authorData.professionalism_score || 50;
+            const expertise = authorData.estimated_expertise_level || 'Unknown';
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">👤</div>
+                            Author & Writing Analysis
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Details</button>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Writing Quality:</span>
+                        <span class="metric-value">${writingScore}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${writingScore}%;"></div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Professionalism:</span>
+                        <span class="metric-value">${professionalism}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${professionalism}%;"></div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Expertise Level:</span>
+                        <span class="metric-value" style="color: ${getExpertiseColor(expertise)};">
+                            ${expertise.charAt(0).toUpperCase() + expertise.slice(1)}
+                        </span>
+                    </div>
+                    
+                    <div class="expandable-content">
+                        <div style="margin-top: 15px;">
+                            <strong>Expertise Indicators:</strong>
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                ${(authorData.expertise_indicators || []).map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                            
+                            <strong style="margin-top: 15px; display: block;">Style Analysis:</strong>
+                            <p>${authorData.style_analysis || 'No detailed analysis available.'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createSourceVerificationCard(sourceData) {
+            const sourcesFound = sourceData.sources_found || 0;
+            const avgCredibility = sourceData.average_source_credibility || 0;
+            const diversity = sourceData.source_diversity || 0;
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🔍</div>
+                            Source Verification
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Sources</button>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Sources Found:</span>
+                        <span class="metric-value">${sourcesFound}</span>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Average Credibility:</span>
+                        <span class="metric-value">${Math.round(avgCredibility)}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${avgCredibility}%;"></div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Source Diversity:</span>
+                        <span class="metric-value">${diversity} outlets</span>
+                    </div>
+                    
+                    <div class="expandable-content">
+                        <div class="source-list">
+                            ${(sourceData.articles || []).map(article => `
+                                <div class="source-item">
+                                    <div class="source-title">${article.title}</div>
+                                    <div class="source-meta">
+                                        <span>${article.source_name}</span>
+                                        <span class="credibility-badge" style="background: ${getCredibilityBadgeColor(article.credibility_score)};">
+                                            ${article.credibility_score}/100
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #b0b7c3;">
+                                        ${article.description}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAIAnalysisCard(aiData) {
+            const credibility = aiData.credibility_score || 50;
+            const confidence = aiData.confidence_level || 50;
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">🤖</div>
+                            AI Content Analysis
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Details</button>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">AI Credibility Score:</span>
+                        <span class="metric-value">${credibility}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${credibility}%;"></div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Analysis Confidence:</span>
+                        <span class="metric-value">${confidence}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${confidence}%;"></div>
+                    </div>
+                    
+                    <div class="expandable-content">
+                        <div style="margin-top: 15px;">
+                            <strong>Key Claims Identified:</strong>
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                ${(aiData.factual_claims || []).map(claim => `<li>${claim}</li>`).join('')}
+                            </ul>
+                            
+                            <strong style="margin-top: 15px; display: block;">Credibility Indicators:</strong>
+                            <ul style="margin-left: 20px; margin-top: 5px; color: #88cc88;">
+                                ${(aiData.credibility_indicators || []).map(indicator => `<li>✓ ${indicator}</li>`).join('')}
+                            </ul>
+                            
+                            <strong style="margin-top: 15px; display: block;">Red Flags:</strong>
+                            <ul style="margin-left: 20px; margin-top: 5px; color: #cc8888;">
+                                ${(aiData.red_flags || []).map(flag => `<li>⚠ ${flag}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFactCheckCard(factData) {
+            const factsFound = factData.fact_checks_found || 0;
+            const avgRating = factData.average_rating || 0;
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">✅</div>
+                            Fact Check Results
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Claims</button>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Fact Checks Found:</span>
+                        <span class="metric-value">${factsFound}</span>
+                    </div>
+                    
+                    ${avgRating > 0 ? `
+                        <div class="metric-item">
+                            <span class="metric-label">Average Rating:</span>
+                            <span class="metric-value">${Math.round(avgRating)}/100</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: ${avgRating}%;"></div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="expandable-content">
+                        ${factsFound > 0 ? `
+                            <div style="margin-top: 15px;">
+                                ${(factData.claims || []).map(claim => `
+                                    <div class="claim-item ${getClaimClass(claim.rating)}">
+                                        <strong>${claim.claim_text}</strong><br>
+                                        <small>Rating: ${claim.rating} (${claim.reviewer})</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div style="margin-top: 15px; text-align: center; opacity: 0.7;">
+                                No specific fact checks found for this content.
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCrossPlatformCard(crossData) {
+            const platformsAnalyzed = crossData.platforms_analyzed || 0;
+            const consistency = crossData.narrative_consistency_score || 0;
+
+            return `
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">📊</div>
+                            Cross-Platform Analysis
+                        </div>
+                        <button class="expand-btn" onclick="toggleExpand(this)">Platforms</button>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Platforms Analyzed:</span>
+                        <span class="metric-value">${platformsAnalyzed}</span>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span class="metric-label">Narrative Consistency:</span>
+                        <span class="metric-value">${Math.round(consistency)}/100</span>
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" style="width: ${consistency}%;"></div>
+                    </div>
+                    
+                    <div class="expandable-content">
+                        <div style="margin-top: 15px;">
+                            ${(crossData.coverage_analysis || []).map(platform => `
+                                <div class="source-item">
+                                    <div class="source-title">${platform.platform_type}</div>
+                                    <div class="source-meta">
+                                        <span>Bias: ${platform.bias_lean}</span>
+                                        <span>Tone: ${platform.coverage_tone}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleExpand(button) {
+            const content = button.closest('.analysis-card').querySelector('.expandable-content');
+            content.classList.toggle('expanded');
+            button.textContent = content.classList.contains('expanded') ? 'Less' : 'Details';
+        }
+
+        // Helper functions for colors and styling
+        function getScoreColor(score) {
+            if (score >= 80) return '#00cc44';
+            if (score >= 60) return '#88cc00';
+            if (score >= 40) return '#ffaa00';
+            return '#ff4444';
+        }
+
+        function getBiasColor(biasScore) {
+            if (Math.abs(biasScore) <= 20) return '#cccccc';
+            if (biasScore < 0) return '#4488cc';
+            return '#cc8888';
+        }
+
+        function getExpertiseColor(expertise) {
+            switch(expertise.toLowerCase()) {
+                case 'expert': return '#00cc44';
+                case 'professional': return '#88cc00';
+                case 'amateur': return '#ffaa00';
+                default: return '#cc8888';
             }
-        
-        # Extract claims for fact checking
-        key_terms = extract_key_terms(text)
-        
-        url = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-        params = {
-            'key': GOOGLE_FACT_CHECK_API_KEY,
-            'query': key_terms,
-            'languageCode': 'en'
-        }
-        
-        response = requests.get(url, params=params, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            claims = data.get('claims', [])
-            
-            processed_claims = []
-            for claim in claims[:3]:  # Limit to top 3
-                processed_claims.append({
-                    'claim': claim.get('text', 'No claim text'),
-                    'claimant': claim.get('claimant', 'Unknown'),
-                    'rating': claim.get('claimReview', [{}])[0].get('textualRating', 'No rating') if claim.get('claimReview') else 'No rating',
-                    'reviewer': claim.get('claimReview', [{}])[0].get('publisher', {}).get('name', 'Unknown') if claim.get('claimReview') else 'Unknown'
-                })
-            
-            return {
-                'status': 'success',
-                'fact_checks_found': len(claims),
-                'claims': processed_claims,
-                'search_terms': key_terms
-            }
-        else:
-            return {
-                'status': 'error',
-                'error': f'Google Fact Check API returned status {response.status_code}',
-                'fact_checks_found': 0
-            }
-            
-    except Exception as e:
-        logger.error(f"Google Fact Check error: {str(e)}")
-        return {
-            'status': 'error',
-            'error': str(e),
-            'fact_checks_found': 0
         }
 
-def extract_key_terms(text):
-    """Extract key search terms from text"""
-    # Remove common words and extract meaningful terms
-    common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'}
-    
-    # Extract words, filter out common ones, keep longer meaningful terms
-    words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
-    key_terms = [word for word in words if word not in common_words]
-    
-    # Return top terms joined as search query
-    return ' '.join(key_terms[:5])
+        function getCredibilityBadgeColor(score) {
+            if (score >= 80) return 'rgba(0, 204, 68, 0.3)';
+            if (score >= 60) return 'rgba(136, 204, 0, 0.3)';
+            if (score >= 40) return 'rgba(255, 170, 0, 0.3)';
+            return 'rgba(255, 68, 68, 0.3)';
+        }
 
-def calculate_credibility_score(ai_analysis, news_verification, fact_check):
-    """Calculate overall credibility score"""
-    try:
-        score = 50  # Start neutral
-        
-        # AI Analysis contribution (40% weight)
-        if ai_analysis.get('status') == 'success':
-            ai_bias = ai_analysis.get('bias_score', 50)
-            ai_confidence = ai_analysis.get('confidence', 50)
-            ai_contribution = (ai_bias * ai_confidence / 100) * 0.4
-            score = score * 0.6 + ai_contribution
-        
-        # News verification contribution (35% weight)
-        if news_verification.get('status') == 'success':
-            sources_found = news_verification.get('sources_found', 0)
-            if sources_found > 0:
-                verification_boost = min(sources_found * 5, 25)  # Max 25 point boost
-                score += verification_boost * 0.35
-            else:
-                score -= 10  # Penalty for no corroborating sources
-        
-        # Fact check contribution (25% weight)
-        if fact_check.get('status') == 'success':
-            fact_checks_found = fact_check.get('fact_checks_found', 0)
-            if fact_checks_found > 0:
-                score += 15 * 0.25  # Boost for fact check availability
-        
-        # Ensure score stays in bounds
-        return max(0, min(100, round(score, 1)))
-        
-    except Exception as e:
-        logger.error(f"Error calculating credibility score: {str(e)}")
-        return 50.0
+        function getClaimClass(rating) {
+            const ratingLower = rating.toLowerCase();
+            if (ratingLower.includes('true') || ratingLower.includes('accurate')) return 'verified';
+            if (ratingLower.includes('false') || ratingLower.includes('inaccurate')) return 'disputed';
+            return 'mixed';
+        }
 
-def generate_summary(ai_analysis, news_verification, fact_check, credibility_score):
-    """Generate a summary of the analysis"""
-    summary_parts = []
-    
-    if credibility_score >= 75:
-        summary_parts.append("HIGH CREDIBILITY: This content appears reliable based on multiple verification sources.")
-    elif credibility_score >= 50:
-        summary_parts.append("MODERATE CREDIBILITY: This content has mixed verification signals.")
-    else:
-        summary_parts.append("LOW CREDIBILITY: This content shows concerning credibility indicators.")
-    
-    if news_verification.get('sources_found', 0) > 0:
-        summary_parts.append(f"Found {news_verification['sources_found']} corroborating news sources.")
-    else:
-        summary_parts.append("No corroborating news sources found.")
-    
-    if fact_check.get('fact_checks_found', 0) > 0:
-        summary_parts.append(f"Found {fact_check['fact_checks_found']} relevant fact checks.")
-    
-    return " ".join(summary_parts)
+        // Auto-resize textarea
+        document.getElementById('newsText').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+        // Add keyboard shortcut for analysis
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                analyzeNews();
+            }
+        });
+    </script>
+</body>
+</html>
