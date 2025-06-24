@@ -30,6 +30,224 @@ def home():
         "timestamp": datetime.now().isoformat()
     })
 
+# FIXED: Added frontend-compatible endpoints
+@app.route('/analyze_news', methods=['POST'])
+def analyze_news_frontend():
+    """Frontend-compatible endpoint for news analysis"""
+    try:
+        data = request.json
+        article_text = data.get('text', '') or data.get('article_text', '')
+        source_url = data.get('url', '') or data.get('source_url', '')
+        
+        if not article_text and not source_url:
+            return jsonify({"error": "Article text or URL is required"}), 400
+        
+        # If URL provided but no text, use URL as text for now
+        if source_url and not article_text:
+            article_text = f"Content from URL: {source_url}"
+        
+        # OpenAI Analysis
+        prompt = f"""
+        Analyze this news article for misinformation, bias, and credibility. Provide a comprehensive assessment:
+
+        Article: {article_text[:3000]}
+        Source URL: {source_url}
+
+        Please analyze:
+        1. Factual accuracy and potential misinformation
+        2. Political bias (left, center, right, or mixed)
+        3. Source credibility assessment
+        4. Emotional manipulation techniques
+        5. Overall credibility score (0-100)
+
+        Provide specific examples and reasoning for each assessment.
+        """
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1500,
+            temperature=0.3
+        )
+        
+        analysis_text = response.choices[0].message.content
+        
+        # Enhanced response parsing
+        credibility_score = extract_score_from_analysis(analysis_text)
+        
+        # AI Detection Analysis
+        ai_detection_prompt = f"""
+        Analyze if this text appears to be AI-generated. Look for:
+        1. Repetitive patterns or phrases
+        2. Overly formal or unnatural language
+        3. Perfect grammar with no natural errors
+        4. Generic or template-like content
+        
+        Text: {article_text[:1000]}
+        
+        Provide:
+        - AI probability (0-100%)
+        - Classification (Human-Written, Possibly AI, Likely AI)
+        - Confidence level (0-100%)
+        """
+        
+        ai_response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": ai_detection_prompt}],
+            max_tokens=500,
+            temperature=0.3
+        )
+        
+        ai_analysis = ai_response.choices[0].message.content
+        ai_probability = extract_percentage(ai_analysis, "ai probability", 20)
+        confidence = extract_percentage(ai_analysis, "confidence", 80)
+        
+        # Classification logic
+        if ai_probability >= 70:
+            classification = "Likely AI-Generated"
+        elif ai_probability >= 40:
+            classification = "Possibly AI-Generated"
+        else:
+            classification = "Likely Human-Written"
+        
+        # Fact checking (basic implementation)
+        fact_checks = []
+        if GOOGLE_FACT_CHECK_API_KEY:
+            try:
+                fact_checks = get_fact_checks(article_text[:200])
+            except:
+                pass
+        
+        # Extract domain for source verification
+        domain = None
+        if source_url:
+            import urllib.parse
+            domain = urllib.parse.urlparse(source_url).netloc
+        
+        return jsonify({
+            "credibility_score": credibility_score / 100,
+            "assessment": f"Analysis completed. Credibility score: {credibility_score}/100",
+            "ai_detection": {
+                "ai_probability": ai_probability / 100,
+                "classification": classification,
+                "confidence": confidence / 100
+            },
+            "fact_checks": fact_checks,
+            "news_analysis": {
+                "source_quality": "Analysis completed" if credibility_score >= 70 else "Concerns identified",
+                "bias_assessment": extract_bias_assessment(analysis_text),
+                "content_type": "News article analysis"
+            },
+            "source_domain": domain,
+            "timestamp": datetime.now().isoformat(),
+            "status": "success"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# FIXED: Added frontend-compatible endpoint
+@app.route('/unified_content_check', methods=['POST'])
+def unified_content_check_frontend():
+    """Frontend-compatible endpoint for unified content analysis"""
+    try:
+        data = request.json
+        content = data.get('text', '') or data.get('content', '')
+        
+        if not content:
+            return jsonify({"error": "Content is required"}), 400
+        
+        # Stage 1: AI Pattern Analysis
+        ai_prompt = f"""
+        Analyze this text for AI generation patterns. Look for:
+        1. Repetitive phrases or structures
+        2. Overly formal or unnatural language
+        3. Generic or template-like content
+        4. Lack of personal voice or unique perspective
+        5. Perfect grammar with no natural errors
+        
+        Text: {content[:2000]}
+        
+        Rate the likelihood this is AI-generated (0-100%) and explain your reasoning.
+        """
+        
+        ai_response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": ai_prompt}],
+            max_tokens=800,
+            temperature=0.3
+        )
+        
+        ai_analysis = ai_response.choices[0].message.content
+        ai_probability = extract_percentage(ai_analysis, "ai", 30)
+        confidence = extract_percentage(ai_analysis, "confidence", 85)
+        
+        # Classification
+        if ai_probability >= 70:
+            classification = "Likely AI-Generated"
+        elif ai_probability >= 40:
+            classification = "Possibly AI-Generated"
+        else:
+            classification = "Likely Human-Written"
+        
+        # Stage 2: Plagiarism Check (basic web search)
+        similarity_score = 0
+        plagiarism_assessment = "No significant similarities found"
+        matches = []
+        
+        try:
+            if NEWS_API_KEY:
+                search_query = content[:100].replace('"', '').replace('\n', ' ')
+                search_url = f"https://newsapi.org/v2/everything?q=\"{search_query}\"&apiKey={NEWS_API_KEY}&pageSize=3"
+                search_response = requests.get(search_url, timeout=10)
+                if search_response.status_code == 200:
+                    search_data = search_response.json()
+                    if search_data.get('articles'):
+                        similarity_score = min(len(search_data['articles']) * 15, 60)
+                        plagiarism_assessment = f"Found {len(search_data['articles'])} potentially related sources"
+                        matches = [{"title": article.get("title", "Related content"), 
+                                   "similarity": 0.4, 
+                                   "source": article.get("source", {}).get("name", "Unknown")} 
+                                  for article in search_data['articles'][:2]]
+        except:
+            pass
+        
+        # Overall assessment
+        overall_score = 100 - ((ai_probability + similarity_score) / 2)
+        if overall_score >= 80:
+            overall_assessment = "Content appears authentic with high confidence"
+        elif overall_score >= 60:
+            overall_assessment = "Content shows mixed signals - verify independently"
+        else:
+            overall_assessment = "Content raises authenticity concerns"
+        
+        return jsonify({
+            "ai_detection": {
+                "ai_probability": ai_probability / 100,
+                "classification": classification,
+                "confidence": confidence / 100,
+                "explanation": ai_analysis[:200] + "..."
+            },
+            "plagiarism_detection": {
+                "similarity_score": similarity_score / 100,
+                "assessment": plagiarism_assessment,
+                "matches": matches
+            },
+            "overall_assessment": overall_assessment,
+            "timestamp": datetime.now().isoformat(),
+            "status": "success"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# FIXED: Added frontend-compatible endpoint
+@app.route('/analyze_image', methods=['POST'])
+def analyze_image_frontend():
+    """Frontend-compatible endpoint for image analysis"""
+    return analyze_image()
+
+# Keep original API endpoints for backward compatibility
 @app.route('/api/analyze-news', methods=['POST'])
 def analyze_news():
     try:
@@ -277,6 +495,96 @@ def analyze_image():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Helper functions
+def extract_score_from_analysis(analysis_text):
+    """Extract credibility score from analysis text"""
+    # Look for score patterns
+    score_patterns = [
+        r'credibility.*?(\d+)[\s/]*100',
+        r'score.*?(\d+)[\s/]*100',
+        r'(\d+)[\s/]*100.*?credibility',
+        r'(\d+)%.*?credible',
+        r'credible.*?(\d+)%'
+    ]
+    
+    for pattern in score_patterns:
+        match = re.search(pattern, analysis_text, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+    
+    # Fallback scoring based on keywords
+    score = 60  # Default
+    text_lower = analysis_text.lower()
+    
+    if "very high" in text_lower or "excellent" in text_lower:
+        score = 90
+    elif "high credibility" in text_lower or "reliable" in text_lower:
+        score = 80
+    elif "moderate" in text_lower or "decent" in text_lower:
+        score = 65
+    elif "low credibility" in text_lower or "questionable" in text_lower:
+        score = 35
+    elif "very low" in text_lower or "unreliable" in text_lower:
+        score = 20
+    
+    return score
+
+def extract_percentage(text, keyword, default=50):
+    """Extract percentage value near a keyword"""
+    # Look for percentage patterns near the keyword
+    pattern = rf'{keyword}.*?(\d+)%|(\d+)%.*?{keyword}'
+    match = re.search(pattern, text, re.IGNORECASE)
+    if match:
+        return int(match.group(1) or match.group(2))
+    return default
+
+def extract_bias_assessment(analysis_text):
+    """Extract bias assessment from analysis"""
+    text_lower = analysis_text.lower()
+    
+    if "left" in text_lower and "bias" in text_lower:
+        return "Left-leaning bias detected"
+    elif "right" in text_lower and "bias" in text_lower:
+        return "Right-leaning bias detected"
+    elif "neutral" in text_lower or "balanced" in text_lower:
+        return "Relatively neutral presentation"
+    elif "bias" in text_lower:
+        return "Some bias indicators present"
+    else:
+        return "Bias assessment completed"
+
+def get_fact_checks(query):
+    """Get fact checks from Google Fact Check API"""
+    try:
+        url = f"https://factchecktools.googleapis.com/v1alpha1/claims:search"
+        params = {
+            'query': query[:100],
+            'key': GOOGLE_FACT_CHECK_API_KEY,
+            'pageSize': 3
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            fact_checks = []
+            
+            for claim in data.get('claims', []):
+                if claim.get('claimReview'):
+                    review = claim['claimReview'][0]
+                    fact_checks.append({
+                        'title': review.get('title', 'Fact Check'),
+                        'claim': claim.get('text', 'No claim text'),
+                        'rating': review.get('textualRating', 'Unrated'),
+                        'publisher': review.get('publisher', {}).get('name', 'Unknown'),
+                        'url': review.get('url', '#')
+                    })
+            
+            return fact_checks
+    except:
+        pass
+    
+    return []
 
 def is_valid_image(image_data):
     """Basic image validation by checking file headers"""
