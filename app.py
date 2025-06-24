@@ -16,6 +16,9 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
+# FIXED: Updated OpenAI client initialization
+client = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+
 @app.route('/')
 def home():
     return jsonify({
@@ -30,7 +33,6 @@ def home():
         "timestamp": datetime.now().isoformat()
     })
 
-# FIXED: Added frontend-compatible endpoints
 @app.route('/analyze_news', methods=['POST'])
 def analyze_news_frontend():
     """Frontend-compatible endpoint for news analysis"""
@@ -46,7 +48,7 @@ def analyze_news_frontend():
         if source_url and not article_text:
             article_text = f"Content from URL: {source_url}"
         
-        # OpenAI Analysis
+        # FIXED: Updated OpenAI API call
         prompt = f"""
         Analyze this news article for misinformation, bias, and credibility. Provide a comprehensive assessment:
 
@@ -63,7 +65,7 @@ def analyze_news_frontend():
         Provide specific examples and reasoning for each assessment.
         """
         
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
@@ -75,7 +77,7 @@ def analyze_news_frontend():
         # Enhanced response parsing
         credibility_score = extract_score_from_analysis(analysis_text)
         
-        # AI Detection Analysis
+        # FIXED: AI Detection Analysis with new API
         ai_detection_prompt = f"""
         Analyze if this text appears to be AI-generated. Look for:
         1. Repetitive patterns or phrases
@@ -91,7 +93,7 @@ def analyze_news_frontend():
         - Confidence level (0-100%)
         """
         
-        ai_response = openai.ChatCompletion.create(
+        ai_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": ai_detection_prompt}],
             max_tokens=500,
@@ -126,7 +128,7 @@ def analyze_news_frontend():
         
         return jsonify({
             "credibility_score": credibility_score / 100,
-            "assessment": f"Analysis completed. Credibility score: {credibility_score}/100",
+            "assessment": f"Analysis completed. Credibility score: {credibility_score}/100. {analysis_text[:200]}...",
             "ai_detection": {
                 "ai_probability": ai_probability / 100,
                 "classification": classification,
@@ -146,7 +148,6 @@ def analyze_news_frontend():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# FIXED: Added frontend-compatible endpoint
 @app.route('/unified_content_check', methods=['POST'])
 def unified_content_check_frontend():
     """Frontend-compatible endpoint for unified content analysis"""
@@ -157,7 +158,7 @@ def unified_content_check_frontend():
         if not content:
             return jsonify({"error": "Content is required"}), 400
         
-        # Stage 1: AI Pattern Analysis
+        # FIXED: Stage 1: AI Pattern Analysis with new API
         ai_prompt = f"""
         Analyze this text for AI generation patterns. Look for:
         1. Repetitive phrases or structures
@@ -171,7 +172,7 @@ def unified_content_check_frontend():
         Rate the likelihood this is AI-generated (0-100%) and explain your reasoning.
         """
         
-        ai_response = openai.ChatCompletion.create(
+        ai_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": ai_prompt}],
             max_tokens=800,
@@ -241,7 +242,7 @@ def unified_content_check_frontend():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# FIXED: Added frontend-compatible endpoint
+# FIXED: Updated all other OpenAI API calls throughout the file
 @app.route('/analyze_image', methods=['POST'])
 def analyze_image_frontend():
     """Frontend-compatible endpoint for image analysis"""
@@ -258,7 +259,7 @@ def analyze_news():
         if not article_text:
             return jsonify({"error": "Article text is required"}), 400
         
-        # OpenAI Analysis
+        # FIXED: OpenAI Analysis with new API
         prompt = f"""
         Analyze this news article for misinformation, bias, and credibility. Provide a comprehensive assessment:
 
@@ -275,7 +276,7 @@ def analyze_news():
         Provide specific examples and reasoning for each assessment.
         """
         
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
@@ -319,7 +320,7 @@ def analyze_content_authenticity():
         if not content:
             return jsonify({"error": "Content is required"}), 400
         
-        # Stage 1: AI Pattern Analysis
+        # FIXED: Stage 1: AI Pattern Analysis with new API
         ai_prompt = f"""
         Analyze this text for AI generation patterns. Look for:
         1. Repetitive phrases or structures
@@ -333,7 +334,7 @@ def analyze_content_authenticity():
         Rate the likelihood this is AI-generated (0-100%) and explain your reasoning.
         """
         
-        ai_response = openai.ChatCompletion.create(
+        ai_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": ai_prompt}],
             max_tokens=800,
@@ -342,7 +343,7 @@ def analyze_content_authenticity():
         
         ai_analysis = ai_response.choices[0].message.content
         
-        # Stage 2: Linguistic Analysis
+        # FIXED: Stage 2: Linguistic Analysis with new API
         linguistic_prompt = f"""
         Perform linguistic analysis on this text:
         1. Sentence structure variety
@@ -356,7 +357,7 @@ def analyze_content_authenticity():
         Assess authenticity based on linguistic patterns (0-100% authentic).
         """
         
-        linguistic_response = openai.ChatCompletion.create(
+        linguistic_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": linguistic_prompt}],
             max_tokens=800,
@@ -379,7 +380,7 @@ def analyze_content_authenticity():
         except Exception:
             plagiarism_results = "Plagiarism check unavailable."
         
-        # Stage 4: Overall Authenticity Scoring
+        # FIXED: Stage 4: Overall Authenticity Scoring with new API
         scoring_prompt = f"""
         Based on these analyses, provide an overall authenticity score (0-100%):
         
@@ -395,7 +396,7 @@ def analyze_content_authenticity():
         Give a single authenticity score (0-100%) and brief explanation.
         """
         
-        scoring_response = openai.ChatCompletion.create(
+        scoring_response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": scoring_prompt}],
             max_tokens=400,
@@ -496,7 +497,7 @@ def analyze_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Helper functions
+# Helper functions (keeping the same as they work fine)
 def extract_score_from_analysis(analysis_text):
     """Extract credibility score from analysis text"""
     # Look for score patterns
@@ -670,10 +671,11 @@ def analyze_file_properties(filename, file_size, image_data):
             "file_confidence_score": 50
         }
 
+# FIXED: Updated OpenAI Vision API calls
 def analyze_with_openai_vision(base64_image):
     """Use OpenAI Vision API to analyze image for AI generation indicators"""
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4-vision-preview",
             messages=[
                 {
@@ -750,7 +752,7 @@ Rate the likelihood this is AI-generated (0-100%) and provide specific visual ev
     except Exception as e:
         # Fallback to standard GPT if Vision API fails
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{
                     "role": "user", 
@@ -784,7 +786,7 @@ Rate the likelihood this is AI-generated (0-100%) and provide specific visual ev
 def analyze_image_context(base64_image):
     """Additional contextual analysis of the image"""
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4-vision-preview",
             messages=[
                 {
@@ -871,7 +873,7 @@ def calculate_image_authenticity(file_analysis, vision_analysis, context_analysi
         
         # Generate executive summary
         try:
-            summary_response = openai.ChatCompletion.create(
+            summary_response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{
                     "role": "user", 
