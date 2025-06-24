@@ -4,9 +4,6 @@ import openai
 import requests
 import re
 import base64
-import io
-from PIL import Image
-from PIL.ExifTags import TAGS
 import os
 from datetime import datetime
 import json
@@ -218,6 +215,7 @@ def analyze_image():
         # Handle file upload or base64 data
         image_data = None
         filename = None
+        file_size = None
         
         if 'image' in request.files:
             # File upload
@@ -227,47 +225,52 @@ def analyze_image():
             
             filename = file.filename
             image_data = file.read()
+            file_size = len(image_data)
         elif request.json and 'image_data' in request.json:
             # Base64 data
             try:
                 image_data = base64.b64decode(request.json['image_data'])
                 filename = request.json.get('filename', 'uploaded_image.jpg')
+                file_size = len(image_data)
             except Exception:
                 return jsonify({"error": "Invalid base64 image data"}), 400
         else:
             return jsonify({"error": "No image provided"}), 400
         
-        # Validate image
-        try:
-            image = Image.open(io.BytesIO(image_data))
-            image_format = image.format
-            image_size = image.size
-        except Exception:
-            return jsonify({"error": "Invalid image file"}), 400
+        # Basic file validation
+        if file_size > 10 * 1024 * 1024:  # 10MB limit
+            return jsonify({"error": "File too large (max 10MB)"}), 400
         
-        # Stage 1: Metadata Analysis
-        metadata_analysis = analyze_image_metadata(image_data)
+        if file_size < 1024:  # Too small to be a real image
+            return jsonify({"error": "File too small to analyze"}), 400
         
-        # Stage 2: OpenAI Vision Analysis
+        # Check if it's a valid image by checking file headers
+        if not is_valid_image(image_data):
+            return jsonify({"error": "Invalid image file format"}), 400
+        
+        # Stage 1: Basic File Analysis
+        file_analysis = analyze_file_properties(filename, file_size, image_data)
+        
+        # Stage 2: OpenAI Vision Analysis (Primary Analysis)
         base64_image = base64.b64encode(image_data).decode('utf-8')
         vision_analysis = analyze_with_openai_vision(base64_image)
         
-        # Stage 3: Technical Analysis
-        technical_analysis = analyze_image_technical(image)
+        # Stage 3: Pattern and Context Analysis
+        context_analysis = analyze_image_context(base64_image)
         
         # Stage 4: Overall Authenticity Assessment
         overall_assessment = calculate_image_authenticity(
-            metadata_analysis, vision_analysis, technical_analysis
+            file_analysis, vision_analysis, context_analysis
         )
         
         return jsonify({
             "filename": filename,
-            "image_format": image_format,
-            "image_size": image_size,
-            "metadata_analysis": metadata_analysis,
+            "file_size": f"{file_size / 1024:.1f} KB",
+            "file_analysis": file_analysis,
             "vision_analysis": vision_analysis,
-            "technical_analysis": technical_analysis,
+            "context_analysis": context_analysis,
             "overall_assessment": overall_assessment,
+            "analysis_method": "OpenAI Vision + Pattern Analysis",
             "timestamp": datetime.now().isoformat(),
             "status": "success"
         })
@@ -275,56 +278,88 @@ def analyze_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def analyze_image_metadata(image_data):
-    """Analyze image metadata for authenticity indicators"""
+def is_valid_image(image_data):
+    """Basic image validation by checking file headers"""
+    if len(image_data) < 10:
+        return False
+    
+    # Check for common image file signatures
+    image_signatures = [
+        b'\xFF\xD8\xFF',  # JPEG
+        b'\x89PNG\r\n\x1a\n',  # PNG
+        b'GIF87a',  # GIF87a
+        b'GIF89a',  # GIF89a
+        b'RIFF',  # WebP (RIFF container)
+        b'BM',  # BMP
+    ]
+    
+    return any(image_data.startswith(sig) for sig in image_signatures)
+
+def analyze_file_properties(filename, file_size, image_data):
+    """Analyze basic file properties for authenticity indicators"""
     try:
-        image = Image.open(io.BytesIO(image_data))
-        exifdata = image.getexif()
-        
-        metadata_info = {}
         suspicious_indicators = []
         authenticity_indicators = []
         
-        if exifdata:
-            for tag_id in exifdata:
-                tag = TAGS.get(tag_id, tag_id)
-                data = exifdata.get(tag_id)
-                metadata_info[tag] = str(data)
+        # File extension analysis
+        if filename:
+            ext = filename.lower().split('.')[-1] if '.' in filename else ''
+            common_photo_extensions = ['jpg', 'jpeg', 'png', 'tiff', 'raw', 'cr2', 'nef']
+            
+            if ext in ['jpg', 'jpeg']:
+                authenticity_indicators.append("JPEG format (common for camera photos)")
+            elif ext == 'png':
+                if file_size < 1024 * 1024:  # Small PNG
+                    suspicious_indicators.append("Small PNG file (common for AI-generated images)")
+                else:
+                    authenticity_indicators.append("Large PNG file")
+            elif ext in ['raw', 'cr2', 'nef', 'dng']:
+                authenticity_indicators.append("RAW camera format (very likely authentic)")
         
-        # Check for common AI generation indicators
-        if not exifdata or len(exifdata) < 5:
-            suspicious_indicators.append("Limited or missing EXIF metadata (common in AI-generated images)")
+        # File size analysis
+        if file_size < 200 * 1024:  # Less than 200KB
+            suspicious_indicators.append("Very small file size (typical of AI-generated images)")
+        elif file_size < 500 * 1024:  # Less than 500KB
+            suspicious_indicators.append("Small file size (may indicate AI generation)")
+        elif file_size > 3 * 1024 * 1024:  # Greater than 3MB
+            authenticity_indicators.append("Large file size (typical of high-quality camera photos)")
+        elif file_size > 1 * 1024 * 1024:  # Greater than 1MB
+            authenticity_indicators.append("Moderate file size (suggests camera photo)")
         
-        if 'Software' in metadata_info:
-            software = metadata_info['Software'].lower()
-            ai_software_keywords = ['artificial', 'ai', 'generated', 'midjourney', 'dalle', 'stable diffusion']
-            if any(keyword in software for keyword in ai_software_keywords):
-                suspicious_indicators.append(f"AI generation software detected: {metadata_info['Software']}")
+        # Basic header analysis
+        format_detected = "Unknown format"
+        if image_data.startswith(b'\xFF\xD8\xFF'):
+            format_detected = "JPEG"
+            authenticity_indicators.append("JPEG format detected")
+        elif image_data.startswith(b'\x89PNG'):
+            format_detected = "PNG"
+        elif image_data.startswith(b'GIF'):
+            format_detected = "GIF"
+            authenticity_indicators.append("GIF format (less common for AI generation)")
+        elif image_data.startswith(b'RIFF'):
+            format_detected = "WebP"
+        elif image_data.startswith(b'BM'):
+            format_detected = "BMP"
+            authenticity_indicators.append("BMP format (uncommon for AI generation)")
         
-        if 'Camera' in metadata_info or 'Make' in metadata_info:
-            authenticity_indicators.append("Camera/device information present")
-        
-        if 'DateTime' in metadata_info:
-            authenticity_indicators.append("Timestamp information present")
-        
-        if 'GPS' in str(metadata_info):
-            authenticity_indicators.append("GPS location data present")
-        
-        confidence_score = max(20, 80 - len(suspicious_indicators) * 15 + len(authenticity_indicators) * 10)
+        # Calculate confidence score
+        base_score = 60
+        confidence_score = base_score - (len(suspicious_indicators) * 12) + (len(authenticity_indicators) * 8)
+        confidence_score = max(20, min(85, confidence_score))
         
         return {
-            "metadata_present": len(metadata_info) > 0,
-            "metadata_count": len(metadata_info),
+            "filename": filename,
+            "file_size_bytes": file_size,
+            "format_detected": format_detected,
             "suspicious_indicators": suspicious_indicators,
             "authenticity_indicators": authenticity_indicators,
-            "confidence_score": min(95, confidence_score),
-            "key_metadata": {k: v for k, v in list(metadata_info.items())[:10]}
+            "file_confidence_score": confidence_score
         }
         
     except Exception as e:
         return {
-            "error": f"Metadata analysis failed: {str(e)}",
-            "confidence_score": 50
+            "error": f"File analysis failed: {str(e)}",
+            "file_confidence_score": 50
         }
 
 def analyze_with_openai_vision(base64_image):
@@ -338,15 +373,29 @@ def analyze_with_openai_vision(base64_image):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Analyze this image for signs of AI generation. Look for:
-                            1. Unnatural lighting or shadows
-                            2. Inconsistent textures or patterns
-                            3. Facial or anatomical irregularities
-                            4. Background inconsistencies
-                            5. Digital artifacts or unusual smoothness
-                            6. Perfect symmetry where natural variation is expected
-                            
-                            Rate the likelihood this is AI-generated (0-100%) and explain your reasoning with specific visual details."""
+                            "text": """Analyze this image carefully for signs of AI generation. Look for:
+
+VISUAL INCONSISTENCIES:
+1. Unnatural or impossible lighting/shadows
+2. Inconsistent textures or unrealistic surfaces  
+3. Facial features that don't align properly
+4. Anatomical irregularities or impossible proportions
+5. Background elements that don't make physical sense
+
+DIGITAL ARTIFACTS:
+6. Overly smooth or "plastic" looking skin/surfaces
+7. Repeated patterns or textures
+8. Blurred or missing details where they should be sharp
+9. Perfect symmetry where natural variation is expected
+10. Text that's gibberish or distorted
+
+CONTEXT CLUES:
+11. Scene composition that seems too perfect
+12. Objects or people that seem "copy-pasted"
+13. Inconsistent art styles within the same image
+14. Impossible camera angles or perspectives
+
+Rate the likelihood this is AI-generated (0-100%) and provide specific visual evidence for your assessment. Be thorough but concise."""
                         },
                         {
                             "type": "image_url",
@@ -357,19 +406,35 @@ def analyze_with_openai_vision(base64_image):
                     ]
                 }
             ],
-            max_tokens=800
+            max_tokens=1000
         )
         
         analysis_text = response.choices[0].message.content
         
-        # Extract confidence score
-        score_match = re.search(r'(\d+)%', analysis_text)
-        ai_likelihood = int(score_match.group(1)) if score_match else 50
+        # Extract confidence score from the analysis
+        score_matches = re.findall(r'(\d+)%', analysis_text)
+        if score_matches:
+            # Use the last percentage mentioned (usually the final assessment)
+            ai_likelihood = int(score_matches[-1])
+        else:
+            # Fallback scoring based on keywords
+            ai_likelihood = 50
+            if "very likely ai" in analysis_text.lower() or "definitely ai" in analysis_text.lower():
+                ai_likelihood = 85
+            elif "likely ai" in analysis_text.lower() or "probably ai" in analysis_text.lower():
+                ai_likelihood = 70
+            elif "possibly ai" in analysis_text.lower() or "might be ai" in analysis_text.lower():
+                ai_likelihood = 55
+            elif "unlikely ai" in analysis_text.lower() or "probably authentic" in analysis_text.lower():
+                ai_likelihood = 30
+            elif "very unlikely ai" in analysis_text.lower() or "definitely authentic" in analysis_text.lower():
+                ai_likelihood = 15
+        
         authenticity_score = 100 - ai_likelihood
         
         return {
-            "analysis": analysis_text,
-            "ai_likelihood": ai_likelihood,
+            "detailed_analysis": analysis_text,
+            "ai_likelihood_percent": ai_likelihood,
             "authenticity_score": authenticity_score,
             "model_used": "gpt-4-vision-preview"
         }
@@ -381,151 +446,170 @@ def analyze_with_openai_vision(base64_image):
                 model="gpt-3.5-turbo",
                 messages=[{
                     "role": "user", 
-                    "content": "Image analysis unavailable. Provide general guidance on detecting AI-generated images."
+                    "content": """Provide general guidance on detecting AI-generated images. Include common signs like:
+                    - Unnatural lighting or shadows
+                    - Perfect but unrealistic textures
+                    - Facial irregularities
+                    - Background inconsistencies
+                    - Overly smooth surfaces
+                    Explain what users should look for."""
                 }],
-                max_tokens=400
+                max_tokens=500
             )
             
             return {
-                "analysis": response.choices[0].message.content,
-                "ai_likelihood": 50,
+                "detailed_analysis": f"Visual analysis unavailable. General guidance: {response.choices[0].message.content}",
+                "ai_likelihood_percent": 50,
                 "authenticity_score": 50,
-                "note": "Vision analysis unavailable - using general guidance",
-                "model_used": "gpt-3.5-turbo"
+                "note": "Vision analysis unavailable - using general guidance only",
+                "model_used": "gpt-3.5-turbo (fallback)"
             }
         except Exception:
             return {
-                "analysis": "Visual analysis unavailable at this time.",
-                "ai_likelihood": 50,
+                "detailed_analysis": "Visual analysis unavailable. Please try again or check your image format.",
+                "ai_likelihood_percent": 50,
                 "authenticity_score": 50,
-                "error": str(e)
+                "error": f"Analysis failed: {str(e)}",
+                "model_used": "none"
             }
 
-def analyze_image_technical(image):
-    """Perform technical analysis of image properties"""
+def analyze_image_context(base64_image):
+    """Additional contextual analysis of the image"""
     try:
-        width, height = image.size
-        mode = image.mode
-        
-        # Calculate aspect ratio
-        aspect_ratio = width / height
-        
-        # Check for common AI generation resolutions
-        common_ai_resolutions = [
-            (512, 512), (1024, 1024), (768, 768),
-            (512, 768), (768, 512), (1024, 1536),
-            (640, 640), (896, 896)
-        ]
-        
-        suspicious_technical = []
-        authenticity_technical = []
-        
-        if (width, height) in common_ai_resolutions:
-            suspicious_technical.append(f"Common AI generation resolution: {width}x{height}")
-        
-        if width == height:
-            suspicious_technical.append("Perfect square aspect ratio (common in AI generation)")
-        
-        if width % 64 == 0 and height % 64 == 0:
-            suspicious_technical.append("Dimensions divisible by 64 (AI model optimization)")
-        
-        # Check for unusual aspect ratios
-        if 0.8 <= aspect_ratio <= 1.2:
-            # Normal range
-            authenticity_technical.append("Standard aspect ratio")
-        elif aspect_ratio < 0.5 or aspect_ratio > 2.0:
-            authenticity_technical.append("Unusual aspect ratio (suggests authentic capture)")
-        
-        # Image quality indicators
-        if width >= 2000 or height >= 2000:
-            authenticity_technical.append("High resolution (less common in AI generation)")
-        
-        technical_score = 60 - len(suspicious_technical) * 15 + len(authenticity_technical) * 10
-        technical_score = max(10, min(90, technical_score))
-        
-        return {
-            "dimensions": f"{width}x{height}",
-            "aspect_ratio": round(aspect_ratio, 2),
-            "color_mode": mode,
-            "suspicious_indicators": suspicious_technical,
-            "authenticity_indicators": authenticity_technical,
-            "technical_score": technical_score
-        }
-        
-    except Exception as e:
-        return {
-            "error": f"Technical analysis failed: {str(e)}",
-            "technical_score": 50
-        }
+        response = openai.ChatCompletion.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """Analyze this image for contextual authenticity indicators:
 
-def calculate_image_authenticity(metadata_analysis, vision_analysis, technical_analysis):
-    """Calculate overall image authenticity score"""
-    try:
-        # Weight the different analyses
-        metadata_score = metadata_analysis.get('confidence_score', 50)
-        vision_score = vision_analysis.get('authenticity_score', 50)
-        technical_score = technical_analysis.get('technical_score', 50)
-        
-        # Weighted average (Vision analysis gets highest weight)
-        overall_score = int(
-            (vision_score * 0.5) + 
-            (metadata_score * 0.3) + 
-            (technical_score * 0.2)
+1. REALISM: Does the scene look like it could exist in reality?
+2. PHOTOGRAPHY: Does this look like it was captured with a real camera?
+3. COMPOSITION: Is the framing and composition natural or artificially perfect?
+4. DETAILS: Are fine details consistent throughout the image?
+5. STYLE: Is there a consistent artistic style or mixed styles?
+
+Provide a brief assessment of whether this appears to be a genuine photograph, digital art, or AI-generated content based on these contextual factors."""
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=400
         )
         
-        # Determine confidence level
+        context_analysis = response.choices[0].message.content
+        
+        # Score based on context keywords
+        context_score = 50
+        if "genuine photograph" in context_analysis.lower() or "real camera" in context_analysis.lower():
+            context_score = 75
+        elif "digital art" in context_analysis.lower() or "artistic" in context_analysis.lower():
+            context_score = 45
+        elif "ai-generated" in context_analysis.lower() or "artificial" in context_analysis.lower():
+            context_score = 25
+        
+        return {
+            "contextual_analysis": context_analysis,
+            "context_authenticity_score": context_score
+        }
+        
+    except Exception:
+        return {
+            "contextual_analysis": "Contextual analysis unavailable.",
+            "context_authenticity_score": 50
+        }
+
+def calculate_image_authenticity(file_analysis, vision_analysis, context_analysis):
+    """Calculate overall image authenticity score with weighted components"""
+    try:
+        # Extract component scores
+        file_score = file_analysis.get('file_confidence_score', 50)
+        vision_score = vision_analysis.get('authenticity_score', 50) 
+        context_score = context_analysis.get('context_authenticity_score', 50)
+        ai_likelihood = vision_analysis.get('ai_likelihood_percent', 50)
+        
+        # Weighted average (Vision analysis gets highest weight as it's most reliable)
+        overall_score = int(
+            (vision_score * 0.60) +      # Vision analysis - 60% weight
+            (context_score * 0.25) +     # Context analysis - 25% weight  
+            (file_score * 0.15)          # File analysis - 15% weight
+        )
+        
+        # Determine confidence level and risk assessment
         if overall_score >= 80:
-            confidence_level = "High confidence - likely authentic"
-        elif overall_score >= 60:
-            confidence_level = "Moderate confidence - possibly authentic"
-        elif overall_score >= 40:
-            confidence_level = "Low confidence - uncertain authenticity"
+            confidence_level = "High Confidence"
+            risk_assessment = "Very likely authentic/genuine photograph"
+        elif overall_score >= 65:
+            confidence_level = "Moderate-High Confidence"
+            risk_assessment = "Probably authentic with minor concerns"
+        elif overall_score >= 50:
+            confidence_level = "Moderate Confidence"
+            risk_assessment = "Uncertain - requires human verification"
+        elif overall_score >= 35:
+            confidence_level = "Low Confidence"
+            risk_assessment = "Likely AI-generated or heavily processed"
         else:
-            confidence_level = "Very low confidence - likely AI-generated"
+            confidence_level = "Very Low Confidence"
+            risk_assessment = "Very likely AI-generated content"
         
-        # Generate summary
-        summary_prompt = f"""
-        Based on image analysis results:
-        - Metadata Score: {metadata_score}/100
-        - Visual Analysis Score: {vision_score}/100  
-        - Technical Score: {technical_score}/100
-        - Overall Score: {overall_score}/100
-        
-        Provide a concise summary explaining the authenticity assessment and key findings.
-        """
-        
+        # Generate executive summary
         try:
             summary_response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": summary_prompt}],
-                max_tokens=300,
+                messages=[{
+                    "role": "user", 
+                    "content": f"""Based on image analysis results, provide a concise executive summary:
+
+File Analysis Score: {file_score}/100
+Vision Analysis Score: {vision_score}/100 (AI Likelihood: {ai_likelihood}%)
+Context Analysis Score: {context_score}/100
+Overall Authenticity Score: {overall_score}/100
+
+Key findings from vision analysis: {vision_analysis.get('detailed_analysis', 'N/A')[:200]}
+
+Provide a 2-3 sentence executive summary explaining the authenticity assessment and primary reasons for the conclusion."""
+                }],
+                max_tokens=200,
                 temperature=0.3
             )
-            summary = summary_response.choices[0].message.content
+            executive_summary = summary_response.choices[0].message.content
         except Exception:
-            summary = f"Overall authenticity score: {overall_score}/100. {confidence_level}"
+            executive_summary = f"Overall authenticity assessment: {overall_score}/100. {risk_assessment}. Based on multi-stage analysis of file properties, visual characteristics, and contextual factors."
         
         return {
-            "overall_score": overall_score,
+            "overall_authenticity_score": overall_score,
             "confidence_level": confidence_level,
-            "summary": summary,
+            "risk_assessment": risk_assessment,
+            "executive_summary": executive_summary,
             "component_scores": {
-                "metadata": metadata_score,
-                "visual_analysis": vision_score,
-                "technical": technical_score
-            }
+                "file_analysis": file_score,
+                "vision_analysis": vision_score,
+                "context_analysis": context_score
+            },
+            "ai_likelihood_percent": ai_likelihood
         }
         
     except Exception as e:
         return {
-            "overall_score": 50,
-            "confidence_level": "Analysis incomplete",
-            "summary": f"Error calculating authenticity: {str(e)}",
+            "overall_authenticity_score": 50,
+            "confidence_level": "Analysis Incomplete",
+            "risk_assessment": "Unable to complete full assessment",
+            "executive_summary": f"Error calculating final assessment: {str(e)}",
             "component_scores": {
-                "metadata": 50,
-                "visual_analysis": 50, 
-                "technical": 50
-            }
+                "file_analysis": 50,
+                "vision_analysis": 50,
+                "context_analysis": 50
+            },
+            "ai_likelihood_percent": 50
         }
 
 if __name__ == '__main__':
