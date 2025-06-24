@@ -7,6 +7,10 @@ import base64
 import os
 from datetime import datetime
 import json
+from werkzeug.utils import secure_filename
+import PyPDF2
+from docx import Document
+import io
 
 app = Flask(__name__)
 CORS(app)
@@ -246,6 +250,91 @@ def unified_content_check_frontend():
 def analyze_image_frontend():
     """Frontend-compatible endpoint for image analysis"""
     return analyze_image()
+
+@app.route('/api/extract-text', methods=['POST'])
+def extract_text():
+    """Extract text from uploaded files (TXT, PDF, DOCX)"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        filename = secure_filename(file.filename)
+        file_extension = filename.lower().split('.')[-1] if '.' in filename else ''
+        
+        extracted_text = ""
+        
+        if file_extension == 'pdf':
+            # Extract text from PDF
+            try:
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(file.read()))
+                for page in pdf_reader.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        extracted_text += page_text + "\n"
+            except Exception as e:
+                return jsonify({'error': f'Error reading PDF: {str(e)}'}), 400
+                
+        elif file_extension == 'docx':
+            # Extract text from DOCX
+            try:
+                doc = Document(io.BytesIO(file.read()))
+                for paragraph in doc.paragraphs:
+                    if paragraph.text.strip():
+                        extracted_text += paragraph.text + "\n"
+                        
+                # Also extract text from tables if present
+                for table in doc.tables:
+                    for row in table.rows:
+                        for cell in row.cells:
+                            if cell.text.strip():
+                                extracted_text += cell.text + " "
+                        extracted_text += "\n"
+            except Exception as e:
+                return jsonify({'error': f'Error reading DOCX: {str(e)}'}), 400
+                
+        elif file_extension == 'txt':
+            # Handle TXT files
+            try:
+                file_content = file.read()
+                # Try different encodings
+                for encoding in ['utf-8', 'latin-1', 'cp1252']:
+                    try:
+                        extracted_text = file_content.decode(encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                else:
+                    return jsonify({'error': 'Unable to decode text file'}), 400
+            except Exception as e:
+                return jsonify({'error': f'Error reading TXT: {str(e)}'}), 400
+                
+        else:
+            return jsonify({'error': f'Unsupported file type: {file_extension}. Supported formats: TXT, PDF, DOCX'}), 400
+        
+        # Clean up the extracted text
+        extracted_text = extracted_text.strip()
+        
+        if not extracted_text:
+            return jsonify({'error': 'No text could be extracted from the file'}), 400
+        
+        # Limit text length to prevent issues
+        if len(extracted_text) > 50000:  # 50K character limit
+            extracted_text = extracted_text[:50000] + "\n\n[Text truncated - file too long]"
+        
+        return jsonify({
+            'text': extracted_text,
+            'filename': filename,
+            'length': len(extracted_text),
+            'file_type': file_extension.upper(),
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error processing file: {str(e)}'}), 500
 
 # Keep original API endpoints for backward compatibility
 @app.route('/api/analyze-news', methods=['POST'])
