@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Plans - FactsAndFakes.ai</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+        }
+
+        .content-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pricing-hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .pricing-hero h2 {
+            font-size: 2.8rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .pricing-subtitle {
+            font-size: 1.2rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #f7fafc;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: "Most Popular";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .plan-description {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .plan-price {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .price-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .price-period {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .plan-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f7fafc;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features .icon {
+            color: #48bb78;
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .plan-features .icon.unavailable {
+            color: #cbd5e0;
+        }
+
+        .plan-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plan-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .plan-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .plan-button.secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .plan-button.secondary:hover {
+            background: #edf2f7;
+        }
+
+        .enterprise-section {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .enterprise-section h3 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+        }
+
+        .enterprise-section p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .enterprise-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .enterprise-feature {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .enterprise-feature i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #81e6d9;
+        }
+
+        .faq-section {
+            margin-top: 60px;
+        }
+
+        .faq-title {
+            font-size: 2.2rem;
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .faq-item {
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            background: #edf2f7;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .faq-question:hover {
+            background: #e2e8f0;
+        }
+
+        .faq-answer {
+            padding: 20px;
+            color: #718096;
+            display: none;
+        }
+
+        .faq-answer.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .pricing-hero h2 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .nav-links a {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+
+            .content-container {
+                padding: 30px;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> FactsAndFakes.ai</h1>
+            <p>Professional AI-Powered Content Verification Platform</p>
+        </div>
+
+        <nav class="nav-bar">
+            <div class="nav-links">
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News Verification</a>
+                <a href="unifiedcontent.html"><i class="fas fa-search"></i> Content Authenticity</a>
+                <a href="imageanalysis.html"><i class="fas fa-image"></i> AI Image Analysis</a>
+                <a href="mission.html"><i class="fas fa-bullseye"></i> Our Mission</a>
+                <a href="pricing.html" class="active"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+        </nav>
+
+        <div class="content-container">
+            <div class="pricing-hero">
+                <h2>Choose Your Plan</h2>
+                <div class="pricing-subtitle">
+                    Transparent pricing for individuals, teams, and enterprises. Start free and scale as you grow.
+                </div>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Free</div>
+                    <div class="plan-description">Perfect for trying our platform</div>
+                    <div class="plan-price">
+                        <div class="price-amount">$0</div>
+                        <div class="price-period">forever</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check icon"></i> 10 analyses per month</li>
+                        <li><i class="fas fa-check icon"></i> Basic AI detection</li>
+                        <li><i class="fas fa-check icon"></i> News verification</li>
+                        <li><i class="fas fa-check icon"></i> Standard support</li>
+                        <li><i class="fas fa-times icon unavailable"></i> Image analysis</li>
+                        <li><i class="fas fa-times icon unavailable"></i> API access</li>
+                        <li><i class="fas fa-times icon unavailable"></i> Bulk processing</li>
+                    </ul>
+                    <button class="plan-button secondary">Get Started Free</button>
+                </div>
+
+                <!-- Professional Plan -->
+                <div class="pricing-card featured">
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-description">Ideal for content creators and small teams</div>
+                    <div class="plan-price">
+                        <div class="price-amount">$29</div>
+                        <div class="price-period">per month</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check icon"></i> 500 analyses per month</li>
+                        <li><i class="fas fa-check icon"></i> Advanced AI detection</li>
+                        <li><i class="fas fa-check icon"></i> Full news verification</li>
+                        <li><i class="fas fa-check icon"></i> Image analysis</li>
+                        <li><i class="fas fa-check icon"></i> Plagiarism detection</li>
+                        <li><i class="fas fa-check icon"></i> Priority support</li>
+                        <li><i class="fas fa-check icon"></i> Export reports</li>
+                    </ul>
+                    <button class="plan-button primary">Start Free Trial</button>
+                </div>
+
+                <!-- Business Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Business</div>
+                    <div class="plan-description">For teams and organizations</div>
+                    <div class="plan-price">
+                        <div class="price-amount">$99</div>
+                        <div class="price-period">per month</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check icon"></i> 2,500 analyses per month</li>
+                        <li><i class="fas fa-check icon"></i> All verification tools</li>
+                        <li><i class="fas fa-check icon"></i> API access (basic)</li>
+                        <li><i class="fas fa-check icon"></i> Team collaboration</li>
+                        <li><i class="fas fa-check icon"></i> Bulk processing</li>
+                        <li><i class="fas fa-check icon"></i> Custom reports</li>
+                        <li><i class="fas fa-check icon"></i> Dedicated support</li>
+                    </ul>
+                    <button class="plan-button secondary">Contact Sales</button>
+                </div>
+            </div>
+
+            <div class="enterprise-section">
+                <h3>Enterprise Solutions</h3>
+                <p>Custom solutions for large organizations with high-volume verification needs</p>
+                
+                <div class="enterprise-features">
+                    <div class="enterprise-feature">
+                        <i class="fas fa-infinity"></i>
+                        <h4>Unlimited Usage</h4>
+                        <p>No limits on analyses or API calls</p>
+                    </div>
+                    <div class="enterprise-feature">
+                        <i class="fas fa-cogs"></i>
+                        <h4>Custom Integration</h4>
+                        <p>Tailored API and workflow integration</p>
+                    </div>
+                    <div class="enterprise-feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Advanced Security</h4>
+                        <p>SOC 2 compliance and data sovereignty</p>
+                    </div>
+                    <div class="enterprise-feature">
+                        <i class="fas fa-headset"></i>
+                        <h4>24/7 Support</h4>
+                        <p>Dedicated account manager and support</p>
+                    </div>
+                </div>
+
+                <button class="plan-button primary" style="max-width: 300px;">Schedule Enterprise Demo</button>
+            </div>
+
+            <div class="faq-section">
+                <h3 class="faq-title">Frequently Asked Questions</h3>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Can I change plans anytime?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated accordingly.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Is there a free trial for paid plans?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, we offer a 14-day free trial for Professional and Business plans. No credit card required to start.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        What payment methods do you accept?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        We accept all major credit cards, PayPal, and for enterprise customers, we can arrange bank transfers or custom billing arrangements.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        How accurate are your verification tools?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Our AI detection achieves 95%+ accuracy, and our news verification combines multiple authoritative sources. We continuously improve our algorithms based on the latest research and user feedback.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        Do you offer discounts for educational institutions?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, we offer special pricing for educational institutions, non-profits, and journalists. Contact us for details about our academic discount program.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                // Close all other open FAQs
+                document.querySelectorAll('.faq-answer.show').forEach(openAnswer => {
+                    openAnswer.classList.remove('show');
+                    openAnswer.previousElementSibling.querySelector('i').classList.remove('fa-chevron-up');
+                    openAnswer.previousElementSibling.querySelector('i').classList.add('fa-chevron-down');
+                });
+                
+                answer.classList.add('show');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+        }
+    </script>
+</body>
+</html>
