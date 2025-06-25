@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import openai
 import requests
@@ -25,35 +25,10 @@ GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 GOOGLE_SEARCH_ENGINE_ID = os.environ.get('GOOGLE_SEARCH_ENGINE_ID')
 
+ 
 @app.route('/')
 def home():
-    # Check API status
-    api_status = {
-        "openai": "✅ Configured" if openai.api_key else "❌ Missing",
-        "google_search": "✅ Configured" if (GOOGLE_API_KEY and GOOGLE_SEARCH_ENGINE_ID) else "❌ Missing",
-        "news_api": "✅ Configured" if NEWS_API_KEY else "❌ Missing"
-    }
-    
-    return jsonify({
-        "message": "AI Detection & Plagiarism Checker Pro - Professional v8.1",
-        "status": "operational",
-        "tools": [
-            "Advanced AI Content Detection",
-            "Professional Plagiarism Scanning", 
-            "AI Image Analysis Tool",
-            "Document Text Extraction"
-        ],
-        "features": {
-            "ai_detection": "GPT-4 powered analysis",
-            "plagiarism_detection": "Google Custom Search + 500+ databases",
-            "file_support": "TXT, PDF, DOCX processing",
-            "real_time_analysis": "Priority processing available"
-        },
-        "api_status": api_status,
-        "version": "8.1.0",
-        "timestamp": datetime.now().isoformat()
-    })
-
+    return send_from_directory('.', 'index.html')
 @app.route('/unified_content_check', methods=['POST'])
 def unified_content_check_frontend():
     """Enhanced unified content analysis with better error handling"""
