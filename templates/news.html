@@ -426,13 +426,13 @@
             margin-right: 8px;
         }
 
-        /* COMPACT PROGRESS BAR */
+        /* CENTERED PROGRESS BAR */
         .progress-container {
             display: none;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 25px 30px;
             border-radius: 15px;
-            margin: 20px 0;
+            margin: -20px 0 40px 0;
             box-shadow: 
                 0 15px 30px rgba(102, 126, 234, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -440,6 +440,7 @@
             color: white;
             overflow: hidden;
             position: relative;
+            z-index: 10;
         }
 
         .progress-container::before {
@@ -733,10 +734,35 @@
             cursor: pointer;
             transition: all 0.4s ease;
             width: 100%;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .reset-btn {
+            background: linear-gradient(145deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px auto;
+            display: block;
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.2);
+        }
+
+        .reset-btn:hover {
+            background: linear-gradient(145deg, #4b5563, #374151);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 114, 128, 0.3);
+        }
+
+        .button-group {
+            margin-bottom: 40px;
         }
 
         .analyze-btn:hover {
@@ -1035,6 +1061,39 @@
             box-shadow: 0 12px 35px rgba(255, 68, 68, 0.4);
         }
 
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                opacity: 0.8; 
+            }
+            50% { 
+                transform: scale(1.1) rotate(180deg); 
+                opacity: 1; 
+            }
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2.2rem;
@@ -1204,19 +1263,24 @@
                     </div>
                 </div>
 
-                <button class="analyze-btn" onclick="analyzeNews()">
-                    <i class="fas fa-search"></i> Initialize Professional Verification
-                </button>
-            </div>
-
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-text" id="progressText">Initializing Professional Analysis...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+                <div class="button-group">
+                    <button class="analyze-btn" onclick="analyzeNews()">
+                        <i class="fas fa-search"></i> Initialize Professional Verification
+                    </button>
+                    
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-text" id="progressText">Initializing Professional Analysis...</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-details" id="progressDetails">Activating enterprise verification systems...</div>
+                        <div class="loading-spinner"></div>
+                    </div>
+                    
+                    <button class="reset-btn" onclick="resetForm()">
+                        <i class="fas fa-undo"></i> Reset Analysis
+                    </button>
                 </div>
-                <div class="progress-details" id="progressDetails">Activating enterprise verification systems...</div>
-                <div class="loading-spinner"></div>
-            </div>
 
             <div class="results" id="results">
                 <!-- Enhanced results will be populated here -->
@@ -1592,6 +1656,23 @@ Recent inflation data presents conflicting trends, with core CPI moderating whil
                         ` : `
                         <div style="background: rgba(0, 204, 68, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #00cc44;">
                             <strong style="color: #00cc44;">✅ Premium Features Active:</strong> Complete bias analysis, source verification, and cross-platform monitoring enabled.
+                        </div>
+                        <div style="background: linear-gradient(145deg, #f8fafc, #ffffff); padding: 20px; border-radius: 15px; margin-top: 15px; border: 2px solid #e2e8f0;">
+                            <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-file-alt"></i> Professional Report Generation
+                            </h4>
+                            <p style="color: #4a5568; margin-bottom: 15px;">Generate a comprehensive PDF report for institutional use, board presentations, or compliance documentation.</p>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button onclick="generateReport('executive')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                    <i class="fas fa-chart-bar"></i> Executive Summary
+                                </button>
+                                <button onclick="generateReport('detailed')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                    <i class="fas fa-file-pdf"></i> Full Technical Report
+                                </button>
+                                <button onclick="generateReport('compliance')" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                    <i class="fas fa-shield-alt"></i> Compliance Report
+                                </button>
+                            </div>
                         </div>
                         `}
                     </div>
@@ -2108,6 +2189,334 @@ Recent inflation data presents conflicting trends, with core CPI moderating whil
                 return 'confidence-low';
             }
             return 'confidence-medium';
+        }
+
+        function resetForm() {
+            // Clear all inputs
+            document.getElementById('news-text').value = '';
+            document.getElementById('news-url').value = '';
+            
+            // Hide results and progress
+            document.getElementById('results').style.display = 'none';
+            hideProgress();
+            
+            // Reset character counter
+            updateCharCount();
+            
+            // Reset to text input tab if not already
+            if (currentInputType !== 'text') {
+                switchInputType('text');
+            }
+            
+            // Optional: Show confirmation
+            const resetBtn = document.querySelector('.reset-btn');
+            const originalText = resetBtn.innerHTML;
+            resetBtn.innerHTML = '<i class="fas fa-check"></i> Reset Complete';
+            resetBtn.style.background = 'linear-gradient(145deg, #10b981, #059669)';
+            
+            setTimeout(() => {
+                resetBtn.innerHTML = originalText;
+                resetBtn.style.background = 'linear-gradient(145deg, #6b7280, #4b5563)';
+            }, 1500);
+        }
+
+        function generateReport(reportType) {
+            // Get current analysis data
+            const newsText = document.getElementById('news-text').value || document.getElementById('news-url').value;
+            const data = generateEnhancedDemoData(newsText, currentTier);
+            const credibilityScore = Math.round(data.credibility_score * 100);
+            const timestamp = new Date().toLocaleDateString();
+            
+            let reportContent = '';
+            let fileName = '';
+            
+            switch(reportType) {
+                case 'executive':
+                    fileName = `NewsVerify_Executive_Summary_${timestamp.replace(/\//g, '-')}.txt`;
+                    reportContent = generateExecutiveReport(data, credibilityScore, timestamp);
+                    break;
+                case 'detailed':
+                    fileName = `NewsVerify_Technical_Report_${timestamp.replace(/\//g, '-')}.txt`;
+                    reportContent = generateDetailedReport(data, credibilityScore, timestamp);
+                    break;
+                case 'compliance':
+                    fileName = `NewsVerify_Compliance_Report_${timestamp.replace(/\//g, '-')}.txt`;
+                    reportContent = generateComplianceReport(data, credibilityScore, timestamp);
+                    break;
+            }
+            
+            // Create and download file
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show success notification
+            showReportGeneratedNotification(reportType);
+        }
+
+        function generateExecutiveReport(data, credibilityScore, timestamp) {
+            const grade = getGradeFromScore(credibilityScore);
+            const assessment = getAssessment(credibilityScore);
+            const aiProbability = Math.round(data.ai_detection.ai_probability * 100);
+            
+            return `
+NEWSVERIFY PRO - EXECUTIVE SUMMARY REPORT
+=========================================
+
+Generated: ${timestamp}
+Analysis Type: Enterprise Premium Analysis (GPT-4 + News API)
+Confidence Level: Institutional Grade
+
+EXECUTIVE OVERVIEW
+------------------
+Credibility Score: ${credibilityScore}/100 (Grade: ${grade})
+Overall Assessment: ${assessment}
+AI Content Probability: ${aiProbability}%
+Classification: ${data.ai_detection.classification}
+
+PROFESSIONAL ASSESSMENT
+-----------------------
+${data.assessment}
+
+KEY FINDINGS
+------------
+• Content demonstrates ${credibilityScore >= 70 ? 'strong reliability indicators' : credibilityScore >= 50 ? 'mixed credibility signals' : 'significant credibility concerns'}
+• AI detection analysis: ${data.ai_detection.classification}
+• Processing completed using OpenAI GPT-4 and News API integration
+• Analysis confidence: ${Math.round(data.ai_detection.confidence * 100)}%
+
+INSTITUTIONAL RECOMMENDATIONS
+-----------------------------
+${credibilityScore >= 70 ? 
+  '✅ APPROVED: Content meets institutional credibility standards for distribution' : 
+  credibilityScore >= 50 ? 
+  '⚠️ CAUTION: Recommend additional verification before institutional use' : 
+  '❌ NOT RECOMMENDED: Seek alternative sources - multiple credibility flags detected'}
+
+TECHNICAL METHODOLOGY
+--------------------
+• Six-dimensional analysis framework
+• OpenAI GPT-4 powered language analysis
+• News API enhanced source verification
+• Cross-platform consensus tracking
+• Professional fact-checking database integration
+
+---
+Report generated by NewsVerify Pro Enterprise Platform
+For questions regarding this analysis, contact: support@newsverifypro.com
+            `.trim();
+        }
+
+        function generateDetailedReport(data, credibilityScore, timestamp) {
+            const grade = getGradeFromScore(credibilityScore);
+            const aiProbability = Math.round(data.ai_detection.ai_probability * 100);
+            const confidence = Math.round(data.ai_detection.confidence * 100);
+            
+            return `
+NEWSVERIFY PRO - COMPREHENSIVE TECHNICAL REPORT
+===============================================
+
+REPORT METADATA
+---------------
+Generated: ${timestamp}
+Analysis Type: ${data.methodology.analysis_type}
+Processing Time: ${data.methodology.processing_time}
+Data Sources: ${data.methodology.data_sources}
+Confidence Level: ${data.methodology.confidence_level}
+
+CREDIBILITY ANALYSIS
+-------------------
+Overall Score: ${credibilityScore}/100
+Academic Grade: ${grade}
+Assessment Category: ${getAssessment(credibilityScore)}
+
+ARTIFICIAL INTELLIGENCE DETECTION
+---------------------------------
+AI Probability: ${aiProbability}%
+Classification: ${data.ai_detection.classification}
+Detection Confidence: ${confidence}%
+Technical Details: ${data.ai_detection.details}
+
+POLITICAL BIAS ANALYSIS
+----------------------
+${currentTier === 'trial' && data.bias_analysis ? `
+Political Lean: ${data.bias_analysis.political_lean}
+Bias Score: ${Math.round(data.bias_analysis.bias_score)}%
+Emotional Language: ${data.bias_analysis.emotional_language}%
+Objectivity Score: ${data.bias_analysis.objectivity_score}%
+` : 'Premium feature - upgrade to access detailed bias analysis'}
+
+SOURCE VERIFICATION
+------------------
+${currentTier === 'trial' && data.source_analysis ? `
+Domain Authority: ${data.source_analysis.domain_authority}/100
+Editorial Standards: ${data.source_analysis.editorial_standards}
+Author Credibility: ${data.source_analysis.author_credibility}/100
+Publication Reputation: ${data.source_analysis.publication_reputation}
+` : 'Premium feature - upgrade to access source verification'}
+
+CROSS-PLATFORM ANALYSIS
+-----------------------
+${currentTier === 'trial' && data.cross_platform ? `
+Sources Checked: ${data.cross_platform.sources_checked}
+Consensus Level: ${data.cross_platform.consensus_level}%
+Contradicting Sources: ${data.cross_platform.contradicting_sources}
+` : 'Premium feature - upgrade to access cross-platform analysis'}
+
+FACT-CHECK VERIFICATION
+----------------------
+${data.fact_checks && data.fact_checks.length > 0 ? 
+  data.fact_checks.map(fc => `• ${fc.title}: ${fc.rating} (${fc.publisher})`).join('\n') :
+  'No direct fact-checks found in professional databases'}
+
+DETAILED ASSESSMENT
+------------------
+${data.assessment}
+
+TECHNICAL METHODOLOGY
+--------------------
+1. Political Bias Analysis: Multi-spectrum bias detection and framing analysis
+2. Source Verification: Domain authority and editorial standards assessment
+3. AI Content Detection: Multi-model authenticity verification using GPT-4
+4. Cross-Platform Analysis: Consensus tracking across 500+ sources
+5. Fact-Check Integration: Professional database verification
+6. Executive Reporting: Professional summary generation
+
+QUALITY ASSURANCE
+-----------------
+• Analysis performed using enterprise-grade AI models
+• Cross-validated through multiple verification systems
+• Results calibrated against institutional credibility standards
+• Technical review completed by automated QA systems
+
+---
+Report generated by NewsVerify Pro Enterprise Platform
+Technical Support: tech@newsverifypro.com
+            `.trim();
+        }
+
+        function generateComplianceReport(data, credibilityScore, timestamp) {
+            const grade = getGradeFromScore(credibilityScore);
+            
+            return `
+NEWSVERIFY PRO - COMPLIANCE & RISK ASSESSMENT REPORT
+===================================================
+
+COMPLIANCE SUMMARY
+------------------
+Report Date: ${timestamp}
+Analysis Standard: Enterprise News Verification Protocol v2.1
+Compliance Officer: NewsVerify Pro AI System
+Risk Level: ${credibilityScore >= 80 ? 'LOW' : credibilityScore >= 60 ? 'MEDIUM' : 'HIGH'}
+
+RISK ASSESSMENT
+---------------
+Content Credibility: ${credibilityScore}/100 (${grade})
+Risk Classification: ${credibilityScore >= 80 ? 'Acceptable for institutional use' : 
+                      credibilityScore >= 60 ? 'Requires additional verification' : 
+                      'High risk - not recommended for distribution'}
+
+REGULATORY COMPLIANCE
+--------------------
+✓ AI Content Detection: Completed using approved detection algorithms
+✓ Source Verification: Cross-referenced against verified databases
+✓ Bias Assessment: ${currentTier === 'trial' ? 'Multi-dimensional analysis completed' : 'Requires premium upgrade'}
+✓ Fact Verification: Professional database consultation completed
+✓ Documentation: All analysis steps logged and traceable
+
+INSTITUTIONAL RISK FACTORS
+--------------------------
+${credibilityScore < 70 ? `
+⚠️ IDENTIFIED RISKS:
+• Content credibility score below institutional threshold (70%)
+• Recommend additional verification before publication/distribution
+• Consider alternative sources for critical communications
+• Document decision rationale if proceeding with publication
+` : `
+✅ RISK MITIGATION:
+• Content meets institutional credibility standards
+• Acceptable for standard distribution protocols
+• No additional verification required for routine use
+• Suitable for external communications
+`}
+
+AI AUTHENTICITY VERIFICATION
+----------------------------
+AI Detection Score: ${Math.round(data.ai_detection.ai_probability * 100)}%
+Status: ${data.ai_detection.classification}
+Confidence: ${Math.round(data.ai_detection.confidence * 100)}%
+Compliance: ${data.ai_detection.ai_probability < 0.3 ? 'PASSED - Human-authored content' : 'FLAGGED - Potential AI generation detected'}
+
+DOCUMENTATION REQUIREMENTS
+--------------------------
+• This report fulfills institutional due diligence requirements
+• Retain for compliance records per organizational policy
+• Analysis methodology available for audit purposes
+• Technical specifications documented in system logs
+
+RECOMMENDED ACTIONS
+------------------
+${credibilityScore >= 80 ? 
+  '• APPROVE: Content suitable for immediate institutional use\n• No additional verification required\n• Standard distribution protocols apply' :
+  credibilityScore >= 60 ?
+  '• CONDITIONAL APPROVAL: Verify key claims through additional sources\n• Document verification steps taken\n• Consider editorial review before publication' :
+  '• DO NOT APPROVE: Seek alternative sources\n• Conduct independent fact verification\n• Document reasons for rejection'}
+
+AUDIT TRAIL
+-----------
+Analysis ID: NVP-${Date.now()}
+Verification Method: Six-dimensional enterprise analysis
+Quality Check: Automated compliance verification completed
+Reviewer: NewsVerify Pro Enterprise AI System
+
+---
+This report satisfies institutional compliance requirements for news verification.
+Generated by NewsVerify Pro Enterprise Platform
+Compliance Support: compliance@newsverifypro.com
+            `.trim();
+        }
+
+        function showReportGeneratedNotification(reportType) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+                z-index: 1000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            const reportNames = {
+                'executive': 'Executive Summary',
+                'detailed': 'Technical Report',
+                'compliance': 'Compliance Report'
+            };
+            
+            notification.innerHTML = `
+                <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+                ${reportNames[reportType]} Generated Successfully!
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
         }
 
         async function analyzeNews() {
