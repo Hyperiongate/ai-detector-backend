@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewsVerify Pro - Enterprise News Verification Platform v2.0</title>
+    <title>NewsVerify Pro - Enterprise News Verification Platform v4.0-CACHE-BUST</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -972,7 +972,7 @@
             </div>
 
             <div class="button-group">
-                <button class="analyze-btn" onclick="analyzeNews()">
+                <button class="analyze-btn" onclick="newAnalyzeNews()">
                     <i class="fas fa-search"></i> Initialize Professional Verification
                 </button>
                 
@@ -996,6 +996,9 @@
     </div>
 
     <script>
+        // CACHE BUSTER - Version 4.0 - New Clean Code
+        console.log('NewsVerify v4.0 JavaScript loaded - NO API KEY CHECKS');
+        
         let currentInputType = 'text';
         let currentTier = 'free';
         let lastAnalysisData = null;
@@ -1026,9 +1029,9 @@
             }
         }
 
-        // Main analysis function - NO API KEY CHECKS
-        function analyzeNews() {
-            console.log('analyzeNews called - checking for content...');
+        // FORCE OVERRIDE - New function name to bypass cache
+        function newAnalyzeNews() {
+            alert('NEW FUNCTION WORKING - NO API KEY NEEDED!');
             
             const newsText = document.getElementById('news-text').value.trim();
             
@@ -1037,13 +1040,16 @@
                 return;
             }
 
-            console.log('Content found, starting analysis...');
+            alert('Content found, starting backend analysis...');
             
             showProgress();
             document.getElementById('results').style.display = 'none';
 
-            // Start async analysis
-            performAnalysis(newsText);
+            // Simulate backend call for now
+            setTimeout(() => {
+                hideProgress();
+                alert('Backend analysis would happen here - /api/analyze-news endpoint');
+            }, 3000);
         }
 
         // Separate async function to avoid conflicts
