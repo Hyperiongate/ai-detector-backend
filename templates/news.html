@@ -1000,7 +1000,7 @@
         let currentTier = 'free';
         let lastAnalysisData = null;
 
-        // Call backend API endpoint instead of OpenAI directly
+        // Backend API call function
         async function callBackendAPI(content) {
             try {
                 const response = await fetch('/api/analyze-news', {
@@ -1026,7 +1026,10 @@
             }
         }
 
-        async function analyzeNews() {
+        // Main analysis function - NO API KEY CHECKS
+        function analyzeNews() {
+            console.log('analyzeNews called - checking for content...');
+            
             const newsText = document.getElementById('news-text').value.trim();
             
             if (!newsText) {
@@ -1034,29 +1037,31 @@
                 return;
             }
 
+            console.log('Content found, starting analysis...');
+            
             showProgress();
             document.getElementById('results').style.display = 'none';
 
+            // Start async analysis
+            performAnalysis(newsText);
+        }
+
+        // Separate async function to avoid conflicts
+        async function performAnalysis(newsText) {
             try {
-                updateProgress(25, '🤖 Connecting to AI Analysis Engine...', 'Establishing secure backend connection...');
+                updateProgress(25, '🤖 Connecting to Analysis Engine...', 'Establishing backend connection...');
                 await new Promise(resolve => setTimeout(resolve, 800));
                 
-                updateProgress(40, '🔍 Analyzing content credibility...', 'Processing linguistic patterns and fact verification...');
+                updateProgress(60, '🎯 Processing Content...', 'AI analysis in progress...');
                 
-                updateProgress(60, '🎯 GPT-4 Analysis in Progress...', 'Deep learning models processing content...');
-                
-                // Call backend API - REAL API CALL through your secure backend
+                // Call backend API
                 const analysisResult = await callBackendAPI(newsText);
                 
-                updateProgress(80, '📊 Generating comprehensive report...', 'Synthesizing institutional-grade insights...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                updateProgress(95, '✅ Finalizing professional assessment...', 'Quality assurance and validation complete...');
+                updateProgress(90, '📊 Finalizing Results...', 'Generating report...');
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                updateProgress(100, '🎯 Real-time analysis complete!', 'Professional verification results ready...');
+                updateProgress(100, '✅ Analysis Complete!', 'Results ready...');
                 
-                // Store real analysis data
                 lastAnalysisData = analysisResult;
                 
                 setTimeout(() => {
@@ -1067,16 +1072,7 @@
             } catch (error) {
                 console.error('Analysis failed:', error);
                 hideProgress();
-                
-                if (error.message.includes('API error') || error.message.includes('401')) {
-                    showError('Authentication failed. Please check your backend configuration.');
-                } else if (error.message.includes('quota') || error.message.includes('429')) {
-                    showError('API quota exceeded. Please check your OpenAI account billing and usage limits.');
-                } else if (error.message.includes('network') || error.message.includes('fetch')) {
-                    showError('Network connection failed. Please check your internet connection.');
-                } else {
-                    showError(`Analysis failed: ${error.message}`);
-                }
+                showError('Backend connection failed. Please ensure your analysis server is running.');
             }
         }
         let openaiApiKey = '';
