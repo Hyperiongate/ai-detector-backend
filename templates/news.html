@@ -1029,10 +1029,8 @@
             }
         }
 
-        // FORCE OVERRIDE - New function name to bypass cache
-        function newAnalyzeNews() {
-            alert('NEW FUNCTION WORKING - NO API KEY NEEDED!');
-            
+        // Real backend analysis function - NO API KEY CHECKS
+        async function newAnalyzeNews() {
             const newsText = document.getElementById('news-text').value.trim();
             
             if (!newsText) {
@@ -1040,16 +1038,35 @@
                 return;
             }
 
-            alert('Content found, starting backend analysis...');
-            
             showProgress();
             document.getElementById('results').style.display = 'none';
 
-            // Simulate backend call for now
-            setTimeout(() => {
+            try {
+                updateProgress(25, '🤖 Connecting to Backend...', 'Establishing secure connection...');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                updateProgress(60, '🎯 Processing Content...', 'AI analysis in progress...');
+                
+                // Call backend API - REAL API CALL through your secure backend
+                const analysisResult = await callBackendAPI(newsText);
+                
+                updateProgress(90, '📊 Finalizing Results...', 'Generating report...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                updateProgress(100, '✅ Analysis Complete!', 'Results ready...');
+                
+                lastAnalysisData = analysisResult;
+                
+                setTimeout(() => {
+                    hideProgress();
+                    displayResults(analysisResult);
+                }, 800);
+
+            } catch (error) {
+                console.error('Backend call failed:', error);
                 hideProgress();
-                alert('Backend analysis would happen here - /api/analyze-news endpoint');
-            }, 3000);
+                showError('Backend connection failed. Please ensure your /api/analyze-news endpoint is running and accessible.');
+            }
         }
 
         // Separate async function to avoid conflicts
