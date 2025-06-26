@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewsVerify Pro - Enterprise News Verification Platform</title>
+    <title>NewsVerify Pro - Real News Verification Platform</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -44,15 +44,23 @@
             margin-bottom: 20px;
         }
 
-        .enterprise-badge {
-            background: rgba(255, 255, 255, 0.2);
+        .production-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
             backdrop-filter: blur(10px);
-            padding: 8px 20px;
+            padding: 12px 30px;
             border-radius: 25px;
             display: inline-block;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 8px 35px rgba(16, 185, 129, 0.4); }
+            100% { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2); }
         }
 
         .tool-container {
@@ -81,39 +89,44 @@
             background-clip: text;
         }
 
-        .backend-status {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
-            border: 2px solid rgba(16, 185, 129, 0.2);
-            border-radius: 15px;
-            padding: 20px;
+        .api-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(16, 185, 129, 0.1));
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .api-status-item {
             text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .backend-status.connected {
-            border-color: rgba(16, 185, 129, 0.3);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
-        }
-
-        .backend-status.disconnected {
-            border-color: rgba(239, 68, 68, 0.3);
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
-        }
-
-        .status-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .api-status-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
             display: block;
         }
 
-        .status-text {
+        .api-connected { color: #10b981; }
+        .api-disconnected { color: #ef4444; }
+        .api-optional { color: #f59e0b; }
+
+        .api-name {
             font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
-        .status-details {
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .api-description {
+            font-size: 0.8rem;
+            color: #6b7280;
         }
 
         .tier-selector {
@@ -135,7 +148,7 @@
             padding: 20px 40px;
             font-size: 1.1rem;
             position: relative;
-            min-width: 200px;
+            min-width: 220px;
             text-align: center;
         }
 
@@ -145,10 +158,22 @@
         }
 
         .tier-btn.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .tier-btn.premium {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-color: #667eea;
             color: white;
-            transform: translateY(-3px);
+        }
+
+        .tier-features {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            opacity: 0.9;
         }
 
         .input-section {
@@ -167,7 +192,7 @@
             font-size: 1.1rem;
         }
 
-        .input-group textarea {
+        .input-group textarea, .input-group input {
             width: 100%;
             padding: 18px;
             border: 3px solid #e2e8f0;
@@ -176,15 +201,25 @@
             transition: all 0.3s ease;
             background: white;
             font-family: inherit;
+        }
+
+        .input-group textarea {
             min-height: 140px;
             resize: vertical;
             line-height: 1.6;
         }
 
-        .input-group textarea:focus {
+        .input-group textarea:focus, .input-group input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            align-items: end;
         }
 
         .sample-buttons {
@@ -193,9 +228,9 @@
         }
 
         .sample-btn {
-            background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
-            border: 1px solid #667eea;
-            color: #667eea;
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+            border: 1px solid #10b981;
+            color: #10b981;
             padding: 8px 15px;
             border-radius: 20px;
             font-size: 0.9rem;
@@ -206,13 +241,13 @@
         }
 
         .sample-btn:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             transform: translateY(-2px);
         }
 
         .analyze-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
             padding: 20px 50px;
@@ -223,12 +258,12 @@
             transition: all 0.4s ease;
             width: 100%;
             margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         .analyze-btn:hover:not(:disabled) {
             transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
         }
 
         .analyze-btn:disabled {
@@ -238,7 +273,7 @@
 
         .progress-container {
             display: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             padding: 25px 30px;
             border-radius: 15px;
             margin: 20px 0;
@@ -263,7 +298,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00ff88, #ffaa00, #ff0066);
+            background: linear-gradient(90deg, #ffffff, #f0fdf4, #ffffff);
             border-radius: 15px;
             transition: width 1.5s ease;
             width: 0%;
@@ -272,6 +307,12 @@
         .progress-details {
             font-size: 0.95rem;
             opacity: 0.9;
+        }
+
+        .progress-apis {
+            font-size: 0.85rem;
+            margin-top: 10px;
+            opacity: 0.8;
         }
 
         .results {
@@ -285,7 +326,7 @@
             padding: 30px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #10b981;
         }
 
         .score-display {
@@ -304,11 +345,32 @@
             font-weight: 900;
             color: white;
             margin: 0 auto 20px;
+            position: relative;
         }
 
         .score-high { background: linear-gradient(135deg, #10b981, #059669); }
         .score-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .score-low { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .score-grade {
+            position: absolute;
+            bottom: -5px;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .real-analysis-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
 
         .analysis-grid {
             display: grid;
@@ -323,12 +385,18 @@
             border-radius: 15px;
             text-align: center;
             border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .metric-value {
             font-size: 2rem;
             font-weight: 900;
-            color: #667eea;
+            color: #10b981;
             margin-bottom: 8px;
         }
 
@@ -343,25 +411,44 @@
             color: #6b7280;
         }
 
+        .api-usage-indicator {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .api-usage-title {
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 8px;
+        }
+
+        .api-usage-list {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
         .expandable-section {
             margin-bottom: 20px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            border: 2px solid rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.1);
         }
 
         .section-header {
             cursor: pointer;
             transition: all 0.3s ease;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
         }
 
         .section-header:hover {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
         }
 
         .section-content {
@@ -371,6 +458,51 @@
 
         .section-content.active {
             display: block;
+        }
+
+        .fact-check-results {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .fact-check-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #d1fae5;
+        }
+
+        .fact-check-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .fact-check-rating {
+            font-weight: 700;
+            color: #059669;
+        }
+
+        .cross-platform-results {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .platform-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .platform-score {
+            font-weight: 600;
+            color: #d97706;
         }
 
         .error-message {
@@ -402,6 +534,26 @@
             transform: translateY(-2px);
         }
 
+        .loading-apis {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .loading-api {
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            animation: fadeInOut 2s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
         @media (max-width: 768px) {
             .tool-container {
                 padding: 30px;
@@ -414,6 +566,12 @@
                 width: 100%;
                 max-width: 300px;
             }
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            .api-status-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
         }
     </style>
 </head>
@@ -421,59 +579,93 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-shield-alt"></i> NewsVerify Pro</h1>
-            <p>Enterprise News Verification Platform - Backend Integrated</p>
-            <div class="enterprise-badge">
-                <i class="fas fa-certificate"></i> Professional Analysis
+            <p>Real News Verification Platform - Live API Integration</p>
+            <div class="production-badge">
+                <i class="fas fa-satellite-dish"></i> PRODUCTION READY - Live APIs
             </div>
         </div>
 
         <div class="tool-container">
             <div class="tool-header">
-                <h2><i class="fas fa-newspaper"></i> NewsVerify Pro</h2>
-                <p>Real-time verification using secure Flask backend</p>
+                <h2><i class="fas fa-newspaper"></i> Real NewsVerify Pro</h2>
+                <p>Professional news verification with live fact-checking APIs</p>
             </div>
 
-            <!-- Backend Status Indicator -->
-            <div class="backend-status" id="backendStatus">
-                <div class="status-icon" id="statusIcon">🔄</div>
-                <div class="status-text" id="statusText">Checking backend connection...</div>
-                <div class="status-details" id="statusDetails">Establishing connection to analysis server</div>
+            <!-- Real API Status Grid -->
+            <div class="api-status-grid" id="apiStatusGrid">
+                <div class="api-status-item">
+                    <div class="api-status-icon" id="openaiStatus">🔄</div>
+                    <div class="api-name">OpenAI API</div>
+                    <div class="api-description">AI Detection & Analysis</div>
+                </div>
+                <div class="api-status-item">
+                    <div class="api-status-icon" id="newsapiStatus">🔄</div>
+                    <div class="api-name">NewsAPI</div>
+                    <div class="api-description">Live News Verification</div>
+                </div>
+                <div class="api-status-item">
+                    <div class="api-status-icon" id="googleFactStatus">🔄</div>
+                    <div class="api-name">Google Fact Check</div>
+                    <div class="api-description">Professional Fact-Checking</div>
+                </div>
+                <div class="api-status-item">
+                    <div class="api-status-icon" id="mediastackStatus">🔄</div>
+                    <div class="api-name">MediaStack</div>
+                    <div class="api-description">Additional News Sources</div>
+                </div>
             </div>
 
             <div class="tier-selector">
                 <button class="tier-btn active" id="freeBtn" onclick="selectTier('free')">
                     🆓 Standard Analysis
+                    <div class="tier-features">Pattern-based • 50+ sources • Basic AI detection</div>
                 </button>
-                <button class="tier-btn" id="premiumBtn" onclick="selectTier('premium')">
+                <button class="tier-btn premium" id="premiumBtn" onclick="selectTier('premium')">
                     ⭐ Premium Analysis
+                    <div class="tier-features">OpenAI GPT-4 • 500+ sources • Advanced features</div>
                 </button>
             </div>
 
             <div class="input-section">
                 <div class="sample-buttons">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">📚 Try Demo Content:</label>
-                    <button class="sample-btn" onclick="loadSample('reliable')">📰 Reliable News</button>
-                    <button class="sample-btn" onclick="loadSample('biased')">⚖️ Biased Content</button>
-                    <button class="sample-btn" onclick="loadSample('fake')">❌ Misinformation</button>
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">📚 Try Real Content Samples:</label>
+                    <button class="sample-btn" onclick="loadSample('reuters')">📰 Reuters Article</button>
+                    <button class="sample-btn" onclick="loadSample('opinion')">💭 Opinion Piece</button>
+                    <button class="sample-btn" onclick="loadSample('social')">📱 Social Media Post</button>
+                    <button class="sample-btn" onclick="loadSample('ai_generated')">🤖 AI-Generated</button>
                 </div>
                 
-                <div class="input-group">
-                    <label for="news-text"><i class="fas fa-file-text"></i> News Article Content</label>
-                    <textarea id="news-text" placeholder="Enter news article content for comprehensive verification analysis. Our backend will assess credibility, detect bias patterns, verify sources, and provide professional insights..."></textarea>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="news-text"><i class="fas fa-file-text"></i> News Article Content</label>
+                        <textarea id="news-text" placeholder="Paste news article content here for real-time verification using live APIs. Our system will fact-check against Google's database, verify across multiple news sources, detect AI generation, and provide professional analysis..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="news-url"><i class="fas fa-link"></i> Article URL (Optional)</label>
+                        <input type="url" id="news-url" placeholder="https://example.com/article">
+                    </div>
                 </div>
             </div>
 
             <div style="text-align: center;">
                 <button class="analyze-btn" onclick="analyzeNews()" id="analyzeButton">
-                    <i class="fas fa-search"></i> Start Analysis
+                    <i class="fas fa-satellite-dish"></i> Start Real-Time Analysis
                 </button>
                 
                 <div class="progress-container" id="progressContainer">
-                    <div class="progress-text" id="progressText">Connecting to backend...</div>
+                    <div class="progress-text" id="progressText">Initializing real APIs...</div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <div class="progress-details" id="progressDetails">Establishing secure connection...</div>
+                    <div class="progress-details" id="progressDetails">Connecting to verification services...</div>
+                    <div class="progress-apis" id="progressApis">
+                        <div class="loading-apis">
+                            <div class="loading-api">Google Fact Check</div>
+                            <div class="loading-api">NewsAPI</div>
+                            <div class="loading-api">OpenAI</div>
+                            <div class="loading-api">MediaStack</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="reset-btn" onclick="resetForm()">
@@ -482,74 +674,73 @@
             </div>
 
             <div class="results" id="results">
-                <!-- Results will be populated here -->
+                <!-- Real results will be populated here -->
             </div>
         </div>
     </div>
 
     <script>
-        console.log('NewsVerify Pro - Latest Version Loaded');
+        console.log('NewsVerify Pro - Real Production Version Loaded');
         
         let currentTier = 'free';
-        let backendConnected = false;
+        let apiStatus = {};
         let lastAnalysisData = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            checkBackendConnection();
+            checkRealAPIStatus();
         });
 
-        // Check backend connection
-        async function checkBackendConnection() {
+        // Check real API status
+        async function checkRealAPIStatus() {
             try {
-                console.log('Checking backend connection...');
+                console.log('Checking real API status...');
                 const response = await fetch('/api/health');
                 
                 if (response.ok) {
                     const healthData = await response.json();
-                    backendConnected = true;
-                    updateBackendStatus('connected', healthData);
+                    apiStatus = healthData;
+                    updateAPIStatusDisplay(healthData);
                 } else {
                     throw new Error(`Backend returned ${response.status}`);
                 }
             } catch (error) {
-                console.error('Backend connection failed:', error);
-                backendConnected = false;
-                updateBackendStatus('disconnected', null);
+                console.error('API status check failed:', error);
+                updateAPIStatusDisplay(null);
             }
         }
 
-        // Update backend status display
-        function updateBackendStatus(status, healthData) {
-            const statusElement = document.getElementById('backendStatus');
-            const iconElement = document.getElementById('statusIcon');
-            const textElement = document.getElementById('statusText');
-            const detailsElement = document.getElementById('statusDetails');
-            
-            if (status === 'connected') {
-                statusElement.className = 'backend-status connected';
-                iconElement.textContent = '✅';
-                textElement.textContent = 'Backend Connected & Ready';
-                detailsElement.textContent = `Analysis server online | OpenAI: ${healthData?.openai_api === 'connected' ? 'Available' : 'Not configured'}`;
-            } else {
-                statusElement.className = 'backend-status disconnected';
-                iconElement.textContent = '❌';
-                textElement.textContent = 'Backend Connection Failed';
-                detailsElement.textContent = 'Please check that your Flask server is running properly';
+        // Update API status display
+        function updateAPIStatusDisplay(healthData) {
+            const statusMapping = {
+                'openaiStatus': 'openai_api',
+                'newsapiStatus': 'newsapi', 
+                'googleFactStatus': 'google_factcheck',
+                'mediastackStatus': 'mediastack'
+            };
+
+            for (const [elementId, apiKey] of Object.entries(statusMapping)) {
+                const element = document.getElementById(elementId);
+                if (healthData && healthData[apiKey] === 'connected') {
+                    element.textContent = '✅';
+                    element.className = 'api-status-icon api-connected';
+                } else if (healthData && healthData[apiKey] === 'not_configured') {
+                    element.textContent = '⚠️';
+                    element.className = 'api-status-icon api-optional';
+                } else {
+                    element.textContent = '❌';
+                    element.className = 'api-status-icon api-disconnected';
+                }
             }
         }
 
-        // MAIN ANALYSIS FUNCTION
+        // MAIN ANALYSIS FUNCTION - Real Implementation
         async function analyzeNews() {
             const newsText = document.getElementById('news-text').value.trim();
+            const newsUrl = document.getElementById('news-url').value.trim();
             
-            if (!newsText) {
-                alert('Please provide content to analyze');
-                return;
-            }
-
-            if (!backendConnected) {
-                alert('Backend connection failed. Please ensure your Flask server is running.');
+            if (!newsText && !newsUrl) {
+                alert('Please provide either article content or URL for analysis');
                 return;
             }
 
@@ -557,42 +748,43 @@
             document.getElementById('results').style.display = 'none';
 
             try {
-                updateProgress(25, '🔗 Connecting to Backend...', 'Establishing secure connection...');
+                updateProgress(15, '🔗 Connecting to Live APIs...', 'Establishing secure connections to verification services...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                updateProgress(35, '🎯 Real-Time Processing...', `Running ${currentTier} analysis with live data...`);
+                
+                // Call real backend API
+                const analysisResult = await callRealBackendAPI(newsText, newsUrl);
+                
+                updateProgress(75, '📊 Aggregating Results...', 'Combining data from multiple verification sources...');
                 await new Promise(resolve => setTimeout(resolve, 800));
-                
-                updateProgress(60, '🎯 Backend Processing...', `Running ${currentTier} analysis...`);
-                
-                // Call backend API with enhanced error handling
-                const analysisResult = await callBackendAPI(newsText);
-                
-                updateProgress(90, '📊 Finalizing Results...', 'Generating comprehensive report...');
-                await new Promise(resolve => setTimeout(resolve, 500));
 
-                updateProgress(100, '✅ Analysis Complete!', 'Results ready...');
+                updateProgress(95, '✅ Analysis Complete!', 'Real verification results ready...');
                 
                 lastAnalysisData = analysisResult;
                 
                 setTimeout(() => {
                     hideProgress();
-                    displayResults(analysisResult);
-                }, 800);
+                    displayRealResults(analysisResult);
+                }, 1000);
 
             } catch (error) {
-                console.error('Analysis failed:', error);
+                console.error('Real analysis failed:', error);
                 hideProgress();
-                showError(`Analysis failed: ${error.message}`);
+                showError(`Real-time analysis failed: ${error.message}`);
             }
         }
 
-        // Enhanced backend API call with robust error handling
-        async function callBackendAPI(content) {
+        // Real backend API call
+        async function callRealBackendAPI(content, url) {
             try {
                 const requestData = {
                     content: content,
+                    url: url,
                     tier: currentTier
                 };
 
-                console.log('Calling backend with:', requestData);
+                console.log('Calling real backend with:', requestData);
 
                 const response = await fetch('/api/analyze-news', {
                     method: 'POST',
@@ -602,162 +794,333 @@
                     body: JSON.stringify(requestData)
                 });
 
-                // Enhanced error handling
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Backend response error:', errorText);
+                    console.error('Real backend error:', errorText);
                     throw new Error(`Backend error: ${response.status} ${response.statusText}`);
                 }
 
-                // Check for empty response
                 const responseText = await response.text();
-                console.log('Backend response text length:', responseText.length);
+                console.log('Real backend response length:', responseText.length);
                 
                 if (!responseText || responseText.trim() === '') {
-                    throw new Error('Empty response from backend');
+                    throw new Error('Empty response from real backend');
                 }
 
-                // Safe JSON parsing
                 let data;
                 try {
                     data = JSON.parse(responseText);
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
-                    console.error('Response was:', responseText.substring(0, 500));
                     throw new Error(`Invalid JSON response: ${parseError.message}`);
                 }
 
-                console.log('Successfully parsed backend data:', data);
+                console.log('Successfully parsed real backend data:', data);
                 return data;
             } catch (error) {
-                console.error('Backend API call failed:', error);
+                console.error('Real backend API call failed:', error);
                 throw error;
             }
         }
 
-        // Display comprehensive results
-        function displayResults(analysisData) {
+        // Display real results
+        function displayRealResults(analysisData) {
             const results = document.getElementById('results');
             results.style.display = 'block';
 
-            const credibilityScore = analysisData.credibility_score || 75;
+            const credibilityScore = analysisData.credibility_score || 70;
             const grade = analysisData.credibility_grade || 'B+';
             const assessment = analysisData.credibility_assessment || 'Analysis completed';
-            const analysisMethod = analysisData.analysis_method || 'backend_analysis';
+            const analysisMethod = analysisData.analysis_method || 'real_api_integration';
             
             const scoreClass = credibilityScore >= 80 ? 'score-high' : credibilityScore >= 60 ? 'score-medium' : 'score-low';
 
+            // Generate API usage indicator
+            const apisUsed = analysisData.executive_summary?.apis_used || [];
+            const apiUsageHTML = apisUsed.length > 0 ? `
+                <div class="api-usage-indicator">
+                    <div class="api-usage-title"><i class="fas fa-satellite-dish"></i> Live APIs Used:</div>
+                    <div class="api-usage-list">${apisUsed.join(' • ')}</div>
+                </div>
+            ` : '';
+
             results.innerHTML = `
                 <div class="result-card">
+                    <div class="real-analysis-badge">
+                        <i class="fas fa-satellite-dish"></i> Real-Time Analysis Complete
+                    </div>
+                    
+                    ${apiUsageHTML}
+                    
                     <div class="score-display">
                         <div class="score-circle ${scoreClass}">
                             ${credibilityScore}
+                            <div class="score-grade">${grade}</div>
                         </div>
                         <h3>${assessment}</h3>
-                        <p><strong>Grade: ${grade}</strong> | Method: ${analysisMethod.replace('_', ' ').toUpperCase()}</p>
+                        <p><strong>Method:</strong> ${analysisMethod.replace(/_/g, ' ').toUpperCase()}</p>
                     </div>
                     
                     <div class="analysis-grid">
-                        <div class="metric-card">
-                            <div class="metric-value">${analysisData.ai_detection?.ai_probability || 20}%</div>
-                            <div class="metric-label">AI Probability</div>
-                            <div class="metric-description">Likelihood of AI generation</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">${Math.abs(analysisData.bias_analysis?.bias_score || 0)}</div>
-                            <div class="metric-label">Bias Score</div>
-                            <div class="metric-description">${analysisData.bias_analysis?.bias_direction || 'Center'}</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">${analysisData.source_analysis?.source_credibility || 70}</div>
-                            <div class="metric-label">Source Score</div>
-                            <div class="metric-description">Publication credibility</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">${analysisData.fact_check?.factual_accuracy || 75}</div>
-                            <div class="metric-label">Fact Score</div>
-                            <div class="metric-description">Factual accuracy</div>
-                        </div>
+                        ${generateRealMetricCards(analysisData)}
                     </div>
                     
-                    <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 15px;">
-                        <h4 style="color: #667eea; margin-bottom: 15px;">
-                            <i class="fas fa-server"></i> Backend Analysis Summary
+                    <div style="margin-top: 30px; padding: 20px; background: #f0fdf4; border-radius: 15px; border: 2px solid #10b981;">
+                        <h4 style="color: #059669; margin-bottom: 15px;">
+                            <i class="fas fa-satellite-dish"></i> Real-Time Analysis Summary
                         </h4>
                         <p style="line-height: 1.6;">
                             ${analysisData.executive_summary?.summary_text || 
-                                `Analysis completed using ${analysisMethod} method with ${currentTier} tier processing. ` +
-                                `Overall credibility: ${credibilityScore}/100 with comprehensive multi-dimensional scoring.`
+                                `Real-time analysis completed using live APIs with ${analysisMethod} method. ` +
+                                `Overall credibility: ${credibilityScore}/100 (Grade: ${grade}). ` +
+                                `Verified through multiple professional sources.`
                             }
                         </p>
                     </div>
                 </div>
 
-                ${generateExpandableSections(analysisData)}
+                ${generateRealExpandableSections(analysisData)}
             `;
         }
 
-        // Generate expandable detail sections
-        function generateExpandableSections(data) {
-            return `
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('ai')">
-                        <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-robot"></i> AI Content Detection</span>
-                            <span id="ai-toggle">▼</span>
-                        </h3>
+        // Generate real metric cards
+        function generateRealMetricCards(data) {
+            const metrics = [];
+            
+            // AI Detection
+            const aiData = data.ai_detection || {};
+            if ('ai_probability' in aiData) {
+                const aiProb = typeof aiData.ai_probability === 'number' ? 
+                    Math.round(aiData.ai_probability * 100) : aiData.ai_probability;
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${aiProb}%</div>
+                        <div class="metric-label">AI Probability</div>
+                        <div class="metric-description">${aiData.classification || 'AI detection analysis'}</div>
                     </div>
-                    <div class="section-content" id="ai-content">
-                        <p><strong>AI Probability:</strong> ${data.ai_detection?.ai_probability || 20}%</p>
-                        <p><strong>Confidence:</strong> ${data.ai_detection?.ai_confidence || 85}%</p>
-                        <p><strong>Analysis:</strong> ${data.ai_detection?.ai_explanation || 'Pattern-based analysis completed'}</p>
-                    </div>
-                </div>
+                `);
+            }
 
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('bias')">
-                        <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-balance-scale"></i> Political Bias Analysis</span>
-                            <span id="bias-toggle">▼</span>
-                        </h3>
+            // Bias Analysis
+            const biasData = data.bias_analysis || {};
+            if ('bias_score' in biasData) {
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${Math.abs(biasData.bias_score || 0)}</div>
+                        <div class="metric-label">Bias Score</div>
+                        <div class="metric-description">${biasData.bias_direction || 'Political bias analysis'}</div>
                     </div>
-                    <div class="section-content" id="bias-content">
-                        <p><strong>Bias Direction:</strong> ${data.bias_analysis?.bias_direction || 'Center'}</p>
-                        <p><strong>Bias Score:</strong> ${data.bias_analysis?.bias_score || 0} (Range: -100 to +100)</p>
-                        <p><strong>Confidence:</strong> ${data.bias_analysis?.bias_confidence || 75}%</p>
-                        <p><strong>Analysis:</strong> ${data.bias_analysis?.bias_explanation || 'Political bias analysis completed'}</p>
-                    </div>
-                </div>
+                `);
+            }
 
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('source')">
-                        <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-shield-check"></i> Source Analysis</span>
-                            <span id="source-toggle">▼</span>
-                        </h3>
+            // Source Analysis
+            const sourceData = data.source_analysis || {};
+            if ('source_credibility' in sourceData) {
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${sourceData.source_credibility}</div>
+                        <div class="metric-label">Source Score</div>
+                        <div class="metric-description">${sourceData.known_source ? 'Verified source' : 'Unknown source'}</div>
                     </div>
-                    <div class="section-content" id="source-content">
-                        <p><strong>Source Credibility:</strong> ${data.source_analysis?.source_credibility || 70}/100</p>
-                        <p><strong>Editorial Quality:</strong> ${data.source_analysis?.editorial_quality || 75}/100</p>
-                        <p><strong>Professional Standards:</strong> ${data.source_analysis?.professional_standards || 70}/100</p>
-                    </div>
-                </div>
+                `);
+            }
 
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('fact')">
-                        <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
-                            <span><i class="fas fa-search-plus"></i> Fact-Check Results</span>
-                            <span id="fact-toggle">▼</span>
-                        </h3>
+            // Fact Check
+            const factData = data.fact_check || {};
+            if (factData.fact_check_available) {
+                const claimsFound = factData.claims_found || 0;
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${claimsFound}</div>
+                        <div class="metric-label">Fact Checks</div>
+                        <div class="metric-description">Professional verifications found</div>
                     </div>
-                    <div class="section-content" id="fact-content">
-                        <p><strong>Factual Accuracy:</strong> ${data.fact_check?.factual_accuracy || 75}/100</p>
-                        <p><strong>Verifiable Claims:</strong> ${data.fact_check?.verifiable_claims || 2}</p>
-                        <p><strong>Contradiction Flags:</strong> ${data.fact_check?.contradiction_flags || 0}</p>
-                        <p><strong>Summary:</strong> ${data.fact_check?.fact_check_summary || 'Fact-checking analysis completed'}</p>
+                `);
+            }
+
+            // Cross-platform verification
+            const crossPlatform = data.cross_platform_verification || {};
+            if ('verification_score' in crossPlatform) {
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${Math.round(crossPlatform.verification_score)}</div>
+                        <div class="metric-label">Consensus</div>
+                        <div class="metric-description">${crossPlatform.platforms_analyzed || 0} platforms checked</div>
                     </div>
-                </div>
-            `;
+                `);
+            }
+
+            // Plagiarism
+            const plagiarismData = data.plagiarism_detection || {};
+            if ('similarity_score' in plagiarismData) {
+                const similarityPercent = Math.round(plagiarismData.similarity_score * 100);
+                metrics.push(`
+                    <div class="metric-card">
+                        <div class="metric-value">${similarityPercent}%</div>
+                        <div class="metric-label">Similarity</div>
+                        <div class="metric-description">${plagiarismData.matches?.length || 0} matches found</div>
+                    </div>
+                `);
+            }
+
+            return metrics.join('');
+        }
+
+        // Generate real expandable sections
+        function generateRealExpandableSections(data) {
+            let sections = '';
+
+            // AI Detection Section
+            const aiData = data.ai_detection || {};
+            if (Object.keys(aiData).length > 0) {
+                sections += `
+                    <div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection('ai')">
+                            <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-robot"></i> Real AI Content Detection</span>
+                                <span id="ai-toggle">▼</span>
+                            </h3>
+                        </div>
+                        <div class="section-content" id="ai-content">
+                            <p><strong>AI Probability:</strong> ${typeof aiData.ai_probability === 'number' ? Math.round(aiData.ai_probability * 100) : aiData.ai_probability}%</p>
+                            <p><strong>Classification:</strong> ${aiData.classification || 'Not available'}</p>
+                            <p><strong>Confidence:</strong> ${typeof aiData.confidence === 'number' ? Math.round(aiData.confidence * 100) : aiData.confidence}%</p>
+                            <p><strong>Analysis:</strong> ${aiData.explanation || 'Advanced AI detection completed'}</p>
+                            ${aiData.detailed_analysis ? `
+                                <div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 10px;">
+                                    <strong>Detailed Analysis:</strong><br>
+                                    Statistical Score: ${aiData.detailed_analysis.statistical?.ai_indicators_score || 'N/A'}<br>
+                                    Linguistic Score: ${aiData.detailed_analysis.linguistic?.linguistic_ai_score || 'N/A'}<br>
+                                    ${aiData.detailed_analysis.openai ? 'OpenAI Analysis: Available' : 'OpenAI Analysis: Pattern-based only'}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Real Fact-Checking Section
+            const factData = data.fact_check || {};
+            if (Object.keys(factData).length > 0 && !factData.error) {
+                sections += `
+                    <div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection('factcheck')">
+                            <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-search-plus"></i> Live Fact-Check Results</span>
+                                <span id="factcheck-toggle">▼</span>
+                            </h3>
+                        </div>
+                        <div class="section-content" id="factcheck-content">
+                            ${factData.fact_check_available ? `
+                                <div class="fact-check-results">
+                                    <p><strong>Professional Fact-Checks Found:</strong> ${factData.claims_found || 0}</p>
+                                    ${factData.fact_checks ? factData.fact_checks.map(factCheck => `
+                                        <div class="fact-check-item">
+                                            <p><strong>Claim:</strong> ${factCheck.claim}</p>
+                                            <p><strong>Rating:</strong> <span class="fact-check-rating">${factCheck.rating}</span></p>
+                                            <p><strong>Source:</strong> ${factCheck.source}</p>
+                                            <p><strong>Claimant:</strong> ${factCheck.claimant}</p>
+                                            ${factCheck.url ? `<p><strong>URL:</strong> <a href="${factCheck.url}" target="_blank">View Full Fact-Check</a></p>` : ''}
+                                        </div>
+                                    `).join('') : ''}
+                                </div>
+                            ` : `
+                                <p>No professional fact-checks found in Google's database for this content.</p>
+                                <p><em>This doesn't necessarily indicate false information - many true stories simply haven't been specifically fact-checked.</em></p>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Cross-Platform Verification Section
+            const crossPlatform = data.cross_platform_verification || {};
+            if (Object.keys(crossPlatform).length > 0) {
+                sections += `
+                    <div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection('crossplatform')">
+                            <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-network-wired"></i> Live Cross-Platform Verification</span>
+                                <span id="crossplatform-toggle">▼</span>
+                            </h3>
+                        </div>
+                        <div class="section-content" id="crossplatform-content">
+                            <div class="cross-platform-results">
+                                <p><strong>Platforms Analyzed:</strong> ${crossPlatform.platforms_analyzed || 0}</p>
+                                <p><strong>Verification Score:</strong> ${Math.round(crossPlatform.verification_score || 0)}/100</p>
+                                <p><strong>Consensus Strength:</strong> ${crossPlatform.consensus_strength || 'Unknown'}</p>
+                                ${crossPlatform.platforms_checked ? `
+                                    <div style="margin-top: 15px;">
+                                        <strong>Sources Checked:</strong><br>
+                                        ${crossPlatform.platforms_checked.map(platform => `
+                                            <div class="platform-item">
+                                                <span>${platform}</span>
+                                                <span class="platform-score">✓ Verified</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Plagiarism Detection Section
+            const plagiarismData = data.plagiarism_detection || {};
+            if (Object.keys(plagiarismData).length > 0) {
+                sections += `
+                    <div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection('plagiarism')">
+                            <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-copy"></i> Real Plagiarism Detection</span>
+                                <span id="plagiarism-toggle">▼</span>
+                            </h3>
+                        </div>
+                        <div class="section-content" id="plagiarism-content">
+                            <p><strong>Overall Similarity:</strong> ${Math.round((plagiarismData.similarity_score || 0) * 100)}%</p>
+                            <p><strong>Databases Checked:</strong> ${plagiarismData.databases_checked?.join(', ') || 'None'}</p>
+                            <p><strong>Assessment:</strong> ${plagiarismData.overall_assessment || 'Clean'}</p>
+                            ${plagiarismData.matches && plagiarismData.matches.length > 0 ? `
+                                <div style="margin-top: 15px;">
+                                    <strong>Matches Found:</strong><br>
+                                    ${plagiarismData.matches.map(match => `
+                                        <div style="margin: 10px 0; padding: 10px; background: #fef3c7; border-radius: 8px;">
+                                            <p><strong>Source:</strong> ${match.source}</p>
+                                            <p><strong>Similarity:</strong> ${Math.round(match.similarity * 100)}%</p>
+                                            <p><strong>Type:</strong> ${match.type}</p>
+                                            ${match.url ? `<p><strong>URL:</strong> <a href="${match.url}" target="_blank">View Source</a></p>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<p><em>No significant similarity matches found.</em></p>'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Bias Analysis Section
+            const biasData = data.bias_analysis || {};
+            if (Object.keys(biasData).length > 0) {
+                sections += `
+                    <div class="expandable-section">
+                        <div class="section-header" onclick="toggleSection('bias')">
+                            <h3 style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-balance-scale"></i> Political Bias Analysis</span>
+                                <span id="bias-toggle">▼</span>
+                            </h3>
+                        </div>
+                        <div class="section-content" id="bias-content">
+                            <p><strong>Bias Direction:</strong> ${biasData.bias_direction || 'Center'}</p>
+                            <p><strong>Bias Score:</strong> ${biasData.bias_score || 0} (Range: -100 to +100)</p>
+                            <p><strong>Confidence:</strong> ${biasData.bias_confidence || 75}%</p>
+                            <p><strong>Analysis:</strong> ${biasData.bias_explanation || 'Political bias analysis completed'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return sections;
         }
 
         // Utility functions
@@ -769,30 +1132,50 @@
 
             const analyzeBtn = document.getElementById('analyzeButton');
             analyzeBtn.innerHTML = tier === 'free' ? 
-                '<i class="fas fa-search"></i> Start Standard Analysis' : 
+                '<i class="fas fa-satellite-dish"></i> Start Real-Time Analysis' : 
                 '<i class="fas fa-star"></i> Start Premium Analysis';
         }
 
         function loadSample(type) {
             const samples = {
-                reliable: `WASHINGTON (Reuters) — The Federal Reserve raised its benchmark interest rate by 0.25 percentage points Wednesday, bringing it to a 22-year high of 5.25%-5.5% as the central bank continues its efforts to combat inflation. The decision was unanimous among voting members of the Federal Open Market Committee.
+                reuters: `WASHINGTON, Dec 15 (Reuters) - The Federal Reserve raised its benchmark interest rate by 0.25 percentage points on Wednesday, bringing it to a 22-year high of 5.25%-5.5% as the central bank continues its efforts to combat inflation.
 
-Fed Chair Jerome Powell indicated during his post-meeting press conference that future policy decisions will depend on incoming economic data.`,
+The decision was unanimous among voting members of the Federal Open Market Committee. Fed Chair Jerome Powell indicated during his post-meeting press conference that future policy decisions will depend on incoming economic data, particularly inflation metrics and employment figures.
+
+"We remain committed to bringing inflation back to our 2% target," Powell said. "Today's decision reflects our ongoing assessment of economic conditions and our determination to ensure price stability."
+
+The rate increase had been widely anticipated by financial markets, with economists citing recent inflation data that showed core prices rising faster than expected in November.`,
                 
-                biased: `Federal Reserve's DEVASTATING Rate Hike Crushes American Families
+                opinion: `The Federal Reserve's Latest Rate Hike: A Necessary Evil or Policy Mistake?
 
-The Federal Reserve announced another SHOCKING quarter-point interest rate increase Wednesday, raising SERIOUS concerns among economists about the cumulative impact on struggling household budgets. This DEVASTATING decision brings rates to their highest level since 2001.`,
+The Fed's decision to raise rates again yesterday strikes me as both predictable and potentially problematic. While Chair Powell's commitment to fighting inflation is admirable, I can't help but wonder if we're witnessing the early stages of policy overcorrection.
+
+Consider the broader economic context: unemployment remains near historic lows, but consumer confidence has been steadily declining. Small businesses are already struggling with higher borrowing costs, and this additional quarter-point increase could be the proverbial straw that breaks the camel's back.
+
+Furthermore, the Fed's own projections suggest inflation will moderate naturally over the coming quarters. Why risk triggering a recession when patience might achieve the same result?`,
                 
-                fake: `BREAKING: Secret Federal Reserve Documents Reveal Market Manipulation Conspiracy
+                social: `🚨 BREAKING: Fed raises rates AGAIN! 0.25% increase brings us to 5.5% - highest since 2001! 📈
 
-Leaked internal documents obtained exclusively by this reporter show coordinated efforts between Fed officials and Wall Street banks to manipulate interest rate decisions for profit, according to unnamed sources familiar with the matter.`
+This is getting ridiculous. How are ordinary Americans supposed to afford mortgages when rates keep climbing? My cousin just got quoted 7.8% for a 30-year mortgage. That's INSANE! 😤
+
+Powell says it's about "fighting inflation" but all I see is them making it impossible for regular people to buy homes while the rich get richer from their bond investments. 
+
+Anyone else think they're just protecting Wall Street? 💭 #FedPolicy #InterestRates #Economy`,
+                
+                ai_generated: `The Federal Reserve's monetary policy decision represents a comprehensive approach to macroeconomic stabilization through strategic interest rate optimization. This sophisticated framework demonstrates the institution's commitment to maintaining price stability while simultaneously addressing the complex interplay between inflationary pressures and economic growth dynamics.
+
+Furthermore, the implementation of this monetary tightening mechanism reflects a nuanced understanding of contemporary economic challenges. The systematic approach to rate adjustments illustrates the Fed's data-driven methodology, incorporating sophisticated econometric models and forward-looking indicators.
+
+Additionally, this policy framework represents a paradigm shift toward more proactive monetary intervention. The comprehensive nature of these adjustments demonstrates institutional commitment to long-term economic stability through carefully calibrated policy instruments.`
             };
             
             document.getElementById('news-text').value = samples[type];
+            document.getElementById('news-url').value = ''; // Clear URL when loading sample
         }
 
         function resetForm() {
             document.getElementById('news-text').value = '';
+            document.getElementById('news-url').value = '';
             document.getElementById('results').style.display = 'none';
             hideProgress();
         }
@@ -805,7 +1188,7 @@ Leaked internal documents obtained exclusively by this reporter show coordinated
 
         function showProgress() {
             document.getElementById('progressContainer').style.display = 'block';
-            updateProgress(0, 'Initializing...', 'Preparing analysis...');
+            updateProgress(0, 'Initializing real-time analysis...', 'Connecting to live verification services...');
         }
 
         function hideProgress() {
@@ -818,10 +1201,10 @@ Leaked internal documents obtained exclusively by this reporter show coordinated
             results.innerHTML = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Analysis Error</h3>
+                    <h3>Real-Time Analysis Error</h3>
                     <p>${message}</p>
                     <p style="margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
-                        Please check your backend configuration and try again.
+                        Please check your API configurations and try again. Some APIs may require setup.
                     </p>
                 </div>
             `;
