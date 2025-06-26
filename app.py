@@ -928,7 +928,7 @@ if __name__ == '__main__':
     logger.info(f"OpenAI API: {'✓ Connected' if OPENAI_API_KEY else '✗ Not configured'}")
     logger.info(f"News API: {'✓ Available' if NEWS_API_KEY else '✗ Not configured'}")
     
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)t time
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
 import logging
 import re
 from datetime import datetime
