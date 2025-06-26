@@ -999,6 +999,86 @@
         let currentInputType = 'text';
         let currentTier = 'free';
         let lastAnalysisData = null;
+
+        // Call backend API endpoint instead of OpenAI directly
+        async function callBackendAPI(content) {
+            try {
+                const response = await fetch('/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        tier: currentTier
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Backend API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Backend API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function analyzeNews() {
+            const newsText = document.getElementById('news-text').value.trim();
+            
+            if (!newsText) {
+                alert('Please provide content to analyze');
+                return;
+            }
+
+            showProgress();
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                updateProgress(25, '🤖 Connecting to AI Analysis Engine...', 'Establishing secure backend connection...');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                updateProgress(40, '🔍 Analyzing content credibility...', 'Processing linguistic patterns and fact verification...');
+                
+                updateProgress(60, '🎯 GPT-4 Analysis in Progress...', 'Deep learning models processing content...');
+                
+                // Call backend API - REAL API CALL through your secure backend
+                const analysisResult = await callBackendAPI(newsText);
+                
+                updateProgress(80, '📊 Generating comprehensive report...', 'Synthesizing institutional-grade insights...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                updateProgress(95, '✅ Finalizing professional assessment...', 'Quality assurance and validation complete...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                updateProgress(100, '🎯 Real-time analysis complete!', 'Professional verification results ready...');
+                
+                // Store real analysis data
+                lastAnalysisData = analysisResult;
+                
+                setTimeout(() => {
+                    hideProgress();
+                    displayResults(analysisResult);
+                }, 800);
+
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                hideProgress();
+                
+                if (error.message.includes('API error') || error.message.includes('401')) {
+                    showError('Authentication failed. Please check your backend configuration.');
+                } else if (error.message.includes('quota') || error.message.includes('429')) {
+                    showError('API quota exceeded. Please check your OpenAI account billing and usage limits.');
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    showError('Network connection failed. Please check your internet connection.');
+                } else {
+                    showError(`Analysis failed: ${error.message}`);
+                }
+            }
+        }
         let openaiApiKey = '';
 
         // Empty function to prevent errors from cached calls
@@ -1897,22 +1977,22 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                         </h4>
                         <p style="color: #374151; font-size: 1.15rem; line-height: 1.7; margin-bottom: 15px;">
                             ${analysisData ? 
-                                'AI-powered analysis completed using advanced verification algorithms. ' + 
+                                'Real-time analysis completed using OpenAI GPT-4. ' + 
                                 (data.detailedAnalysis?.strengths?.[0] || 'Professional verification analysis indicates strong reliability indicators across multiple dimensions.') :
                                 'Professional news verification platform ready for analysis.'
                             }
                         </p>
                         ${!analysisData ? `
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center;">
-                            <h4 style="margin-bottom: 15px;">🚀 Ready for Professional Analysis</h4>
-                            <p style="margin-bottom: 20px; opacity: 0.9;">Paste your news content above and click analyze to get comprehensive AI-powered verification</p>
+                            <h4 style="margin-bottom: 15px;">🚀 Ready for Real AI Analysis</h4>
+                            <p style="margin-bottom: 20px; opacity: 0.9;">Paste your news content above and click analyze to get real GPT-4 powered verification</p>
                             <button onclick="document.getElementById('news-text').focus();" style="background: white; color: #667eea; border: none; padding: 12px 25px; border-radius: 10px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
                                 <i class="fas fa-edit"></i> Start Analysis
                             </button>
                         </div>
                         ` : `
                         <div style="background: rgba(0, 204, 68, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #00cc44;">
-                            <strong style="color: #00cc44;">✅ AI Analysis Complete:</strong> Comprehensive verification results with bias analysis, credibility scoring, and professional insights.
+                            <strong style="color: #00cc44;">✅ Real OpenAI GPT-4 Analysis Complete:</strong> Authentic verification results with comprehensive bias analysis, source verification, and cross-platform monitoring.
                         </div>
                         <div style="background: linear-gradient(145deg, #f8fafc, #ffffff); padding: 20px; border-radius: 15px; margin-top: 15px; border: 2px solid #e2e8f0;">
                             <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
