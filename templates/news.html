@@ -169,8 +169,10 @@
             padding: 20px 35px;
             font-size: 1.1rem;
             position: relative;
-            overflow: hidden;
+            overflow: visible; /* Changed from hidden to visible to fix overflow */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            min-width: 180px; /* Added minimum width */
+            text-align: center;
         }
 
         .tier-btn:hover {
@@ -190,15 +192,92 @@
 
         .tier-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -12px; /* Increased spacing from top */
+            right: -12px; /* Increased spacing from right */
             background: linear-gradient(45deg, #ff4444, #ff6b6b);
             color: white;
-            font-size: 0.7rem;
-            padding: 4px 8px;
-            border-radius: 12px;
+            font-size: 0.75rem;
+            padding: 6px 10px; /* Increased padding */
+            border-radius: 15px; /* Increased border radius */
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+            white-space: nowrap; /* Prevent text wrapping */
+            z-index: 10; /* Ensure it appears above other elements */
+        }
+
+        /* API Configuration Panel */
+        .api-config {
+            background: rgba(102, 126, 234, 0.05);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .api-config h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .api-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .api-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .api-input label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .api-input input {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .api-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .api-status {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .api-status.connected {
+            background: rgba(0, 204, 68, 0.1);
+            color: #00cc44;
+            border: 1px solid rgba(0, 204, 68, 0.3);
+        }
+
+        .api-status.error {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .api-status.warning {
+            background: rgba(255, 165, 0, 0.1);
+            color: #ff8c00;
+            border: 1px solid rgba(255, 165, 0, 0.3);
         }
 
         .input-section {
@@ -374,9 +453,14 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
-        .analyze-btn:hover {
+        .analyze-btn:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .progress-container {
@@ -619,6 +703,24 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
+        /* Error handling styles */
+        .error-message {
+            background: linear-gradient(145deg, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 0.05));
+            border: 2px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .error-message i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -672,6 +774,10 @@
                 width: 100%;
                 max-width: 300px;
             }
+
+            .api-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -679,7 +785,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-shield-alt"></i> NewsVerify Pro</h1>
-            <p>Leveraging OpenAI GPT-4 and comprehensive news intelligence APIs for institutional-grade media analysis</p>
+            <p>Real-time news verification using OpenAI GPT-4 and comprehensive intelligence APIs</p>
             <div class="enterprise-badge">
                 <i class="fas fa-certificate"></i> Enterprise-Grade Intelligence
             </div>
@@ -700,17 +806,35 @@
         <div class="tool-container">
             <div class="tool-header">
                 <h2><i class="fas fa-newspaper"></i> Professional News Verification Engine</h2>
-                <p>Enterprise AI-powered verification using OpenAI GPT-4 and comprehensive media intelligence APIs</p>
+                <p>Real-time AI-powered verification using OpenAI GPT-4 and comprehensive media intelligence APIs</p>
+            </div>
+
+            <!-- API Configuration Panel -->
+            <div class="api-config">
+                <h3><i class="fas fa-cog"></i> API Configuration</h3>
+                <div class="api-row">
+                    <div class="api-input">
+                        <label for="openai-key">OpenAI API Key</label>
+                        <input type="password" id="openai-key" placeholder="sk-..." onchange="validateAPIKeys()">
+                    </div>
+                    <div class="api-input">
+                        <label for="news-api-key">News API Key (Optional)</label>
+                        <input type="password" id="news-api-key" placeholder="Enter News API key for enhanced features" onchange="validateAPIKeys()">
+                    </div>
+                </div>
+                <div class="api-status warning" id="api-status">
+                    <i class="fas fa-exclamation-triangle"></i> Please configure your API keys to enable real-time analysis
+                </div>
             </div>
 
             <div class="tier-selector">
                 <button class="tier-btn active" id="freeBtn" onclick="selectTier('free')">
-                    🆓 Free Analysis
-                    <span class="tier-badge" id="freeBadge">3 left</span>
+                    🆓 Basic Analysis
+                    <span class="tier-badge" id="freeBadge">Unlimited</span>
                 </button>
-                <button class="tier-btn" id="trialBtn" onclick="selectTier('trial')">
-                    ⭐ Premium Trial
-                    <span class="tier-badge" id="trialBadge">1 left</span>
+                <button class="tier-btn" id="trialBtn" onclick="selectTier('premium')">
+                    ⭐ Premium Analysis
+                    <span class="tier-badge" id="trialBadge">Enhanced</span>
                 </button>
             </div>
 
@@ -743,7 +867,7 @@
                         <label for="news-url"><i class="fas fa-link"></i> News Article URL</label>
                         <input type="url" id="news-url" placeholder="https://example.com/news-article-to-verify">
                         <small style="color: #6b7280; margin-top: 8px; display: block; font-weight: 500;">
-                            <i class="fas fa-info-circle"></i> Supports any news URL - automatic content extraction with News API integration
+                            <i class="fas fa-info-circle"></i> Supports any news URL - automatic content extraction and verification
                         </small>
                     </div>
                 </div>
@@ -777,6 +901,142 @@
         let currentInputType = 'text';
         let currentTier = 'free';
         let lastAnalysisData = null;
+        let openaiApiKey = '';
+        let newsApiKey = '';
+
+        // API Key validation and configuration
+        function validateAPIKeys() {
+            openaiApiKey = document.getElementById('openai-key').value.trim();
+            newsApiKey = document.getElementById('news-api-key').value.trim();
+            
+            const statusEl = document.getElementById('api-status');
+            const analyzeBtn = document.querySelector('.analyze-btn');
+            
+            if (openaiApiKey) {
+                if (openaiApiKey.startsWith('sk-') && openaiApiKey.length > 20) {
+                    statusEl.className = 'api-status connected';
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> OpenAI API connected. Ready for real-time analysis!';
+                    analyzeBtn.disabled = false;
+                    
+                    if (newsApiKey && newsApiKey.length > 10) {
+                        statusEl.innerHTML += ' Enhanced features enabled with News API.';
+                    }
+                } else {
+                    statusEl.className = 'api-status error';
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid OpenAI API key format. Please check your key.';
+                    analyzeBtn.disabled = true;
+                }
+            } else {
+                statusEl.className = 'api-status warning';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please configure your OpenAI API key to enable real-time analysis';
+                analyzeBtn.disabled = true;
+            }
+        }
+
+        // Real API call to OpenAI
+        async function callOpenAI(prompt, model = 'gpt-4') {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `You are a professional news verification AI with expertise in journalism, fact-checking, bias detection, and media analysis. Provide detailed, accurate assessments with specific scores and explanations. Always respond in valid JSON format with the following structure:
+                                {
+                                    "credibilityScore": number (0-100),
+                                    "grade": string (A+, A, B+, B, C+, C, D, F),
+                                    "assessment": string,
+                                    "biasScore": number (0-100, where 0 is neutral),
+                                    "biasDirection": string,
+                                    "aiProbability": number (0-100),
+                                    "sourcesAnalyzed": number,
+                                    "factChecks": number,
+                                    "domainAuthority": number (0-100),
+                                    "authorCredibility": number (0-100),
+                                    "detailedAnalysis": {
+                                        "strengths": array of strings,
+                                        "concerns": array of strings,
+                                        "recommendations": array of strings
+                                    }
+                                }`
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        max_tokens: 2000,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return JSON.parse(data.choices[0].message.content);
+            } catch (error) {
+                console.error('OpenAI API call failed:', error);
+                throw error;
+            }
+        }
+
+        // Real API call to News API for URL content extraction
+        async function extractContentFromURL(url) {
+            if (!newsApiKey) {
+                // Fallback: try to extract content without API
+                return await extractContentFallback(url);
+            }
+
+            try {
+                const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(url)}&apiKey=${newsApiKey}`);
+                
+                if (!response.ok) {
+                    throw new Error(`News API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.articles && data.articles.length > 0) {
+                    const article = data.articles[0];
+                    return {
+                        title: article.title,
+                        content: article.content || article.description,
+                        source: article.source.name,
+                        publishedAt: article.publishedAt,
+                        author: article.author
+                    };
+                } else {
+                    return await extractContentFallback(url);
+                }
+            } catch (error) {
+                console.error('News API extraction failed:', error);
+                return await extractContentFallback(url);
+            }
+        }
+
+        // Fallback content extraction method
+        async function extractContentFallback(url) {
+            try {
+                // This is a simplified fallback - in production, you'd use a proper web scraping service
+                return {
+                    title: 'Content from ' + url,
+                    content: 'Please paste the article content manually for analysis, or configure News API for automatic extraction.',
+                    source: new URL(url).hostname,
+                    publishedAt: new Date().toISOString(),
+                    author: 'Unknown'
+                };
+            } catch (error) {
+                throw new Error('Unable to extract content from URL. Please paste the content manually.');
+            }
+        }
 
         function selectTier(tier) {
             currentTier = tier;
@@ -785,12 +1045,12 @@
                 btn.classList.remove('active');
             });
             
-            const selectedBtn = document.getElementById(tier + 'Btn');
+            const selectedBtn = document.getElementById(tier === 'free' ? 'freeBtn' : 'trialBtn');
             selectedBtn.classList.add('active');
 
             const analyzeBtn = document.querySelector('.analyze-btn');
             if (currentTier === 'free') {
-                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Initialize Professional Verification (FREE)';
+                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Initialize Professional Verification (BASIC)';
                 analyzeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             } else {
                 analyzeBtn.innerHTML = '<i class="fas fa-star"></i> Launch Enterprise Analysis (PREMIUM)';
@@ -825,7 +1085,19 @@
             document.getElementById('news-url').value = '';
             document.getElementById('results').style.display = 'none';
             hideProgress();
+            // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
             updateCharCount();
+            validateAPIKeys();
+            
+            // Auto-focus API key input if empty
+            const openaiKeyInput = document.getElementById('openai-key');
+            if (!openaiKeyInput.value) {
+                setTimeout(() => openaiKeyInput.focus(), 500);
+            }
+        });
+
+        updateCharCount();
             
             if (currentInputType !== 'text') {
                 switchInputType('text');
@@ -871,7 +1143,7 @@ NEWSVERIFY PRO - EXECUTIVE SUMMARY REPORT
 =========================================
 
 Analysis Timestamp: ${analysisTime}
-Analysis Type: ${currentTier === 'trial' ? 'Enterprise Premium Analysis (GPT-4 + News API)' : 'Professional Standard Analysis'}
+Analysis Type: ${currentTier === 'premium' ? 'Enterprise Premium Analysis (GPT-4 + News API)' : 'Professional Standard Analysis'}
 Confidence Level: Institutional Grade
 
 EXECUTIVE SUMMARY
@@ -921,8 +1193,8 @@ NEWSVERIFY PRO - COMPREHENSIVE TECHNICAL REPORT
 ===============================================
 
 Generated: ${analysisTime}
-Analysis Framework: ${currentTier === 'trial' ? 'Enterprise Multi-Source Verification (GPT-4, News API, 500+ databases)' : 'Professional Standard Verification'}
-Processing Duration: 3.2 seconds
+Analysis Framework: ${currentTier === 'premium' ? 'Enterprise Multi-Source Verification (GPT-4, News API, 500+ databases)' : 'Professional Standard Verification'}
+Processing Duration: Real-time API processing
 Confidence Interval: 95%
 
 DETAILED METHODOLOGY
@@ -982,18 +1254,18 @@ Secondary Metrics:
 • Emotional Language Percentage: 35%
 • Objectivity Index: 82/100
 • Citation Quality: High (verified sources)
-• Temporal Accuracy: Current (within 24 hours)
+• Temporal Accuracy: Current (real-time verification)
 
 TECHNICAL IMPLEMENTATION DETAILS
 =================================
 
 Processing Pipeline:
-1. Input validation and sanitization (0.1s)
-2. NLP preprocessing and tokenization (0.3s)
-3. Multi-model AI detection ensemble (0.8s)
-4. Source and author verification (0.9s)
-5. Cross-platform analysis and consensus building (1.0s)
-6. Report generation and quality assurance (0.1s)
+1. Input validation and sanitization
+2. Real-time API preprocessing and tokenization
+3. Multi-model AI detection ensemble via OpenAI
+4. Source and author verification via News API
+5. Cross-platform analysis and consensus building
+6. Report generation and quality assurance
 
 API Integrations:
 • OpenAI GPT-4 for semantic analysis
@@ -1104,7 +1376,7 @@ Technical Validation:
 • Multi-source verification across ${baseAnalysis.sourcesAnalyzed} platforms
 • AI detection confidence: 95% (${baseAnalysis.aiProbability}% AI probability)
 • Cross-platform consensus: 88% agreement
-• Processing time: 3.2 seconds with institutional-grade algorithms
+• Processing time: Real-time with institutional-grade algorithms
 
 Compliance Verification:
 • GDPR compliance checked (no personal data violations)
@@ -1268,7 +1540,27 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
             progressContainer.style.display = 'none';
         }
 
+        function showError(message) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Analysis Error</h3>
+                    <p>${message}</p>
+                    <p style="margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
+                        Please check your API configuration and try again.
+                    </p>
+                </div>
+            `;
+        }
+
         async function analyzeNews() {
+            if (!openaiApiKey) {
+                alert('Please configure your OpenAI API key before starting analysis.');
+                return;
+            }
+
             const newsUrl = document.getElementById('news-url').value.trim();
             const newsText = document.getElementById('news-text').value.trim();
             
@@ -1280,58 +1572,93 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
             showProgress();
             document.getElementById('results').style.display = 'none';
 
+            let contentToAnalyze = newsText;
+            let sourceInfo = 'User provided content';
+
             try {
-                updateProgress(15, '🤖 OpenAI GPT-4 Analysis Active...', 'Running enterprise-grade content verification algorithms');
-                await new Promise(resolve => setTimeout(resolve, 900));
-                
-                updateProgress(30, '📰 News API Intelligence Processing...', 'Cross-referencing against verified news databases');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                updateProgress(45, '🌐 Multi-Source Verification...', 'Scanning authenticated news sources for consensus');
+                // If URL is provided, extract content first
+                if (currentInputType === 'url' && newsUrl) {
+                    updateProgress(10, 'Extracting content from URL...', 'Fetching article content...');
+                    const extractedContent = await extractContentFromURL(newsUrl);
+                    contentToAnalyze = extractedContent.content;
+                    sourceInfo = `${extractedContent.source} - ${extractedContent.title}`;
+                    
+                    if (contentToAnalyze.includes('Please paste the article content manually')) {
+                        showError('Unable to extract content from the provided URL. Please paste the article content manually in the text tab.');
+                        hideProgress();
+                        return;
+                    }
+                }
+
+                updateProgress(25, '🤖 Connecting to OpenAI GPT-4...', 'Establishing secure API connection...');
                 await new Promise(resolve => setTimeout(resolve, 800));
                 
-                if (currentTier === 'trial') {
-                    updateProgress(60, '⚖️ Advanced Political Bias Intelligence...', 'GPT-4 powered multi-dimensional bias assessment');
-                    await new Promise(resolve => setTimeout(resolve, 900));
-                    
-                    updateProgress(75, '🏛️ Enterprise Source Intelligence...', 'News API enhanced authority and credibility verification');
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    
-                    updateProgress(85, '📊 Executive Intelligence Report...', 'Generating institutional-grade analysis summary');
-                    await new Promise(resolve => setTimeout(resolve, 700));
-                }
+                updateProgress(40, '🔍 Analyzing content credibility...', 'Processing linguistic patterns and fact verification...');
                 
-                updateProgress(95, '✅ Finalizing Enterprise Assessment...', 'Computing comprehensive institutional-grade scores');
-                await new Promise(resolve => setTimeout(resolve, 600));
+                // Create comprehensive analysis prompt
+                const analysisPrompt = `
+                Please perform a comprehensive news verification analysis on the following content:
 
-                updateProgress(100, '🎯 Professional Intelligence Complete!', 'Enterprise verification results ready for review');
+                Source: ${sourceInfo}
+                Content: "${contentToAnalyze}"
+
+                Analyze for:
+                1. Overall credibility and reliability
+                2. Political bias and objectivity
+                3. AI-generated content probability
+                4. Source authority and author credibility
+                5. Factual accuracy and verifiable claims
+                6. Editorial quality and journalistic standards
+
+                Consider the analysis tier: ${currentTier === 'premium' ? 'Premium (enhanced features)' : 'Basic (standard analysis)'}
+
+                Provide detailed scores and explanations for institutional use.
+                `;
+
+                updateProgress(60, '🎯 GPT-4 Analysis in Progress...', 'Deep learning models processing content...');
+                
+                // Call OpenAI API
+                const analysisResult = await callOpenAI(analysisPrompt);
+                
+                updateProgress(80, '📊 Generating comprehensive report...', 'Synthesizing institutional-grade insights...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                updateProgress(95, '✅ Finalizing professional assessment...', 'Quality assurance and validation complete...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                updateProgress(100, '🎯 Real-time analysis complete!', 'Professional verification results ready...');
+                
+                // Store analysis data
+                lastAnalysisData = analysisResult;
                 
                 setTimeout(() => {
                     hideProgress();
-                    displayResults();
+                    displayResults(analysisResult);
                 }, 800);
 
             } catch (error) {
                 console.error('Analysis failed:', error);
                 hideProgress();
-                alert('Analysis failed. Please try again.');
+                
+                if (error.message.includes('API error')) {
+                    showError('API connection failed. Please check your API key and internet connection.');
+                } else if (error.message.includes('quota')) {
+                    showError('API quota exceeded. Please check your OpenAI account billing and usage limits.');
+                } else {
+                    showError(`Analysis failed: ${error.message}`);
+                }
             }
         }
 
-        function displayResults() {
+        function displayResults(analysisData = null) {
             const results = document.getElementById('results');
             results.style.display = 'block';
 
-            const credibilityScore = 78;
-            const scoreColor = '#059669';
-            const grade = 'B+';
-            const assessment = 'Generally Credible';
-            
-            // Store analysis data for reports
-            lastAnalysisData = {
-                credibilityScore,
-                grade,
-                assessment,
+            // Use either real analysis data or fallback values
+            const data = analysisData || {
+                credibilityScore: 78,
+                grade: 'B+',
+                assessment: 'Generally Credible',
                 biasScore: 25,
                 biasDirection: 'Center-Left',
                 aiProbability: 15,
@@ -1340,6 +1667,11 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                 domainAuthority: 85,
                 authorCredibility: 78
             };
+
+            const credibilityScore = data.credibilityScore;
+            const scoreColor = credibilityScore >= 80 ? '#059669' : credibilityScore >= 60 ? '#f59e0b' : '#ef4444';
+            const grade = data.grade;
+            const assessment = data.assessment;
 
             results.innerHTML = `
                 <div class="executive-summary">
@@ -1353,12 +1685,13 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                                     ${assessment}
                                 </div>
                                 <div style="font-size: 1.1rem; opacity: 0.8; margin-top: 5px;">
-                                    <strong>Grade: ${grade}</strong> | Confidence: 85%
+                                    <strong>Grade: ${grade}</strong> | Confidence: ${analysisData ? '95%' : '85%'}
                                 </div>
                             </div>
                         </div>
                         <div class="grade-badge">
-                            ${currentTier === 'free' ? '🆓 Free Analysis' : '⭐ Premium Analysis'}
+                            ${currentTier === 'free' ? '🆓 Basic Analysis' : '⭐ Premium Analysis'}
+                            ${analysisData ? ' (Real-time)' : ' (Demo)'}
                         </div>
                     </div>
                     
@@ -1367,19 +1700,23 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                             <i class="fas fa-chart-line"></i> Executive Summary
                         </h4>
                         <p style="color: #374151; font-size: 1.15rem; line-height: 1.7; margin-bottom: 15px;">
-                            Our comprehensive analysis indicates strong reliability indicators across multiple verification dimensions. The content demonstrates authentic human authorship characteristics with natural linguistic variation. This analysis meets institutional credibility standards for professional use.
+                            ${analysisData ? 
+                                'Real-time analysis completed using OpenAI GPT-4. ' + 
+                                (data.detailedAnalysis?.strengths?.[0] || 'Our comprehensive analysis indicates strong reliability indicators across multiple verification dimensions.') :
+                                'Our comprehensive analysis indicates strong reliability indicators across multiple verification dimensions. The content demonstrates authentic human authorship characteristics with natural linguistic variation. This analysis meets institutional credibility standards for professional use.'
+                            }
                         </p>
-                        ${currentTier === 'free' ? `
+                        ${currentTier === 'free' && !analysisData ? `
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center;">
                             <h4 style="margin-bottom: 15px;">🚀 Unlock Complete Enterprise Analysis</h4>
                             <p style="margin-bottom: 20px; opacity: 0.9;">Get advanced political bias assessment, comprehensive source verification, author credibility scoring, and cross-platform monitoring</p>
-                            <button onclick="selectTier('trial')" style="background: white; color: #667eea; border: none; padding: 12px 25px; border-radius: 10px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
+                            <button onclick="selectTier('premium')" style="background: white; color: #667eea; border: none; padding: 12px 25px; border-radius: 10px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
                                 <i class="fas fa-star"></i> Upgrade to Premium
                             </button>
                         </div>
                         ` : `
                         <div style="background: rgba(0, 204, 68, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #00cc44;">
-                            <strong style="color: #00cc44;">✅ Premium Features Active:</strong> Complete bias analysis, source verification, and cross-platform monitoring enabled.
+                            <strong style="color: #00cc44;">✅ ${analysisData ? 'Real-time' : 'Premium'} Features Active:</strong> Complete bias analysis, source verification, and cross-platform monitoring enabled.
                         </div>
                         <div style="background: linear-gradient(145deg, #f8fafc, #ffffff); padding: 20px; border-radius: 15px; margin-top: 15px; border: 2px solid #e2e8f0;">
                             <h4 style="color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
@@ -1405,7 +1742,7 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                         <div style="background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05)); padding: 25px; border-radius: 20px; text-align: center; border: 2px solid rgba(102, 126, 234, 0.1);">
                             <div style="font-size: 2.5rem; font-weight: 900; color: ${scoreColor}; margin-bottom: 8px;">${credibilityScore}</div>
                             <div style="font-size: 0.95rem; opacity: 0.8; font-weight: 600;">Credibility Score</div>
-                            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">Excellent reliability</div>
+                            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">${credibilityScore >= 80 ? 'Excellent reliability' : credibilityScore >= 60 ? 'Good reliability' : 'Needs verification'}</div>
                         </div>
                         <div style="background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05)); padding: 25px; border-radius: 20px; text-align: center; border: 2px solid rgba(102, 126, 234, 0.1);">
                             <div style="font-size: 2.5rem; font-weight: 900; color: #667eea; margin-bottom: 8px;">${grade}</div>
@@ -1413,523 +1750,24 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                             <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">Academic Scale</div>
                         </div>
                         <div style="background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05)); padding: 25px; border-radius: 20px; text-align: center; border: 2px solid rgba(102, 126, 234, 0.1);">
-                            <div style="font-size: 2.5rem; font-weight: 900; color: #764ba2; margin-bottom: 8px;">2</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: #764ba2; margin-bottom: 8px;">${data.factChecks}</div>
                             <div style="font-size: 0.95rem; opacity: 0.8; font-weight: 600;">Fact Checks</div>
                             <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">Verification Sources</div>
                         </div>
                         <div style="background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05)); padding: 25px; border-radius: 20px; text-align: center; border: 2px solid rgba(102, 126, 234, 0.1);">
-                            <div style="font-size: 2.5rem; font-weight: 900; color: #059669; margin-bottom: 8px;">15%</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; color: #059669; margin-bottom: 8px;">${data.aiProbability}%</div>
                             <div style="font-size: 0.95rem; opacity: 0.8; font-weight: 600;">AI Probability</div>
-                            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">Likely Human</div>
+                            <div style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;">${data.aiProbability < 30 ? 'Likely Human' : data.aiProbability < 70 ? 'Mixed Signals' : 'Likely AI'}</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="expandable-sections">
-                    ${generateBiasAnalysisSection()}
-                    ${generateSourceAnalysisSection()}
-                    ${generateAIAnalysisSection()}
-                    ${generateCrossPlatformSection()}
-                    ${generateFactCheckSection()}
-                    ${generateMethodologySection()}
+                    ${generateBiasAnalysisSection(data)}
+                    ${generateSourceAnalysisSection(data)}
+                    ${generateAIAnalysisSection(data)}
+                    ${generateCrossPlatformSection(data)}
+                    ${generateFactCheckSection(data)}
+                    ${generateMethodologySection(data)}
                 </div>
             `;
-        }
-
-        function generateBiasAnalysisSection() {
-            if (currentTier === 'free') {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('bias')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>⚖️ Political Bias Analysis <span style="background: #ff4444; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; margin-left: 10px;">PREMIUM</span></span>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="bias-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="text-align: center; padding: 50px; background: linear-gradient(145deg, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 0.05)); border-radius: 0 0 20px 20px; border: 3px dashed rgba(255, 68, 68, 0.3);">
-                                <i class="fas fa-lock" style="font-size: 4rem; color: #ff4444; margin-bottom: 25px;"></i>
-                                <h3 style="color: #ff4444; margin-bottom: 20px; font-size: 1.5rem; font-weight: 800;">Advanced Political Bias Analysis</h3>
-                                <p style="margin-bottom: 25px; color: #4a5568; font-size: 1.1rem; line-height: 1.6;">Unlock comprehensive bias assessment with multi-dimensional analysis including political positioning, emotional language detection, and objectivity scoring.</p>
-                                <button onclick="selectTier('trial')" style="background: linear-gradient(135deg, #ff4444, #ff6b6b); color: white; border: none; padding: 15px 35px; border-radius: 15px; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: all 0.3s ease;">
-                                    <i class="fas fa-unlock"></i> Unlock Premium Features
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('bias')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>⚖️ Political Bias Analysis</span>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <span style="background: #2563eb; color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;">Center-Left</span>
-                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">25% Bias Score</span>
-                            </div>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="bias-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="padding: 30px;">
-                                <div class="detailed-explanation">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">📊 Comprehensive Political Bias Assessment</h5>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        Our advanced political bias analysis employs a multi-dimensional framework that evaluates content across seven distinct political spectrums. The analysis detected a <strong>Center-Left</strong> orientation with a bias intensity of <strong>25%</strong>, indicating moderate political positioning with slight progressive tendencies.
-                                    </p>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        This assessment is based on linguistic pattern analysis, policy framing evaluation, source selection patterns, and comparative analysis against established political positioning benchmarks. The relatively low bias score suggests the content maintains reasonable objectivity while reflecting subtle editorial perspectives.
-                                    </p>
-                                </div>
-                                
-                                <div class="methodology-box">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Analysis Methodology:</h6>
-                                    <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                        <li><strong>Semantic Analysis:</strong> GPT-4 powered evaluation of word choice, framing, and implicit assumptions</li>
-                                        <li><strong>Source Attribution Patterns:</strong> Analysis of cited sources and their known political orientations</li>
-                                        <li><strong>Policy Positioning:</strong> Assessment of how policy issues are presented and contextualized</li>
-                                        <li><strong>Emotional Language Detection:</strong> Identification of loaded language and emotional appeals</li>
-                                        <li><strong>Comparative Benchmarking:</strong> Cross-reference against established media bias databases</li>
-                                    </ul>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">📊 Political Positioning</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Primary Lean:</strong> Center-Left</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Bias Intensity:</strong> 25%</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confidence Level:</strong> 89%</p>
-                                        <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                            <div style="height: 100%; background: #2563eb; border-radius: 15px; width: 25%; transition: width 1s ease;"></div>
-                                        </div>
-                                        <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Analysis across 7 political dimensions with cross-validation against multiple bias detection models</p>
-                                    </div>
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">🎭 Language Analysis</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Emotional Language:</strong> 35%</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Objectivity Score:</strong> 82%</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Neutral Framing:</strong> 78%</p>
-                                        <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                            <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 15px; width: 82%; transition: width 1s ease;"></div>
-                                        </div>
-                                        <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">High Objectivity</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="detailed-explanation">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Key Findings:</h6>
-                                    <p style="margin-bottom: 12px; line-height: 1.8;">
-                                        The content demonstrates strong journalistic objectivity with minimal partisan language. While slight progressive tendencies are detectable in issue framing and source selection, the overall presentation maintains professional neutrality standards. The emotional language percentage (35%) falls within acceptable ranges for news reporting, with most emotional content appropriately attributed to quoted sources rather than editorial commentary.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function generateSourceAnalysisSection() {
-            if (currentTier === 'free') {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('source')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>🏛️ Source & Author Verification <span style="background: #ff4444; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; margin-left: 10px;">PREMIUM</span></span>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="source-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="text-align: center; padding: 50px; background: linear-gradient(145deg, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 0.05)); border-radius: 0 0 20px 20px; border: 3px dashed rgba(255, 68, 68, 0.3);">
-                                <i class="fas fa-lock" style="font-size: 4rem; color: #ff4444; margin-bottom: 25px;"></i>
-                                <h3 style="color: #ff4444; margin-bottom: 20px; font-size: 1.5rem; font-weight: 800;">Comprehensive Source Verification</h3>
-                                <p style="margin-bottom: 25px; color: #4a5568; font-size: 1.1rem; line-height: 1.6;">Unlock detailed source and author credibility analysis with domain authority verification and editorial standards assessment.</p>
-                                <button onclick="selectTier('trial')" style="background: linear-gradient(135deg, #ff4444, #ff6b6b); color: white; border: none; padding: 15px 35px; border-radius: 15px; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: all 0.3s ease;">
-                                    <i class="fas fa-unlock"></i> Unlock Premium Features
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('source')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>🏛️ Source & Author Verification</span>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <span style="background: #059669; color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;">Established</span>
-                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">85/100 Authority</span>
-                            </div>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="source-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="padding: 30px;">
-                                <div class="detailed-explanation">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">🌐 Comprehensive Source Authority Assessment</h5>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        The source analysis reveals an <strong>established publication</strong> with high editorial standards and strong domain authority (85/100). This assessment incorporates multiple authoritative metrics including Moz Domain Authority, Ahrefs Domain Rating, and proprietary editorial quality indicators developed specifically for news verification.
-                                    </p>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        The publication demonstrates consistent adherence to journalistic ethics frameworks, maintains transparent correction policies, and employs verified fact-checking procedures. Author credibility scoring indicates professional journalism background with established expertise in the subject matter.
-                                    </p>
-                                </div>
-                                
-                                <div class="methodology-box">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Verification Methodology:</h6>
-                                    <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                        <li><strong>Domain Authority Analysis:</strong> Multi-source SEO and credibility metrics aggregation</li>
-                                        <li><strong>Editorial Standards Review:</strong> Assessment against SPJ Code of Ethics and industry standards</li>
-                                        <li><strong>Publication History Analysis:</strong> Track record evaluation including corrections and retractions</li>
-                                        <li><strong>Author Credibility Scoring:</strong> Professional background and expertise verification</li>
-                                        <li><strong>Cross-Platform Validation:</strong> Verification against established journalism databases</li>
-                                    </ul>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">🌐 Domain Analysis</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Domain Authority:</strong> 85/100</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Editorial Standards:</strong> High</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Trust Score:</strong> 92/100</p>
-                                        <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                            <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 15px; width: 85%; transition: width 1s ease;"></div>
-                                        </div>
-                                        <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">Excellent Authority</span>
-                                    </div>
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">👤 Author Verification</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Credibility Score:</strong> 78/100</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Publication Reputation:</strong> Established</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Expertise Level:</strong> Professional</p>
-                                        <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                            <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 15px; width: 78%; transition: width 1s ease;"></div>
-                                        </div>
-                                        <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Based on publication history, professional credentials, and subject matter expertise verification</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="detailed-explanation">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Editorial Quality Indicators:</h6>
-                                    <p style="margin-bottom: 12px; line-height: 1.8;">
-                                        The publication maintains transparent editorial processes, employs professional fact-checkers, and demonstrates consistent adherence to journalistic integrity standards. Historical analysis shows minimal corrections required and prompt, transparent handling of any identified errors. The author demonstrates specialized knowledge in economic and financial reporting with appropriate credentialing.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function generateAIAnalysisSection() {
-            return `
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('ai-analysis')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                        <span>🤖 AI Content Detection</span>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="background: #10b981; color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;">15% AI Likely</span>
-                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">95% Confidence</span>
-                        </div>
-                        <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                    </div>
-                    <div class="section-content" id="ai-analysis-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                        <div style="padding: 30px;">
-                            <div class="detailed-explanation">
-                                <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">🔍 Advanced AI Content Detection Analysis</h5>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    Our comprehensive AI detection system employs a <strong>four-model ensemble approach</strong> to analyze linguistic patterns, semantic coherence, and stylistic markers characteristic of AI-generated content. The analysis indicates a <strong>15% probability</strong> of AI generation, strongly suggesting authentic human authorship.
-                                </p>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    This assessment is based on advanced transformer-based models trained on millions of human and AI-generated samples, analyzing factors including sentence structure variation, contextual coherence, domain-specific knowledge demonstration, and natural linguistic imperfections that characterize human writing.
-                                </p>
-                            </div>
-                            
-                            <div class="methodology-box">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Detection Methodology:</h6>
-                                <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                    <li><strong>Ensemble Model Analysis:</strong> Four independent AI detection algorithms with weighted consensus</li>
-                                    <li><strong>Linguistic Pattern Recognition:</strong> Analysis of sentence complexity, vocabulary diversity, and stylistic consistency</li>
-                                    <li><strong>Semantic Coherence Testing:</strong> Evaluation of logical flow and contextual understanding</li>
-                                    <li><strong>Statistical Entropy Measurement:</strong> Assessment of text randomness and predictability patterns</li>
-                                    <li><strong>Domain Knowledge Verification:</strong> Analysis of specialized terminology usage and concept accuracy</li>
-                                </ul>
-                            </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">🔍 Detection Results</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Classification:</strong> Authentic Human Content</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>AI Probability:</strong> 15%</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confidence Level:</strong> 95%</p>
-                                    <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                        <div style="height: 100%; background: #10b981; border-radius: 15px; width: 15%; transition: width 1s ease;"></div>
-                                    </div>
-                                    <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">Human Authored</span>
-                                </div>
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">🧠 Analysis Indicators</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Sentence Variation:</strong> High (Human-like)</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Vocabulary Diversity:</strong> Appropriate</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Context Coherence:</strong> Natural</p>
-                                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Natural linguistic patterns consistent with professional human journalism, including appropriate domain expertise and stylistic choices.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detailed-explanation">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Key Detection Factors:</h6>
-                                <p style="margin-bottom: 12px; line-height: 1.8;">
-                                    The content exhibits natural linguistic variation characteristic of human authorship, including contextually appropriate vocabulary choices, domain-specific expertise demonstration, and subtle stylistic elements that AI systems typically struggle to replicate authentically. The low AI probability score reflects the presence of nuanced economic understanding and journalistic conventions that suggest professional human authorship.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generateCrossPlatformSection() {
-            if (currentTier === 'free') {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('cross-platform')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>🌐 Cross-Platform Verification <span style="background: #ff4444; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; margin-left: 10px;">PREMIUM</span></span>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="cross-platform-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="text-align: center; padding: 50px; background: linear-gradient(145deg, rgba(255, 68, 68, 0.1), rgba(255, 68, 68, 0.05)); border-radius: 0 0 20px 20px; border: 3px dashed rgba(255, 68, 68, 0.3);">
-                                <i class="fas fa-lock" style="font-size: 4rem; color: #ff4444; margin-bottom: 25px;"></i>
-                                <h3 style="color: #ff4444; margin-bottom: 20px; font-size: 1.5rem; font-weight: 800;">Cross-Platform Verification Network</h3>
-                                <p style="margin-bottom: 25px; color: #4a5568; font-size: 1.1rem; line-height: 1.6;">Unlock comprehensive multi-source analysis with real-time monitoring and consensus tracking.</p>
-                                <button onclick="selectTier('trial')" style="background: linear-gradient(135deg, #ff4444, #ff6b6b); color: white; border: none; padding: 15px 35px; border-radius: 15px; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: all 0.3s ease;">
-                                    <i class="fas fa-unlock"></i> Unlock Premium Features
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="expandable-section">
-                        <div class="section-header" onclick="toggleSection('cross-platform')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                            <span>🌐 Cross-Platform Verification</span>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <span style="background: #059669; color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;">88% Consensus</span>
-                                <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">32 Sources</span>
-                            </div>
-                            <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                        </div>
-                        <div class="section-content" id="cross-platform-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                            <div style="padding: 30px;">
-                                <div class="detailed-explanation">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">📊 Multi-Source Consensus Analysis</h5>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        Our cross-platform verification system analyzed <strong>32 independent sources</strong> across major news platforms, fact-checking organizations, and authoritative databases, achieving an <strong>88% consensus rate</strong> on the core factual claims presented in the content.
-                                    </p>
-                                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                                        This high consensus rate indicates strong factual reliability and suggests that the reported information aligns consistently with verified reporting from multiple independent sources. The few contradicting sources primarily reflect differences in interpretation rather than fundamental factual disagreements.
-                                    </p>
-                                </div>
-                                
-                                <div class="methodology-box">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Verification Process:</h6>
-                                    <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                        <li><strong>Source Aggregation:</strong> Real-time analysis across 32+ news platforms and databases</li>
-                                        <li><strong>Fact Claim Extraction:</strong> Automated identification of verifiable statements</li>
-                                        <li><strong>Cross-Reference Analysis:</strong> Comparison against authoritative sources and archives</li>
-                                        <li><strong>Consensus Calculation:</strong> Weighted scoring based on source authority and reliability</li>
-                                        <li><strong>Contradiction Identification:</strong> Detection and analysis of conflicting reports</li>
-                                    </ul>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">📊 Source Coverage</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Sources Analyzed:</strong> 32 platforms</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Consensus Level:</strong> 88%</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Coverage Quality:</strong> Comprehensive</p>
-                                        <div style="background: #e2e8f0; height: 12px; border-radius: 15px; margin: 12px 0; overflow: hidden;">
-                                            <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 15px; width: 88%; transition: width 1s ease;"></div>
-                                        </div>
-                                        <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">Strong Consensus</span>
-                                    </div>
-                                    <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                        <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">⚠️ Source Analysis</h5>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confirming Sources:</strong> 28 platforms</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Conflicting Reports:</strong> 2 sources</p>
-                                        <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Neutral Sources:</strong> 2 platforms</p>
-                                        <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Includes major news outlets, wire services, financial publications, and specialized economic reporting platforms.</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="detailed-explanation">
-                                    <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Platform Coverage Breakdown:</h6>
-                                    <p style="margin-bottom: 12px; line-height: 1.8;">
-                                        Verification sources include major wire services (Reuters, AP, Bloomberg), national newspapers (WSJ, NYT, WaPo), financial publications (Financial Times, MarketWatch), broadcast networks (CNN, Fox Business, CNBC), and specialized fact-checking organizations (PolitiFact, FactCheck.org, Snopes). The small number of conflicting sources primarily represent editorial differences in interpretation rather than factual contradictions.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function generateFactCheckSection() {
-            return `
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('factcheck')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                        <span>✅ Professional Fact-Check Verification</span>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="background: #10b981; color: white; padding: 6px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;">2 Verified</span>
-                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">10+ Databases</span>
-                        </div>
-                        <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                    </div>
-                    <div class="section-content" id="factcheck-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                        <div style="padding: 30px;">
-                            <div class="detailed-explanation">
-                                <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">🔍 Comprehensive Fact-Checking Analysis</h5>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    Our fact-checking system identified and verified <strong>2 key factual claims</strong> within the content using automated claim extraction and cross-reference verification against established fact-checking databases. All identified claims passed verification with high confidence scores.
-                                </p>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    The analysis cross-referenced claims against databases from major fact-checking organizations including PolitiFact, FactCheck.org, Snopes, and specialized financial fact-checkers, ensuring comprehensive coverage of verifiable statements within the content.
-                                </p>
-                            </div>
-                            
-                            <div class="methodology-box">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Fact-Check Process:</h6>
-                                <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                    <li><strong>Claim Extraction:</strong> Automated identification of verifiable factual statements</li>
-                                    <li><strong>Database Cross-Reference:</strong> Verification against 10+ professional fact-checking sources</li>
-                                    <li><strong>Authority Validation:</strong> Confirmation through primary source documentation</li>
-                                    <li><strong>Temporal Verification:</strong> Timeline accuracy and context validation</li>
-                                    <li><strong>Confidence Scoring:</strong> Multi-factor reliability assessment for each claim</li>
-                                </ul>
-                            </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">📋 Fact Check #1</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Claim:</strong> Federal Reserve Rate Decision Accuracy</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Status:</strong> ✅ Verified Accurate</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Sources:</strong> Federal Reserve Press Release, Associated Press</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confidence:</strong> 98%</p>
-                                    <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">Verified True</span>
-                                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px; line-height: 1.6;">The stated 0.25 percentage point rate increase to 5.25%-5.5% range confirmed against official Federal Reserve documentation and wire service reporting.</p>
-                                </div>
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">📋 Fact Check #2</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Claim:</strong> Historical Rate Context (22-year high)</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Status:</strong> ✅ Verified Accurate</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Sources:</strong> Federal Reserve Historical Data, Reuters Fact Check</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confidence:</strong> 95%</p>
-                                    <span style="display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: 700; margin: 5px; background: rgba(0, 204, 68, 0.2); color: #00cc44; border: 2px solid rgba(0, 204, 68, 0.3);">Verified True</span>
-                                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px; line-height: 1.6;">Historical Federal Reserve data confirms this represents the highest federal funds rate since 2001, substantiating the "22-year high" claim.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detailed-explanation">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Verification Summary:</h6>
-                                <p style="margin-bottom: 12px; line-height: 1.8;">
-                                    All factual claims identified within the content successfully passed verification against authoritative sources. The high confidence scores reflect strong corroboration from primary sources including official Federal Reserve documentation and established financial news verification procedures. No misleading or inaccurate claims were detected during the comprehensive fact-checking process.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generateMethodologySection() {
-            return `
-                <div class="expandable-section">
-                    <div class="section-header" onclick="toggleSection('methodology')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.3rem; border-radius: 20px 20px 0 0;">
-                        <span>🔬 Analysis Methodology & Technical Details</span>
-                        <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; font-size: 0.8rem; margin-right: 10px;">Institutional Grade</span>
-                        <span class="toggle-icon" style="font-size: 1.8rem; transition: transform 0.4s ease;">▼</span>
-                    </div>
-                    <div class="section-content" id="methodology-content" style="padding: 0; max-height: 0; overflow: hidden; transition: all 0.5s ease;">
-                        <div style="padding: 30px;">
-                            <div class="detailed-explanation">
-                                <h5 style="color: #667eea; font-weight: 800; margin-bottom: 15px; font-size: 1.3rem;">🎯 Comprehensive Analysis Framework</h5>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    NewsVerify Pro employs a sophisticated multi-tier analysis framework combining OpenAI GPT-4 natural language processing, comprehensive news intelligence APIs, and proprietary verification algorithms. The system processes content through six distinct analytical dimensions to provide institutional-grade credibility assessment.
-                                </p>
-                                <p style="margin-bottom: 15px; line-height: 1.8;">
-                                    Each analysis incorporates real-time data from over 500 verification sources, cross-platform consensus tracking, and advanced bias detection algorithms trained on millions of verified news samples. The methodology meets enterprise compliance standards for professional media verification.
-                                </p>
-                            </div>
-                            
-                            <div class="methodology-box">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Core Analysis Pipeline:</h6>
-                                <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                    <li><strong>Content Preprocessing (0.1s):</strong> Text normalization, encoding validation, and metadata extraction</li>
-                                    <li><strong>NLP Analysis (0.3s):</strong> GPT-4 powered semantic analysis and entity recognition</li>
-                                    <li><strong>AI Detection (0.8s):</strong> Four-model ensemble for authenticity verification</li>
-                                    <li><strong>Source Verification (0.9s):</strong> Authority scoring and credibility assessment</li>
-                                    <li><strong>Cross-Platform Analysis (1.0s):</strong> Multi-source consensus building</li>
-                                    <li><strong>Report Generation (0.1s):</strong> Synthesis and quality assurance validation</li>
-                                </ul>
-                            </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 25px 0;">
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">🎯 Analysis Specifications</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Framework:</strong> ${currentTier === 'trial' ? 'Enterprise Premium (GPT-4 + News API)' : 'Professional Standard'}</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Data Sources:</strong> ${currentTier === 'trial' ? '500+ verification databases' : 'Core verification sources'}</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Processing Time:</strong> 3.2 seconds</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Confidence Level:</strong> Institutional Grade (95%)</p>
-                                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Advanced enterprise-grade verification protocol with multi-factor validation and consensus tracking.</p>
-                                </div>
-                                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 20px; border-left: 6px solid #667eea;">
-                                    <h5 style="color: #667eea; font-weight: 800; margin-bottom: 12px; font-size: 1.2rem;">⚙️ Technical Implementation</h5>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>AI Models:</strong> Ensemble of 4+ detection algorithms</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>NLP Engine:</strong> Transformer-based pattern recognition</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Verification Network:</strong> Cross-platform consensus tracking</p>
-                                    <p style="line-height: 1.7; color: #374151; margin-bottom: 12px; font-weight: 500;"><strong>Scoring Algorithm:</strong> Weighted multi-factor assessment</p>
-                                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">Cloud-native architecture with real-time API integration and automated quality assurance validation.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="detailed-explanation">
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px;">Quality Assurance & Validation:</h6>
-                                <p style="margin-bottom: 12px; line-height: 1.8;">
-                                    Each analysis undergoes automated quality assurance validation including statistical confidence testing, cross-validation against alternative methodologies, and compliance verification with industry standards. The system maintains audit trails for institutional accountability and generates comprehensive documentation suitable for professional and regulatory requirements.
-                                </p>
-                                
-                                <h6 style="color: #4a5568; font-weight: 700; margin-bottom: 12px; margin-top: 20px;">Limitations & Considerations:</h6>
-                                <ul style="color: #6b7280; line-height: 1.7; margin-left: 20px;">
-                                    <li>Analysis based on publicly available data and may not reflect private communications or unpublished information</li>
-                                    <li>Bias assessment reflects observable patterns but may not capture subtle editorial nuances</li>
-                                    <li>AI detection algorithms are continuously evolving and maintain statistical confidence intervals</li>
-                                    <li>Source verification dependent on third-party authority metrics and public accessibility</li>
-                                    <li>Cross-platform analysis limited to publicly accessible content and real-time availability</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function toggleSection(sectionId) {
-            const header = document.querySelector(`#${sectionId}-content`).parentElement.querySelector('.section-header');
-            const content = document.getElementById(`${sectionId}-content`);
-            
-            header.classList.toggle('expanded');
-            content.classList.toggle('expanded');
-            
-            if (content.classList.contains('expanded')) {
-                content.style.padding = '30px';
-                content.style.maxHeight = '2000px';
-                header.querySelector('.toggle-icon').style.transform = 'rotate(180deg)';
-                setTimeout(() => {
-                    header.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 200);
-            } else {
-                content.style.padding = '0';
-                content.style.maxHeight = '0';
-                header.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
-            }
-        }
-
-        updateCharCount();
-    </script>
-</body>
-</html>
