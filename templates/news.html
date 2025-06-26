@@ -1319,16 +1319,33 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateCharCount();
             
-            // Add a small delay to ensure all elements are rendered
+            // Only initialize API validation if the elements actually exist
             setTimeout(() => {
-                validateAPIKeys();
+                const apiKeyInput = document.getElementById('openai-key');
+                const apiStatus = document.getElementById('api-status');
+                const analyzeBtn = document.querySelector('.analyze-btn');
                 
-                // Auto-focus API key input if empty
-                const openaiKeyInput = document.getElementById('openai-key');
-                if (openaiKeyInput && !openaiKeyInput.value) {
-                    openaiKeyInput.focus();
+                if (apiKeyInput && apiStatus && analyzeBtn) {
+                    console.log('API elements found, initializing validation');
+                    validateAPIKeys();
+                    
+                    // Auto-focus API key input if empty
+                    if (!apiKeyInput.value) {
+                        apiKeyInput.focus();
+                    }
+                } else {
+                    console.log('API elements not found:', {
+                        apiKeyInput: !!apiKeyInput,
+                        apiStatus: !!apiStatus, 
+                        analyzeBtn: !!analyzeBtn
+                    });
+                    
+                    // Disable analyze button if no API elements
+                    if (analyzeBtn) {
+                        analyzeBtn.disabled = true;
+                    }
                 }
-            }, 100);
+            }, 500);
         });
 
         updateCharCount();
