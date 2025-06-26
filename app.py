@@ -13,13 +13,33 @@ import hashlib
 import asyncio
 import aiohttp
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from sentence_transformers import SentenceTransformer
 import numpy as np
-from scholarly import scholarly
-import xml.etree.ElementTree as ET
 from lxml import html
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import xml.etree.ElementTree as ET
+
+# Try to import ML libraries with fallback
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    logger.warning("SentenceTransformers not available - using fallback similarity")
+
+try:
+    from scholarly import scholarly
+    SCHOLARLY_AVAILABLE = True
+except ImportError:
+    SCHOLARLY_AVAILABLE = False
+    scholarly = None
+    logger.warning("Scholarly not available - skipping Google Scholar integration")
+
+try:
+    import torch
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
+    logger.warning("Transformers not available - using alternative AI detection")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -182,6 +202,10 @@ class AcademicDatabaseSearcher:
     
     async def _search_google_scholar(self, query, max_results=5):
         """Search Google Scholar (simplified)"""
+        if not SCHOLARLY_AVAILABLE or scholarly is None:
+            logger.warning("Google Scholar search unavailable - scholarly not installed")
+            return []
+            
         try:
             # Note: This is a simplified version. For production, consider using scholarly library
             # or official Google Scholar API when available
@@ -314,6 +338,11 @@ class SemanticSimilarityAnalyzer:
     
     def load_model(self):
         """Load the sentence transformer model"""
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            logger.warning("SentenceTransformers not available - using fallback similarity")
+            self.model = None
+            return
+            
         try:
             self.model = SentenceTransformer(self.model_name)
             logger.info(f"Loaded semantic similarity model: {self.model_name}")
@@ -323,8 +352,9 @@ class SemanticSimilarityAnalyzer:
     
     def calculate_similarity(self, text1, text2):
         """Calculate semantic similarity between two texts"""
-        if not self.model:
-            return 0.0
+        if not self.model or not SENTENCE_TRANSFORMERS_AVAILABLE:
+            # Fallback to basic text similarity
+            return self._fallback_similarity(text1, text2)
         
         try:
             # Generate embeddings
@@ -338,7 +368,19 @@ class SemanticSimilarityAnalyzer:
             return float(similarity)
         except Exception as e:
             logger.error(f"Error calculating similarity: {str(e)}")
-            return 0.0
+            return self._fallback_similarity(text1, text2)
+    
+    def _fallback_similarity(self, text1, text2):
+        """Fallback similarity calculation using basic text analysis"""
+        # Convert to lowercase and split into words
+        words1 = set(text1.lower().split())
+        words2 = set(text2.lower().split())
+        
+        # Calculate Jaccard similarity
+        intersection = len(words1.intersection(words2))
+        union = len(words1.union(words2))
+        
+        return intersection / union if union > 0 else 0.0
     
     def find_similar_segments(self, input_text, reference_texts, threshold=0.7):
         """Find similar segments between input text and reference texts"""
