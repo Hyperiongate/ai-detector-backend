@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
-from openai import OpenAI
+import openai
 import requests
 import os
 import json
@@ -29,10 +29,9 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
-# Set OpenAI client if available (UPDATED TO NEW SYNTAX)
-openai_client = None
+# Set OpenAI API key if available (KEEP OLD SYNTAX FOR NOW)
 if OPENAI_API_KEY:
-    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    openai.api_key = OPENAI_API_KEY
 
 # Known source credibility database
 SOURCE_CREDIBILITY = {
@@ -199,7 +198,7 @@ def analyze_ai_content_comprehensive(text, tier):
         patterns = analyze_ai_patterns(text)
         
         # Advanced analysis for pro tier
-        if tier == 'pro' and openai_client:
+        if tier == 'pro' and OPENAI_API_KEY:
             try:
                 advanced_analysis = get_openai_analysis(text)
                 patterns.update(advanced_analysis)
@@ -261,7 +260,7 @@ def analyze_ai_patterns(text):
     }
 
 def get_openai_analysis(text):
-    """Advanced OpenAI-based analysis for pro tier - UPDATED TO NEW SYNTAX"""
+    """Advanced OpenAI-based analysis for pro tier"""
     try:
         prompt = f"""
         Analyze this text for AI generation indicators. Return only valid JSON:
@@ -280,7 +279,7 @@ def get_openai_analysis(text):
         Text: {text[:1500]}
         """
         
-        response = openai_client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
@@ -568,9 +567,9 @@ def get_url_source_verification(url, text):
     }
 
 def get_news_ai_analysis(text):
-    """AI analysis for news content - UPDATED TO NEW SYNTAX"""
+    """AI analysis for news content"""
     try:
-        if openai_client:
+        if OPENAI_API_KEY:
             prompt = f"""
             Analyze this news content for credibility. Return ONLY valid JSON:
             {{
@@ -588,7 +587,7 @@ def get_news_ai_analysis(text):
             Text: {text[:1500]}
             """
             
-            response = openai_client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
