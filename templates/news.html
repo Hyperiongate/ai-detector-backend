@@ -1115,7 +1115,6 @@
         let currentTier = 'free';
         let lastAnalysisData = null;
         let openaiApiKey = '';
-        let newsApiKey = '';
 
         // Empty function to prevent errors from cached calls
         function validateAPIKeys() {
@@ -1195,6 +1194,59 @@
         }
 
         // Real API call to OpenAI
+        async function callOpenAI(prompt, model = 'gpt-4') {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openaiApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: `You are a professional news verification AI with expertise in journalism, fact-checking, bias detection, and media analysis. Provide detailed, accurate assessments with specific scores and explanations. Always respond in valid JSON format with the following structure:
+                                {
+                                    "credibilityScore": number (0-100),
+                                    "grade": string (A+, A, B+, B, C+, C, D, F),
+                                    "assessment": string,
+                                    "biasScore": number (0-100, where 0 is neutral),
+                                    "biasDirection": string,
+                                    "aiProbability": number (0-100),
+                                    "sourcesAnalyzed": number,
+                                    "factChecks": number,
+                                    "domainAuthority": number (0-100),
+                                    "authorCredibility": number (0-100),
+                                    "detailedAnalysis": {
+                                        "strengths": array of strings,
+                                        "concerns": array of strings,
+                                        "recommendations": array of strings
+                                    }
+                                }`
+                            },
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        max_tokens: 2000,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return JSON.parse(data.choices[0].message.content);
+            } catch (error) {
+                console.error('OpenAI API call failed:', error);
+                throw error;
+            }
+        }
         async function callOpenAI(prompt, model = 'gpt-4') {
             try {
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -1810,16 +1862,37 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
         }
 
         async function analyzeNews() {
-            if (!openaiApiKey) {
-                alert('Please configure your OpenAI API key before starting analysis.');
-                return;
-            }
-
             const newsUrl = document.getElementById('news-url').value.trim();
             const newsText = document.getElementById('news-text').value.trim();
             
             if (!newsText && !newsUrl) {
                 alert('Please provide content to analyze');
+                return;
+            }
+
+            // Get API key directly when needed
+            const openaiKeyInput = document.getElementById('openai-key');
+            if (!openaiKeyInput || !openaiKeyInput.value || !openaiKeyInput.value.trim()) {
+                alert('Please configure your OpenAI API key before starting analysis.');
+                // Open API config if it's collapsed
+                const apiConfig = document.getElementById('apiConfig');
+                if (apiConfig && apiConfig.classList.contains('collapsed')) {
+                    toggleAPIConfig();
+                }
+                if (openaiKeyInput) {
+                    openaiKeyInput.focus();
+                }
+                return;
+            }
+
+            openaiApiKey = openaiKeyInput.value.trim();
+
+            // Validate API key format
+            if (!openaiApiKey.startsWith('sk-') || openaiApiKey.length < 20) {
+                alert('Invalid OpenAI API key format. Please check your key.');
+                if (openaiKeyInput) {
+                    openaiKeyInput.focus();
+                }
                 return;
             }
 
@@ -1830,20 +1903,6 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
             let sourceInfo = 'User provided content';
 
             try {
-                // If URL is provided, extract content first
-                if (currentInputType === 'url' && newsUrl) {
-                    updateProgress(10, 'Extracting content from URL...', 'Fetching article content...');
-                    const extractedContent = await extractContentFromURL(newsUrl);
-                    contentToAnalyze = extractedContent.content;
-                    sourceInfo = `${extractedContent.source} - ${extractedContent.title}`;
-                    
-                    if (contentToAnalyze.includes('Please paste the article content manually')) {
-                        showError('Unable to extract content from the provided URL. Please paste the article content manually in the text tab.');
-                        hideProgress();
-                        return;
-                    }
-                }
-
                 updateProgress(25, '🤖 Connecting to OpenAI GPT-4...', 'Establishing secure API connection...');
                 await new Promise(resolve => setTimeout(resolve, 800));
                 
@@ -1894,10 +1953,12 @@ Economic analysts remain divided on the effectiveness of the Fed's approach.`
                 console.error('Analysis failed:', error);
                 hideProgress();
                 
-                if (error.message.includes('API error')) {
-                    showError('API connection failed. Please check your API key and internet connection.');
-                } else if (error.message.includes('quota')) {
+                if (error.message.includes('API error') || error.message.includes('401')) {
+                    showError('API authentication failed. Please check your OpenAI API key.');
+                } else if (error.message.includes('quota') || error.message.includes('429')) {
                     showError('API quota exceeded. Please check your OpenAI account billing and usage limits.');
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    showError('Network connection failed. Please check your internet connection.');
                 } else {
                     showError(`Analysis failed: ${error.message}`);
                 }
