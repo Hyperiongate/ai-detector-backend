@@ -959,7 +959,7 @@
                     <div class="api-row">
                         <div class="api-input">
                             <label for="openai-key">OpenAI API Key (Required)</label>
-                            <input type="password" id="openai-key" placeholder="sk-..." onchange="validateAPIKeys()">
+                            <input type="password" id="openai-key" placeholder="sk-...">
                         </div>
                     </div>
                     <div class="api-status warning" id="api-status">
@@ -1315,37 +1315,9 @@
             document.getElementById('news-url').value = '';
             document.getElementById('results').style.display = 'none';
             hideProgress();
-            // Initialize page
+            // Initialize page - NO API VALIDATION AT ALL
         document.addEventListener('DOMContentLoaded', function() {
             updateCharCount();
-            
-            // Only initialize API validation if the elements actually exist
-            setTimeout(() => {
-                const apiKeyInput = document.getElementById('openai-key');
-                const apiStatus = document.getElementById('api-status');
-                const analyzeBtn = document.querySelector('.analyze-btn');
-                
-                if (apiKeyInput && apiStatus && analyzeBtn) {
-                    console.log('API elements found, initializing validation');
-                    validateAPIKeys();
-                    
-                    // Auto-focus API key input if empty
-                    if (!apiKeyInput.value) {
-                        apiKeyInput.focus();
-                    }
-                } else {
-                    console.log('API elements not found:', {
-                        apiKeyInput: !!apiKeyInput,
-                        apiStatus: !!apiStatus, 
-                        analyzeBtn: !!analyzeBtn
-                    });
-                    
-                    // Disable analyze button if no API elements
-                    if (analyzeBtn) {
-                        analyzeBtn.disabled = true;
-                    }
-                }
-            }, 500);
         });
 
         updateCharCount();
