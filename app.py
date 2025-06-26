@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
-import openai
+from openai import OpenAI
 import requests
 import os
 import json
@@ -11,6 +11,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 import hashlib
 from werkzeug.utils import secure_filename
+from bs4 import BeautifulSoup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,9 +29,10 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
-# Set OpenAI API key if available
+# Set OpenAI client if available (UPDATED TO NEW SYNTAX)
+openai_client = None
 if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Known source credibility database
 SOURCE_CREDIBILITY = {
@@ -197,7 +199,7 @@ def analyze_ai_content_comprehensive(text, tier):
         patterns = analyze_ai_patterns(text)
         
         # Advanced analysis for pro tier
-        if tier == 'pro' and OPENAI_API_KEY:
+        if tier == 'pro' and openai_client:
             try:
                 advanced_analysis = get_openai_analysis(text)
                 patterns.update(advanced_analysis)
@@ -259,7 +261,7 @@ def analyze_ai_patterns(text):
     }
 
 def get_openai_analysis(text):
-    """Advanced OpenAI-based analysis for pro tier"""
+    """Advanced OpenAI-based analysis for pro tier - UPDATED TO NEW SYNTAX"""
     try:
         prompt = f"""
         Analyze this text for AI generation indicators. Return only valid JSON:
@@ -278,7 +280,7 @@ def get_openai_analysis(text):
         Text: {text[:1500]}
         """
         
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
@@ -374,26 +376,52 @@ def create_fallback_ai_analysis(text, tier):
     return analyze_ai_patterns(text)
 
 # ================================
-# NEWS VERIFICATION API
+# NEWS VERIFICATION API - ENHANCED WITH URL SUPPORT
 # ================================
 
 @app.route('/api/analyze-news', methods=['POST'])
 @app.route('/analyze_news', methods=['POST'])
 def analyze_news():
-    """News verification endpoint from original backend"""
+    """Enhanced news verification endpoint with URL support"""
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
     
     try:
         data = request.get_json()
-        logger.info(f"Starting news analysis for content length: {len(data.get('text', ''))}")
+        logger.info(f"News analysis request received")
         
-        if not data or 'text' not in data:
-            return jsonify({'error': 'No text provided in request'}), 400
+        if not data:
+            return jsonify({'error': 'No data provided in request'}), 400
         
-        text = data['text'].strip()
+        # Handle both URL and text inputs
+        text = ""
+        source_url = None
+        
+        if 'url' in data and data['url']:
+            # URL provided - fetch content
+            source_url = data['url'].strip()
+            logger.info(f"Fetching content from URL: {source_url}")
+            
+            try:
+                content_result = fetch_url_content(source_url)
+                if content_result['status'] == 'success':
+                    text = content_result['content']
+                else:
+                    return jsonify({'error': f"Failed to fetch URL content: {content_result.get('error', 'Unknown error')}"}), 400
+            except Exception as e:
+                logger.error(f"URL fetch error: {str(e)}")
+                return jsonify({'error': f"Could not access URL: {str(e)}"}), 400
+                
+        elif 'text' in data and data['text']:
+            # Text provided directly
+            text = data['text'].strip()
+        else:
+            return jsonify({'error': 'No text or URL provided'}), 400
+        
         if len(text) < 10:
-            return jsonify({'error': 'Text too short for analysis (minimum 10 characters)'}), 400
+            return jsonify({'error': 'Content too short for analysis (minimum 10 characters)'}), 400
+        
+        logger.info(f"Analyzing content length: {len(text)} characters")
         
         # Initialize results structure
         results = {
@@ -401,7 +429,9 @@ def analyze_news():
             'timestamp': datetime.now().isoformat(),
             'analysis_id': f"news_analysis_{int(time.time())}",
             'text_length': len(text),
+            'source_url': source_url,
             'analysis_stages': {
+                'content_extraction': 'completed' if source_url else 'skipped',
                 'ai_analysis': 'completed',
                 'political_bias': 'completed',
                 'source_verification': 'completed',
@@ -417,8 +447,11 @@ def analyze_news():
         political_analysis = get_political_bias_analysis(text)
         results['political_bias'] = political_analysis
         
-        # Source Verification
-        source_verification = get_source_verification(text)
+        # Source Verification (enhanced if we have URL)
+        if source_url:
+            source_verification = get_url_source_verification(source_url, text)
+        else:
+            source_verification = get_source_verification(text)
         results['source_verification'] = source_verification
         
         # Fact Check
@@ -444,10 +477,100 @@ def analyze_news():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-def get_news_ai_analysis(text):
-    """AI analysis for news content"""
+def fetch_url_content(url):
+    """NEW: Fetch content from URL"""
     try:
-        if OPENAI_API_KEY:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        
+        # Simple text extraction
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Remove unwanted elements
+        for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe']):
+            element.decompose()
+        
+        # Extract text from paragraphs and article content
+        content_text = ""
+        
+        # Try to find article content
+        article = soup.find('article') or soup.find('main') or soup.find('div', class_=lambda x: x and 'content' in x.lower())
+        
+        if article:
+            paragraphs = article.find_all('p')
+        else:
+            paragraphs = soup.find_all('p')
+        
+        content_text = ' '.join([p.get_text().strip() for p in paragraphs if len(p.get_text().strip()) > 20])
+        
+        if len(content_text) < 100:
+            # Fallback: get all text
+            content_text = soup.get_text()
+            # Clean up
+            content_text = re.sub(r'\s+', ' ', content_text).strip()
+        
+        return {
+            'status': 'success',
+            'content': content_text[:5000],  # Limit content
+            'url': url
+        }
+        
+    except requests.exceptions.RequestException as e:
+        return {
+            'status': 'error',
+            'error': f"Network error: {str(e)}"
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': f"Content extraction error: {str(e)}"
+        }
+
+def get_url_source_verification(url, text):
+    """NEW: Enhanced source verification for URLs"""
+    domain = urlparse(url).netloc.lower()
+    
+    # Remove www. prefix
+    if domain.startswith('www.'):
+        domain = domain[4:]
+    
+    # Check against known sources
+    source_info = SOURCE_CREDIBILITY.get(domain, {
+        'credibility': 60, 
+        'bias': 'unknown', 
+        'type': 'unknown'
+    })
+    
+    # Create source analysis
+    sources = [{
+        'name': domain,
+        'credibility': source_info['credibility'],
+        'bias': source_info.get('bias', 'unknown'),
+        'type': source_info.get('type', 'unknown'),
+        'url': url
+    }]
+    
+    return {
+        'status': 'success',
+        'sources_found': 1,
+        'sources': sources,
+        'average_credibility': source_info['credibility'],
+        'verification_status': 'completed',
+        'domain_analysis': {
+            'domain': domain,
+            'known_source': domain in SOURCE_CREDIBILITY,
+            'credibility_rating': source_info['credibility']
+        }
+    }
+
+def get_news_ai_analysis(text):
+    """AI analysis for news content - UPDATED TO NEW SYNTAX"""
+    try:
+        if openai_client:
             prompt = f"""
             Analyze this news content for credibility. Return ONLY valid JSON:
             {{
@@ -465,7 +588,7 @@ def get_news_ai_analysis(text):
             Text: {text[:1500]}
             """
             
-            response = openai.ChatCompletion.create(
+            response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
