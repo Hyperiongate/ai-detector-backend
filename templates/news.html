@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewsVerify Pro - Enterprise News Verification Platform</title>
+    <title>NewsVerify Pro - Enterprise News Verification Platform v2.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -1117,7 +1117,38 @@
         let openaiApiKey = '';
         let newsApiKey = '';
 
-        // Toggle API configuration visibility
+        // Empty function to prevent errors from cached calls
+        function validateAPIKeys() {
+            // Completely safe - check if elements exist first
+            const openaiKeyInput = document.getElementById('openai-key');
+            const statusEl = document.getElementById('api-status');
+            const analyzeBtn = document.querySelector('.analyze-btn');
+            
+            // If any element doesn't exist, just return without doing anything
+            if (!openaiKeyInput || !statusEl || !analyzeBtn) {
+                return true;
+            }
+            
+            // Now safely access the value
+            const keyValue = openaiKeyInput.value || '';
+            openaiApiKey = keyValue.trim();
+            
+            if (openaiApiKey && openaiApiKey.startsWith('sk-') && openaiApiKey.length > 20) {
+                statusEl.className = 'api-status connected';
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> OpenAI API connected. Ready for real-time analysis!';
+                analyzeBtn.disabled = false;
+            } else if (openaiApiKey) {
+                statusEl.className = 'api-status error';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid OpenAI API key format. Please check your key.';
+                analyzeBtn.disabled = true;
+            } else {
+                statusEl.className = 'api-status warning';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please configure your OpenAI API key to enable real-time analysis';
+                analyzeBtn.disabled = true;
+            }
+            
+            return true;
+        }
         function toggleAPIConfig() {
             const apiConfig = document.getElementById('apiConfig');
             const toggleIcon = document.getElementById('toggleIcon');
