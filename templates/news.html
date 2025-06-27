@@ -713,7 +713,7 @@
             }, 3000);
         }
 
-        function runAnalysis() {
+        async function runAnalysis() {
             // Validate input
             const textInput = document.getElementById('news-text').value;
             const urlInput = document.getElementById('news-url').value;
@@ -738,74 +738,255 @@
                 bar.style.width = '0%';
             });
             
-            // Animate progress bars
+            // Start progress animation
             const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
-            const delays = [500, 1200, 2000, 2800, 3500];
+            let currentProgress = 0;
             
-            progressBars.forEach((id, index) => {
+            function updateProgress() {
+                if (currentProgress < progressBars.length) {
+                    document.getElementById(progressBars[currentProgress]).style.width = '100%';
+                    currentProgress++;
+                }
+            }
+            
+            // Initial progress
+            setTimeout(updateProgress, 500);
+            
+            try {
+                // Prepare data for API call
+                const requestData = {};
+                if (currentInputType === 'text') {
+                    requestData.text = textInput;
+                } else {
+                    requestData.url = urlInput;
+                }
+                
+                // Make real API call to backend
+                const response = await fetch('/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                // Continue progress updates during API call
+                const progressInterval = setInterval(updateProgress, 800);
+                
+                if (!response.ok) {
+                    clearInterval(progressInterval);
+                    throw new Error(`Analysis failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const results = await response.json();
+                clearInterval(progressInterval);
+                
+                // Complete remaining progress bars
+                while (currentProgress < progressBars.length) {
+                    updateProgress();
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                // Hide progress and show real results
                 setTimeout(() => {
-                    document.getElementById(id).style.width = '100%';
-                }, delays[index]);
-            });
-            
-            // Show results after progress completes
-            setTimeout(() => {
+                    progressSection.style.display = 'none';
+                    showRealResults(results);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
                 progressSection.style.display = 'none';
+                
+                // Show error message
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; font-weight: 600;';
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Analysis failed: ${error.message}`;
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 5000);
+                
+                // Show fallback results
                 showFreeResults();
-            }, 4500);
+            }
         }
 
-        function showFreeResults() {
+        function showRealResults(results) {
             const resultsDiv = document.getElementById('results');
+            
+            // Extract real data from backend response
+            const credibilityScore = results.scoring?.overall_credibility || 50;
+            const credibilityGrade = results.scoring?.credibility_grade || 'C';
+            const biasScore = results.political_bias?.bias_score || 0;
+            const biasLabel = results.political_bias?.bias_label || 'unknown';
+            const sourceCount = results.source_verification?.sources_found || 0;
+            const avgSourceCredibility = results.source_verification?.average_credibility || 60;
+            const factCheckCount = results.fact_check_results?.fact_checks_found || 0;
+            const assessment = results.executive_summary?.main_assessment || 'ANALYSIS COMPLETED';
+            const summaryText = results.executive_summary?.summary_text || 'Analysis completed with basic assessment.';
+            
+            // Determine bias position for visual chart (convert -100 to 100 scale to 0-100% position)
+            const biasPosition = Math.max(0, Math.min(100, 50 + (biasScore / 2)));
+            
+            // Get bias color based on score
+            let biasColor = '#10b981'; // center/green
+            if (Math.abs(biasScore) > 60) {
+                biasColor = '#ef4444'; // far left/right - red
+            } else if (Math.abs(biasScore) > 30) {
+                biasColor = '#f59e0b'; // moderate bias - orange
+            }
+            
             resultsDiv.innerHTML = `
-                <!-- Free Version Results -->
+                <!-- Real Analysis Results -->
                 <div class="result-card">
                     <div class="result-header">
                         <i class="fas fa-chart-pie"></i>
-                        Credibility Assessment (Free Version)
+                        Comprehensive Credibility Analysis
+                        <span style="background: ${credibilityScore >= 80 ? '#10b981' : credibilityScore >= 60 ? '#f59e0b' : '#ef4444'}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">
+                            ${assessment}
+                        </span>
                     </div>
                     
                     <div class="credibility-score">
-                        <div class="score-circle">
-                            <div class="score-text">82</div>
+                        <div class="score-circle" style="background: conic-gradient(from 0deg, ${credibilityScore >= 80 ? '#10b981' : credibilityScore >= 60 ? '#f59e0b' : '#ef4444'} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg);">
+                            <div class="score-text" style="color: ${credibilityScore >= 80 ? '#059669' : credibilityScore >= 60 ? '#d97706' : '#dc2626'};">${Math.round(credibilityScore)}</div>
                         </div>
                         <div>
-                            <h3>Moderate Credibility</h3>
-                            <p>This content shows reasonable credibility indicators but requires further verification.</p>
+                            <h3>Credibility Score: ${Math.round(credibilityScore)}/100 (Grade: ${credibilityGrade})</h3>
+                            <p>${summaryText}</p>
                         </div>
                     </div>
                     
-                    <div><strong>Source Type:</strong> Established news outlet</div>
-                    <div><strong>Publication Date:</strong> Recent (within 24 hours)</div>
-                    <div><strong>Basic Fact Check:</strong> No obvious contradictions found</div>
-                </div>
-
-                <!-- Locked Pro Features -->
-                <div class="locked-content">
-                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h3>Detailed Analysis Available in Pro Version</h3>
-                    <p>Unlock comprehensive bias analysis, source network mapping, timeline verification, sentiment analysis, and detailed recommendations.</p>
-                    
-                    <div class="upgrade-prompt">
-                        <strong>Upgrade to Pro for Complete Analysis</strong>
-                        <br>• Political bias assessment with visual charts
-                        <br>• Source authority ranking and verification
-                        <br>• Cross-reference with fact-checking databases
-                        <br>• Historical context and timeline analysis
-                        <br>• Detailed credibility breakdown
-                        <br>• Export and sharing capabilities
-                        <button onclick="upgradeToPro()">Upgrade to Pro</button>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Political Bias:</strong><br>
+                            ${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)} (${biasScore > 0 ? '+' : ''}${biasScore}/100)
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Sources Verified:</strong><br>
+                            ${sourceCount} sources • Avg credibility: ${Math.round(avgSourceCredibility)}%
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Fact Checks:</strong><br>
+                            ${factCheckCount} fact checks found${results.fact_check_results?.source ? ` via ${results.fact_check_results.source}` : ''}
+                        </div>
                     </div>
                 </div>
+
+                ${results.source_verification?.sources?.length > 0 ? `
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-network-wired"></i>
+                        Source Analysis
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        ${results.source_verification.sources.map(source => `
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid ${source.credibility >= 80 ? '#10b981' : source.credibility >= 60 ? '#f59e0b' : '#ef4444'};">
+                                <div style="font-weight: 700; color: #374151; margin-bottom: 8px;">${source.name}</div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">
+                                    Credibility: ${source.credibility}/100<br>
+                                    ${source.bias ? `Bias: ${source.bias}<br>` : ''}
+                                    ${source.type ? `Type: ${source.type.replace('_', ' ')}` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${Math.abs(biasScore) > 5 ? `
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-balance-scale"></i>
+                        Political Bias Analysis
+                    </div>
+                    <div style="background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%); height: 20px; border-radius: 10px; position: relative; margin: 15px 0;">
+                        <div style="position: absolute; top: 50%; left: ${biasPosition}%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; border: 3px solid ${biasColor}; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #6b7280;">
+                        <span>Far Left</span>
+                        <span>Center</span>
+                        <span>Far Right</span>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; color: #4a5568;">
+                        Analysis shows <strong>${biasLabel}</strong> positioning with ${results.political_bias?.objectivity_score ? `${results.political_bias.objectivity_score}% objectivity` : 'moderate objectivity'}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${results.fact_check_results?.claims?.length > 0 ? `
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-check-double"></i>
+                        Fact Check Results
+                    </div>
+                    <div style="display: grid; gap: 15px;">
+                        ${results.fact_check_results.claims.map(claim => `
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid ${claim.rating_value >= 70 ? '#10b981' : claim.rating_value >= 40 ? '#f59e0b' : '#ef4444'};">
+                                <div style="font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    ${claim.rating} - ${claim.reviewer}
+                                </div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">
+                                    "${claim.claim_text}"
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${results.ai_analysis?.status === 'success' ? `
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-brain"></i>
+                        AI Content Analysis
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Writing Quality:</strong><br>
+                            ${results.ai_analysis.writing_quality || 'N/A'}/100
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Emotional Language:</strong><br>
+                            ${results.ai_analysis.emotional_language || 'N/A'}/100
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Sensationalism:</strong><br>
+                            ${results.ai_analysis.sensationalism_score || 'N/A'}/100
+                        </div>
+                    </div>
+                    ${results.ai_analysis.detailed_explanation ? `
+                    <div style="margin-top: 15px; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <strong>Analysis Details:</strong><br>
+                        ${results.ai_analysis.detailed_explanation}
+                    </div>
+                    ` : ''}
+                </div>
+                ` : ''}
 
                 <div class="result-card">
                     <div class="result-header">
                         <i class="fas fa-comments"></i>
-                        Conversational Summary
+                        Analysis Summary
                     </div>
-                    <p>This article appears to be from a legitimate news source with standard journalistic practices. The content presents information in a factual manner without obvious bias indicators. However, for a complete assessment including political lean analysis, source network verification, and historical context, consider upgrading to our Pro version for more detailed insights.</p>
+                    <p style="line-height: 1.6; color: #4a5568;">
+                        ${summaryText}
+                    </p>
+                    
+                    ${results.methodology ? `
+                    <div style="background: #10b981; color: white; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                        <strong>Analysis Complete</strong><br>
+                        <small>
+                            ${results.methodology.ai_models_used} • 
+                            ${results.methodology.processing_time} processing • 
+                            ${results.methodology.analysis_depth} depth
+                        </small>
+                    </div>
+                    ` : ''}
                 </div>
             `;
+            
             resultsDiv.style.display = 'block';
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
@@ -829,7 +1010,7 @@
             switchInputType('text');
         }
 
-        function testProVersion() {
+        async function testProVersion() {
             const testContent = "Breaking: Federal Reserve Chairman announces unexpected policy shift regarding interest rates, citing concerns over inflation data released yesterday. The decision, which contradicts earlier statements from Fed officials, has sparked debate among economists. Some analysts suggest this move could signal deeper concerns about economic stability than previously acknowledged.";
             
             document.getElementById('news-text').value = testContent;
@@ -839,28 +1020,80 @@
             const progressSection = document.getElementById('progressSection');
             progressSection.style.display = 'block';
             
-            // Faster, more colorful animation for pro test
-            const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
-            const delays = [300, 700, 1100, 1500, 1900];
-            
-            progressBars.forEach((id, index) => {
-                setTimeout(() => {
-                    const bar = document.getElementById(id);
-                    bar.style.width = '100%';
-                    bar.style.background = 'linear-gradient(90deg, #f59e0b, #10b981, #667eea)';
-                }, delays[index]);
+            // Reset progress bars with pro colors
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                bar.style.background = 'linear-gradient(90deg, #f59e0b, #10b981, #667eea)';
+                bar.style.width = '0%';
             });
             
-            // Show enhanced pro results
-            setTimeout(() => {
+            // Faster animation for pro test
+            const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
+            let currentProgress = 0;
+            
+            function updateProProgress() {
+                if (currentProgress < progressBars.length) {
+                    document.getElementById(progressBars[currentProgress]).style.width = '100%';
+                    currentProgress++;
+                }
+            }
+            
+            // Start progress
+            setTimeout(updateProProgress, 200);
+            const progressInterval = setInterval(updateProProgress, 400);
+            
+            try {
+                // Make REAL API call to your backend - no demo data!
+                const response = await fetch('/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: testContent,
+                        analysis_type: 'pro'  // Tell backend this is pro-level analysis
+                    })
+                });
+                
+                clearInterval(progressInterval);
+                
+                if (!response.ok) {
+                    throw new Error(`Pro analysis failed: ${response.status} ${response.statusText}`);
+                }
+                
+                // Get REAL results from your backend
+                const realResults = await response.json();
+                
+                // Complete remaining progress
+                while (currentProgress < progressBars.length) {
+                    updateProProgress();
+                    await new Promise(resolve => setTimeout(resolve, 150));
+                }
+                
+                setTimeout(() => {
+                    progressSection.style.display = 'none';
+                    showEnhancedProResults(realResults);  // Use real results with pro styling
+                }, 500);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Pro test API error:', error);
                 progressSection.style.display = 'none';
-                showProResults();
-            }, 2500);
+                
+                // Show error message - no fake demo results
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; font-weight: 600;';
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Pro analysis failed: ${error.message}`;
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 8000);
+            }
             
             // Show notification
             const notification = document.createElement('div');
             notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; font-weight: 600;';
-            notification.innerHTML = '<i class="fas fa-star"></i> Pro version demo loaded!';
+            notification.innerHTML = '<i class="fas fa-star"></i> Pro version analysis initiated!';
             document.body.appendChild(notification);
             
             setTimeout(() => {
@@ -868,101 +1101,20 @@
             }, 3000);
         }
 
-        function showProResults() {
-            // Replace the locked content with full pro results
+        function showEnhancedProResults(realResults) {
+            // Use the REAL results from your backend, just with enhanced pro styling
+            showRealResults(realResults);
+            
+            // Add pro enhancement styling to the real results
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `
-                <!-- Enhanced Pro Results -->
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-crown" style="color: #f59e0b;"></i>
-                        Complete Credibility Analysis (Pro Version)
-                    </div>
-                    
-                    <div class="credibility-score">
-                        <div class="score-circle" style="background: conic-gradient(from 0deg, #f59e0b 0deg 230deg, #e5e7eb 230deg 360deg);">
-                            <div class="score-text" style="color: #d97706;">74</div>
-                        </div>
-                        <div>
-                            <h3>Moderate Credibility with Concerns</h3>
-                            <p>Content shows mixed signals requiring careful consideration of source and context.</p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;"><strong>Source Authority:</strong> High (Federal Reserve official source)</div>
-                    <div style="margin-bottom: 15px;"><strong>Political Bias:</strong> Slight center-left (bias score: -0.3)</div>
-                    <div style="margin-bottom: 15px;"><strong>Factual Claims:</strong> 3 verified, 1 requires context</div>
-                    <div style="margin-bottom: 15px;"><strong>Emotional Language:</strong> Moderate concern indicators detected</div>
-                </div>
-
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-network-wired"></i>
-                        Source Network Analysis
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
-                            <strong>Primary Sources: 2</strong><br>
-                            • Federal Reserve<br>
-                            • Reuters Newswire
-                        </div>
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
-                            <strong>Secondary Sources: 4</strong><br>
-                            • Bloomberg Terminal<br>
-                            • Associated Press<br>
-                            • Wall Street Journal<br>
-                            • CNN Business
-                        </div>
-                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
-                            <strong>Cross-References: 7</strong><br>
-                            • Economic data verified<br>
-                            • Timeline confirmed<br>
-                            • Official statements matched
-                        </div>
-                    </div>
-                </div>
-
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-balance-scale"></i>
-                        Detailed Bias Analysis
-                    </div>
-                    <div style="background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%); height: 20px; border-radius: 10px; position: relative; margin: 15px 0;">
-                        <div style="position: absolute; top: 50%; left: 45%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; border: 3px solid #374151; border-radius: 50%;"></div>
-                    </div>
-                    <div style="text-align: center; color: #6b7280;">Slight Center-Left Positioning • Language neutrality: 78%</div>
-                </div>
-
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-clock"></i>
-                        Timeline Verification
-                    </div>
-                    <div style="font-size: 0.95rem; line-height: 1.6;">
-                        <div style="margin-bottom: 10px;"><strong>✅ Timing Consistent:</strong> Fed announcement aligns with market hours</div>
-                        <div style="margin-bottom: 10px;"><strong>✅ Sequence Verified:</strong> Inflation data released 24 hours prior</div>
-                        <div style="margin-bottom: 10px;"><strong>⚠️ Context Note:</strong> Previous Fed statements from 2 weeks ago show different stance</div>
-                        <div><strong>📊 Market Impact:</strong> Real-time trading data confirms immediate market reaction</div>
-                    </div>
-                </div>
-
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-comments"></i>
-                        Enhanced Conversational Summary (Pro)
-                    </div>
-                    <p>This Federal Reserve announcement appears to be legitimate and timely, sourced from official channels. However, there are some credibility concerns to consider. The content contradicts recent Fed communications, which isn't necessarily problematic but warrants attention. The language contains subtle emotional indicators like "sparked debate" and "deeper concerns" that could suggest interpretive framing rather than pure reporting.</p>
-                    
-                    <p style="margin-top: 15px;"><strong>Recommendation:</strong> This story appears credible but should be cross-referenced with direct Fed communications and multiple news sources before sharing. The apparent policy shift is significant enough to warrant verification from official Federal Reserve statements.</p>
-                    
-                    <div style="background: #10b981; color: white; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
-                        <strong>Pro Analysis Complete</strong><br>
-                        <small>Comprehensive verification across 12 data sources • Processing time: 2.3 seconds</small>
-                    </div>
-                </div>
-            `;
-            resultsDiv.style.display = 'block';
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            const proBadge = document.createElement('div');
+            proBadge.style.cssText = 'position: absolute; top: -10px; right: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; z-index: 10; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);';
+            proBadge.innerHTML = '<i class="fas fa-crown"></i> PRO ANALYSIS';
+            resultsDiv.style.position = 'relative';
+            resultsDiv.insertBefore(proBadge, resultsDiv.firstChild);
+            
+            // Add subtle gold glow to pro results
+            resultsDiv.style.boxShadow = '0 0 30px rgba(245, 158, 11, 0.2)';
         }
 
         // Initialize
