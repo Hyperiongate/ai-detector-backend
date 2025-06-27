@@ -1028,6 +1028,11 @@
                 </div>
                 
                 <div class="input-content active" id="textInput">
+                    <div class="sample-buttons" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <button class="sample-btn" onclick="loadSample('ai')" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">🤖 AI Sample</button>
+                        <button class="sample-btn" onclick="loadSample('human')" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">👤 Human Sample</button>
+                        <button class="sample-btn" onclick="loadSample('mixed')" style="background: #8b5cf6; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">🔀 Mixed Sample</button>
+                    </div>
                     <div class="input-group">
                         <label for="content-text"><i class="fas fa-file-text"></i> Content for AI Detection & Plagiarism Analysis</label>
                         <textarea id="content-text" placeholder="Paste text content here for comprehensive AI detection and plagiarism analysis..."></textarea>
@@ -1040,6 +1045,15 @@
                         <h3>Click to upload or drag and drop</h3>
                         <p>Supports: PDF, DOC, DOCX, TXT (Max 50MB)</p>
                         <input type="file" id="file-upload" style="display: none;" accept=".pdf,.doc,.docx,.txt" onchange="handleFileUpload(event)">
+                    </div>
+                    <div id="file-status" style="margin-top: 15px; display: none;">
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border-left: 4px solid #10b981;">
+                            <h4 style="color: #374151; margin-bottom: 10px;">File Processing:</h4>
+                            <p style="color: #6b7280; margin-bottom: 10px;">Files will be processed to extract text content, then analyzed for AI detection and plagiarism.</p>
+                            <div style="background: #fff3cd; padding: 10px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                                <small style="color: #856404;"><strong>Note:</strong> File upload extracts text first via /api/extract-text, then runs AI analysis.</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1109,18 +1123,36 @@
                     <h3>File uploaded: ${file.name}</h3>
                     <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     <p style="color: #10b981; font-weight: 600;">Ready for analysis</p>
+                    <input type="file" id="file-upload" style="display: none;" accept=".pdf,.doc,.docx,.txt" onchange="handleFileUpload(event)">
                 `;
+                
+                // Show file processing info
+                const fileStatus = document.getElementById('file-status');
+                if (fileStatus) {
+                    fileStatus.style.display = 'block';
+                }
+                
                 showNotification('File uploaded successfully!', 'success');
             }
         }
 
         function loadTestData() {
-            const testContent = "The integration of artificial intelligence technologies has fundamentally transformed modern educational paradigms. Machine learning algorithms now facilitate personalized learning experiences through adaptive assessment methodologies. These sophisticated systems analyze student performance patterns to optimize instructional delivery mechanisms. Educational institutions worldwide are implementing AI-driven solutions to enhance pedagogical effectiveness and improve learning outcomes across diverse academic disciplines.";
+            // Load AI sample by default
+            loadSample('ai');
+        }
+
+        function loadSample(type) {
+            const samples = {
+                ai: "The integration of artificial intelligence technologies has fundamentally transformed modern educational paradigms. Machine learning algorithms now facilitate personalized learning experiences through adaptive assessment methodologies. These sophisticated systems analyze student performance patterns to optimize instructional delivery mechanisms. Educational institutions worldwide are implementing AI-driven solutions to enhance pedagogical effectiveness and improve learning outcomes across diverse academic disciplines.",
+                human: "I still remember that summer when I was twelve, sitting on my grandmother's porch while she taught me how to make her famous apple pie. The smell of cinnamon filled the kitchen as we rolled out the dough together. She had this way of explaining things that made everything seem simple, even though I could tell there was so much wisdom behind her gentle words. Those afternoons shaped who I am today.",
+                mixed: "Recent studies indicate that climate change is accelerating at an unprecedented rate. According to the IPCC report, global temperatures have risen by 1.2 degrees Celsius since pre-industrial times. But honestly, when I see the weather patterns in my own backyard, it's pretty scary. Last week we had a snowstorm in May, which my neighbor said he'd never seen in his 40 years here."
+            };
             
-            document.getElementById('content-text').value = testContent;
+            document.getElementById('content-text').value = samples[type];
             switchInputType('text');
             
-            showNotification('Test data loaded successfully!', 'success');
+            const labels = { ai: 'AI-generated sample', human: 'Human-written sample', mixed: 'Mixed content sample' };
+            showNotification(`${labels[type]} loaded!`, 'success');
         }
 
         async function runAnalysis(tier = 'free') {
@@ -1145,8 +1177,33 @@
                     showNotification('Please upload a file first.', 'error');
                     return;
                 }
-                // For file upload, we'd need to extract text first
-                inputData.text = "Extracted content from uploaded file: " + uploadedFile.name;
+                
+                // First extract text from file
+                try {
+                    const formData = new FormData();
+                    formData.append('file', uploadedFile);
+                    
+                    const extractResponse = await fetch('/api/extract-text', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!extractResponse.ok) {
+                        throw new Error(`File extraction failed: ${extractResponse.status}`);
+                    }
+                    
+                    const extractResult = await extractResponse.json();
+                    if (!extractResult.text || extractResult.text.length < 50) {
+                        throw new Error('Insufficient text extracted from file');
+                    }
+                    
+                    inputData.text = extractResult.text;
+                    showNotification(`Text extracted from ${uploadedFile.name}`, 'success');
+                    
+                } catch (error) {
+                    showNotification(`File processing failed: ${error.message}`, 'error');
+                    return;
+                }
             } else if (currentInputType === 'batch') {
                 const batchText = document.getElementById('batch-text').value.trim();
                 if (!batchText) {
@@ -1159,6 +1216,9 @@
                     return;
                 }
                 inputData.text = texts[0]; // For now, analyze first text
+                if (texts.length > 1) {
+                    showNotification(`Analyzing first text. Batch processing of ${texts.length} texts available in Pro.`, 'info');
+                }
             }
             
             // Add analysis type
