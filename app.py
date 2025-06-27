@@ -220,7 +220,15 @@ def index():
 def news():
     """Serve the news verification page"""
     try:
-        return render_template('news.html')
+        # Get user safely for template
+        user = None
+        if DATABASE_AVAILABLE:
+            try:
+                user = get_current_user()
+            except Exception as e:
+                logger.warning(f"User fetch failed in template: {e}")
+        
+        return render_template('news.html', user=user)
     except Exception as e:
         logger.error(f"Error serving news.html: {e}")
         # Return a minimal fallback page instead of causing 502
