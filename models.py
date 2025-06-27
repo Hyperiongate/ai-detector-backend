@@ -1,227 +1,229 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
-import uuid
 
 db = SQLAlchemy()
 
 class User(db.Model):
-    """User accounts and subscription management"""
+    """User model for subscription and usage tracking"""
     __tablename__ = 'users'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    subscription_tier = db.Column(db.String(20), default='free')  # free, pro, enterprise
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    subscription_tier = db.Column(db.String(20), default='free', nullable=False)  # 'free', 'pro'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_active = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Usage tracking
-    analyses_today = db.Column(db.Integer, default=0)
-    analyses_this_month = db.Column(db.Integer, default=0)
-    last_reset_date = db.Column(db.Date, default=datetime.utcnow().date)
-    
-    # Subscription details
-    stripe_customer_id = db.Column(db.String(255), nullable=True)
-    subscription_status = db.Column(db.String(50), default='active')  # active, canceled, past_due
-    subscription_end_date = db.Column(db.DateTime, nullable=True)
+    total_analyses = db.Column(db.Integer, default=0)
+    subscription_start = db.Column(db.DateTime)
+    subscription_end = db.Column(db.DateTime)
     
     # Relationships
     analyses = db.relationship('Analysis', backref='user', lazy=True, cascade='all, delete-orphan')
-    api_keys = db.relationship('UserAPIKey', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<User {self.email}>'
     
-    def can_analyze(self, analysis_type='free'):
-        """Check if user can perform analysis based on tier and usage"""
-        today = datetime.utcnow().date()
+    def is_pro(self):
+        """Check if user has active pro subscription"""
+        if self.subscription_tier != 'pro':
+            return False
         
-        # Reset daily counter if needed
-        if self.last_reset_date < today:
-            self.analyses_today = 0
-            self.last_reset_date = today
-            db.session.commit()
-        
-        # Check limits based on tier
-        if self.subscription_tier == 'free':
-            return self.analyses_today < 5  # 5 free analyses per day
-        elif self.subscription_tier == 'pro':
-            return self.analyses_today < 100  # 100 pro analyses per day
-        elif self.subscription_tier == 'enterprise':
-            return True  # Unlimited
-        
-        return False
+        if self.subscription_end and self.subscription_end < datetime.utcnow():
+            return False
+            
+        return True
     
-    def increment_usage(self):
-        """Increment usage counters"""
-        self.analyses_today += 1
-        self.analyses_this_month += 1
-        self.last_active = datetime.utcnow()
-        db.session.commit()
+    def get_daily_usage(self, analysis_type=None):
+        """Get today's usage count for specific analysis type"""
+        today = datetime.utcnow().date()
+        query = Analysis.query.filter(
+            Analysis.user_id == self.id,
+            Analysis.created_at >= today
+        )
+        
+        if analysis_type:
+            query = query.filter(Analysis.analysis_type == analysis_type)
+            
+        return query.count()
+    
+    def can_analyze(self, analysis_type):
+        """Check if user can perform analysis based on limits"""
+        if self.is_pro():
+            return True, ""
+        
+        # Free tier limits
+        limits = {
+            'news_analysis': 5,
+            'fact_check': 3,
+            'general': 10
+        }
+        
+        limit = limits.get(analysis_type, 5)
+        current_usage = self.get_daily_usage(analysis_type)
+        
+        if current_usage >= limit:
+            return False, f"Daily limit reached ({limit} {analysis_type} analyses per day)"
+        
+        return True, ""
 
 class Analysis(db.Model):
-    """Store analysis results and history"""
+    """Analysis history and results storage"""
     __tablename__ = 'analyses'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)  # Allow anonymous
-    
-    # Analysis metadata
-    analysis_type = db.Column(db.String(20), nullable=False)  # news, ai_detection, plagiarism
-    tier = db.Column(db.String(20), nullable=False)  # free, pro
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    
-    # Input data
-    input_text = db.Column(db.Text, nullable=True)
-    input_url = db.Column(db.String(500), nullable=True)
-    input_method = db.Column(db.String(20), nullable=False)  # text, url, file
-    
-    # Results (stored as JSON)
-    results = db.Column(db.JSON, nullable=False)
-    
-    # Performance metrics
-    processing_time_seconds = db.Column(db.Float, nullable=True)
-    api_calls_made = db.Column(db.JSON, nullable=True)  # Track which APIs were called
-    
-    # Status
-    status = db.Column(db.String(20), default='completed')  # processing, completed, failed
-    error_message = db.Column(db.Text, nullable=True)
-    
-    def __repr__(self):
-        return f'<Analysis {self.id} - {self.analysis_type}>'
-    
-    def get_summary(self):
-        """Get analysis summary for display"""
-        if not self.results:
-            return None
-        
-        try:
-            if self.analysis_type == 'news':
-                score = self.results.get('scoring', {}).get('overall_credibility', 0)
-                assessment = self.results.get('executive_summary', {}).get('main_assessment', 'Unknown')
-                return {
-                    'score': score,
-                    'assessment': assessment,
-                    'type': 'News Verification'
-                }
-            elif self.analysis_type == 'ai_detection':
-                ai_prob = self.results.get('ai_detection', {}).get('ai_probability', 0)
-                return {
-                    'ai_probability': ai_prob,
-                    'type': 'AI Detection'
-                }
-        except Exception as e:
-            return {'error': str(e)}
-
-class UserAPIKey(db.Model):
-    """User API keys for enterprise customers"""
-    __tablename__ = 'user_api_keys'
-    
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    
-    key_name = db.Column(db.String(100), nullable=False)
-    api_key = db.Column(db.String(64), unique=True, nullable=False)  # Generated hash
-    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    analysis_type = db.Column(db.String(50), nullable=False)  # 'news_analysis', 'fact_check', 'general'
+    query = db.Column(db.Text, nullable=False)
+    results = db.Column(db.Text)  # JSON string of results
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_used = db.Column(db.DateTime, nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
-    
-    # Usage tracking
-    requests_today = db.Column(db.Integer, default=0)
-    requests_this_month = db.Column(db.Integer, default=0)
+    is_pro_result = db.Column(db.Boolean, default=False)
+    processing_time = db.Column(db.Float)  # seconds
+    api_calls_made = db.Column(db.Integer, default=0)
     
     def __repr__(self):
-        return f'<APIKey {self.key_name}>'
+        return f'<Analysis {self.id}: {self.analysis_type}>'
+    
+    def get_results_json(self):
+        """Parse results JSON safely"""
+        try:
+            return json.loads(self.results) if self.results else {}
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    
+    def set_results_json(self, results_dict):
+        """Set results as JSON string"""
+        try:
+            self.results = json.dumps(results_dict)
+        except (TypeError, ValueError):
+            self.results = "{}"
 
-class SystemMetrics(db.Model):
-    """Track platform metrics and health"""
-    __tablename__ = 'system_metrics'
+class UsageLog(db.Model):
+    """Detailed usage logging for analytics and billing"""
+    __tablename__ = 'usage_logs'
     
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    
-    # API Health
-    openai_status = db.Column(db.String(20), default='unknown')
-    news_api_status = db.Column(db.String(20), default='unknown')
-    google_factcheck_status = db.Column(db.String(20), default='unknown')
-    
-    # Performance
-    avg_response_time = db.Column(db.Float, nullable=True)
-    total_analyses_today = db.Column(db.Integer, default=0)
-    error_count_today = db.Column(db.Integer, default=0)
-    
-    # Resource usage
-    memory_usage_mb = db.Column(db.Float, nullable=True)
-    cpu_usage_percent = db.Column(db.Float, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)  # 'api_call', 'analysis_start', 'analysis_complete'
+    resource = db.Column(db.String(50))  # 'openai', 'news_api', 'fact_check_api'
+    details = db.Column(db.Text)  # JSON string with additional details
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    cost_credits = db.Column(db.Integer, default=0)  # Internal credit system
     
     def __repr__(self):
-        return f'<SystemMetrics {self.timestamp}>'
+        return f'<UsageLog {self.action}: {self.resource}>'
 
-class CachedResult(db.Model):
-    """Cache expensive API results"""
-    __tablename__ = 'cached_results'
+class APIHealth(db.Model):
+    """Track API health and performance"""
+    __tablename__ = 'api_health'
     
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    
-    # Cache key (hash of input + analysis type)
-    cache_key = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    
-    # Cached data
-    result_data = db.Column(db.JSON, nullable=False)
-    
-    # Metadata
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=False)
-    hit_count = db.Column(db.Integer, default=0)
-    
-    # Source tracking
-    analysis_type = db.Column(db.String(20), nullable=False)
-    input_hash = db.Column(db.String(64), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    api_name = db.Column(db.String(50), nullable=False)  # 'openai', 'news_api', 'fact_check_api'
+    status = db.Column(db.String(20), nullable=False)  # 'healthy', 'degraded', 'down'
+    response_time = db.Column(db.Float)  # milliseconds
+    error_message = db.Column(db.Text)
+    checked_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<CachedResult {self.cache_key}>'
-    
-    def is_expired(self):
-        return datetime.utcnow() > self.expires_at
-    
-    def increment_hit(self):
-        self.hit_count += 1
-        db.session.commit()
+        return f'<APIHealth {self.api_name}: {self.status}>'
 
-# Database utility functions
 def init_db(app):
-    """Initialize database with Flask app"""
-    db.init_app(app)
-    
+    """Initialize database with app context"""
     with app.app_context():
-        # Create tables
         db.create_all()
         
-        # Create indices for performance
-        try:
-            db.engine.execute('CREATE INDEX IF NOT EXISTS idx_analyses_created_at ON analyses(created_at DESC);')
-            db.engine.execute('CREATE INDEX IF NOT EXISTS idx_analyses_user_created ON analyses(user_id, created_at DESC);')
-            db.engine.execute('CREATE INDEX IF NOT EXISTS idx_cached_results_expires ON cached_results(expires_at);')
-        except Exception as e:
-            print(f"Index creation warning: {e}")
+        # Create default admin user if none exists
+        if not User.query.filter_by(email='admin@example.com').first():
+            admin_user = User(
+                email='admin@example.com',
+                subscription_tier='pro',
+                is_anonymous=False
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Created default admin user")
 
-def get_or_create_user(email, subscription_tier='free'):
-    """Get existing user or create new one"""
-    user = User.query.filter_by(email=email).first()
-    if not user:
+# Utility functions for database operations
+def create_user(email, subscription_tier='free'):
+    """Create a new user"""
+    try:
         user = User(
             email=email,
             subscription_tier=subscription_tier
         )
         db.session.add(user)
         db.session.commit()
-    return user
+        return user
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
-def cleanup_expired_cache():
-    """Remove expired cache entries"""
-    expired = CachedResult.query.filter(CachedResult.expires_at < datetime.utcnow()).all()
-    for item in expired:
-        db.session.delete(item)
-    db.session.commit()
-    return len(expired)
+def log_api_usage(user_id, action, resource=None, details=None, cost_credits=0):
+    """Log API usage for analytics"""
+    try:
+        usage_log = UsageLog(
+            user_id=user_id,
+            action=action,
+            resource=resource,
+            details=json.dumps(details) if details else None,
+            cost_credits=cost_credits
+        )
+        db.session.add(usage_log)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Failed to log usage: {e}")
+
+def update_api_health(api_name, status, response_time=None, error_message=None):
+    """Update API health status"""
+    try:
+        health_record = APIHealth(
+            api_name=api_name,
+            status=status,
+            response_time=response_time,
+            error_message=error_message
+        )
+        db.session.add(health_record)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Failed to update API health: {e}")
+
+def get_user_analytics(user_id, days=30):
+    """Get user analytics for dashboard"""
+    from datetime import timedelta
+    
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    
+    try:
+        analyses = Analysis.query.filter(
+            Analysis.user_id == user_id,
+            Analysis.created_at >= start_date
+        ).all()
+        
+        analytics = {
+            'total_analyses': len(analyses),
+            'by_type': {},
+            'daily_usage': {},
+            'avg_processing_time': 0
+        }
+        
+        # Group by type
+        for analysis in analyses:
+            analysis_type = analysis.analysis_type
+            if analysis_type not in analytics['by_type']:
+                analytics['by_type'][analysis_type] = 0
+            analytics['by_type'][analysis_type] += 1
+        
+        # Calculate average processing time
+        processing_times = [a.processing_time for a in analyses if a.processing_time]
+        if processing_times:
+            analytics['avg_processing_time'] = sum(processing_times) / len(processing_times)
+        
+        return analytics
+    
+    except Exception as e:
+        print(f"Failed to get user analytics: {e}")
+        return {}
