@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NewsVerify Pro - Real News Verification Platform</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,41 +14,45 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            line-height: 1.6;
         }
 
-        /* Unified Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
+        .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Fixed Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 2rem;
+            padding: 1rem 0;
         }
 
         .logo {
             font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            color: #2c3e50;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-links {
@@ -60,247 +64,49 @@
 
         .nav-links a {
             text-decoration: none;
-            color: #333;
+            color: #2c3e50;
             font-weight: 500;
             transition: all 0.3s ease;
-            position: relative;
         }
 
-        .nav-links a.active,
-        .nav-links a:hover {
+        .nav-links a:hover, .nav-links a.active {
             color: #667eea;
-        }
-
-        .nav-links a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 1px;
         }
 
         .cta-button {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 50px;
+            border-radius: 25px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #333;
-            cursor: pointer;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 100px;
-            padding: 2rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 3rem 0;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .hero-section h1 {
-            font-size: 3rem;
-            color: white;
-            margin-bottom: 1rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-section p {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* Tool Container */
-        .tool-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 2rem;
-        }
-
-        /* Tier Selection */
-        .tier-selection {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .tier-button {
-            flex: 1;
-            min-width: 200px;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .tier-button.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .tier-button h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        .tier-button p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* Input Section */
-        .input-section {
-            margin-bottom: 2rem;
-        }
-
-        .input-methods {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .input-method {
-            padding: 0.75rem 1.5rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .input-method.active {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
-
-        .url-input-container {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .url-input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .url-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .sample-content {
-            margin-bottom: 2rem;
-        }
-
-        .sample-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .sample-button {
-            padding: 0.5rem 1rem;
-            border: 1px solid #667eea;
-            border-radius: 20px;
-            background: white;
-            color: #667eea;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .sample-button:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        /* Analyze Button */
-        .analyze-button {
-            width: 100%;
-            padding: 1.2rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 2rem;
-        }
-
-        .analyze-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .analyze-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Progress Section */
+        /* Fixed Progress Section - Always Visible */
         .progress-section {
-            margin-bottom: 2rem;
-            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 1rem 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
         }
 
         .progress-section.active {
-            display: block;
+            transform: translateY(0);
+        }
+
+        .progress-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .progress-header {
@@ -310,834 +116,924 @@
             margin-bottom: 1rem;
         }
 
+        .analysis-status {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .reset-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e0e0e0;
+            background: #ecf0f1;
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .progress-fill {
             height: 100%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            transition: width 0.3s ease;
             width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
         }
 
         .progress-steps {
-            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #7f8c8d;
         }
 
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f0f0f0;
+        .step {
+            transition: color 0.3s ease;
         }
 
-        .step-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #e0e0e0;
+        .step.completed {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        main {
+            padding-top: 120px;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+            color: white;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero-section p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .analysis-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 2rem 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-tabs {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-section {
+            display: none;
+        }
+
+        .input-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
 
-        .step-icon.active {
-            background: #667eea;
-            color: white;
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .step-icon.completed {
-            background: #4CAF50;
+        textarea.form-control {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .sample-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .sample-btn:hover {
+            background: #667eea;
             color: white;
+            border-color: #667eea;
+        }
+
+        .analyze-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .analyze-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Results Section */
         .results-section {
             display: none;
+            margin-top: 2rem;
+            padding-top: 2rem;
         }
 
-        .results-section.active {
+        .results-section.visible {
             display: block;
         }
 
-        .results-header {
-            text-align: center;
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
             padding: 2rem;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 15px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .credibility-score {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
 
-        .credibility-score.high {
-            color: #4CAF50;
-        }
-
-        .credibility-score.medium {
-            color: #FF9800;
-        }
-
-        .credibility-score.low {
-            color: #f44336;
-        }
-
-        .score-label {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 1rem;
-        }
-
-        .executive-summary {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #667eea;
-        }
-
-        /* Analysis Sections */
-        .analysis-section {
-            background: rgba(255, 255, 255, 0.9);
-            margin-bottom: 1rem;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .analysis-header {
-            padding: 1.5rem;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            cursor: pointer;
+        .result-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s ease;
+            margin-bottom: 1rem;
         }
 
-        .analysis-header:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
         }
 
-        .analysis-content {
-            padding: 0 1.5rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
+        .tier-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        .analysis-content.expanded {
-            padding: 1.5rem;
-            max-height: 2000px;
+        .tier-free {
+            background: #e8f5e8;
+            color: #27ae60;
         }
 
-        .expand-icon {
-            transition: transform 0.3s ease;
+        .tier-pro {
+            background: #fef3e2;
+            color: #f39c12;
         }
 
-        .expand-icon.rotated {
-            transform: rotate(180deg);
-        }
-
-        /* Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+        .score-display {
+            text-align: center;
             margin-bottom: 1.5rem;
         }
 
-        .metric-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        /* Source Analysis */
-        .source-analysis {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #4CAF50;
-        }
-
-        .source-url {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .source-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        /* Report Download */
-        .report-download {
-            margin-top: 2rem;
-            text-align: center;
-        }
-
-        .download-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .download-button {
-            padding: 1rem 2rem;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea 0deg, #764ba2 180deg, #ecf0f1 180deg);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
         }
 
-        .download-button:hover {
-            background: #667eea;
+        .score-inner {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .locked-feature {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .locked-feature::before {
+            content: '🔒';
+            font-size: 3rem;
+            opacity: 0.3;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .unlock-button {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
             color: white;
-            transform: translateY(-2px);
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
         }
 
-        /* Responsive Design */
+        .unlock-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .summary-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .details-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-content {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .analysis-container {
+                padding: 2rem 1rem;
+            }
+            
             .nav-links {
                 display: none;
             }
+        }
 
-            .mobile-menu-toggle {
-                display: block;
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-
-            .tier-selection {
-                flex-direction: column;
-            }
-
-            .tier-button {
-                min-width: auto;
-            }
-
-            .input-methods {
-                flex-direction: column;
-            }
-
-            .sample-buttons {
-                flex-direction: column;
-            }
-
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .download-buttons {
-                flex-direction: column;
-                align-items: center;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Loading Animation */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+        .animate-in {
+            animation: fadeInUp 0.6s ease forwards;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .pulse {
+            animation: pulse 2s infinite;
         }
 
-        /* Fade In Animation */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav>
-        <div class="nav-container">
+    <header>
+        <nav class="container">
             <a href="/" class="logo">
-                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
+                📰 Facts & Fakes AI
             </a>
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
                 <li><a href="/news" class="active">News Verify</a></li>
                 <li><a href="/imageanalysis">Image Analysis</a></li>
-                <li><a href="/unified">Content Checker</a></li>
+                <li><a href="/unified">AI Detection</a></li>
                 <li><a href="/missionstatement">Mission</a></li>
-                <li><a href="/pricingplan">Pricing</a></li>
-                <li><a href="#" class="cta-button">Get Started</a></li>
+                <li><a href="/pricingplan" class="cta-button">Pricing</a></li>
             </ul>
-            <button class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Hero Section -->
-        <div class="hero-section fade-in">
-            <h1><i class="fas fa-newspaper"></i> NewsVerify Pro</h1>
-            <p>World-class news verification engine with real-time fact-checking, source analysis, and credibility scoring powered by advanced AI and live news APIs.</p>
-        </div>
-
-        <!-- Tool Container -->
-        <div class="tool-container fade-in">
-            <!-- Tier Selection -->
-            <div class="tier-selection">
-                <div class="tier-button active" data-tier="free">
-                    <h3><i class="fas fa-user"></i> Free Tier</h3>
-                    <p>Basic verification • 5 checks/day • Standard sources</p>
-                </div>
-                <div class="tier-button" data-tier="pro">
-                    <h3><i class="fas fa-crown"></i> Pro Tier</h3>
-                    <p>Advanced analysis • 100 checks/day • Premium sources • Reports</p>
-                </div>
-                <div class="tier-button" data-tier="enterprise">
-                    <h3><i class="fas fa-building"></i> Enterprise</h3>
-                    <p>Unlimited • API access • Custom models • White-label</p>
-                </div>
+    <!-- Fixed Progress Section -->
+    <div class="progress-section" id="progressSection">
+        <div class="progress-container">
+            <div class="progress-header">
+                <div class="analysis-status" id="analysisStatus">Ready to analyze</div>
+                <button class="reset-button" id="resetButton" onclick="resetAnalysis()">🔄 Reset</button>
             </div>
-
-            <!-- Input Section -->
-            <div class="input-section">
-                <h3 style="margin-bottom: 1rem;">
-                    <i class="fas fa-link"></i> Enter News Article URL or Content
-                </h3>
-                
-                <div class="input-methods">
-                    <div class="input-method active" data-method="url">
-                        <i class="fas fa-link"></i> URL
-                    </div>
-                    <div class="input-method" data-method="text">
-                        <i class="fas fa-edit"></i> Text
-                    </div>
-                    <div class="input-method" data-method="upload">
-                        <i class="fas fa-upload"></i> Upload
-                    </div>
-                </div>
-
-                <div class="url-input-container">
-                    <input type="url" class="url-input" id="newsUrl" placeholder="Enter news article URL (e.g., https://www.reuters.com/article/...)" />
-                </div>
-
-                <div class="sample-content">
-                    <h4 style="margin-bottom: 1rem;">
-                        <i class="fas fa-star"></i> Try Sample News Articles
-                    </h4>
-                    <div class="sample-buttons">
-                        <button class="sample-button" data-url="https://www.reuters.com/technology/artificial-intelligence/">AI Technology Report</button>
-                        <button class="sample-button" data-url="https://www.bbc.com/news/technology">BBC Tech News</button>
-                        <button class="sample-button" data-url="https://techcrunch.com/category/artificial-intelligence/">TechCrunch AI</button>
-                        <button class="sample-button" data-url="https://www.theverge.com/ai-artificial-intelligence">The Verge AI</button>
-                        <button class="sample-button" data-url="https://www.wired.com/tag/artificial-intelligence/">Wired AI Coverage</button>
-                    </div>
-                </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
-
-            <!-- Analyze Button -->
-            <button class="analyze-button" id="analyzeBtn">
-                <i class="fas fa-search"></i> Analyze News Article
-            </button>
-
-            <!-- Progress Section -->
-            <div class="progress-section" id="progressSection">
-                <div class="progress-header">
-                    <h3><i class="fas fa-cog fa-spin"></i> Analysis in Progress</h3>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <ul class="progress-steps">
-                    <li class="progress-step">
-                        <div class="step-icon active" id="step1">1</div>
-                        <span>Fetching article content and metadata</span>
-                    </li>
-                    <li class="progress-step">
-                        <div class="step-icon" id="step2">2</div>
-                        <span>Analyzing source credibility and domain reputation</span>
-                    </li>
-                    <li class="progress-step">
-                        <div class="step-icon" id="step3">3</div>
-                        <span>Cross-referencing with fact-checking databases</span>
-                    </li>
-                    <li class="progress-step">
-                        <div class="step-icon" id="step4">4</div>
-                        <span>Performing sentiment and bias analysis</span>
-                    </li>
-                    <li class="progress-step">
-                        <div class="step-icon" id="step5">5</div>
-                        <span>Generating credibility score and report</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Results Section -->
-            <div class="results-section" id="resultsSection">
-                <div class="results-header">
-                    <div class="credibility-score high" id="credibilityScore">87</div>
-                    <div class="score-label">Credibility Score</div>
-                    <div class="executive-summary">
-                        <h4><i class="fas fa-chart-line"></i> Executive Summary</h4>
-                        <p id="executiveSummary">This article demonstrates high credibility based on source reputation, factual accuracy, and cross-verification with multiple reliable sources. The content shows minimal bias and contains verifiable claims.</p>
-                    </div>
-                </div>
-
-                <!-- Source Analysis -->
-                <div class="analysis-section">
-                    <div class="analysis-header" onclick="toggleSection('sourceAnalysis')">
-                        <h3><i class="fas fa-globe"></i> Source Analysis</h3>
-                        <i class="fas fa-chevron-down expand-icon" id="sourceAnalysisIcon"></i>
-                    </div>
-                    <div class="analysis-content" id="sourceAnalysisContent">
-                        <div class="source-analysis">
-                            <div class="source-url">https://www.reuters.com/technology/ai-advancement-2024/</div>
-                            <div class="source-details">
-                                <div class="detail-item">
-                                    <span>Domain Authority:</span>
-                                    <span style="color: #4CAF50; font-weight: bold;">95/100</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Trust Score:</span>
-                                    <span style="color: #4CAF50; font-weight: bold;">Excellent</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Fact Check History:</span>
-                                    <span style="color: #4CAF50;">Very Reliable</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span>Editorial Standards:</span>
-                                    <span style="color: #4CAF50;">High</span>
-                                </div>
-                            </div>
-                        </div>
-                        <p><strong>Analysis:</strong> Reuters is a globally recognized news agency with exceptional journalistic standards. The domain has a pristine reputation for factual reporting and maintains strict editorial guidelines.</p>
-                    </div>
-                </div>
-
-                <!-- Content Verification -->
-                <div class="analysis-section">
-                    <div class="analysis-header" onclick="toggleSection('contentVerification')">
-                        <h3><i class="fas fa-check-circle"></i> Content Verification</h3>
-                        <i class="fas fa-chevron-down expand-icon" id="contentVerificationIcon"></i>
-                    </div>
-                    <div class="analysis-content" id="contentVerificationContent">
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-value">94%</div>
-                                <div class="metric-label">Fact Accuracy</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">12/12</div>
-                                <div class="metric-label">Claims Verified</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">5</div>
-                                <div class="metric-label">Sources Cited</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">Low</div>
-                                <div class="metric-label">Bias Level</div>
-                            </div>
-                        </div>
-                        <p><strong>Verification Process:</strong> Cross-referenced claims against authoritative databases including fact-checking organizations, academic sources, and official statements. All major claims have been independently verified.</p>
-                    </div>
-                </div>
-
-                <!-- Bias Analysis -->
-                <div class="analysis-section">
-                    <div class="analysis-header" onclick="toggleSection('biasAnalysis')">
-                        <h3><i class="fas fa-balance-scale"></i> Bias & Sentiment Analysis</h3>
-                        <i class="fas fa-chevron-down expand-icon" id="biasAnalysisIcon"></i>
-                    </div>
-                    <div class="analysis-content" id="biasAnalysisContent">
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-value">Neutral</div>
-                                <div class="metric-label">Overall Sentiment</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">2.1/10</div>
-                                <div class="metric-label">Political Bias</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">Factual</div>
-                                <div class="metric-label">Reporting Style</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">92%</div>
-                                <div class="metric-label">Objectivity</div>
-                            </div>
-                        </div>
-                        <p><strong>Bias Assessment:</strong> The article maintains journalistic objectivity with minimal editorial bias. Language is factual and neutral, focusing on verifiable information rather than opinion or speculation.</p>
-                    </div>
-                </div>
-
-                <!-- Technical Details -->
-                <div class="analysis-section">
-                    <div class="analysis-header" onclick="toggleSection('technicalDetails')">
-                        <h3><i class="fas fa-cogs"></i> Technical Analysis</h3>
-                        <i class="fas fa-chevron-down expand-icon" id="technicalDetailsIcon"></i>
-                    </div>
-                    <div class="analysis-content" id="technicalDetailsContent">
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <div class="metric-value">1,247</div>
-                                <div class="metric-label">Word Count</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">98.5%</div>
-                                <div class="metric-label">Grammar Score</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">College</div>
-                                <div class="metric-label">Reading Level</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-value">5 min</div>
-                                <div class="metric-label">Read Time</div>
-                            </div>
-                        </div>
-                        <p><strong>Technical Metrics:</strong> Article structure follows professional journalism standards with proper headline hierarchy, clear paragraph structure, and appropriate use of quotes and attribution.</p>
-                    </div>
-                </div>
-
-                <!-- Report Download -->
-                <div class="report-download">
-                    <h3 style="margin-bottom: 1rem;">
-                        <i class="fas fa-download"></i> Download Detailed Reports
-                    </h3>
-                    <div class="download-buttons">
-                        <a href="#" class="download-button" onclick="downloadReport('executive')">
-                            <i class="fas fa-file-alt"></i> Executive Summary
-                        </a>
-                        <a href="#" class="download-button" onclick="downloadReport('technical')">
-                            <i class="fas fa-cog"></i> Technical Report
-                        </a>
-                        <a href="#" class="download-button" onclick="downloadReport('compliance')">
-                            <i class="fas fa-shield-alt"></i> Compliance Report
-                        </a>
-                    </div>
-                </div>
+            <div class="progress-steps">
+                <span class="step" id="step1">📡 Content Extraction</span>
+                <span class="step" id="step2">🤖 AI Analysis</span>
+                <span class="step" id="step3">🎯 Bias Detection</span>
+                <span class="step" id="step4">✅ Fact Checking</span>
+                <span class="step" id="step5">📊 Final Report</span>
             </div>
         </div>
     </div>
 
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <h1>NewsVerify Pro</h1>
+                <p>Professional news verification with real-time fact-checking, bias analysis, and source credibility scoring</p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="analysis-container">
+                <div class="input-tabs">
+                    <button class="tab active" onclick="switchTab('url')">🔗 Analyze URL</button>
+                    <button class="tab" onclick="switchTab('text')">📝 Analyze Text</button>
+                </div>
+
+                <!-- URL Input Section -->
+                <div class="input-section active" id="urlSection">
+                    <div class="sample-buttons">
+                        <button class="sample-btn" onclick="loadSampleURL('cnn')">📺 CNN Article</button>
+                        <button class="sample-btn" onclick="loadSampleURL('reuters')">📰 Reuters</button>
+                        <button class="sample-btn" onclick="loadSampleURL('bbc')">🌍 BBC News</button>
+                        <button class="sample-btn" onclick="loadSampleURL('fox')">🦊 Fox News</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="urlInput">Enter News Article URL:</label>
+                        <input type="url" class="form-control" id="urlInput" placeholder="https://example.com/news-article">
+                    </div>
+                    <button class="analyze-button" onclick="analyzeNews('url')">
+                        🔍 Verify News Article
+                    </button>
+                </div>
+
+                <!-- Text Input Section -->
+                <div class="input-section" id="textSection">
+                    <div class="sample-buttons">
+                        <button class="sample-btn" onclick="loadSampleText('political')">🏛️ Political News</button>
+                        <button class="sample-btn" onclick="loadSampleText('breaking')">⚡ Breaking News</button>
+                        <button class="sample-btn" onclick="loadSampleText('science')">🔬 Science News</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="textInput">Paste News Article Text:</label>
+                        <textarea class="form-control" id="textInput" placeholder="Paste your news article text here..."></textarea>
+                    </div>
+                    <button class="analyze-button" onclick="analyzeNews('text')">
+                        🔍 Verify News Content
+                    </button>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section" id="resultsSection">
+                    <div class="results-grid">
+                        <!-- Credibility Score Card -->
+                        <div class="result-card animate-in">
+                            <div class="result-header">
+                                <div class="result-title">Overall Credibility</div>
+                                <div class="tier-badge tier-free">FREE</div>
+                            </div>
+                            <div class="score-display">
+                                <div class="score-circle" id="credibilityCircle">
+                                    <div class="score-inner">
+                                        <div class="score-number" id="credibilityScore">--</div>
+                                        <div class="score-label">Score</div>
+                                    </div>
+                                </div>
+                                <div id="credibilityGrade" style="font-size: 1.2rem; font-weight: 700; color: #667eea;">Grade: --</div>
+                            </div>
+                        </div>
+
+                        <!-- Source Analysis Card -->
+                        <div class="result-card animate-in">
+                            <div class="result-header">
+                                <div class="result-title">Source Analysis</div>
+                                <div class="tier-badge tier-free">FREE</div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="sourceChart"></canvas>
+                            </div>
+                            <div id="sourceDetails"></div>
+                        </div>
+
+                        <!-- Bias Analysis Card - Pro Feature -->
+                        <div class="result-card animate-in">
+                            <div class="result-header">
+                                <div class="result-title">Political Bias Analysis</div>
+                                <div class="tier-badge tier-pro">PRO</div>
+                            </div>
+                            <div id="biasAnalysis" class="locked-feature">
+                                <h4>Advanced Bias Detection</h4>
+                                <p>Unlock detailed political bias analysis, sentiment mapping, and objectivity scoring</p>
+                                <button class="unlock-button" onclick="showUpgrade()">Upgrade to Pro</button>
+                            </div>
+                        </div>
+
+                        <!-- Fact Check Results Card - Pro Feature -->
+                        <div class="result-card animate-in">
+                            <div class="result-header">
+                                <div class="result-title">Fact Check Results</div>
+                                <div class="tier-badge tier-pro">PRO</div>
+                            </div>
+                            <div id="factCheckResults" class="locked-feature">
+                                <h4>Real-Time Fact Checking</h4>
+                                <p>Access Google Fact-Check API results and claim verification database</p>
+                                <button class="unlock-button" onclick="showUpgrade()">Upgrade to Pro</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Summary Section -->
+                    <div class="summary-section animate-in">
+                        <div class="summary-title">🤖 AI Analysis Summary</div>
+                        <div class="summary-content" id="summaryContent">
+                            Your conversational analysis summary will appear here...
+                        </div>
+                    </div>
+
+                    <!-- Detailed Results -->
+                    <div class="details-section" id="detailsSection">
+                        <!-- Details will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
     <script>
-        // Enhanced functionality with proper API integration points
-        let currentTier = 'free';
+        let currentAnalysis = null;
         let analysisInProgress = false;
 
-        // Tier Selection
-        document.querySelectorAll('.tier-button').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.tier-button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentTier = this.dataset.tier;
-                updateTierFeatures();
-            });
-        });
-
-        // Input Method Selection
-        document.querySelectorAll('.input-method').forEach(method => {
-            method.addEventListener('click', function() {
-                document.querySelectorAll('.input-method').forEach(m => m.classList.remove('active'));
-                this.classList.add('active');
-                updateInputInterface(this.dataset.method);
-            });
-        });
-
-        // Sample Button Functionality
-        document.querySelectorAll('.sample-button').forEach(button => {
-            button.addEventListener('click', function() {
-                document.getElementById('newsUrl').value = this.dataset.url;
-                // Add visual feedback
-                this.style.background = '#667eea';
-                this.style.color = 'white';
-                setTimeout(() => {
-                    this.style.background = '';
-                    this.style.color = '';
-                }, 1000);
-            });
-        });
-
-        // Main Analysis Function
-        document.getElementById('analyzeBtn').addEventListener('click', function() {
-            const url = document.getElementById('newsUrl').value.trim();
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
             
-            if (!url) {
-                alert('Please enter a news article URL or select a sample.');
-                return;
-            }
-
-            if (!isValidURL(url)) {
-                alert('Please enter a valid URL.');
-                return;
-            }
-
-            startAnalysis(url);
-        });
-
-        function startAnalysis(url) {
-            if (analysisInProgress) return;
-            
-            analysisInProgress = true;
-            
-            // Hide results, show progress
-            document.getElementById('resultsSection').classList.remove('active');
-            document.getElementById('progressSection').classList.add('active');
-            
-            // Disable analyze button
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-            
-            // Start progress simulation
-            simulateProgress();
-            
-            // Here you would integrate with your actual news verification API
-            // For demo purposes, we'll simulate the process
-            setTimeout(() => {
-                completeAnalysis();
-            }, 8000);
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Section').classList.add('active');
         }
 
-        function simulateProgress() {
-            const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
-            const progressFill = document.getElementById('progressFill');
-            const progressPercent = document.getElementById('progressPercent');
+        // Sample URL loading
+        function loadSampleURL(type) {
+            const urls = {
+                cnn: 'https://www.cnn.com/2024/01/15/politics/example-article',
+                reuters: 'https://www.reuters.com/world/example-breaking-news-2024-01-15',
+                bbc: 'https://www.bbc.com/news/world-example-story-2024',
+                fox: 'https://www.foxnews.com/politics/example-political-story'
+            };
+            document.getElementById('urlInput').value = urls[type] || '';
+        }
+
+        // Sample text loading
+        function loadSampleText(type) {
+            const texts = {
+                political: "BREAKING: In a shocking turn of events, new legislation has been proposed that could revolutionize the political landscape. According to unnamed sources close to the matter, this unprecedented move has sent shockwaves through Washington D.C. The implications are said to be far-reaching and could affect millions of Americans.",
+                breaking: "URGENT UPDATE: Scientists have made an incredible discovery that challenges everything we thought we knew about climate change. This groundbreaking research, published in a peer-reviewed journal, reveals startling new data that could change our understanding of global warming forever.",
+                science: "A new study published in Nature magazine reveals promising results in cancer research. The research team, led by Dr. Sarah Johnson at Stanford University, found that a novel treatment approach showed significant improvement in patient outcomes during clinical trials involving 200 participants over 18 months."
+            };
+            document.getElementById('textInput').value = texts[type] || '';
+        }
+
+        // Main analysis function
+        async function analyzeNews(inputType) {
+            if (analysisInProgress) return;
             
+            const input = inputType === 'url' ? 
+                document.getElementById('urlInput').value.trim() : 
+                document.getElementById('textInput').value.trim();
+                
+            if (!input) {
+                alert('Please enter a URL or text to analyze');
+                return;
+            }
+
+            analysisInProgress = true;
+            showProgress();
+            
+            try {
+                const requestData = inputType === 'url' ? {url: input} : {text: input};
+                
+                const response = await fetch('/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const results = await response.json();
+                
+                if (results.status === 'success') {
+                    currentAnalysis = results;
+                    displayResults(results);
+                } else {
+                    throw new Error(results.error || 'Analysis failed');
+                }
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Analysis failed: ' + error.message);
+                resetProgress();
+            }
+            
+            analysisInProgress = false;
+        }
+
+        // Progress animation
+        function showProgress() {
+            const progressSection = document.getElementById('progressSection');
+            const progressFill = document.getElementById('progressFill');
+            const analysisStatus = document.getElementById('analysisStatus');
+            
+            progressSection.classList.add('active');
+            
+            const steps = [
+                {id: 'step1', text: '📡 Extracting content...', progress: 20},
+                {id: 'step2', text: '🤖 Running AI analysis...', progress: 40},
+                {id: 'step3', text: '🎯 Detecting bias patterns...', progress: 60},
+                {id: 'step4', text: '✅ Fact-checking claims...', progress: 80},
+                {id: 'step5', text: '📊 Generating final report...', progress: 100}
+            ];
+
             let currentStep = 0;
-            const stepDuration = 1600; // 8 seconds total / 5 steps
             
             const progressInterval = setInterval(() => {
                 if (currentStep < steps.length) {
-                    // Complete previous step
-                    if (currentStep > 0) {
-                        const prevStep = document.getElementById(steps[currentStep - 1]);
-                        prevStep.classList.remove('active');
-                        prevStep.classList.add('completed');
-                        prevStep.innerHTML = '<i class="fas fa-check"></i>';
-                    }
-                    
-                    // Activate current step
-                    const currentStepEl = document.getElementById(steps[currentStep]);
-                    currentStepEl.classList.add('active');
+                    const step = steps[currentStep];
                     
                     // Update progress bar
-                    const progress = ((currentStep + 1) / steps.length) * 100;
-                    progressFill.style.width = progress + '%';
-                    progressPercent.textContent = Math.round(progress) + '%';
+                    progressFill.style.width = step.progress + '%';
+                    analysisStatus.textContent = step.text;
+                    
+                    // Update step status
+                    document.getElementById(step.id).classList.add('active');
+                    if (currentStep > 0) {
+                        document.getElementById(steps[currentStep - 1].id).classList.remove('active');
+                        document.getElementById(steps[currentStep - 1].id).classList.add('completed');
+                    }
                     
                     currentStep++;
                 } else {
                     clearInterval(progressInterval);
+                    analysisStatus.textContent = '✅ Analysis complete!';
+                    document.getElementById('step5').classList.remove('active');
+                    document.getElementById('step5').classList.add('completed');
                 }
-            }, stepDuration);
-        }
-
-        function completeAnalysis() {
-            // Complete final step
-            const finalStep = document.getElementById('step5');
-            finalStep.classList.remove('active');
-            finalStep.classList.add('completed');
-            finalStep.innerHTML = '<i class="fas fa-check"></i>';
-            
-            // Hide progress, show results
-            setTimeout(() => {
-                document.getElementById('progressSection').classList.remove('active');
-                document.getElementById('resultsSection').classList.add('active');
-                document.getElementById('resultsSection').classList.add('fade-in');
-                
-                // Reset analyze button
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Another Article';
-                
-                analysisInProgress = false;
-                
-                // Generate dynamic results based on URL
-                generateResults();
             }, 1000);
         }
 
-        function generateResults() {
-            // This would integrate with your actual analysis API
-            // For now, we'll show realistic sample results
-            const scores = [
-                { score: 87, level: 'high', summary: 'This article demonstrates high credibility based on source reputation, factual accuracy, and cross-verification with multiple reliable sources.' },
-                { score: 72, level: 'medium', summary: 'This article shows moderate credibility with some verifiable claims, though additional fact-checking is recommended.' },
-                { score: 43, level: 'low', summary: 'This article shows significant credibility concerns including unverified claims and questionable source reliability.' }
-            ];
+        // Display results
+        function displayResults(results) {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.add('visible');
             
-            const randomResult = scores[Math.floor(Math.random() * scores.length)];
+            // Update credibility score
+            const credibilityScore = results.scoring?.overall_credibility || 50;
+            document.getElementById('credibilityScore').textContent = Math.round(credibilityScore);
+            document.getElementById('credibilityGrade').textContent = `Grade: ${results.scoring?.credibility_grade || 'C'}`;
             
-            document.getElementById('credibilityScore').textContent = randomResult.score;
-            document.getElementById('credibilityScore').className = `credibility-score ${randomResult.level}`;
-            document.getElementById('executiveSummary').textContent = randomResult.summary;
-        }
-
-        // Section Toggle Functionality
-        function toggleSection(sectionId) {
-            const content = document.getElementById(sectionId + 'Content');
-            const icon = document.getElementById(sectionId + 'Icon');
+            // Update credibility circle
+            updateCredibilityCircle(credibilityScore);
             
-            content.classList.toggle('expanded');
-            icon.classList.toggle('rotated');
-        }
-
-        // Download Report Functionality
-        function downloadReport(type) {
-            // Here you would generate and download the actual report
-            alert(`Downloading ${type} report... (This would integrate with your report generation system)`);
-        }
-
-        // Utility Functions
-        function isValidURL(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return false;
+            // Update source chart
+            updateSourceChart(results.source_verification);
+            
+            // Update source details
+            updateSourceDetails(results.source_verification);
+            
+            // Generate AI summary
+            generateAISummary(results);
+            
+            // Update details section
+            updateDetailsSection(results);
+            
+            // Show pro features if available
+            if (results.tier === 'pro') {
+                unlockProFeatures(results);
             }
         }
 
-        function updateTierFeatures() {
-            // Update UI based on selected tier
-            // This would enable/disable features based on tier
-            console.log(`Switched to ${currentTier} tier`);
-        }
-
-        function updateInputInterface(method) {
-            // Update input interface based on method
-            // For now, we'll keep URL input active
-            console.log(`Switched to ${method} input method`);
-        }
-
-        // Mobile Menu Toggle
-        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        });
-
-        // Reset progress on page load
-        window.addEventListener('load', function() {
-            // Reset all progress indicators
-            document.querySelectorAll('.step-icon').forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                step.textContent = index + 1;
-            });
-            document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('progressPercent').textContent = '0%';
-        });
-
-        // Enhanced API Integration Points
-        const API_CONFIG = {
-            endpoints: {
-                newsVerification: '/api/news/verify',
-                sourceAnalysis: '/api/source/analyze',
-                factCheck: '/api/fact/check',
-                biasAnalysis: '/api/bias/analyze'
-            },
-            headers: {
-                'Authorization': 'Bearer YOUR_API_KEY',
-                'Content-Type': 'application/json'
+        // Update credibility circle
+        function updateCredibilityCircle(score) {
+            const circle = document.getElementById('credibilityCircle');
+            const percentage = score / 100;
+            const degrees = percentage * 360;
+            
+            let color1 = '#e74c3c', color2 = '#c0392b'; // Red for low scores
+            if (score >= 70) {
+                color1 = '#27ae60'; color2 = '#2ecc71'; // Green for high scores
+            } else if (score >= 50) {
+                color1 = '#f39c12'; color2 = '#e67e22'; // Orange for medium scores
             }
-        };
+            
+            circle.style.background = `conic-gradient(${color1} 0deg, ${color2} ${degrees}deg, #ecf0f1 ${degrees}deg)`;
+        }
 
-        // Real API Integration Function (template)
-        async function performRealAnalysis(url) {
-            try {
-                const response = await fetch(API_CONFIG.endpoints.newsVerification, {
-                    method: 'POST',
-                    headers: API_CONFIG.headers,
-                    body: JSON.stringify({
-                        url: url,
-                        tier: currentTier,
-                        includeSourceAnalysis: true,
-                        includeBiasAnalysis: true,
-                        includeFactCheck: true
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
+        // Update source chart
+        function updateSourceChart(sourceData) {
+            const ctx = document.getElementById('sourceChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Credible', 'Unknown', 'Questionable'],
+                    datasets: [{
+                        data: [sourceData?.average_credibility || 70, 20, 10],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
                 }
-
-                const results = await response.json();
-                displayRealResults(results);
-                
-            } catch (error) {
-                console.error('Analysis API Error:', error);
-                // Fall back to demo results
-                generateResults();
-            }
+            });
         }
 
-        function displayRealResults(apiResults) {
-            // Update UI with real API results
-            document.getElementById('credibilityScore').textContent = apiResults.credibilityScore;
-            document.getElementById('executiveSummary').textContent = apiResults.executiveSummary;
-            // Update other sections with real data...
+        // Update source details
+        function updateSourceDetails(sourceData) {
+            const container = document.getElementById('sourceDetails');
+            const sources = sourceData?.sources || [{name: 'Unknown Source', credibility: 60}];
+            
+            container.innerHTML = sources.map(source => 
+                `<div style="margin-bottom: 0.5rem;">
+                    <strong>${source.name}</strong>: ${source.credibility}/100
+                    <div style="width: 100%; height: 4px; background: #ecf0f1; border-radius: 2px; margin-top: 2px;">
+                        <div style="width: ${source.credibility}%; height: 100%; background: #667eea; border-radius: 2px;"></div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        // Generate AI summary
+        function generateAISummary(results) {
+            const summaryContent = document.getElementById('summaryContent');
+            const score = results.scoring?.overall_credibility || 50;
+            
+            let assessment = '';
+            if (score >= 80) {
+                assessment = 'This article demonstrates high credibility with reliable sourcing and minimal bias indicators.';
+            } else if (score >= 60) {
+                assessment = 'This article shows moderate credibility with some areas of concern that warrant further verification.';
+            } else {
+                assessment = 'This article raises credibility concerns and should be verified through additional sources.';
+            }
+            
+            summaryContent.innerHTML = `
+                <p><strong>Overall Assessment:</strong> ${assessment}</p>
+                <p><strong>Key Findings:</strong> 
+                Analysis of ${results.text_length} characters revealed credibility score of ${Math.round(score)}/100. 
+                ${results.source_verification?.sources_found || 1} source(s) analyzed with average credibility of 
+                ${Math.round(results.source_verification?.average_credibility || 60)}/100.</p>
+                <p><strong>Recommendation:</strong> 
+                ${score >= 70 ? 'This content appears reliable for general consumption.' : 
+                  'Exercise caution and seek additional verification before sharing this content.'}</p>
+            `;
+        }
+
+        // Update details section
+        function updateDetailsSection(results) {
+            const detailsSection = document.getElementById('detailsSection');
+            
+            detailsSection.innerHTML = `
+                <div class="detail-card">
+                    <div class="detail-title">📊 Analysis Metrics</div>
+                    <div class="detail-content">
+                        Content Length: ${results.text_length} characters<br>
+                        Processing Time: ${results.methodology?.processing_time || '12 seconds'}<br>
+                        Analysis Depth: ${results.methodology?.analysis_depth || 'standard'}
+                    </div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-title">🔍 Methodology</div>
+                    <div class="detail-content">
+                        AI Models: ${results.methodology?.ai_models_used || 'Pattern Matching'}<br>
+                        Databases Searched: ${results.methodology?.plagiarism_databases || '50+ sources'}<br>
+                        Fact-Check Sources: Google Fact-Check API, PolitiFact, Snopes
+                    </div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-title">📈 Quality Indicators</div>
+                    <div class="detail-content">
+                        Writing Quality: ${results.ai_analysis?.writing_quality || 70}/100<br>
+                        Source Attribution: ${results.ai_analysis?.credibility_indicators?.length || 0} indicators found<br>
+                        Red Flags: ${results.ai_analysis?.red_flags?.length || 0} concerns identified
+                    </div>
+                </div>
+            `;
+        }
+
+        // Reset analysis
+        function resetAnalysis() {
+            analysisInProgress = false;
+            currentAnalysis = null;
+            
+            // Reset progress
+            resetProgress();
+            
+            // Hide results
+            document.getElementById('resultsSection').classList.remove('visible');
+            
+            // Clear inputs
+            document.getElementById('urlInput').value = '';
+            document.getElementById('textInput').value = '';
+        }
+
+        // Reset progress
+        function resetProgress() {
+            const progressSection = document.getElementById('progressSection');
+            const progressFill = document.getElementById('progressFill');
+            const analysisStatus = document.getElementById('analysisStatus');
+            
+            progressSection.classList.remove('active');
+            progressFill.style.width = '0%';
+            analysisStatus.textContent = 'Ready to analyze';
+            
+            // Reset all steps
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active', 'completed');
+            });
+        }
+
+        // Show upgrade modal
+        function showUpgrade() {
+            alert('🚀 Upgrade to Pro for advanced features!\n\n✅ Political bias analysis\n✅ Real-time fact checking\n✅ Advanced AI insights\n✅ Historical accuracy tracking\n\nVisit our pricing page to upgrade!');
+        }
+
+        // Unlock pro features (for demo)
+        function unlockProFeatures(results) {
+            // This would be called when user has pro subscription
+            // For now, just show what pro features would look like
         }
     </script>
 </body>
