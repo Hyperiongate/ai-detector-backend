@@ -523,7 +523,6 @@ def create_fallback_ai_analysis(text, tier):
 # ================================
 
 @app.route('/api/analyze-news', methods=['POST', 'OPTIONS'])
-@app.route('/analyze_news', methods=['POST', 'OPTIONS'])
 def analyze_news():
     """Enhanced news verification endpoint with URL support"""
     if request.method == 'OPTIONS':
@@ -603,20 +602,35 @@ def analyze_news():
             logger.error(f"Political analysis error: {e}")
             results['political_bias'] = {'status': 'error', 'bias_score': 0, 'bias_label': 'unknown'}
         
-        # Source Verification
+        # Enhanced Source Verification with News API
         try:
             if source_url:
                 source_verification = get_url_source_verification(source_url, text)
+                # Enhance with News API data
+                if NEWS_API_KEY:
+                    news_sources = get_real_news_api_sources(text[:200])
+                    if news_sources:
+                        source_verification['related_sources'] = news_sources
+                        source_verification['news_api_enhanced'] = True
             else:
                 source_verification = get_source_verification(text)
+                # Add News API verification for text content
+                if NEWS_API_KEY:
+                    news_sources = get_real_news_api_sources(text[:200])
+                    if news_sources:
+                        source_verification['related_sources'] = news_sources
+                        source_verification['news_api_enhanced'] = True
             results['source_verification'] = source_verification
         except Exception as e:
             logger.error(f"Source verification error: {e}")
             results['source_verification'] = {'status': 'error', 'sources': [], 'average_credibility': 60}
         
-        # Fact Check
+        # Fact Check - Use real API if available
         try:
-            fact_check = get_fact_check_simulation(text)
+            if GOOGLE_FACT_CHECK_API_KEY:
+                fact_check = get_real_fact_check(text)
+            else:
+                fact_check = get_fact_check_simulation(text)
             results['fact_check_results'] = fact_check
         except Exception as e:
             logger.error(f"Fact check error: {e}")
@@ -937,7 +951,137 @@ def get_source_verification(text):
             'average_credibility': 60
         }
 
-def get_fact_check_simulation(text):
+def get_real_fact_check(text):
+    """Real Google Fact Check API integration"""
+    try:
+        if not GOOGLE_FACT_CHECK_API_KEY:
+            return get_fact_check_simulation(text)
+        
+        # Extract key claims from text for fact-checking
+        sentences = re.split(r'[.!?]+', text)
+        claims = [s.strip() for s in sentences[:3] if len(s.strip()) > 20]
+        
+        fact_check_results = []
+        
+        for claim in claims:
+            url = f"https://factchecktools.googleapis.com/v1alpha1/claims:search"
+            params = {
+                'query': claim[:500],  # Limit query length
+                'key': GOOGLE_FACT_CHECK_API_KEY,
+                'languageCode': 'en'
+            }
+            
+            try:
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if 'claims' in data and data['claims']:
+                        for fc_claim in data['claims']:
+                            claim_review = fc_claim.get('claimReview', [{}])[0]
+                            rating = claim_review.get('textualRating', 'Unverified')
+                            publisher = claim_review.get('publisher', {}).get('name', 'Unknown')
+                            
+                            fact_check_results.append({
+                                'claim_text': claim[:100] + '...',
+                                'rating': rating,
+                                'reviewer': publisher,
+                                'rating_value': convert_rating_to_score(rating)
+                            })
+                            
+                            if len(fact_check_results) >= 3:  # Limit results
+                                break
+                
+            except Exception as e:
+                logger.warning(f"Fact check API error for claim: {e}")
+                continue
+        
+        if not fact_check_results:
+            # No fact checks found, return simulation
+            return get_fact_check_simulation(text)
+        
+        avg_rating = sum(fc['rating_value'] for fc in fact_check_results) / len(fact_check_results)
+        
+        return {
+            'status': 'success',
+            'fact_checks_found': len(fact_check_results),
+            'claims': fact_check_results,
+            'average_rating': avg_rating,
+            'source': 'Google Fact Check Tools API'
+        }
+        
+    except Exception as e:
+        logger.error(f"Real fact check failed: {e}")
+        return get_fact_check_simulation(text)
+
+def convert_rating_to_score(rating):
+    """Convert textual rating to numeric score"""
+    rating_lower = rating.lower()
+    if any(word in rating_lower for word in ['true', 'accurate', 'correct']):
+        return 90
+    elif any(word in rating_lower for word in ['false', 'incorrect', 'fake']):
+        return 10
+    elif any(word in rating_lower for word in ['misleading', 'partly false']):
+        return 30
+    elif any(word in rating_lower for word in ['mixed', 'partly true']):
+        return 60
+    else:
+        return 50
+
+def get_real_news_api_sources(query):
+    """Real News API integration for source verification"""
+    try:
+        if not NEWS_API_KEY:
+            return None
+            
+        url = "https://newsapi.org/v2/everything"
+        params = {
+            'q': query[:100],  # Limit query length
+            'apiKey': NEWS_API_KEY,
+            'pageSize': 10,
+            'sortBy': 'relevancy',
+            'language': 'en'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            
+            sources = []
+            seen_domains = set()
+            
+            for article in data.get('articles', []):
+                source_name = article.get('source', {}).get('name', 'Unknown')
+                url_obj = urlparse(article.get('url', ''))
+                domain = url_obj.netloc.lower()
+                
+                if domain and domain not in seen_domains:
+                    seen_domains.add(domain)
+                    
+                    # Check against our credibility database
+                    credibility_info = SOURCE_CREDIBILITY.get(domain.replace('www.', ''), {
+                        'credibility': 70,
+                        'bias': 'unknown',
+                        'type': 'news'
+                    })
+                    
+                    sources.append({
+                        'name': source_name,
+                        'domain': domain,
+                        'credibility': credibility_info['credibility'],
+                        'bias': credibility_info.get('bias', 'unknown'),
+                        'type': credibility_info.get('type', 'news'),
+                        'article_title': article.get('title', '')[:100]
+                    })
+                    
+                    if len(sources) >= 5:  # Limit results
+                        break
+            
+            return sources
+            
+    except Exception as e:
+        logger.error(f"News API error: {e}")
+        return None
     """Simulate fact-checking results with error handling"""
     try:
         # Simple simulation
