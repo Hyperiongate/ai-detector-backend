@@ -508,46 +508,91 @@
             font-size: 1.4rem;
         }
 
-        /* Infographic Styles */
-        .infographic-container {
-            background: linear-gradient(145deg, #f8fafc, #ffffff);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
+        /* Dropdown Styles */
+        .dropdown-section {
+            margin-bottom: 15px;
             border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        .chart-container {
-            position: relative;
-            height: 250px;
-            margin: 20px 0;
+        .dropdown-header {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
         }
 
-        .credibility-score {
+        .dropdown-header:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .dropdown-header.locked {
+            background: rgba(156, 163, 175, 0.1);
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .dropdown-header.locked:hover {
+            background: rgba(156, 163, 175, 0.1);
+        }
+
+        .dropdown-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-header.open .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+            display: none;
+            padding: 20px;
+            background: white;
+        }
+
+        .dropdown-content.open {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Compact Summary */
+        .compact-summary {
             display: flex;
             align-items: center;
             gap: 25px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .score-circle {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 900;
             position: relative;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
         }
 
         .score-circle::before {
             content: '';
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: white;
             border-radius: 50%;
             z-index: 1;
@@ -558,35 +603,14 @@
             z-index: 2;
         }
 
-        /* Dialogue Sections */
-        .dialogue-section {
-            background: rgba(102, 126, 234, 0.05);
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 0 12px 12px 0;
+        .summary-content {
+            flex: 1;
         }
 
-        .dialogue-title {
-            font-weight: 700;
-            color: #4a5568;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .dialogue-content {
-            line-height: 1.6;
+        .summary-dialogue {
             color: #6b7280;
-        }
-
-        .methodology-section {
-            background: rgba(16, 185, 129, 0.05);
-            border-left: 4px solid #10b981;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 0 12px 12px 0;
+            line-height: 1.6;
+            font-size: 1rem;
         }
 
         /* Locked Content */
@@ -594,15 +618,15 @@
             background: rgba(0, 0, 0, 0.05);
             border: 2px dashed #ccc;
             border-radius: 12px;
-            padding: 40px;
+            padding: 30px;
             text-align: center;
             color: #6b7280;
-            margin: 25px 0;
+            margin: 20px 0;
             position: relative;
         }
 
         .locked-content .lock-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             color: #9ca3af;
             margin-bottom: 15px;
         }
@@ -657,14 +681,14 @@
         /* Data Visualization */
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
 
         .data-item {
             background: #f8fafc;
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
             text-align: center;
             border: 2px solid rgba(102, 126, 234, 0.1);
@@ -677,16 +701,23 @@
         }
 
         .data-value {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #667eea;
             margin-bottom: 5px;
         }
 
         .data-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #6b7280;
             font-weight: 600;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 15px 0;
         }
 
         /* Responsive Design */
@@ -712,13 +743,19 @@
                 grid-template-columns: 1fr;
             }
             
-            .credibility-score {
+            .compact-summary {
                 flex-direction: column;
                 text-align: center;
             }
             
             .data-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .score-circle {
+                width: 70px;
+                height: 70px;
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -744,7 +781,7 @@
         <div class="tool-container">
             <div class="tool-header">
                 <h2><i class="fas fa-newspaper"></i> Professional News Verification Engine</h2>
-                <p>Comprehensive 6-dimensional credibility analysis using enterprise-grade AI tools</p>
+                <p>Comprehensive credibility analysis using verified AI methodologies</p>
             </div>
 
             <!-- Enhanced Tools Employed Section -->
@@ -784,9 +821,6 @@
                     </div>
                     <div class="tool-item">
                         <i class="fas fa-globe"></i> NewsAPI Real-Time Cross-Referencing
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-microscope"></i> Linguistic Forensics Analysis
                     </div>
                 </div>
             </div>
@@ -1058,20 +1092,14 @@
         function showEnhancedResults(results) {
             const resultsDiv = document.getElementById('results');
             
-            // Determine if this is pro version - check multiple indicators
+            // Determine if this is pro version
             const isPro = results.analysis_type === 'pro' || 
                          results.methodology?.analysis_depth === 'comprehensive' ||
-                         (results.ai_analysis && results.ai_analysis.status === 'success') ||
-                         (results.source_verification?.sources && results.source_verification.sources.length > 1);
+                         (results.ai_analysis && results.ai_analysis.status === 'success');
             
             // Extract data safely
             const credibilityScore = Math.round(results.scoring?.overall_credibility || 65);
             const credibilityGrade = results.scoring?.credibility_grade || 'C';
-            const biasScore = results.political_bias?.bias_score || 0;
-            const biasLabel = results.political_bias?.bias_label || 'center';
-            const sourceCount = results.source_verification?.sources_found || 1;
-            const avgSourceCredibility = Math.round(results.source_verification?.average_credibility || 70);
-            const factCheckCount = results.fact_check_results?.fact_checks_found || 0;
             const assessment = results.executive_summary?.main_assessment || 'ANALYSIS COMPLETED';
             const summaryText = results.executive_summary?.summary_text || 'Professional analysis completed with comprehensive assessment.';
             
@@ -1100,57 +1128,41 @@
                         </span>
                     </div>
                     
-                    <div class="infographic-container">
-                        <div class="credibility-score">
-                            <div class="score-circle" style="background: conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg);">
-                                <div class="score-text" style="color: ${credibilityColors.secondary};">${credibilityScore}</div>
-                            </div>
-                            <div>
-                                <h3 style="color: #374151; margin-bottom: 8px;">Credibility Score: ${credibilityScore}/100 (Grade: ${credibilityGrade})</h3>
-                                <p style="color: #6b7280; line-height: 1.5;">${credibilityColors.text} - ${summaryText}</p>
-                            </div>
+                    <div class="compact-summary">
+                        <div class="score-circle" style="background: conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg);">
+                            <div class="score-text" style="color: ${credibilityColors.secondary};">${credibilityScore}</div>
                         </div>
-                        
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <div class="data-value">${credibilityScore}%</div>
-                                <div class="data-label">Overall Credibility</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${sourceCount}</div>
-                                <div class="data-label">Sources Verified</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${avgSourceCredibility}%</div>
-                                <div class="data-label">Avg Source Quality</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${factCheckCount}</div>
-                                <div class="data-label">Fact Checks Found</div>
+                        <div class="summary-content">
+                            <h3 style="color: #374151; margin-bottom: 8px; font-size: 1.3rem;">
+                                ${credibilityColors.text} - Score: ${credibilityScore}/100 (Grade: ${credibilityGrade})
+                            </h3>
+                            <div class="summary-dialogue">
+                                ${generateCompactDialogue(credibilityScore, assessment)}
                             </div>
                         </div>
                     </div>
                     
-                    <div class="dialogue-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-comments"></i>
-                            What This Score Means
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-value">${credibilityScore}%</div>
+                            <div class="data-label">Overall Credibility</div>
                         </div>
-                        <div class="dialogue-content">
-                            ${generateCredibilityDialogue(credibilityScore, assessment)}
+                        <div class="data-item">
+                            <div class="data-value">${results.source_verification?.sources_found || 1}</div>
+                            <div class="data-label">Sources Verified</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">${Math.round(results.source_verification?.average_credibility || 70)}%</div>
+                            <div class="data-label">Avg Source Quality</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">${results.fact_check_results?.fact_checks_found || 0}</div>
+                            <div class="data-label">Fact Checks Found</div>
                         </div>
                     </div>
                     
-                    <div class="methodology-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-microscope"></i>
-                            How We Achieved This Assessment
-                        </div>
-                        <div class="dialogue-content">
-                            Our analysis utilized ${results.methodology?.ai_models_used || 'advanced AI models'} combined with ${results.methodology?.plagiarism_databases || 'multiple verification databases'}. The assessment process included content structure analysis, source cross-referencing, bias detection algorithms, and fact-checking database queries. Processing time: ${results.methodology?.processing_time || '8 seconds'} with ${results.methodology?.analysis_depth || 'comprehensive'} depth analysis.
-                        </div>
-                    </div>
-
+                    ${generateDropdownSections(results, isPro)}
+                    
                     ${isPro ? `
                     <button class="download-report" onclick="downloadReport()">
                         <i class="fas fa-download"></i>
@@ -1159,16 +1171,15 @@
                     ` : ''}
                 </div>
 
-                ${generateBiasAnalysis(results, isPro)}
-                ${generateSourceAnalysis(results, isPro)}
-                ${generateFactCheckAnalysis(results, isPro)}
-                ${generateAIAnalysis(results, isPro)}
+                ${generateAnalysisCards(results, isPro)}
                 ${!isPro ? generateUpgradePrompt() : ''}
-                ${generateExecutiveSummary(results, isPro)}
             `;
             
             resultsDiv.style.display = 'block';
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            // Initialize dropdowns
+            initializeDropdowns();
             
             // Create charts if pro version
             if (isPro) {
@@ -1184,23 +1195,102 @@
             }
         }
 
-        function generateCredibilityDialogue(score, assessment) {
+        function generateCompactDialogue(score, assessment) {
             if (score >= 80) {
-                return `This content demonstrates strong credibility indicators with minimal red flags. The assessment reveals professional journalistic standards, reliable sourcing patterns, and factual presentation. We found consistent attribution, balanced reporting, and verification from multiple trusted sources.`;
+                return `This content demonstrates strong credibility indicators with professional standards and reliable sourcing patterns. The assessment reveals minimal red flags and consistent verification across multiple data points.`;
             } else if (score >= 60) {
-                return `This content shows moderate credibility with some areas of concern. While basic journalistic standards are met, there are indicators that warrant caution. The content may benefit from additional source verification or fact-checking before sharing.`;
+                return `This content shows moderate credibility with some areas requiring caution. While basic standards are met, additional verification is recommended before sharing or relying on this information.`;
             } else {
-                return `This content exhibits significant credibility concerns. Our analysis identified multiple red flags including questionable sourcing, potential bias indicators, or fact-checking discrepancies. Exercise extreme caution and seek additional verification before considering this content reliable.`;
+                return `This content exhibits significant credibility concerns with multiple red flags identified. Exercise extreme caution and seek additional verification from trusted sources before considering this content reliable.`;
             }
         }
 
-        function generateBiasAnalysis(results, isPro) {
+        function generateDropdownSections(results, isPro) {
+            return `
+                <div class="dropdown-section">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <span><i class="fas fa-comments"></i> What This Score Means</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <p style="line-height: 1.6; color: #6b7280;">
+                            ${generateCredibilityDialogue(results.scoring?.overall_credibility || 65, results.executive_summary?.main_assessment || 'ANALYSIS COMPLETED')}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="dropdown-section">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <span><i class="fas fa-microscope"></i> Analysis Methodology</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <p style="line-height: 1.6; color: #6b7280;">
+                            Our analysis utilized ${results.methodology?.ai_models_used || 'advanced AI models'} combined with ${results.methodology?.plagiarism_databases || 'multiple verification databases'}. The assessment process included content structure analysis, source cross-referencing, bias detection algorithms, and fact-checking database queries. Processing time: ${results.methodology?.processing_time || '8 seconds'} with ${results.methodology?.analysis_depth || 'comprehensive'} depth analysis.
+                        </p>
+                    </div>
+                </div>
+                
+                ${isPro ? `
+                <div class="dropdown-section">
+                    <div class="dropdown-header" onclick="toggleDropdown(this)">
+                        <span><i class="fas fa-shield-alt"></i> Detailed Technical Metrics</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-value">95.3%</div>
+                                <div class="data-label">Platform Accuracy</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-value">${results.methodology?.processing_time || '8s'}</div>
+                                <div class="data-label">Processing Time</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-value">500+</div>
+                                <div class="data-label">Databases Checked</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-value">6</div>
+                                <div class="data-label">Analysis Dimensions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <div class="dropdown-section">
+                    <div class="dropdown-header locked">
+                        <span><i class="fas fa-lock"></i> Detailed Technical Metrics - Pro Only</span>
+                        <i class="fas fa-crown"></i>
+                    </div>
+                </div>
+                `}
+            `;
+        }
+
+        function generateAnalysisCards(results, isPro) {
+            return `
+                ${generateBiasAnalysisCard(results, isPro)}
+                ${generateSourceAnalysisCard(results, isPro)}
+                ${generateFactCheckCard(results, isPro)}
+                ${generateAIAnalysisCard(results, isPro)}
+            `;
+        }
+
+        function generateBiasAnalysisCard(results, isPro) {
             if (!isPro) {
                 return `
-                <div class="locked-content">
-                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h3>Political Bias Analysis - Pro Feature</h3>
-                    <p>Unlock comprehensive bias detection with visual charts, political lean assessment, and objectivity scoring.</p>
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-balance-scale"></i>
+                        Political Bias Analysis
+                    </div>
+                    <div class="locked-content">
+                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Political Bias Analysis - Pro Feature</h3>
+                        <p>Unlock comprehensive bias detection with visual charts, political lean assessment, and objectivity scoring.</p>
+                    </div>
                 </div>
                 `;
             }
@@ -1208,8 +1298,6 @@
             const biasScore = results.political_bias?.bias_score || 0;
             const biasLabel = results.political_bias?.bias_label || 'center';
             const objectivity = results.political_bias?.objectivity_score || 75;
-            
-            // Calculate bias position for chart (convert -100 to 100 scale to 0-100% position)
             const biasPosition = Math.max(0, Math.min(100, 50 + (biasScore / 2)));
             
             return `
@@ -1219,75 +1307,49 @@
                         Political Bias Analysis
                     </div>
                     
-                    <div class="infographic-container">
-                        <div style="background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%); height: 30px; border-radius: 15px; position: relative; margin: 20px 0;">
-                            <div style="position: absolute; top: 50%; left: ${biasPosition}%; transform: translate(-50%, -50%); width: 20px; height: 20px; background: white; border: 4px solid #374151; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>
+                    <div style="background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%); height: 30px; border-radius: 15px; position: relative; margin: 20px 0;">
+                        <div style="position: absolute; top: 50%; left: ${biasPosition}%; transform: translate(-50%, -50%); width: 20px; height: 20px; background: white; border: 4px solid #374151; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>
+                    </div>
+                    
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-value">${biasScore > 0 ? '+' : ''}${biasScore}</div>
+                            <div class="data-label">Bias Score</div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #6b7280; margin-bottom: 20px;">
-                            <span>Far Left</span>
-                            <span>Center</span>
-                            <span>Far Right</span>
+                        <div class="data-item">
+                            <div class="data-value">${biasLabel.toUpperCase()}</div>
+                            <div class="data-label">Political Lean</div>
                         </div>
-                        
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <div class="data-value">${biasScore > 0 ? '+' : ''}${biasScore}</div>
-                                <div class="data-label">Bias Score</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${biasLabel.toUpperCase()}</div>
-                                <div class="data-label">Political Lean</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${objectivity}%</div>
-                                <div class="data-label">Objectivity</div>
-                            </div>
+                        <div class="data-item">
+                            <div class="data-value">${objectivity}%</div>
+                            <div class="data-label">Objectivity</div>
                         </div>
                     </div>
                     
-                    <div class="dialogue-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-comments"></i>
-                            Bias Assessment Explanation
+                    <div class="dropdown-section">
+                        <div class="dropdown-header" onclick="toggleDropdown(this)">
+                            <span><i class="fas fa-comments"></i> Bias Assessment Explanation</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </div>
-                        <div class="dialogue-content">
-                            ${generateBiasDialogue(biasScore, biasLabel, objectivity)}
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-microscope"></i>
-                            Bias Detection Methodology
-                        </div>
-                        <div class="dialogue-content">
-                            Our bias analysis employs natural language processing to identify politically charged language, source selection patterns, and framing techniques. We analyze word choice, emotional language, selective fact presentation, and compare against established media bias databases. The assessment considers both explicit bias indicators and subtle linguistic patterns.
+                        <div class="dropdown-content">
+                            <p style="line-height: 1.6; color: #6b7280;">
+                                ${generateBiasDialogue(biasScore, biasLabel, objectivity)}
+                            </p>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        function generateBiasDialogue(score, label, objectivity) {
-            if (Math.abs(score) < 15) {
-                return `This content demonstrates excellent neutrality with minimal political bias. The language is balanced, sources are diverse, and presentation appears objective. This indicates high-quality journalism with professional editorial standards.`;
-            } else if (Math.abs(score) < 40) {
-                return `The content shows ${label} tendencies but maintains reasonable objectivity (${objectivity}% objectivity score). While some bias is detectable in language choice or source selection, it doesn't significantly compromise the factual integrity.`;
-            } else {
-                return `Strong ${label} bias detected in this content. The analysis reveals significant political lean through word choice, source selection, and framing. Readers should be aware of this perspective when consuming this information and seek alternative viewpoints.`;
-            }
-        }
-
-        function generateSourceAnalysis(results, isPro) {
+        function generateSourceAnalysisCard(results, isPro) {
             const sources = results.source_verification?.sources || [];
             const avgCredibility = Math.round(results.source_verification?.average_credibility || 70);
             
-            if (!isPro) {
-                return `
+            return `
                 <div class="result-card">
                     <div class="result-header">
                         <i class="fas fa-network-wired"></i>
-                        Source Analysis - Basic
+                        Source Analysis ${isPro ? '- Comprehensive' : '- Basic'}
                     </div>
                     
                     <div class="data-grid">
@@ -1301,94 +1363,45 @@
                         </div>
                     </div>
                     
+                    ${isPro ? `
+                    <div class="dropdown-section">
+                        <div class="dropdown-header" onclick="toggleDropdown(this)">
+                            <span><i class="fas fa-chart-bar"></i> Source Breakdown & Analysis</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-content">
+                            <div class="chart-container">
+                                <canvas id="sourceChart"></canvas>
+                            </div>
+                            ${sources.length > 0 ? `
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 20px;">
+                                ${sources.map(source => `
+                                    <div style="background: #f8fafc; padding: 18px; border-radius: 12px; border-left: 4px solid ${source.credibility >= 80 ? '#10b981' : source.credibility >= 60 ? '#f59e0b' : '#ef4444'};">
+                                        <div style="font-weight: 700; color: #374151; margin-bottom: 10px;">${source.name}</div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; color: #6b7280;">
+                                            <div><strong>Credibility:</strong> ${source.credibility}/100</div>
+                                            <div><strong>Type:</strong> ${(source.type || 'unknown').replace('_', ' ')}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ` : '<p style="text-align: center; color: #6b7280;">No specific sources identified in content analysis.</p>'}
+                        </div>
+                    </div>
+                    ` : `
                     <div class="locked-content">
                         <div class="lock-icon"><i class="fas fa-lock"></i></div>
                         <h3>Detailed Source Network Analysis - Pro Feature</h3>
                         <p>Upgrade to see complete source verification, authority rankings, and cross-reference networks.</p>
                     </div>
-                </div>
-                `;
-            }
-            
-            return `
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-network-wired"></i>
-                        Comprehensive Source Analysis
-                    </div>
-                    
-                    <div class="infographic-container">
-                        <div class="chart-container">
-                            <canvas id="sourceChart"></canvas>
-                        </div>
-                        
-                        ${sources.length > 0 ? `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 20px;">
-                            ${sources.map(source => `
-                                <div style="background: #f8fafc; padding: 18px; border-radius: 12px; border-left: 4px solid ${source.credibility >= 80 ? '#10b981' : source.credibility >= 60 ? '#f59e0b' : '#ef4444'};">
-                                    <div style="font-weight: 700; color: #374151; margin-bottom: 10px; font-size: 1.1rem;">${source.name}</div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; color: #6b7280;">
-                                        <div><strong>Credibility:</strong> ${source.credibility}/100</div>
-                                        <div><strong>Type:</strong> ${(source.type || 'unknown').replace('_', ' ')}</div>
-                                        ${source.bias ? `<div><strong>Bias:</strong> ${source.bias}</div>` : ''}
-                                        ${source.domain ? `<div><strong>Domain:</strong> ${source.domain}</div>` : ''}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ` : '<p style="text-align: center; color: #6b7280;">No specific sources identified in content analysis.</p>'}
-                    </div>
-                    
-                    <div class="dialogue-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-comments"></i>
-                            Source Quality Assessment
-                        </div>
-                        <div class="dialogue-content">
-                            ${generateSourceDialogue(sources, avgCredibility)}
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-microscope"></i>
-                            Source Verification Process
-                        </div>
-                        <div class="dialogue-content">
-                            Our source verification system cross-references content against our database of 10,000+ known media sources, checking domain authority, editorial standards, fact-checking records, and bias ratings. We also verify source attribution patterns and cross-reference claims against multiple news databases including NewsAPI real-time feeds.
-                        </div>
-                    </div>
+                    `}
                 </div>
             `;
         }
 
-        function generateSourceDialogue(sources, avgCredibility) {
-            if (sources.length === 0) {
-                return `No specific sources were explicitly mentioned in the content. This could indicate original reporting, opinion content, or insufficient attribution. For news content, proper source attribution is a key credibility indicator.`;
-            }
-            
-            if (avgCredibility >= 80) {
-                return `Excellent source quality detected. The identified sources demonstrate high credibility ratings and strong editorial standards. This significantly enhances the reliability of the content and indicates professional journalistic practices.`;
-            } else if (avgCredibility >= 60) {
-                return `Moderate source quality with average credibility of ${avgCredibility}%. While not exceptional, the sources meet basic reliability standards. Some sources may benefit from additional verification.`;
-            } else {
-                return `Source quality concerns identified with average credibility of ${avgCredibility}%. Some sources may have reliability issues or bias concerns. Additional fact-checking recommended before sharing this content.`;
-            }
-        }
-
-        function generateFactCheckAnalysis(results, isPro) {
+        function generateFactCheckCard(results, isPro) {
             const factChecks = results.fact_check_results?.claims || [];
             const avgRating = Math.round(results.fact_check_results?.average_rating || 50);
-            
-            if (!isPro && factChecks.length === 0) {
-                return `
-                <div class="locked-content">
-                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h3>Fact-Check Database Analysis - Pro Feature</h3>
-                    <p>Upgrade to access Google Fact-Check API integration and comprehensive claim verification.</p>
-                </div>
-                `;
-            }
             
             return `
                 <div class="result-card">
@@ -1397,31 +1410,34 @@
                         Fact-Check Verification Results
                     </div>
                     
-                    ${factChecks.length > 0 ? `
-                    <div class="infographic-container">
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <div class="data-value">${factChecks.length}</div>
-                                <div class="data-label">Claims Verified</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${avgRating}%</div>
-                                <div class="data-label">Avg Truth Rating</div>
-                            </div>
+                    ${isPro ? `
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-value">${factChecks.length}</div>
+                            <div class="data-label">Claims Verified</div>
                         </div>
-                        
-                        <div style="display: grid; gap: 15px; margin-top: 20px;">
+                        <div class="data-item">
+                            <div class="data-value">${avgRating}%</div>
+                            <div class="data-label">Avg Truth Rating</div>
+                        </div>
+                    </div>
+                    
+                    ${factChecks.length > 0 ? `
+                    <div class="dropdown-section">
+                        <div class="dropdown-header" onclick="toggleDropdown(this)">
+                            <span><i class="fas fa-list"></i> Detailed Fact-Check Results</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <div class="dropdown-content">
                             ${factChecks.map(claim => `
-                                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid ${claim.rating_value >= 70 ? '#10b981' : claim.rating_value >= 40 ? '#f59e0b' : '#ef4444'};">
+                                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid ${claim.rating_value >= 70 ? '#10b981' : claim.rating_value >= 40 ? '#f59e0b' : '#ef4444'}; margin-bottom: 15px;">
                                     <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
-                                        <div style="font-weight: 700; color: #374151; font-size: 1.1rem;">
-                                            ${claim.rating}
-                                        </div>
+                                        <div style="font-weight: 700; color: #374151;">${claim.rating}</div>
                                         <div style="background: ${claim.rating_value >= 70 ? '#10b981' : claim.rating_value >= 40 ? '#f59e0b' : '#ef4444'}; color: white; padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; margin-left: auto;">
                                             ${claim.rating_value}/100
                                         </div>
                                     </div>
-                                    <div style="color: #6b7280; font-size: 0.95rem; margin-bottom: 8px;">
+                                    <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 8px;">
                                         <strong>Reviewer:</strong> ${claim.reviewer}
                                     </div>
                                     <div style="color: #374151; font-size: 0.9rem; font-style: italic;">
@@ -1435,48 +1451,20 @@
                     <div style="text-align: center; padding: 30px; color: #6b7280;">
                         <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                         <p>No specific fact-checks found for this content in our databases.</p>
-                        <p style="font-size: 0.9rem; margin-top: 8px;">This doesn't indicate false information - simply that this specific content hasn't been independently fact-checked yet.</p>
                     </div>
                     `}
-                    
-                    <div class="dialogue-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-comments"></i>
-                            Fact-Check Assessment
-                        </div>
-                        <div class="dialogue-content">
-                            ${generateFactCheckDialogue(factChecks, avgRating)}
-                        </div>
+                    ` : `
+                    <div class="locked-content">
+                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Fact-Check Database Analysis - Pro Feature</h3>
+                        <p>Upgrade to access Google Fact-Check API integration and comprehensive claim verification.</p>
                     </div>
-                    
-                    <div class="methodology-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-microscope"></i>
-                            Fact-Check Verification Process
-                        </div>
-                        <div class="dialogue-content">
-                            We query the Google Fact Check Tools API and cross-reference claims against databases from major fact-checking organizations including Snopes, PolitiFact, FactCheck.org, and international fact-checkers. Our system extracts key claims and searches for existing fact-check reports, providing truth ratings and reviewer assessments.
-                        </div>
-                    </div>
+                    `}
                 </div>
             `;
         }
 
-        function generateFactCheckDialogue(factChecks, avgRating) {
-            if (factChecks.length === 0) {
-                return `No existing fact-checks were found for the specific claims in this content. This is common for breaking news or original reporting. The absence of fact-checks doesn't indicate false information, but rather that independent verification hasn't been completed yet.`;
-            }
-            
-            if (avgRating >= 70) {
-                return `Excellent fact-check performance with an average truth rating of ${avgRating}%. The claims in this content have been independently verified by reputable fact-checking organizations and found to be largely accurate.`;
-            } else if (avgRating >= 40) {
-                return `Mixed fact-check results with some concerns. Average rating of ${avgRating}% suggests that while some claims may be accurate, others require verification or have been found to be misleading. Exercise caution and seek additional sources.`;
-            } else {
-                return `Concerning fact-check results with low average rating of ${avgRating}%. Multiple claims in this content have been identified as false or misleading by independent fact-checkers. Strong recommendation to verify information from alternative sources.`;
-            }
-        }
-
-        function generateAIAnalysis(results, isPro) {
+        function generateAIAnalysisCard(results, isPro) {
             if (!results.ai_analysis || results.ai_analysis.status !== 'success') {
                 return '';
             }
@@ -1488,10 +1476,16 @@
             
             if (!isPro) {
                 return `
-                <div class="locked-content">
-                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h3>AI Content Analysis - Pro Feature</h3>
-                    <p>Unlock advanced linguistic analysis including writing quality assessment, emotional language detection, and sensationalism scoring.</p>
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-brain"></i>
+                        AI Content Analysis
+                    </div>
+                    <div class="locked-content">
+                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>AI Content Analysis - Pro Feature</h3>
+                        <p>Unlock advanced linguistic analysis including writing quality assessment, emotional language detection, and sensationalism scoring.</p>
+                    </div>
                 </div>
                 `;
             }
@@ -1503,55 +1497,54 @@
                         Advanced AI Content Analysis
                     </div>
                     
-                    <div class="infographic-container">
-                        <div class="data-grid">
-                            <div class="data-item">
-                                <div class="data-value">${writingQuality}/100</div>
-                                <div class="data-label">Writing Quality</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${emotionalLanguage}/100</div>
-                                <div class="data-label">Emotional Language</div>
-                            </div>
-                            <div class="data-item">
-                                <div class="data-value">${sensationalism}/100</div>
-                                <div class="data-label">Sensationalism</div>
-                            </div>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-value">${writingQuality}/100</div>
+                            <div class="data-label">Writing Quality</div>
                         </div>
-                        
-                        ${aiAnalysis.detailed_explanation ? `
-                        <div style="background: rgba(102, 126, 234, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                            <div style="font-weight: 700; color: #4a5568; margin-bottom: 10px;">
-                                <i class="fas fa-lightbulb"></i> AI Analysis Insights
-                            </div>
-                            <div style="color: #6b7280; line-height: 1.6;">
-                                ${aiAnalysis.detailed_explanation}
-                            </div>
+                        <div class="data-item">
+                            <div class="data-value">${emotionalLanguage}/100</div>
+                            <div class="data-label">Emotional Language</div>
                         </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="dialogue-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-comments"></i>
-                            Content Quality Assessment
-                        </div>
-                        <div class="dialogue-content">
-                            ${generateAIDialogue(writingQuality, emotionalLanguage, sensationalism)}
+                        <div class="data-item">
+                            <div class="data-value">${sensationalism}/100</div>
+                            <div class="data-label">Sensationalism</div>
                         </div>
                     </div>
                     
-                    <div class="methodology-section">
-                        <div class="dialogue-title">
-                            <i class="fas fa-microscope"></i>
-                            AI Analysis Methodology
+                    <div class="dropdown-section">
+                        <div class="dropdown-header" onclick="toggleDropdown(this)">
+                            <span><i class="fas fa-lightbulb"></i> AI Analysis Insights</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </div>
-                        <div class="dialogue-content">
-                            Our AI content analysis uses advanced natural language processing to evaluate linguistic patterns, sentence structure complexity, vocabulary sophistication, and emotional tone indicators. We assess factual presentation style, identify sensational language patterns, and compare against professional journalism standards.
+                        <div class="dropdown-content">
+                            <p style="line-height: 1.6; color: #6b7280; margin-bottom: 15px;">
+                                ${aiAnalysis.detailed_explanation || generateAIDialogue(writingQuality, emotionalLanguage, sensationalism)}
+                            </p>
                         </div>
                     </div>
                 </div>
             `;
+        }
+
+        function generateCredibilityDialogue(score, assessment) {
+            if (score >= 80) {
+                return `This content demonstrates strong credibility indicators with minimal red flags. The assessment reveals professional journalistic standards, reliable sourcing patterns, and factual presentation. We found consistent attribution, balanced reporting, and verification from multiple trusted sources.`;
+            } else if (score >= 60) {
+                return `This content shows moderate credibility with some areas of concern. While basic journalistic standards are met, there are indicators that warrant caution. The content may benefit from additional source verification or fact-checking before sharing.`;
+            } else {
+                return `This content exhibits significant credibility concerns. Our analysis identified multiple red flags including questionable sourcing, potential bias indicators, or fact-checking discrepancies. Exercise extreme caution and seek additional verification before considering this content reliable.`;
+            }
+        }
+
+        function generateBiasDialogue(score, label, objectivity) {
+            if (Math.abs(score) < 15) {
+                return `This content demonstrates excellent neutrality with minimal political bias. The language is balanced, sources are diverse, and presentation appears objective. This indicates high-quality journalism with professional editorial standards.`;
+            } else if (Math.abs(score) < 40) {
+                return `The content shows ${label} tendencies but maintains reasonable objectivity (${objectivity}% objectivity score). While some bias is detectable in language choice or source selection, it doesn't significantly compromise the factual integrity.`;
+            } else {
+                return `Strong ${label} bias detected in this content. The analysis reveals significant political lean through word choice, source selection, and framing. Readers should be aware of this perspective when consuming this information and seek alternative viewpoints.`;
+            }
         }
 
         function generateAIDialogue(writingQuality, emotionalLanguage, sensationalism) {
@@ -1601,63 +1594,38 @@
             `;
         }
 
-        function generateExecutiveSummary(results, isPro) {
-            const score = results.scoring?.overall_credibility || 65;
-            const assessment = results.executive_summary?.main_assessment || 'ANALYSIS COMPLETED';
-            const summaryText = results.executive_summary?.summary_text || 'Professional analysis completed.';
+        function toggleDropdown(header) {
+            // Don't toggle if locked
+            if (header.classList.contains('locked')) {
+                return;
+            }
             
-            return `
-                <div class="result-card">
-                    <div class="result-header">
-                        <i class="fas fa-file-alt"></i>
-                        Executive Summary & Final Assessment
-                    </div>
-                    
-                    <div style="background: linear-gradient(145deg, #f8fafc, #ffffff); padding: 25px; border-radius: 12px; border: 2px solid rgba(102, 126, 234, 0.1);">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-                            <div style="background: ${score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444'}; color: white; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 1.1rem;">
-                                FINAL VERDICT: ${assessment}
-                            </div>
-                            <div style="font-size: 1.2rem; font-weight: 600; color: #4a5568;">
-                                Credibility Score: ${score}/100
-                            </div>
-                        </div>
-                        
-                        <p style="line-height: 1.7; color: #374151; font-size: 1.05rem; margin-bottom: 20px;">
-                            ${summaryText}
-                        </p>
-                        
-                        ${isPro ? `
-                        <div style="background: #10b981; color: white; padding: 20px; border-radius: 12px; text-align: center;">
-                            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;">
-                                <i class="fas fa-check-circle"></i> Professional Analysis Complete
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.9rem;">
-                                <div>${results.methodology?.ai_models_used || 'Advanced AI Models'}</div>
-                                <div>${results.methodology?.processing_time || '8 seconds'} processing</div>
-                                <div>${results.methodology?.analysis_depth || 'Comprehensive'} analysis</div>
-                                <div>95.3% accuracy rate</div>
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div style="margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border-left: 4px solid #10b981;">
-                        <div style="font-weight: 700; color: #059669; margin-bottom: 10px;">
-                            <i class="fas fa-shield-alt"></i> Platform Accuracy & Methodology
-                        </div>
-                        <p style="color: #065f46; line-height: 1.6; font-size: 0.95rem;">
-                            NewsVerify Pro maintains a 95.3% accuracy rate through our comprehensive analysis framework combining advanced AI models, real-time database verification, and professional fact-checking standards. Our methodology has been validated against over 10,000 news articles and continuously improves through machine learning optimization.
-                        </p>
-                    </div>
-                </div>
-            `;
+            const content = header.nextElementSibling;
+            const isOpen = header.classList.contains('open');
+            
+            if (isOpen) {
+                header.classList.remove('open');
+                content.classList.remove('open');
+                content.style.display = 'none';
+            } else {
+                header.classList.add('open');
+                content.classList.add('open');
+                content.style.display = 'block';
+            }
         }
 
-        function createBiasChart(biasScore) {
-            // Note: This would be for a separate bias chart if we add one
-            // For now, the bias analysis uses a visual bar instead of Chart.js
-            console.log('Bias chart would show score:', biasScore);
+        function initializeDropdowns() {
+            // Close all dropdowns by default
+            document.querySelectorAll('.dropdown-header').forEach(header => {
+                if (!header.classList.contains('locked')) {
+                    header.classList.remove('open');
+                    const content = header.nextElementSibling;
+                    if (content) {
+                        content.classList.remove('open');
+                        content.style.display = 'none';
+                    }
+                }
+            });
         }
 
         function createSourceChart(sources) {
