@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, session
 from flask_cors import CORS
 import requests
 import os
@@ -10,8 +10,23 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 import hashlib
 from werkzeug.utils import secure_filename
+import uuid
 
-# Try to import BeautifulSoup and OpenAI with fallbacks
+# Database imports with graceful fallback (NEW - but won't break if missing)
+try:
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_migrate import Migrate
+    from sqlalchemy.exc import SQLAlchemyError
+    from models import db, User, Analysis, init_db
+    from config import Config
+    DATABASE_AVAILABLE = True
+    print("✓ Database modules loaded successfully")
+except ImportError as e:
+    print(f"Database dependencies not available - continuing without database: {e}")
+    DATABASE_AVAILABLE = False
+    db = None
+
+# Try to import BeautifulSoup and OpenAI with fallbacks (EXISTING)
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -24,14 +39,14 @@ except ImportError:
     openai = None
     logging.warning("OpenAI not available - advanced AI analysis disabled")
 
-# Configure logging with better error handling
+# Configure logging with better error handling (EXISTING)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app with error handling
+# Initialize Flask app with error handling (EXISTING)
 try:
     app = Flask(__name__)
     CORS(app)
@@ -40,16 +55,42 @@ except Exception as e:
     logger.error(f"Failed to initialize Flask app: {e}")
     raise
 
-# Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ai-detection-secret-key-2024')
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+# Configuration (ENHANCED - but maintains existing)
+if DATABASE_AVAILABLE:
+    try:
+        app.config.from_object(Config)
+        print("✓ Using database configuration")
+    except:
+        # Fallback to existing configuration
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ai-detection-secret-key-2024')
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fallback.db'
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        print("⚠ Database config failed - using fallback")
+else:
+    # EXISTING configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ai-detection-secret-key-2024')
 
-# API Keys from environment variables with validation
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size (EXISTING)
+
+# Initialize database (NEW - but graceful fallback)
+if DATABASE_AVAILABLE:
+    try:
+        db.init_app(app)
+        migrate = Migrate(app, db)
+        
+        with app.app_context():
+            db.create_all()
+            logger.info("✓ Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed - continuing without: {e}")
+        DATABASE_AVAILABLE = False
+
+# API Keys from environment variables with validation (EXISTING)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
-# Set OpenAI API key with enhanced error handling
+# Set OpenAI API key with enhanced error handling (EXISTING)
 openai_client = None
 if OPENAI_API_KEY and openai:
     try:
@@ -62,7 +103,7 @@ if OPENAI_API_KEY and openai:
 else:
     logger.warning("OpenAI not configured - using fallback analysis")
 
-# Enhanced source credibility database
+# Enhanced source credibility database (EXISTING)
 SOURCE_CREDIBILITY = {
     'reuters.com': {'credibility': 95, 'bias': 'center', 'type': 'news_agency'},
     'ap.org': {'credibility': 95, 'bias': 'center', 'type': 'news_agency'},
@@ -84,7 +125,86 @@ SOURCE_CREDIBILITY = {
 }
 
 # ================================
-# HTML ROUTES - Serve your pages
+# NEW DATABASE HELPER FUNCTIONS (Safe - won't interfere)
+# ================================
+
+def get_current_user():
+    """Get current user from session or create anonymous user (NEW)"""
+    if not DATABASE_AVAILABLE:
+        return None
+    
+    user_id = session.get('user_id')
+    if user_id:
+        try:
+            return User.query.get(user_id)
+        except Exception as e:
+            logger.error(f"Error fetching user: {e}")
+    
+    # Create anonymous user for tracking
+    try:
+        anonymous_user = User(
+            email=f"anonymous_{uuid.uuid4().hex[:8]}@temp.com",
+            subscription_tier='free',
+            is_anonymous=True
+        )
+        db.session.add(anonymous_user)
+        db.session.commit()
+        session['user_id'] = anonymous_user.id
+        return anonymous_user
+    except Exception as e:
+        logger.error(f"Error creating anonymous user: {e}")
+        return None
+
+def check_usage_limits(user, analysis_type):
+    """Check if user has remaining usage for analysis type (NEW)"""
+    if not user or user.subscription_tier == 'pro':
+        return True, ""
+    
+    # Free tier limits
+    limits = {
+        'news_analysis': 5,
+        'fact_check': 3,
+        'general': 10
+    }
+    
+    limit = limits.get(analysis_type, 5)
+    
+    try:
+        today = datetime.utcnow().date()
+        usage_count = Analysis.query.filter(
+            Analysis.user_id == user.id,
+            Analysis.analysis_type == analysis_type,
+            Analysis.created_at >= today
+        ).count()
+        
+        if usage_count >= limit:
+            return False, f"Daily limit reached ({limit} {analysis_type} analyses per day for free users)"
+        
+        return True, ""
+    except Exception as e:
+        logger.error(f"Error checking usage limits: {e}")
+        return True, ""  # Allow on error
+
+def save_analysis(user, analysis_type, query, results):
+    """Save analysis to database (NEW)"""
+    if not DATABASE_AVAILABLE or not user:
+        return
+    
+    try:
+        analysis = Analysis(
+            user_id=user.id,
+            analysis_type=analysis_type,
+            query=query[:500],  # Truncate long queries
+            results=json.dumps(results)[:10000],  # Limit result size
+            is_pro_result=user.subscription_tier == 'pro'
+        )
+        db.session.add(analysis)
+        db.session.commit()
+    except Exception as e:
+        logger.error(f"Error saving analysis: {e}")
+
+# ================================
+# HTML ROUTES - Serve your pages (EXISTING - PRESERVED EXACTLY)
 # ================================
 
 @app.route('/')
@@ -171,7 +291,7 @@ def pricingplan():
         logger.error(f"Error serving pricingplan.html: {e}")
         return f"<h1>Pricing Plan</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
 
-# Additional route fallbacks
+# Additional route fallbacks (EXISTING)
 @app.route('/advanced')
 @app.route('/advanced.html')
 def advanced():
@@ -213,14 +333,14 @@ def reports():
         return f"<h1>Reports</h1><p>Loading...</p><p><a href='/'>Return Home</a></p>", 200
 
 # ================================
-# API HEALTH CHECK
+# API HEALTH CHECK (ENHANCED - but maintains existing format)
 # ================================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Enhanced health check"""
+    """Enhanced health check with database status"""
     try:
-        return jsonify({
+        health_status = {
             "status": "operational",
             "message": "NewsVerify Pro - News Verification Platform",
             "timestamp": datetime.now().isoformat(),
@@ -236,23 +356,44 @@ def health_check():
                 "file_upload": "/api/extract-text"
             },
             "system_status": "healthy"
-        })
+        }
+        
+        # Add database status (NEW)
+        if DATABASE_AVAILABLE:
+            try:
+                with app.app_context():
+                    db.session.execute('SELECT 1')
+                    health_status['database'] = {'status': 'connected', 'type': 'postgresql'}
+            except Exception as e:
+                health_status['database'] = {'status': 'error', 'error': str(e)}
+        else:
+            health_status['database'] = {'status': 'not_configured'}
+        
+        return jsonify(health_status)
     except Exception as e:
         logger.error(f"Health check error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # ================================
-# NEWS VERIFICATION API
+# NEWS VERIFICATION API (ENHANCED - but preserves existing functionality)
 # ================================
 
 @app.route('/api/analyze-news', methods=['POST', 'OPTIONS'])
 def analyze_news():
-    """Enhanced news verification endpoint"""
+    """Enhanced news verification endpoint with optional usage tracking"""
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'})
     
     try:
-        # Handle both JSON and form data
+        # Get current user for tracking (NEW - but doesn't affect functionality)
+        user = None
+        if DATABASE_AVAILABLE:
+            try:
+                user = get_current_user()
+            except Exception as e:
+                logger.warning(f"User tracking failed: {e}")
+        
+        # Handle both JSON and form data (EXISTING)
         if request.is_json:
             data = request.get_json()
         else:
@@ -261,14 +402,23 @@ def analyze_news():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        # Extract content
+        # Extract content (EXISTING LOGIC PRESERVED)
         text = ""
         source_url = None
         analysis_type = data.get('analysis_type', 'pro')
         
+        # Check usage limits (NEW - but only for free tier)
+        if user and analysis_type == 'free':
+            try:
+                can_analyze, limit_message = check_usage_limits(user, 'news_analysis')
+                if not can_analyze:
+                    return jsonify({'error': limit_message}), 429
+            except Exception as e:
+                logger.warning(f"Usage limit check failed: {e}")
+        
         if 'url' in data and data['url']:
             source_url = data['url'].strip()
-            # Attempt URL content extraction
+            # Attempt URL content extraction (EXISTING)
             try:
                 content_result = fetch_url_content(source_url)
                 if content_result['status'] == 'success':
@@ -289,15 +439,22 @@ def analyze_news():
         
         logger.info(f"News analysis: {len(text)} chars, type: {analysis_type}")
         
-        # Generate comprehensive results
+        # Generate comprehensive results (EXISTING FUNCTION PRESERVED)
         results = generate_news_analysis_results(text, source_url, analysis_type)
         
-        # Add additional pro-only analyses
+        # Add additional pro-only analyses (EXISTING)
         if analysis_type == 'pro':
             results['sentiment_analysis'] = perform_sentiment_analysis(text)
             results['readability_analysis'] = perform_readability_analysis(text)
             results['linguistic_fingerprint'] = perform_linguistic_fingerprinting(text)
             results['trend_analysis'] = perform_trend_analysis(text)
+        
+        # Save analysis to database (NEW - but doesn't affect response)
+        if user:
+            try:
+                save_analysis(user, 'news_analysis', text[:500], results)
+            except Exception as e:
+                logger.warning(f"Failed to save analysis: {e}")
         
         return jsonify(results)
         
@@ -311,15 +468,23 @@ def analyze_news():
         }), 500
 
 # ================================
-# AI DETECTION & PLAGIARISM API
+# AI DETECTION & PLAGIARISM API (ENHANCED - but preserves existing functionality)
 # ================================
 
 @app.route('/api/detect-ai', methods=['POST'])
 @app.route('/unified_content_check', methods=['POST'])
 def detect_ai_content():
-    """AI Detection and Plagiarism Check endpoint"""
+    """AI Detection and Plagiarism Check endpoint with optional usage tracking"""
     try:
-        # Handle both JSON and form data
+        # Get current user for tracking (NEW - but doesn't affect functionality)
+        user = None
+        if DATABASE_AVAILABLE:
+            try:
+                user = get_current_user()
+            except Exception as e:
+                logger.warning(f"User tracking failed: {e}")
+        
+        # Handle both JSON and form data (EXISTING)
         if request.is_json:
             data = request.get_json()
         else:
@@ -337,15 +502,24 @@ def detect_ai_content():
         if len(text) < 50:
             return jsonify({'error': 'Text must be at least 50 characters long'}), 400
         
+        # Check usage limits (NEW - but only for free tier)
+        if user and analysis_type == 'free':
+            try:
+                can_analyze, limit_message = check_usage_limits(user, 'general')
+                if not can_analyze:
+                    return jsonify({'error': limit_message}), 429
+            except Exception as e:
+                logger.warning(f"Usage limit check failed: {e}")
+        
         logger.info(f"AI Detection analysis: {len(text)} chars, tier: {analysis_type}")
         
-        # AI Detection Analysis
+        # AI Detection Analysis (EXISTING FUNCTION PRESERVED)
         ai_results = perform_ai_detection_analysis(text, analysis_type)
         
-        # Plagiarism Detection
+        # Plagiarism Detection (EXISTING FUNCTION PRESERVED)
         plagiarism_results = perform_plagiarism_analysis(text, analysis_type)
         
-        # Combine results
+        # Combine results (EXISTING LOGIC PRESERVED)
         combined_results = {
             'status': 'success',
             'timestamp': datetime.now().isoformat(),
@@ -362,6 +536,13 @@ def detect_ai_content():
             }
         }
         
+        # Save analysis to database (NEW - but doesn't affect response)
+        if user:
+            try:
+                save_analysis(user, 'general', text[:500], combined_results)
+            except Exception as e:
+                logger.warning(f"Failed to save analysis: {e}")
+        
         return jsonify(combined_results)
         
     except Exception as e:
@@ -374,7 +555,7 @@ def detect_ai_content():
         }), 500
 
 # ================================
-# FILE UPLOAD & TEXT EXTRACTION
+# FILE UPLOAD & TEXT EXTRACTION (EXISTING - PRESERVED EXACTLY)
 # ================================
 
 @app.route('/api/extract-text', methods=['POST'])
@@ -478,7 +659,50 @@ Type: Spreadsheet Document"""
         return jsonify({'error': f'Failed to extract text from file: {str(e)}'}), 500
 
 # ================================
-# STATIC FILES
+# NEW DATABASE ROUTES (Additional features - won't break existing)
+# ================================
+
+@app.route('/api/user/usage')
+def get_user_usage():
+    """Get current user's usage statistics (NEW)"""
+    if not DATABASE_AVAILABLE:
+        return jsonify({'error': 'Database not available'}), 503
+    
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    try:
+        today = datetime.utcnow().date()
+        
+        usage_stats = {
+            'user_tier': user.subscription_tier,
+            'daily_usage': {
+                'news_analysis': Analysis.query.filter(
+                    Analysis.user_id == user.id,
+                    Analysis.analysis_type == 'news_analysis',
+                    Analysis.created_at >= today
+                ).count(),
+                'general': Analysis.query.filter(
+                    Analysis.user_id == user.id,
+                    Analysis.analysis_type == 'general',
+                    Analysis.created_at >= today
+                ).count()
+            },
+            'limits': {
+                'news_analysis': 5 if user.subscription_tier == 'free' else 'unlimited',
+                'general': 10 if user.subscription_tier == 'free' else 'unlimited'
+            }
+        }
+        
+        return jsonify(usage_stats)
+    
+    except Exception as e:
+        logger.error(f"Error fetching usage stats: {e}")
+        return jsonify({'error': 'Could not fetch usage statistics'}), 500
+
+# ================================
+# STATIC FILES (EXISTING)
 # ================================
 
 @app.route('/static/<path:filename>')
@@ -491,7 +715,7 @@ def static_files(filename):
         return "File not found", 404
 
 # ================================
-# CORE ANALYSIS FUNCTIONS
+# CORE ANALYSIS FUNCTIONS (EXISTING - ALL PRESERVED EXACTLY)
 # ================================
 
 def fetch_url_content(url):
@@ -1451,6 +1675,8 @@ def perform_trend_analysis(text):
     except Exception as e:
         logger.error(f"Trend analysis error: {e}")
         return {'virality_potential': 0, 'trend_assessment': 'Analysis error'}
+
+def generate_ai_overall_assessment(ai_results, plagiarism_results, analysis_type):
     """Generate overall assessment for AI detection"""
     try:
         ai_prob = ai_results.get('ai_probability', 0.5)
@@ -1473,7 +1699,7 @@ def perform_trend_analysis(text):
         return "Analysis completed with comprehensive evaluation protocols."
 
 # ================================
-# ERROR HANDLERS
+# ERROR HANDLERS (EXISTING - PRESERVED EXACTLY)
 # ================================
 
 @app.errorhandler(404)
@@ -1513,6 +1739,14 @@ def too_large(error):
 def internal_error(error):
     """Handle 500 errors gracefully"""
     logger.error(f"Internal server error: {error}")
+    
+    # Rollback database session if available
+    if DATABASE_AVAILABLE:
+        try:
+            db.session.rollback()
+        except:
+            pass
+    
     if request.path.startswith('/api/'):
         return jsonify({'error': 'Internal server error', 'message': 'Please try again later'}), 500
     else:
@@ -1531,6 +1765,13 @@ def handle_exception(e):
     """Handle all unhandled exceptions"""
     logger.error(f"Unhandled exception: {str(e)}")
     
+    # Rollback database session if available
+    if DATABASE_AVAILABLE:
+        try:
+            db.session.rollback()
+        except:
+            pass
+    
     if request.path.startswith('/api/'):
         return jsonify({'error': 'Service error', 'details': str(e)[:200]}), 500
     else:
@@ -1545,7 +1786,7 @@ def handle_exception(e):
         """, 500
 
 # ================================
-# MAIN APPLICATION
+# MAIN APPLICATION (ENHANCED - but preserves existing)
 # ================================
 
 if __name__ == '__main__':
@@ -1553,18 +1794,21 @@ if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info("=" * 50)
-    logger.info("NEWSVERIFY PRO - STARTING APPLICATION")
+    logger.info("NEWSVERIFY PRO - STARTING APPLICATION WITH DATABASE INTEGRATION")
     logger.info("=" * 50)
     logger.info(f"Port: {port}")
     logger.info(f"Debug: {debug_mode}")
     logger.info(f"OpenAI: {'✓ Connected' if openai_client else '✗ Not configured'}")
     logger.info(f"News API: {'✓ Available' if NEWS_API_KEY else '✗ Not configured'}")
     logger.info(f"Fact-Check API: {'✓ Configured' if GOOGLE_FACT_CHECK_API_KEY else '✗ Not configured'}")
+    logger.info(f"Database: {'✓ Connected' if DATABASE_AVAILABLE else '✗ Not available (fallback mode)'}")
     logger.info("API Endpoints Available:")
     logger.info("  • /api/health - System health check")
     logger.info("  • /api/analyze-news - News verification")
     logger.info("  • /api/detect-ai - AI detection & plagiarism")
     logger.info("  • /api/extract-text - File text extraction")
+    if DATABASE_AVAILABLE:
+        logger.info("  • /api/user/usage - User usage statistics")
     logger.info("=" * 50)
     
     try:
