@@ -74,6 +74,16 @@ def imageanalysis():
     """Serve the image analysis page"""
     return render_template('imageanalysis.html')
 
+@app.route('/missionstatement')
+def missionstatement():
+    """Serve the mission statement page"""
+    return render_template('missionstatement.html')
+
+@app.route('/pricingplan')
+def pricingplan():
+    """Serve the pricing plan page"""
+    return render_template('pricingplan.html')
+
 # Additional routes for completeness
 @app.route('/advanced')
 def advanced():
