@@ -292,6 +292,13 @@ def analyze_news():
         # Generate comprehensive results
         results = generate_news_analysis_results(text, source_url, analysis_type)
         
+        # Add additional pro-only analyses
+        if analysis_type == 'pro':
+            results['sentiment_analysis'] = perform_sentiment_analysis(text)
+            results['readability_analysis'] = perform_readability_analysis(text)
+            results['linguistic_fingerprint'] = perform_linguistic_fingerprinting(text)
+            results['trend_analysis'] = perform_trend_analysis(text)
+        
         return jsonify(results)
         
     except Exception as e:
@@ -876,6 +883,9 @@ def perform_ai_analysis(text, analysis_type):
         
         writing_quality = max(30, min(100, writing_quality))
         
+        # Authorship analysis
+        authorship_analysis = perform_authorship_analysis(text, analysis_type)
+        
         return {
             'status': 'success',
             'writing_quality': round(writing_quality),
@@ -883,6 +893,7 @@ def perform_ai_analysis(text, analysis_type):
             'sensationalism_score': round(sensationalism_score),
             'source_attribution': round(source_attribution),
             'journalistic_standards': round(journalistic_standards),
+            'authorship_analysis': authorship_analysis,
             'detailed_explanation': f'Analysis completed with {len(words)} words across {len(clean_sentences)} sentences. Writing quality: {writing_quality}/100, Emotional language: {emotional_language}/100, Sensationalism: {sensationalism_score}/100.',
             'analysis_method': 'enhanced_pattern_analysis',
             'metrics': {
@@ -1167,7 +1178,279 @@ def perform_plagiarism_analysis(text, tier):
             'assessment': f"Analysis completed: {str(e)}"
         }
 
-def generate_ai_overall_assessment(ai_results, plagiarism_results, tier):
+def perform_authorship_analysis(text, analysis_type):
+    """Perform authorship analysis"""
+    try:
+        if analysis_type != 'pro':
+            return {'status': 'locked', 'message': 'Pro feature'}
+            
+        words = text.split()
+        sentences = re.split(r'[.!?]+', text)
+        clean_sentences = [s.strip() for s in sentences if s.strip()]
+        
+        # Writing style indicators
+        avg_word_length = sum(len(word.strip('.,!?')) for word in words) / len(words) if words else 0
+        complex_words = sum(1 for word in words if len(word.strip('.,!?')) > 6)
+        complex_word_ratio = complex_words / len(words) if words else 0
+        
+        # Sentence structure analysis
+        sentence_lengths = [len(s.split()) for s in clean_sentences]
+        sentence_variance = 0
+        if len(sentence_lengths) > 1:
+            avg_len = sum(sentence_lengths) / len(sentence_lengths)
+            sentence_variance = sum((length - avg_len) ** 2 for length in sentence_lengths) / len(sentence_lengths)
+        
+        # Professional writing indicators
+        professional_markers = ['furthermore', 'however', 'nevertheless', 'consequently', 'therefore']
+        professional_count = sum(1 for marker in professional_markers if marker in text.lower())
+        
+        # Informal writing indicators
+        informal_markers = ['really', 'pretty', 'quite', 'very', 'actually', 'basically']
+        informal_count = sum(1 for marker in informal_markers if marker in text.lower())
+        
+        # Determine writing profile
+        if complex_word_ratio > 0.25 and professional_count > 2:
+            writing_profile = "Academic/Professional Writer"
+            confidence = 85
+        elif avg_word_length > 5.5 and sentence_variance > 50:
+            writing_profile = "Experienced Journalist"  
+            confidence = 80
+        elif informal_count > professional_count and complex_word_ratio < 0.15:
+            writing_profile = "Casual/Blog Writer"
+            confidence = 75
+        elif sentence_variance < 20:
+            writing_profile = "Structured/Technical Writer"
+            confidence = 70
+        else:
+            writing_profile = "General Content Writer"
+            confidence = 65
+        
+        return {
+            'status': 'success',
+            'writing_profile': writing_profile,
+            'confidence': confidence,
+            'style_metrics': {
+                'avg_word_length': round(avg_word_length, 1),
+                'complex_word_ratio': round(complex_word_ratio * 100, 1),
+                'sentence_variance': round(sentence_variance, 1),
+                'professional_markers': professional_count,
+                'informal_markers': informal_count
+            },
+            'writing_characteristics': {
+                'vocabulary_sophistication': min(100, round(complex_word_ratio * 300)),
+                'sentence_complexity': min(100, round(sentence_variance / 2)),
+                'formality_level': min(100, max(20, professional_count * 15 - informal_count * 10 + 50))
+            }
+        }
+    except Exception as e:
+        logger.error(f"Authorship analysis error: {e}")
+        return {'status': 'error', 'message': str(e)}
+
+def perform_sentiment_analysis(text):
+    """Perform sentiment analysis (Pro only)"""
+    try:
+        # Enhanced sentiment detection
+        positive_words = ['excellent', 'great', 'amazing', 'wonderful', 'fantastic', 'outstanding', 'brilliant', 'superb']
+        negative_words = ['terrible', 'awful', 'horrible', 'devastating', 'tragic', 'disastrous', 'appalling', 'shocking']
+        neutral_words = ['reported', 'stated', 'according', 'indicated', 'mentioned', 'noted', 'observed']
+        
+        text_lower = text.lower()
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower) 
+        neutral_count = sum(1 for word in neutral_words if word in text_lower)
+        
+        total_sentiment_words = positive_count + negative_count + neutral_count
+        
+        if total_sentiment_words == 0:
+            sentiment_score = 50  # Neutral
+            sentiment_label = "Neutral"
+        else:
+            sentiment_score = ((positive_count - negative_count) / total_sentiment_words * 50) + 50
+            sentiment_score = max(0, min(100, sentiment_score))
+            
+            if sentiment_score > 65:
+                sentiment_label = "Positive"
+            elif sentiment_score < 35:
+                sentiment_label = "Negative"
+            else:
+                sentiment_label = "Neutral"
+        
+        objectivity_score = max(30, 100 - abs(sentiment_score - 50) * 2)
+        
+        return {
+            'sentiment_score': round(sentiment_score, 1),
+            'sentiment_label': sentiment_label,
+            'objectivity_score': round(objectivity_score, 1),
+            'emotional_indicators': {
+                'positive_words': positive_count,
+                'negative_words': negative_count,
+                'neutral_words': neutral_count
+            }
+        }
+    except Exception as e:
+        logger.error(f"Sentiment analysis error: {e}")
+        return {'sentiment_score': 50, 'sentiment_label': 'Neutral'}
+
+def perform_readability_analysis(text):
+    """Perform readability analysis (Pro only)"""
+    try:
+        words = text.split()
+        sentences = re.split(r'[.!?]+', text)
+        clean_sentences = [s.strip() for s in sentences if s.strip()]
+        
+        # Basic readability metrics
+        avg_words_per_sentence = len(words) / len(clean_sentences) if clean_sentences else 0
+        
+        # Syllable estimation (simplified)
+        def estimate_syllables(word):
+            word = word.lower().strip('.,!?')
+            if len(word) <= 3:
+                return 1
+            vowels = 'aeiouy'
+            syllables = sum(1 for i, char in enumerate(word) if char in vowels and (i == 0 or word[i-1] not in vowels))
+            return max(1, syllables)
+        
+        total_syllables = sum(estimate_syllables(word) for word in words)
+        avg_syllables_per_word = total_syllables / len(words) if words else 0
+        
+        # Flesch Reading Ease approximation
+        flesch_score = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
+        flesch_score = max(0, min(100, flesch_score))
+        
+        # Grade level approximation
+        if flesch_score >= 90:
+            grade_level = "5th Grade"
+            readability = "Very Easy"
+        elif flesch_score >= 80:
+            grade_level = "6th Grade"
+            readability = "Easy"
+        elif flesch_score >= 70:
+            grade_level = "7th Grade"
+            readability = "Fairly Easy"
+        elif flesch_score >= 60:
+            grade_level = "8th-9th Grade"
+            readability = "Standard"
+        elif flesch_score >= 50:
+            grade_level = "10th-12th Grade"
+            readability = "Fairly Difficult"
+        elif flesch_score >= 30:
+            grade_level = "College Level"
+            readability = "Difficult"
+        else:
+            grade_level = "Graduate Level"
+            readability = "Very Difficult"
+        
+        return {
+            'flesch_score': round(flesch_score, 1),
+            'grade_level': grade_level,
+            'readability': readability,
+            'metrics': {
+                'avg_words_per_sentence': round(avg_words_per_sentence, 1),
+                'avg_syllables_per_word': round(avg_syllables_per_word, 1),
+                'total_words': len(words),
+                'total_sentences': len(clean_sentences)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Readability analysis error: {e}")
+        return {'flesch_score': 50, 'grade_level': 'Unknown', 'readability': 'Standard'}
+
+def perform_linguistic_fingerprinting(text):
+    """Perform linguistic fingerprinting (Pro only)"""
+    try:
+        words = text.split()
+        
+        # Function word analysis (articles, prepositions, etc.)
+        function_words = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']
+        function_word_freq = {}
+        total_function_words = 0
+        
+        for word in function_words:
+            count = text.lower().count(f' {word} ') + text.lower().count(f'{word} ')
+            function_word_freq[word] = count
+            total_function_words += count
+        
+        # Punctuation analysis
+        punctuation_counts = {
+            'periods': text.count('.'),
+            'commas': text.count(','),
+            'semicolons': text.count(';'),
+            'exclamations': text.count('!'),
+            'questions': text.count('?')
+        }
+        
+        # Word length distribution
+        word_lengths = [len(word.strip('.,!?')) for word in words]
+        short_words = sum(1 for length in word_lengths if length <= 3)
+        medium_words = sum(1 for length in word_lengths if 4 <= length <= 6)
+        long_words = sum(1 for length in word_lengths if length >= 7)
+        
+        # Generate fingerprint score
+        fingerprint_complexity = (
+            (long_words / len(words) * 100) * 0.4 +
+            (punctuation_counts['semicolons'] * 10) * 0.3 +
+            (total_function_words / len(words) * 100) * 0.3
+        ) if words else 0
+        
+        return {
+            'fingerprint_complexity': round(fingerprint_complexity, 1),
+            'function_word_usage': function_word_freq,
+            'punctuation_pattern': punctuation_counts,
+            'word_distribution': {
+                'short_words_percent': round(short_words / len(words) * 100, 1) if words else 0,
+                'medium_words_percent': round(medium_words / len(words) * 100, 1) if words else 0,
+                'long_words_percent': round(long_words / len(words) * 100, 1) if words else 0
+            },
+            'writing_signature': f"Complexity: {round(fingerprint_complexity, 1)}% | Function words: {round(total_function_words/len(words)*100, 1)}% | Long words: {round(long_words/len(words)*100, 1)}%" if words else "Insufficient data"
+        }
+    except Exception as e:
+        logger.error(f"Linguistic fingerprinting error: {e}")
+        return {'fingerprint_complexity': 50, 'writing_signature': 'Analysis error'}
+
+def perform_trend_analysis(text):
+    """Perform trend analysis (Pro only)"""
+    try:
+        # Trending topics and keywords
+        trending_indicators = ['viral', 'trending', 'breaking', 'developing', 'update', 'latest', 'just in']
+        social_media_terms = ['twitter', 'facebook', 'instagram', 'tiktok', 'social media', 'went viral', 'hashtag']
+        tech_terms = ['ai', 'artificial intelligence', 'machine learning', 'blockchain', 'cryptocurrency', 'metaverse']
+        
+        text_lower = text.lower()
+        
+        trending_count = sum(1 for term in trending_indicators if term in text_lower)
+        social_count = sum(1 for term in social_media_terms if term in text_lower)
+        tech_count = sum(1 for term in tech_terms if term in text_lower)
+        
+        # Time-sensitivity analysis
+        time_indicators = ['today', 'yesterday', 'this week', 'recently', 'now', 'currently', 'just', 'breaking']
+        time_sensitivity = sum(1 for indicator in time_indicators if indicator in text_lower)
+        
+        # Topic categorization
+        categories = []
+        if tech_count > 0:
+            categories.append(f"Technology ({tech_count} mentions)")
+        if social_count > 0:
+            categories.append(f"Social Media ({social_count} mentions)")
+        if trending_count > 0:
+            categories.append(f"Trending News ({trending_count} indicators)")
+        
+        virality_score = min(100, (trending_count + social_count) * 20 + time_sensitivity * 10)
+        
+        return {
+            'virality_potential': virality_score,
+            'time_sensitivity': time_sensitivity,
+            'topic_categories': categories,
+            'trend_indicators': {
+                'trending_terms': trending_count,
+                'social_media_mentions': social_count, 
+                'tech_references': tech_count,
+                'time_sensitive_language': time_sensitivity
+            },
+            'trend_assessment': "High viral potential" if virality_score > 60 else "Moderate engagement potential" if virality_score > 30 else "Standard content"
+        }
+    except Exception as e:
+        logger.error(f"Trend analysis error: {e}")
+        return {'virality_potential': 0, 'trend_assessment': 'Analysis error'}
     """Generate overall assessment for AI detection"""
     try:
         ai_prob = ai_results.get('ai_probability', 0.5)
