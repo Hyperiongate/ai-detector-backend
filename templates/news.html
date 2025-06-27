@@ -149,11 +149,30 @@
         /* Fancy Progress Bars */
         .progress-section {
             margin-bottom: 30px;
-            background: white;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border: 2px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
+            background-size: 300% 100%;
+            animation: rainbow-flow 4s ease-in-out infinite;
+        }
+
+        @keyframes rainbow-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .progress-title {
@@ -175,11 +194,18 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #667eea, #764ba2, #10b981);
             border-radius: 6px;
             width: 0%;
             transition: width 2s ease;
             position: relative;
+            background-size: 200% 100%;
+            animation: gradient-flow 3s ease-in-out infinite;
+        }
+
+        @keyframes gradient-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .progress-fill::after {
@@ -343,6 +369,16 @@
         .btn-test:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-pro-test {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-pro-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
         }
 
         /* Results Section */
@@ -514,6 +550,8 @@
                     <div class="tool-item"><i class="fas fa-balance-scale"></i> Bias Detection AI</div>
                     <div class="tool-item"><i class="fas fa-network-wired"></i> Cross-Reference Network</div>
                     <div class="tool-item"><i class="fas fa-chart-line"></i> Sentiment Analysis</div>
+                    <div class="tool-item"><i class="fas fa-clock"></i> Timeline Verification</div>
+                    <div class="tool-item"><i class="fas fa-shield-alt"></i> Misinformation Detection</div>
                 </div>
             </div>
 
@@ -551,7 +589,6 @@
                 <div class="input-tabs">
                     <button class="input-tab active" onclick="switchInputType('text')">📝 Text Analysis</button>
                     <button class="input-tab" onclick="switchInputType('url')">🔗 URL Verification</button>
-                    <button class="input-tab" onclick="switchInputType('image')">🖼️ Image Analysis</button>
                 </div>
                 
                 <div class="input-content active" id="textInput">
@@ -567,13 +604,6 @@
                         <input type="url" id="news-url" placeholder="https://example.com/news-article-to-verify">
                     </div>
                 </div>
-
-                <div class="input-content" id="imageInput">
-                    <div class="input-group">
-                        <label for="news-image"><i class="fas fa-image"></i> Upload Image for Analysis</label>
-                        <input type="file" id="news-image" accept="image/*">
-                    </div>
-                </div>
             </div>
 
             <div class="button-group">
@@ -582,6 +612,9 @@
                 </button>
                 <button class="btn btn-test" onclick="loadTestData()">
                     <i class="fas fa-flask"></i> Load Test Data
+                </button>
+                <button class="btn btn-pro-test" onclick="testProVersion()">
+                    <i class="fas fa-star"></i> Test Pro Version
                 </button>
                 <button class="btn btn-secondary" onclick="resetForm()">
                     <i class="fas fa-redo"></i> Reset
@@ -648,7 +681,7 @@
             
             document.querySelectorAll('.input-tab').forEach((tab, index) => {
                 tab.classList.remove('active');
-                if ((type === 'text' && index === 0) || (type === 'url' && index === 1) || (type === 'image' && index === 2)) {
+                if ((type === 'text' && index === 0) || (type === 'url' && index === 1)) {
                     tab.classList.add('active');
                 }
             });
@@ -699,6 +732,12 @@
             const progressSection = document.getElementById('progressSection');
             progressSection.style.display = 'block';
             
+            // Reset progress bars to default colors
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                bar.style.background = 'linear-gradient(90deg, #667eea, #764ba2, #10b981)';
+                bar.style.width = '0%';
+            });
+            
             // Animate progress bars
             const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
             const delays = [500, 1200, 2000, 2800, 3500];
@@ -712,29 +751,218 @@
             // Show results after progress completes
             setTimeout(() => {
                 progressSection.style.display = 'none';
-                const results = document.getElementById('results');
-                results.style.display = 'block';
-                results.scrollIntoView({ behavior: 'smooth' });
+                showFreeResults();
             }, 4500);
+        }
+
+        function showFreeResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <!-- Free Version Results -->
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-chart-pie"></i>
+                        Credibility Assessment (Free Version)
+                    </div>
+                    
+                    <div class="credibility-score">
+                        <div class="score-circle">
+                            <div class="score-text">82</div>
+                        </div>
+                        <div>
+                            <h3>Moderate Credibility</h3>
+                            <p>This content shows reasonable credibility indicators but requires further verification.</p>
+                        </div>
+                    </div>
+                    
+                    <div><strong>Source Type:</strong> Established news outlet</div>
+                    <div><strong>Publication Date:</strong> Recent (within 24 hours)</div>
+                    <div><strong>Basic Fact Check:</strong> No obvious contradictions found</div>
+                </div>
+
+                <!-- Locked Pro Features -->
+                <div class="locked-content">
+                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                    <h3>Detailed Analysis Available in Pro Version</h3>
+                    <p>Unlock comprehensive bias analysis, source network mapping, timeline verification, sentiment analysis, and detailed recommendations.</p>
+                    
+                    <div class="upgrade-prompt">
+                        <strong>Upgrade to Pro for Complete Analysis</strong>
+                        <br>• Political bias assessment with visual charts
+                        <br>• Source authority ranking and verification
+                        <br>• Cross-reference with fact-checking databases
+                        <br>• Historical context and timeline analysis
+                        <br>• Detailed credibility breakdown
+                        <br>• Export and sharing capabilities
+                        <button onclick="upgradeToPro()">Upgrade to Pro</button>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-comments"></i>
+                        Conversational Summary
+                    </div>
+                    <p>This article appears to be from a legitimate news source with standard journalistic practices. The content presents information in a factual manner without obvious bias indicators. However, for a complete assessment including political lean analysis, source network verification, and historical context, consider upgrading to our Pro version for more detailed insights.</p>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function upgradeToPro() {
+            alert('🚀 Redirecting to Pro upgrade page...\n\nPro features include:\n• Advanced bias analysis\n• Complete source verification\n• Historical timeline analysis\n• Export capabilities\n• Priority support');
         }
 
         function resetForm() {
             document.getElementById('news-text').value = '';
             document.getElementById('news-url').value = '';
-            document.getElementById('news-image').value = '';
             document.getElementById('results').style.display = 'none';
             document.getElementById('progressSection').style.display = 'none';
             
             // Reset progress bars
             document.querySelectorAll('.progress-fill').forEach(bar => {
                 bar.style.width = '0%';
+                bar.style.background = 'linear-gradient(90deg, #667eea, #764ba2, #10b981)';
             });
             
             switchInputType('text');
         }
 
-        function upgradeToPro() {
-            alert('🚀 Redirecting to Pro upgrade page...\n\nPro features include:\n• Advanced bias analysis\n• Complete source verification\n• Historical timeline analysis\n• Export capabilities\n• Priority support');
+        function testProVersion() {
+            const testContent = "Breaking: Federal Reserve Chairman announces unexpected policy shift regarding interest rates, citing concerns over inflation data released yesterday. The decision, which contradicts earlier statements from Fed officials, has sparked debate among economists. Some analysts suggest this move could signal deeper concerns about economic stability than previously acknowledged.";
+            
+            document.getElementById('news-text').value = testContent;
+            switchInputType('text');
+            
+            // Show enhanced progress for pro
+            const progressSection = document.getElementById('progressSection');
+            progressSection.style.display = 'block';
+            
+            // Faster, more colorful animation for pro test
+            const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
+            const delays = [300, 700, 1100, 1500, 1900];
+            
+            progressBars.forEach((id, index) => {
+                setTimeout(() => {
+                    const bar = document.getElementById(id);
+                    bar.style.width = '100%';
+                    bar.style.background = 'linear-gradient(90deg, #f59e0b, #10b981, #667eea)';
+                }, delays[index]);
+            });
+            
+            // Show enhanced pro results
+            setTimeout(() => {
+                progressSection.style.display = 'none';
+                showProResults();
+            }, 2500);
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; font-weight: 600;';
+            notification.innerHTML = '<i class="fas fa-star"></i> Pro version demo loaded!';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function showProResults() {
+            // Replace the locked content with full pro results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <!-- Enhanced Pro Results -->
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-crown" style="color: #f59e0b;"></i>
+                        Complete Credibility Analysis (Pro Version)
+                    </div>
+                    
+                    <div class="credibility-score">
+                        <div class="score-circle" style="background: conic-gradient(from 0deg, #f59e0b 0deg 230deg, #e5e7eb 230deg 360deg);">
+                            <div class="score-text" style="color: #d97706;">74</div>
+                        </div>
+                        <div>
+                            <h3>Moderate Credibility with Concerns</h3>
+                            <p>Content shows mixed signals requiring careful consideration of source and context.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;"><strong>Source Authority:</strong> High (Federal Reserve official source)</div>
+                    <div style="margin-bottom: 15px;"><strong>Political Bias:</strong> Slight center-left (bias score: -0.3)</div>
+                    <div style="margin-bottom: 15px;"><strong>Factual Claims:</strong> 3 verified, 1 requires context</div>
+                    <div style="margin-bottom: 15px;"><strong>Emotional Language:</strong> Moderate concern indicators detected</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-network-wired"></i>
+                        Source Network Analysis
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Primary Sources: 2</strong><br>
+                            • Federal Reserve<br>
+                            • Reuters Newswire
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Secondary Sources: 4</strong><br>
+                            • Bloomberg Terminal<br>
+                            • Associated Press<br>
+                            • Wall Street Journal<br>
+                            • CNN Business
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                            <strong>Cross-References: 7</strong><br>
+                            • Economic data verified<br>
+                            • Timeline confirmed<br>
+                            • Official statements matched
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-balance-scale"></i>
+                        Detailed Bias Analysis
+                    </div>
+                    <div style="background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%); height: 20px; border-radius: 10px; position: relative; margin: 15px 0;">
+                        <div style="position: absolute; top: 50%; left: 45%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; border: 3px solid #374151; border-radius: 50%;"></div>
+                    </div>
+                    <div style="text-align: center; color: #6b7280;">Slight Center-Left Positioning • Language neutrality: 78%</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-clock"></i>
+                        Timeline Verification
+                    </div>
+                    <div style="font-size: 0.95rem; line-height: 1.6;">
+                        <div style="margin-bottom: 10px;"><strong>✅ Timing Consistent:</strong> Fed announcement aligns with market hours</div>
+                        <div style="margin-bottom: 10px;"><strong>✅ Sequence Verified:</strong> Inflation data released 24 hours prior</div>
+                        <div style="margin-bottom: 10px;"><strong>⚠️ Context Note:</strong> Previous Fed statements from 2 weeks ago show different stance</div>
+                        <div><strong>📊 Market Impact:</strong> Real-time trading data confirms immediate market reaction</div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-comments"></i>
+                        Enhanced Conversational Summary (Pro)
+                    </div>
+                    <p>This Federal Reserve announcement appears to be legitimate and timely, sourced from official channels. However, there are some credibility concerns to consider. The content contradicts recent Fed communications, which isn't necessarily problematic but warrants attention. The language contains subtle emotional indicators like "sparked debate" and "deeper concerns" that could suggest interpretive framing rather than pure reporting.</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Recommendation:</strong> This story appears credible but should be cross-referenced with direct Fed communications and multiple news sources before sharing. The apparent policy shift is significant enough to warrant verification from official Federal Reserve statements.</p>
+                    
+                    <div style="background: #10b981; color: white; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                        <strong>Pro Analysis Complete</strong><br>
+                        <small>Comprehensive verification across 12 data sources • Processing time: 2.3 seconds</small>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
         // Initialize
