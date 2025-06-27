@@ -89,6 +89,7 @@ def unified():
         return f"<h1>Unified Analysis</h1><p>Template error: {e}</p>", 200
 
 @app.route('/news')
+@app.route('/news.html')
 def news():
     """Serve the news verification page"""
     try:
@@ -1301,11 +1302,29 @@ def simulate_deepfake_analysis(filename, media_type, tier):
 
 @app.errorhandler(404)
 def not_found(error):
-    """Handle 404 errors by serving the main page"""
+    """Handle 404 errors with proper routing"""
+    requested_path = request.path
+    
+    # Handle common variations
+    if requested_path in ['/news.html', '/news']:
+        try:
+            return render_template('news.html')
+        except Exception as e:
+            logger.error(f"404 handler news template error: {e}")
+            return f"<h1>News Verification</h1><p>Loading news verification tool...</p>", 200
+    
+    elif requested_path in ['/unified.html', '/unified']:
+        try:
+            return render_template('unified.html')
+        except Exception as e:
+            logger.error(f"404 handler unified template error: {e}")
+            return f"<h1>Unified Analysis</h1><p>Loading analysis tool...</p>", 200
+    
+    # For other 404s, serve the main page
     try:
-        return render_template('index.html')
+        return render_template('index.html'), 404
     except Exception as e:
-        logger.error(f"404 handler template error: {e}")
+        logger.error(f"404 handler index template error: {e}")
         return f"<h1>AI Detection Platform</h1><p>Page not found. <a href='/'>Go to homepage</a></p>", 404
 
 @app.errorhandler(413)
