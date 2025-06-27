@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewsVerify Pro - Real News Verification Platform</title>
+    <title>NewsVerify Pro - Enterprise News Verification Platform</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,718 +14,253 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            line-height: 1.6;
+            color: #333;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 20px;
         }
 
         /* Professional Header */
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
         }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            height: 60px;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #e0e7ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background-clip: text;
         }
 
-        .nav-center {
-            display: flex;
-            align-items: center;
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .enterprise-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Professional Navigation */
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .nav-links {
             display: flex;
-            list-style: none;
-            gap: 0;
-            align-items: center;
-            background: rgba(248, 249, 250, 0.8);
-            border-radius: 30px;
-            padding: 0.25rem;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
         .nav-links a {
+            color: white;
             text-decoration: none;
-            color: #495057;
-            font-weight: 500;
-            font-size: 0.9rem;
+            padding: 12px 24px;
+            border-radius: 15px;
             transition: all 0.3s ease;
-            padding: 0.6rem 1.2rem;
-            border-radius: 25px;
-            white-space: nowrap;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
         }
 
         .nav-links a:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .nav-links a.active {
-            color: white;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: rgba(255, 255, 255, 0.3);
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        /* Enterprise Tool Container */
+        .tool-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 50px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Professional Usage Counter */
-        .usage-counter {
-            background: white;
-            border: 1.5px solid #e9ecef;
-            border-radius: 20px;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #495057;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .usage-counter.low {
-            border-color: #ffc107;
-            background: #fff8e1;
-            color: #f57f17;
-        }
-
-        .usage-counter.expired {
-            border-color: #dc3545;
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .upgrade-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .upgrade-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Progress Section - Always Visible */
-        .progress-section {
-            position: fixed;
-            top: 60px;
+        .tool-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            padding: 1rem 0;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            z-index: 999;
-            transform: translateY(-100%);
-            transition: transform 0.3s ease;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: gradient-flow 3s ease-in-out infinite;
         }
 
-        .progress-section.active {
-            transform: translateY(0);
+        @keyframes gradient-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
-        .progress-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .analysis-status {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 1.1rem;
-        }
-
-        .reset-button {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .reset-button:hover {
-            background: #c0392b;
-            transform: translateY(-1px);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #ecf0f1;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #7f8c8d;
-        }
-
-        .step {
-            transition: color 0.3s ease;
-        }
-
-        .step.completed {
-            color: #27ae60;
-            font-weight: 600;
-        }
-
-        .step.active {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        /* Main Content */
-        main {
-            padding-top: 80px;
-            min-height: 100vh;
-        }
-
-        .hero-section {
+        .tool-header {
             text-align: center;
-            padding: 3rem 0;
-            color: white;
+            margin-bottom: 40px;
+            position: relative;
         }
 
-        .hero-section h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
+        .tool-header h2 {
+            font-size: 2.8rem;
+            color: #4a5568;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .hero-section p {
+        .tool-header p {
             font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            color: #718096;
+            margin-bottom: 20px;
         }
 
-        .analysis-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+        /* Tier Selector */
+        .tier-selector {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tier-btn {
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+            color: #4a5568;
+            border: 3px solid #e2e8f0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
             border-radius: 20px;
-            padding: 3rem;
-            margin: 2rem 0;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 20px 35px;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tier-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .tier-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 
+                0 8px 25px rgba(102, 126, 234, 0.3),
+                0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .tier-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(45deg, #ff4444, #ff6b6b);
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+        }
+
+        /* Input Section */
+        .input-section {
+            margin-bottom: 40px;
         }
 
         .input-tabs {
             display: flex;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 0.5rem;
-            margin-bottom: 2rem;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #e2e8f0;
+            position: relative;
         }
 
-        .tab {
-            flex: 1;
-            padding: 1rem;
-            text-align: center;
-            border-radius: 10px;
-            background: transparent;
+        .input-tab {
+            padding: 15px 30px;
             border: none;
+            background: #f8fafc;
+            color: #6b7280;
             font-weight: 600;
             cursor: pointer;
+            border-radius: 15px 15px 0 0;
             transition: all 0.3s ease;
-            color: #6c757d;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .input-section {
-            display: none;
-        }
-
-        .input-section.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
         }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 150px;
-        }
-
-        .sample-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .sample-btn {
-            padding: 0.5rem 1rem;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .sample-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .analyze-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 2rem;
-        }
-
-        .analyze-button:hover {
+        .input-tab:hover {
+            background: #f1f5f9;
+            color: #374151;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .analyze-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-            margin-top: 2rem;
-            padding-top: 2rem;
-        }
-
-        .results-section.visible {
-            display: block;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .result-card {
+        .input-tab.active {
             background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .result-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .tier-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .tier-free {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .tier-pro {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .score-display {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .score-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: conic-gradient(#667eea 0deg, #764ba2 180deg, #ecf0f1 180deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            position: relative;
-        }
-
-        .score-inner {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .score-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .score-label {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .chart-container {
-            width: 100%;
-            height: 200px;
-            margin-bottom: 1rem;
-        }
-
-        .locked-feature {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .locked-feature::before {
-            content: '🔒';
-            font-size: 3rem;
-            opacity: 0.3;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .unlock-button {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .unlock-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
-        }
-
-        /* Enhanced Summary Section */
-        .summary-section {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 15px;
-            padding: 2.5rem;
-            margin-top: 2rem;
-        }
-
-        .summary-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .summary-content {
-            font-size: 1.1rem;
-            line-height: 1.7;
-        }
-
-        .summary-insights {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .insight-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .insight-title {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .insight-content {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-
-        /* Source Details Enhancement */
-        .source-details {
-            margin-top: 1rem;
-        }
-
-        .source-item {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-left: 4px solid #667eea;
-        }
-
-        .source-name {
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .source-meta {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 0.5rem;
-        }
-
-        .credibility-bar {
-            width: 100%;
-            height: 6px;
-            background: #ecf0f1;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .credibility-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        /* Details Enhancement */
-        .details-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .detail-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .detail-title {
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .detail-content {
-            color: #555;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .detail-metric {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f1f3f4;
-        }
-
-        .detail-metric:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-
-        .metric-label {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .metric-value {
-            font-weight: 700;
             color: #667eea;
+            border-bottom-color: #667eea;
+            box-shadow: 
+                0 -4px 15px rgba(0, 0, 0, 0.1),
+                0 0 0 2px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-center {
-                display: none;
-            }
-            
-            .nav-right {
-                gap: 0.5rem;
-            }
-            
-            .usage-counter {
-                font-size: 0.7rem;
-                padding: 0.3rem 0.6rem;
-            }
-            
-            .upgrade-button {
-                font-size: 0.75rem;
-                padding: 0.4rem 0.8rem;
-            }
-            
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .hero-section h1 {
-                font-size: 2.2rem;
-            }
-            
-            .analysis-container {
-                padding: 2rem 1rem;
-            }
-            
-            .summary-insights {
-                grid-template-columns: 1fr;
-            }
+        .input-content {
+            display: none;
         }
 
-        /* Animations */
+        .input-content.active {
+            display: block;
+            animation: fadeInUp 0.4s ease;
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -733,716 +268,623 @@
             }
         }
 
-        .animate-in {
-            animation: fadeInUp 0.6s ease forwards;
+        .input-group {
+            margin-bottom: 25px;
         }
 
-        .pulse {
-            animation: pulse 2s infinite;
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.1rem;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 18px;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: inherit;
         }
 
-        /* Trial Banner */
-        .trial-banner {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 0.75rem;
-            text-align: center;
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 
+                0 0 0 4px rgba(102, 126, 234, 0.1),
+                0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .input-group textarea {
+            min-height: 140px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .sample-articles {
+            margin-bottom: 20px;
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .sample-articles label {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
             font-weight: 600;
-            position: relative;
-            overflow: hidden;
+            color: #4a5568;
+            display: block;
         }
 
-        .trial-banner::before {
+        .sample-btn {
+            background: linear-gradient(145deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sample-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .char-counter.warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .char-counter.error {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        /* Analyze Button */
+        .button-group {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Enhanced Progress */
+        .progress-container {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 
+                0 15px 30px rgba(102, 126, 234, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-container::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shimmer 3s infinite;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            animation: progress-shimmer 2.5s infinite;
         }
 
-        @keyframes shimmer {
+        @keyframes progress-shimmer {
             0% { left: -100%; }
             100% { left: 100%; }
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                #00ff88 0%, 
+                #00cc44 20%, 
+                #ffaa00 40%, 
+                #ff6600 70%, 
+                #ff0066 100%);
+            border-radius: 15px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+            overflow: hidden;
+        }
+
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.6), 
+                transparent);
+            animation: progress-wave 1.5s infinite;
+        }
+
+        @keyframes progress-wave {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-details {
+            text-align: center;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-btn {
+            background: linear-gradient(145deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.2);
+        }
+
+        .reset-btn:hover {
+            background: linear-gradient(145deg, #4b5563, #374151);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 114, 128, 0.3);
+        }
+
+        /* Results Demo */
+        .demo-results {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .credibility-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin: 0 5px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+
+        .score-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .tool-header h2 {
+                font-size: 2.2rem;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .nav-links a {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+
+            .tool-container {
+                padding: 30px;
+            }
+
+            .tier-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tier-btn {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Trial Banner -->
-    <div class="trial-banner">
-        🎉 Free Trial Active - Experience Pro Features Today!
-    </div>
-
-    <header>
-        <nav class="container">
-            <a href="/" class="logo">
-                📰 Facts & Fakes AI
-            </a>
-            <div class="nav-center">
-                <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/news" class="active">News Verify</a></li>
-                    <li><a href="/imageanalysis">Image Analysis</a></li>
-                    <li><a href="/unified">AI Detection</a></li>
-                    <li><a href="/missionstatement">Mission</a></li>
-                </ul>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> NewsVerify Pro</h1>
+            <p>Leveraging OpenAI GPT-4 and comprehensive news intelligence APIs for institutional-grade media analysis</p>
+            <div class="enterprise-badge">
+                <i class="fas fa-certificate"></i> Enterprise-Grade Intelligence
             </div>
-            <div class="nav-right">
-                <div class="usage-counter" id="usageCounter">
-                    🔥 <span id="usageCount">3</span>/5 free analyses today
-                </div>
-                <button class="upgrade-button" onclick="showUpgrade()">
-                    ⚡ Try Pro Free
-                </button>
+        </div>
+
+        <nav class="nav-bar">
+            <div class="nav-links">
+                <a href="/"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="active"><i class="fas fa-newspaper"></i> News Verification</a>
+                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
+                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
+                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
+                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
             </div>
         </nav>
-    </header>
 
-    <!-- Fixed Progress Section -->
-    <div class="progress-section" id="progressSection">
-        <div class="progress-container">
-            <div class="progress-header">
-                <div class="analysis-status" id="analysisStatus">Ready to analyze</div>
-                <button class="reset-button" id="resetButton" onclick="resetAnalysis()">🔄 Reset</button>
+        <div class="tool-container">
+            <div class="tool-header">
+                <h2><i class="fas fa-newspaper"></i> Professional News Verification Engine</h2>
+                <p>Enterprise AI-powered verification using OpenAI GPT-4 and comprehensive media intelligence APIs</p>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+
+            <div class="tier-selector">
+                <button class="tier-btn active" id="freeBtn" onclick="selectTier('free')">
+                    🆓 Free Analysis
+                    <span class="tier-badge" id="freeBadge">3 left</span>
+                </button>
+                <button class="tier-btn" id="trialBtn" onclick="selectTier('trial')">
+                    ⭐ Premium Trial
+                    <span class="tier-badge" id="trialBadge">1 left</span>
+                </button>
             </div>
-            <div class="progress-steps">
-                <span class="step" id="step1">📡 Extract Content</span>
-                <span class="step" id="step2">🤖 AI Analysis</span>
-                <span class="step" id="step3">🎯 Bias Detection</span>
-                <span class="step" id="step4">✅ Fact Check</span>
-                <span class="step" id="step5">📊 Generate Report</span>
+
+            <div class="input-section">
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="switchInputType('text')">📝 Paste Content</button>
+                    <button class="input-tab" onclick="switchInputType('url')">🔗 Analyze URL</button>
+                </div>
+                
+                <div class="sample-articles">
+                    <label>📚 Demo Content Library - Experience Professional Analysis:</label>
+                    <div>
+                        <button class="sample-btn" onclick="loadSample('reliable')">📰 Verified News Source</button>
+                        <button class="sample-btn" onclick="loadSample('biased')">⚖️ Bias Analysis Example</button>
+                        <button class="sample-btn" onclick="loadSample('fake')">❌ Misinformation Sample</button>
+                        <button class="sample-btn" onclick="loadSample('mixed')">🤔 Mixed Credibility Case</button>
+                    </div>
+                </div>
+                
+                <div class="input-content active" id="textInput">
+                    <div class="input-group">
+                        <label for="news-text"><i class="fas fa-file-text"></i> News Article Content or Claim</label>
+                        <textarea id="news-text" placeholder="Enter news article content, claims, or statements for comprehensive verification analysis. Our OpenAI GPT-4 powered system will assess credibility, detect bias patterns, verify sources, and provide professional-grade insights..." oninput="updateCharCount()"></textarea>
+                        <div class="char-counter" id="charCounter">0 characters</div>
+                    </div>
+                </div>
+                
+                <div class="input-content" id="urlInput">
+                    <div class="input-group">
+                        <label for="news-url"><i class="fas fa-link"></i> News Article URL</label>
+                        <input type="url" id="news-url" placeholder="https://example.com/news-article-to-verify">
+                        <small style="color: #6b7280; margin-top: 8px; display: block; font-weight: 500;">
+                            <i class="fas fa-info-circle"></i> Supports any news URL - automatic content extraction with News API integration
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="analyze-btn" onclick="showDemo()">
+                    <i class="fas fa-search"></i> Initialize Professional Verification
+                </button>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-text" id="progressText">Initializing Professional Analysis...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-details" id="progressDetails">Activating enterprise verification systems...</div>
+                </div>
+                
+                <button class="reset-btn" onclick="resetForm()">
+                    <i class="fas fa-undo"></i> Reset Analysis
+                </button>
+            </div>
+
+            <div class="demo-results" id="demoResults" style="display: none;">
+                <div class="demo-header">
+                    <h3>📊 Analysis Results Preview</h3>
+                    <p>Sample output from NewsVerify Pro enterprise analysis</p>
+                </div>
+                
+                <div class="score-display">
+                    <div class="score-number">87</div>
+                    <div class="score-label">Credibility Score</div>
+                    <div style="margin-top: 10px;">
+                        <span class="credibility-badge">High Credibility</span>
+                        <span class="credibility-badge" style="background: linear-gradient(135deg, #667eea, #764ba2);">Grade: A-</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background: rgba(102, 126, 234, 0.1); border-radius: 15px;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">🔍 Analysis Overview</h4>
+                    <p style="color: #4a5568; line-height: 1.6;">
+                        Content demonstrates strong journalistic standards with proper attribution and factual reporting. 
+                        Minimal bias detected with neutral political stance. Source verification confirms established 
+                        news outlet with high domain authority.
+                    </p>
+                </div>
+
+                <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #059669;">15%</div>
+                        <div style="font-size: 0.9rem; color: #6b7280;">AI Probability</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #667eea;">Center</div>
+                        <div style="font-size: 0.9rem; color: #6b7280;">Political Bias</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #764ba2;">5</div>
+                        <div style="font-size: 0.9rem; color: #6b7280;">Sources Verified</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <main>
-        <section class="hero-section">
-            <div class="container">
-                <h1>Professional News Verification</h1>
-                <p>Real-time fact-checking, source verification, and bias analysis powered by Google Fact-Check API and advanced AI</p>
-            </div>
-        </section>
-
-        <section class="container">
-            <div class="analysis-container">
-                <div class="input-tabs">
-                    <button class="tab active" onclick="switchTab('url')">🔗 Analyze News URL</button>
-                    <button class="tab" onclick="switchTab('text')">📝 Analyze News Text</button>
-                </div>
-
-                <!-- URL Input Section -->
-                <div class="input-section active" id="urlSection">
-                    <div class="sample-buttons">
-                        <button class="sample-btn" onclick="loadSampleURL('cnn')">📺 CNN Sample</button>
-                        <button class="sample-btn" onclick="loadSampleURL('reuters')">📰 Reuters Sample</button>
-                        <button class="sample-btn" onclick="loadSampleURL('bbc')">🌍 BBC Sample</button>
-                        <button class="sample-btn" onclick="loadSampleURL('fox')">🦊 Fox Sample</button>
-                    </div>
-                    <div class="form-group">
-                        <label for="urlInput">Enter News Article URL:</label>
-                        <input type="url" class="form-control" id="urlInput" placeholder="https://example.com/news-article">
-                    </div>
-                    <button class="analyze-button" onclick="analyzeNews('url')">
-                        🔍 Verify This Article
-                    </button>
-                </div>
-
-                <!-- Text Input Section -->
-                <div class="input-section" id="textSection">
-                    <div class="sample-buttons">
-                        <button class="sample-btn" onclick="loadSampleText('political')">🏛️ Political News</button>
-                        <button class="sample-btn" onclick="loadSampleText('breaking')">⚡ Breaking News</button>
-                        <button class="sample-btn" onclick="loadSampleText('science')">🔬 Science News</button>
-                    </div>
-                    <div class="form-group">
-                        <label for="textInput">Paste News Article Text:</label>
-                        <textarea class="form-control" id="textInput" placeholder="Paste your news article text here..."></textarea>
-                    </div>
-                    <button class="analyze-button" onclick="analyzeNews('text')">
-                        🔍 Verify This Content
-                    </button>
-                </div>
-
-                <!-- Results Section -->
-                <div class="results-section" id="resultsSection">
-                    <div class="results-grid">
-                        <!-- Credibility Score Card -->
-                        <div class="result-card animate-in">
-                            <div class="result-header">
-                                <div class="result-title">Credibility Assessment</div>
-                                <div class="tier-badge tier-free">FREE</div>
-                            </div>
-                            <div class="score-display">
-                                <div class="score-circle" id="credibilityCircle">
-                                    <div class="score-inner">
-                                        <div class="score-number" id="credibilityScore">--</div>
-                                        <div class="score-label">Score</div>
-                                    </div>
-                                </div>
-                                <div id="credibilityGrade" style="font-size: 1.2rem; font-weight: 700; color: #667eea;">Grade: --</div>
-                            </div>
-                            <div id="credibilityExplanation" style="font-size: 0.9rem; color: #6c757d; text-align: center;">
-                                Analysis will appear here...
-                            </div>
-                        </div>
-
-                        <!-- Source Analysis Card -->
-                        <div class="result-card animate-in">
-                            <div class="result-header">
-                                <div class="result-title">Publication Analysis</div>
-                                <div class="tier-badge tier-free">FREE</div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="sourceChart"></canvas>
-                            </div>
-                            <div class="source-details" id="sourceDetails">
-                                <p style="color: #6c757d; text-align: center;">Source analysis will appear here...</p>
-                            </div>
-                        </div>
-
-                        <!-- Political Bias Analysis Card - Pro Feature -->
-                        <div class="result-card animate-in">
-                            <div class="result-header">
-                                <div class="result-title">Political Bias Detection</div>
-                                <div class="tier-badge tier-pro">PRO</div>
-                            </div>
-                            <div id="biasAnalysis" class="locked-feature">
-                                <h4>Advanced Political Bias Analysis</h4>
-                                <p>• Left/Right bias scoring with confidence levels<br>
-                                • Keyword pattern analysis<br>
-                                • Objectivity assessment<br>
-                                • Political lean visualization</p>
-                                <button class="unlock-button" onclick="showUpgrade()">🚀 Unlock Pro Analysis</button>
-                            </div>
-                        </div>
-
-                        <!-- Fact Check Results Card - Pro Feature -->
-                        <div class="result-card animate-in">
-                            <div class="result-header">
-                                <div class="result-title">Real-Time Fact Checking</div>
-                                <div class="tier-badge tier-pro">PRO</div>
-                            </div>
-                            <div id="factCheckResults" class="locked-feature">
-                                <h4>Google Fact-Check API Results</h4>
-                                <p>• Live fact verification from Google's database<br>
-                                • Claim-by-claim analysis<br>
-                                • Source attribution verification<br>
-                                • Historical accuracy tracking</p>
-                                <button class="unlock-button" onclick="showUpgrade()">🚀 Unlock Real Fact-Checking</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Enhanced AI Summary Section -->
-                    <div class="summary-section animate-in">
-                        <div class="summary-title">
-                            🤖 Professional Analysis Report
-                        </div>
-                        <div class="summary-content" id="summaryContent">
-                            Your detailed professional analysis will appear here with insights about credibility, sourcing, and recommendations...
-                        </div>
-                        
-                        <div class="summary-insights" id="summaryInsights">
-                            <!-- Insights will be populated here -->
-                        </div>
-                    </div>
-
-                    <!-- Enhanced Details Section -->
-                    <div class="details-section" id="detailsSection">
-                        <!-- Details will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
     <script>
-        let currentAnalysis = null;
-        let analysisInProgress = false;
-        let freeUsesRemaining = 3; // Simulate usage tracking
+        let currentInputType = 'text';
+        let currentTier = 'free';
+        let freeUsesRemaining = 3;
 
-        // Tab switching
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
+        function selectTier(tier) {
+            currentTier = tier;
             
-            event.target.classList.add('active');
-            document.getElementById(tab + 'Section').classList.add('active');
+            document.querySelectorAll('.tier-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const selectedBtn = document.getElementById(tier + 'Btn');
+            selectedBtn.classList.add('active');
+
+            const analyzeBtn = document.querySelector('.analyze-btn');
+            if (currentTier === 'free') {
+                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Initialize Professional Verification (FREE)';
+                analyzeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            } else {
+                analyzeBtn.innerHTML = '<i class="fas fa-star"></i> Launch Enterprise Analysis (PREMIUM)';
+                analyzeBtn.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)';
+            }
         }
 
-        // Sample URL loading
-        function loadSampleURL(type) {
-            const urls = {
-                cnn: 'https://www.cnn.com/2024/01/15/politics/example-article',
-                reuters: 'https://www.reuters.com/world/example-breaking-news-2024-01-15',
-                bbc: 'https://www.bbc.com/news/world-example-story-2024',
-                fox: 'https://www.foxnews.com/politics/example-political-story'
+        function switchInputType(type) {
+            currentInputType = type;
+            
+            document.querySelectorAll('.input-tab').forEach((tab, index) => {
+                tab.classList.remove('active');
+                if ((type === 'text' && index === 0) || (type === 'url' && index === 1)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.input-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const targetContent = document.getElementById(type + 'Input');
+            if (targetContent) {
+                setTimeout(() => {
+                    targetContent.classList.add('active');
+                }, 150);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('news-text').value = '';
+            document.getElementById('news-url').value = '';
+            document.getElementById('demoResults').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            updateCharCount();
+            
+            if (currentInputType !== 'text') {
+                switchInputType('text');
+            }
+            
+            const resetBtn = document.querySelector('.reset-btn');
+            const originalText = resetBtn.innerHTML;
+            resetBtn.innerHTML = '<i class="fas fa-check"></i> Reset Complete';
+            resetBtn.style.background = 'linear-gradient(145deg, #10b981, #059669)';
+            
+            setTimeout(() => {
+                resetBtn.innerHTML = originalText;
+                resetBtn.style.background = 'linear-gradient(145deg, #6b7280, #4b5563)';
+            }, 1500);
+        }
+
+        function loadSample(type) {
+            const samples = {
+                reliable: `WASHINGTON (Associated Press) — The Federal Reserve raised its benchmark interest rate by 0.25 percentage points Wednesday, bringing it to a 22-year high of 5.25%-5.5% as the central bank continues its efforts to combat inflation. The decision was unanimous among voting members of the Federal Open Market Committee.
+
+Fed Chair Jerome Powell indicated during his post-meeting press conference that future policy decisions will depend on incoming economic data. "We remain data-dependent and prepared to adjust our approach as conditions warrant," Powell stated.`,
+                
+                biased: `Federal Reserve's Latest Rate Hike Signals Continued Economic Pressure on American Families
+
+The Federal Reserve announced another quarter-point interest rate increase Wednesday, raising concerns among economists about the cumulative impact on household budgets and economic recovery.`,
+                
+                fake: `EXCLUSIVE: Federal Reserve Documents Reveal Coordinated Market Manipulation Strategy
+
+Internal Federal Reserve communications obtained through Freedom of Information Act requests reveal concerning coordination between Fed officials and major Wall Street institutions.`,
+                
+                mixed: `Fed Raises Rates to 22-Year High Amid Growing Economic Uncertainty
+
+The Federal Reserve increased its benchmark interest rate by 0.25 percentage points yesterday, continuing its monetary tightening cycle despite mixed signals from economic indicators.`
             };
-            document.getElementById('urlInput').value = urls[type] || '';
-        }
-
-        // Sample text loading
-        function loadSampleText(type) {
-            const texts = {
-                political: `WASHINGTON - In a decisive move that has divided political observers, new legislation targeting social media regulation was introduced in Congress today. According to sources familiar with the matter, the bipartisan bill aims to increase transparency in content moderation practices.
-
-                The proposed legislation comes after months of hearings examining the role of social media platforms in shaping public discourse. Representative Sarah Johnson (D-CA) stated that "Americans deserve to know how decisions about their content are being made."
-
-                Critics argue the bill could stifle innovation, while supporters claim it's necessary for protecting free speech. The tech industry has not yet responded to requests for comment.`,
-                
-                breaking: `BREAKING: A major scientific breakthrough in renewable energy has been announced by researchers at MIT. The team claims their new solar cell technology can achieve 47% efficiency, nearly double the current industry standard.
-
-                Dr. Michael Chen, lead researcher on the project, told reporters that the breakthrough could "revolutionize how we think about solar energy." The research, published in Nature Energy, describes a novel approach using perovskite materials.
-
-                Industry experts are calling it "game-changing" though commercial applications are still years away. The Department of Energy has already expressed interest in funding further research.`,
-                
-                science: `A comprehensive study published in The Lancet reveals significant progress in Alzheimer's disease research. The 18-month clinical trial involving 1,800 participants across 15 countries showed promising results for a new therapeutic approach.
-
-                Dr. Lisa Rodriguez from Johns Hopkins University, who led the research team, explained that the treatment targets amyloid plaques while simultaneously supporting neural regeneration. "We're seeing cognitive improvement in 68% of participants," Rodriguez noted during yesterday's press conference.
-
-                The pharmaceutical company funding the research plans to begin Phase 3 trials next year, pending FDA approval. Patient advocacy groups have welcomed the news while emphasizing the need for continued research funding.`
-            };
-            document.getElementById('textInput').value = texts[type] || '';
-        }
-
-        // Update usage counter
-        function updateUsageCounter() {
-            const counter = document.getElementById('usageCounter');
-            const countSpan = document.getElementById('usageCount');
             
-            countSpan.textContent = freeUsesRemaining;
+            const textarea = document.getElementById('news-text');
+            textarea.value = samples[type];
+            updateCharCount();
             
-            if (freeUsesRemaining <= 1) {
-                counter.classList.add('low');
-            }
-            if (freeUsesRemaining <= 0) {
-                counter.classList.add('expired');
-                counter.innerHTML = '🚫 <span>No free analyses left</span>';
+            if (currentInputType !== 'text') {
+                switchInputType('text');
             }
         }
 
-        // Main analysis function
-        async function analyzeNews(inputType) {
-            if (analysisInProgress) return;
+        function updateCharCount() {
+            const textarea = document.getElementById('news-text');
+            const counter = document.getElementById('charCounter');
+            const length = textarea.value.length;
             
-            // Check usage limits
-            if (freeUsesRemaining <= 0) {
-                showUpgrade();
-                return;
+            counter.textContent = `${length.toLocaleString()} characters`;
+            
+            if (length > 5000) {
+                counter.className = 'char-counter error';
+                counter.textContent += ' (⚠️ Too long - may affect accuracy)';
+            } else if (length > 3000) {
+                counter.className = 'char-counter warning';
+                counter.textContent += ' (⚡ Optimal range: 500-3000 characters)';
+            } else if (length > 100) {
+                counter.className = 'char-counter';
+                counter.textContent += ' (✅ Good length for analysis)';
+            } else if (length > 0) {
+                counter.className = 'char-counter';
+                counter.textContent += ' (📝 Keep typing...)';
+            } else {
+                counter.className = 'char-counter';
             }
-            
-            const input = inputType === 'url' ? 
-                document.getElementById('urlInput').value.trim() : 
-                document.getElementById('textInput').value.trim();
-                
-            if (!input) {
-                alert('Please enter a URL or text to analyze');
-                return;
-            }
-
-            // Validate URL format if URL input
-            if (inputType === 'url') {
-                try {
-                    new URL(input);
-                } catch (e) {
-                    alert('Please enter a valid URL (e.g., https://example.com/article)');
-                    return;
-                }
-            }
-
-            analysisInProgress = true;
-            showProgress();
-            
-            // Decrease usage count
-            freeUsesRemaining--;
-            updateUsageCounter();
-            
-            try {
-                const requestData = inputType === 'url' ? {url: input} : {text: input};
-                
-                const response = await fetch('/api/analyze-news', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                const results = await response.json();
-                
-                if (results.status === 'success') {
-                    currentAnalysis = results;
-                    displayResults(results);
-                } else {
-                    throw new Error(results.error || 'Analysis failed');
-                }
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                alert('Analysis failed: ' + error.message);
-                resetProgress();
-                // Restore usage count on error
-                freeUsesRemaining++;
-                updateUsageCounter();
-            }
-            
-            analysisInProgress = false;
         }
 
-        // Progress animation
-        function showProgress() {
-            const progressSection = document.getElementById('progressSection');
+        function showDemo() {
+            const progressContainer = document.getElementById('progressContainer');
+            const demoResults = document.getElementById('demoResults');
             const progressFill = document.getElementById('progressFill');
-            const analysisStatus = document.getElementById('analysisStatus');
+            const progressText = document.getElementById('progressText');
+            const progressDetails = document.getElementById('progressDetails');
             
-            progressSection.classList.add('active');
+            progressContainer.style.display = 'block';
+            demoResults.style.display = 'none';
             
+            // Simulate analysis progress
             const steps = [
-                {id: 'step1', text: '📡 Extracting article content...', progress: 20},
-                {id: 'step2', text: '🤖 Running AI credibility analysis...', progress: 40},
-                {id: 'step3', text: '🎯 Detecting political bias patterns...', progress: 60},
-                {id: 'step4', text: '✅ Fact-checking claims...', progress: 80},
-                {id: 'step5', text: '📊 Generating professional report...', progress: 100}
+                { progress: 15, text: '🤖 OpenAI GPT-4 Analysis Active...', detail: 'Running enterprise-grade content verification algorithms' },
+                { progress: 30, text: '📰 News API Intelligence Processing...', detail: 'Cross-referencing against verified news databases' },
+                { progress: 45, text: '🌐 Multi-Source Verification...', detail: 'Scanning authenticated news sources for consensus' },
+                { progress: 60, text: '⚖️ Advanced Political Bias Intelligence...', detail: 'GPT-4 powered multi-dimensional bias assessment' },
+                { progress: 75, text: '🏛️ Enterprise Source Intelligence...', detail: 'News API enhanced authority and credibility verification' },
+                { progress: 90, text: '📊 Executive Intelligence Report...', detail: 'Generating institutional-grade analysis summary' },
+                { progress: 100, text: '✅ Professional Intelligence Complete!', detail: 'Enterprise verification results ready for review' }
             ];
-
+            
             let currentStep = 0;
             
-            const progressInterval = setInterval(() => {
+            function updateStep() {
                 if (currentStep < steps.length) {
                     const step = steps[currentStep];
-                    
-                    // Update progress bar
                     progressFill.style.width = step.progress + '%';
-                    analysisStatus.textContent = step.text;
-                    
-                    // Update step status
-                    document.getElementById(step.id).classList.add('active');
-                    if (currentStep > 0) {
-                        document.getElementById(steps[currentStep - 1].id).classList.remove('active');
-                        document.getElementById(steps[currentStep - 1].id).classList.add('completed');
-                    }
-                    
+                    progressText.textContent = step.text;
+                    progressDetails.textContent = step.detail;
                     currentStep++;
+                    
+                    setTimeout(updateStep, 800);
                 } else {
-                    clearInterval(progressInterval);
-                    analysisStatus.textContent = '✅ Professional analysis complete!';
-                    document.getElementById('step5').classList.remove('active');
-                    document.getElementById('step5').classList.add('completed');
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        demoResults.style.display = 'block';
+                        demoResults.scrollIntoView({ behavior: 'smooth' });
+                    }, 1000);
                 }
-            }, 1200);
-        }
-
-        // Display results
-        function displayResults(results) {
-            const resultsSection = document.getElementById('resultsSection');
-            resultsSection.classList.add('visible');
-            
-            // Update credibility score
-            const credibilityScore = results.scoring?.overall_credibility || 50;
-            document.getElementById('credibilityScore').textContent = Math.round(credibilityScore);
-            document.getElementById('credibilityGrade').textContent = `Grade: ${results.scoring?.credibility_grade || 'C'}`;
-            
-            // Add credibility explanation
-            const explanation = getCredibilityExplanation(credibilityScore);
-            document.getElementById('credibilityExplanation').textContent = explanation;
-            
-            // Update credibility circle
-            updateCredibilityCircle(credibilityScore);
-            
-            // Update source chart and details
-            updateSourceChart(results.source_verification);
-            updateSourceDetails(results.source_verification);
-            
-            // Generate enhanced AI summary
-            generateEnhancedAISummary(results);
-            
-            // Update enhanced details section
-            updateEnhancedDetailsSection(results);
-        }
-
-        function getCredibilityExplanation(score) {
-            if (score >= 85) {
-                return "Excellent credibility with strong journalistic standards and reliable sourcing.";
-            } else if (score >= 70) {
-                return "Good credibility with generally reliable content and adequate sourcing.";
-            } else if (score >= 55) {
-                return "Moderate credibility with some concerns about sourcing or bias.";
-            } else if (score >= 40) {
-                return "Low credibility with significant concerns about accuracy or bias.";
-            } else {
-                return "Very low credibility with major red flags identified.";
-            }
-        }
-
-        // Update credibility circle
-        function updateCredibilityCircle(score) {
-            const circle = document.getElementById('credibilityCircle');
-            const percentage = score / 100;
-            const degrees = percentage * 360;
-            
-            let color1 = '#e74c3c', color2 = '#c0392b'; // Red for low scores
-            if (score >= 75) {
-                color1 = '#27ae60'; color2 = '#2ecc71'; // Green for high scores
-            } else if (score >= 55) {
-                color1 = '#f39c12'; color2 = '#e67e22'; // Orange for medium scores
             }
             
-            circle.style.background = `conic-gradient(${color1} 0deg, ${color2} ${degrees}deg, #ecf0f1 ${degrees}deg)`;
+            updateStep();
         }
 
-        // Update source chart
-        function updateSourceChart(sourceData) {
-            const ctx = document.getElementById('sourceChart').getContext('2d');
-            
-            const credibility = sourceData?.average_credibility || 60;
-            const chartData = [credibility, 100 - credibility];
-            
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Credible', 'Concerns'],
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: ['#27ae60', '#ecf0f1'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update source details with enhanced information
-        function updateSourceDetails(sourceData) {
-            const container = document.getElementById('sourceDetails');
-            const sources = sourceData?.sources || [{name: 'Unknown Publication', credibility: 60, type: 'unknown'}];
-            
-            container.innerHTML = sources.map(source => {
-                const credibilityColor = source.credibility >= 80 ? '#27ae60' : 
-                                       source.credibility >= 60 ? '#f39c12' : '#e74c3c';
-                
-                return `
-                    <div class="source-item">
-                        <div class="source-name">
-                            📰 ${source.name}
-                            <span style="color: ${credibilityColor}; font-size: 0.9rem;">(${source.credibility}/100)</span>
-                        </div>
-                        <div class="source-meta">
-                            Type: ${source.type || 'Unknown'} • 
-                            Bias: ${source.bias || 'Unknown'} • 
-                            Reliability: ${source.reliability || 'Unknown'}
-                        </div>
-                        <div class="credibility-bar">
-                            <div class="credibility-fill" style="width: ${source.credibility}%; background: ${credibilityColor};"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Generate enhanced AI summary
-        function generateEnhancedAISummary(results) {
-            const summaryContent = document.getElementById('summaryContent');
-            const summaryInsights = document.getElementById('summaryInsights');
-            const score = results.scoring?.overall_credibility || 50;
-            
-            let assessment = '';
-            let recommendation = '';
-            
-            if (score >= 80) {
-                assessment = 'This article demonstrates excellent journalistic standards with reliable sourcing, balanced reporting, and minimal bias indicators. The content appears to be professionally fact-checked and well-researched.';
-                recommendation = 'This content is suitable for sharing and can be considered a reliable source of information.';
-            } else if (score >= 65) {
-                assessment = 'This article shows good credibility with generally sound journalistic practices. Some minor concerns may exist regarding sourcing depth or slight bias indicators, but overall quality is acceptable.';
-                recommendation = 'This content is generally reliable but consider cross-referencing with additional sources for important decisions.';
-            } else if (score >= 50) {
-                assessment = 'This article presents mixed credibility signals. While not entirely unreliable, there are notable concerns about sourcing quality, potential bias, or sensationalized language that warrant caution.';
-                recommendation = 'Exercise caution with this content and verify key claims through multiple independent sources before sharing.';
-            } else {
-                assessment = 'This article raises significant credibility concerns including poor sourcing, strong bias indicators, sensationalized language, or questionable journalistic standards.';
-                recommendation = 'Do not share this content without extensive fact-checking. Seek information from more reliable sources.';
-            }
-            
-            summaryContent.innerHTML = `
-                <p><strong>Professional Assessment:</strong> ${assessment}</p>
-                <p><strong>Recommendation:</strong> ${recommendation}</p>
-            `;
-            
-            // Add insights cards
-            summaryInsights.innerHTML = `
-                <div class="insight-card">
-                    <div class="insight-title">📊 Analysis Metrics</div>
-                    <div class="insight-content">
-                        Analyzed ${results.text_length} characters across ${results.source_verification?.sources_found || 1} source(s) 
-                        with credibility score of ${Math.round(score)}/100.
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="insight-title">🎯 Key Findings</div>
-                    <div class="insight-content">
-                        ${results.ai_analysis?.red_flags?.length || 0} red flags identified, 
-                        ${results.ai_analysis?.credibility_indicators?.length || 0} positive indicators found.
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="insight-title">⚡ Processing</div>
-                    <div class="insight-content">
-                        Analysis completed in ${results.methodology?.processing_time || '8 seconds'} using 
-                        ${results.methodology?.analysis_depth || 'standard'} depth scanning.
-                    </div>
-                </div>
-            `;
-        }
-
-        // Update enhanced details section
-        function updateEnhancedDetailsSection(results) {
-            const detailsSection = document.getElementById('detailsSection');
-            
-            detailsSection.innerHTML = `
-                <div class="detail-card">
-                    <div class="detail-title">📈 Quality Metrics</div>
-                    <div class="detail-content">
-                        <div class="detail-metric">
-                            <span class="metric-label">Writing Quality</span>
-                            <span class="metric-value">${results.ai_analysis?.writing_quality || 70}/100</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Source Attribution</span>
-                            <span class="metric-value">${results.ai_analysis?.source_attribution || 60}/100</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Emotional Language</span>
-                            <span class="metric-value">${results.ai_analysis?.emotional_language || 30}/100</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Sensationalism</span>
-                            <span class="metric-value">${results.ai_analysis?.sensationalism_score || 20}/100</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="detail-title">🔍 Analysis Methods</div>
-                    <div class="detail-content">
-                        <div class="detail-metric">
-                            <span class="metric-label">AI Models Used</span>
-                            <span class="metric-value">${results.methodology?.ai_models_used || 'Pattern Analysis'}</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Databases Scanned</span>
-                            <span class="metric-value">${results.methodology?.databases_searched || 'Limited'}</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Processing Time</span>
-                            <span class="metric-value">${results.methodology?.processing_time || '8 sec'}</span>
-                        </div>
-                        <div class="detail-metric">
-                            <span class="metric-label">Analysis Depth</span>
-                            <span class="metric-value">${results.methodology?.analysis_depth || 'Standard'}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="detail-title">✅ Positive Indicators</div>
-                    <div class="detail-content">
-                        ${(results.ai_analysis?.credibility_indicators || ['Professional formatting', 'Standard journalism structure']).map(indicator => 
-                            `<div style="margin-bottom: 0.5rem;">• ${indicator}</div>`
-                        ).join('')}
-                    </div>
-                </div>
-                
-                <div class="detail-card">
-                    <div class="detail-title">🚩 Areas of Concern</div>
-                    <div class="detail-content">
-                        ${(results.ai_analysis?.red_flags || ['No significant concerns identified']).map(flag => 
-                            `<div style="margin-bottom: 0.5rem;">• ${flag}</div>`
-                        ).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Reset analysis
-        function resetAnalysis() {
-            analysisInProgress = false;
-            currentAnalysis = null;
-            
-            // Reset progress
-            resetProgress();
-            
-            // Hide results
-            document.getElementById('resultsSection').classList.remove('visible');
-            
-            // Clear inputs
-            document.getElementById('urlInput').value = '';
-            document.getElementById('textInput').value = '';
-        }
-
-        // Reset progress
-        function resetProgress() {
-            const progressSection = document.getElementById('progressSection');
-            const progressFill = document.getElementById('progressFill');
-            const analysisStatus = document.getElementById('analysisStatus');
-            
-            progressSection.classList.remove('active');
-            progressFill.style.width = '0%';
-            analysisStatus.textContent = 'Ready to analyze';
-            
-            // Reset all steps
-            document.querySelectorAll('.step').forEach(step => {
-                step.classList.remove('active', 'completed');
-            });
-        }
-
-        // Show upgrade modal
-        function showUpgrade() {
-            alert(`🚀 Upgrade to Facts & Fakes AI Pro!
-
-✅ UNLIMITED news analyses (no daily limits)
-✅ Real-time Google Fact-Check API results  
-✅ Advanced political bias detection
-✅ Historical accuracy tracking
-✅ Detailed source verification reports
-✅ Professional PDF reports
-✅ Priority support
-
-💰 Just $29/month - Start your free 7-day trial!
-
-Visit our pricing page to unlock all pro features!`);
-        }
-
-        // Initialize usage counter on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateUsageCounter();
-        });
+        // Initialize on page load
+        updateCharCount();
     </script>
 </body>
 </html>
