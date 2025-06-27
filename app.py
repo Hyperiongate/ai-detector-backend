@@ -29,13 +29,23 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
-# Set OpenAI API key if available - FIXED: Use new client syntax
+# Set OpenAI API key - Compatible with both old and new versions
 openai_client = None
 if OPENAI_API_KEY:
     try:
+        # Try new client syntax first
         from openai import OpenAI
         openai_client = OpenAI(api_key=OPENAI_API_KEY)
-        logger.info("OpenAI client initialized successfully")
+        logger.info("OpenAI client initialized successfully (new syntax)")
+    except ImportError:
+        try:
+            # Fall back to old syntax if new client not available
+            import openai
+            openai.api_key = OPENAI_API_KEY
+            openai_client = "legacy"  # Flag for legacy mode
+            logger.info("OpenAI client initialized successfully (legacy syntax)")
+        except Exception as e:
+            logger.warning(f"OpenAI initialization failed: {e}")
     except Exception as e:
         logger.warning(f"OpenAI initialization failed: {e}")
 
@@ -342,7 +352,7 @@ def analyze_ai_patterns(text):
         return create_fallback_ai_analysis(text, "basic")
 
 def get_openai_analysis(text):
-    """Advanced OpenAI-based analysis for pro tier with proper error handling"""
+    """Advanced OpenAI-based analysis - Compatible with both old and new OpenAI versions"""
     try:
         if not openai_client:
             return {}
@@ -364,17 +374,33 @@ def get_openai_analysis(text):
         Text: {text[:1500]}
         """
         
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.1
-        )
+        # Handle both new and legacy OpenAI syntax
+        if openai_client == "legacy":
+            # Use legacy syntax
+            import openai
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            content = response.choices[0].message.content.strip()
+        else:
+            # Use new client syntax
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            content = response.choices[0].message.content.strip()
         
-        content = response.choices[0].message.content.strip()
         result = json.loads(content)
         result['advanced_analysis'] = True
         return result
@@ -727,7 +753,7 @@ def get_url_source_verification(url, text):
         }
 
 def get_news_ai_analysis(text):
-    """AI analysis for news content with error handling"""
+    """AI analysis for news content - Compatible with both OpenAI versions"""
     try:
         if openai_client:
             prompt = f"""
@@ -747,17 +773,31 @@ def get_news_ai_analysis(text):
             Text: {text[:1500]}
             """
             
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=800,
-                temperature=0.1
-            )
+            # Handle both new and legacy OpenAI syntax
+            if openai_client == "legacy":
+                import openai
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=800,
+                    temperature=0.1
+                )
+                content = response.choices[0].message.content.strip()
+            else:
+                response = openai_client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=800,
+                    temperature=0.1
+                )
+                content = response.choices[0].message.content.strip()
             
-            content = response.choices[0].message.content.strip()
             result = json.loads(content)
             result['status'] = 'success'
             return result
