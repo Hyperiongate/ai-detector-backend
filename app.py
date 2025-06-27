@@ -29,23 +29,14 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
 
-# Set OpenAI API key - Compatible with both old and new versions
+# Set OpenAI API key - Fixed for 0.28.1 compatibility
 openai_client = None
 if OPENAI_API_KEY:
     try:
-        # Try new client syntax first
-        from openai import OpenAI
-        openai_client = OpenAI(api_key=OPENAI_API_KEY)
-        logger.info("OpenAI client initialized successfully (new syntax)")
-    except ImportError:
-        try:
-            # Fall back to old syntax if new client not available
-            import openai
-            openai.api_key = OPENAI_API_KEY
-            openai_client = "legacy"  # Flag for legacy mode
-            logger.info("OpenAI client initialized successfully (legacy syntax)")
-        except Exception as e:
-            logger.warning(f"OpenAI initialization failed: {e}")
+        import openai
+        openai.api_key = OPENAI_API_KEY
+        openai_client = "legacy"
+        logger.info("OpenAI client initialized successfully (legacy syntax for 0.28.1)")
     except Exception as e:
         logger.warning(f"OpenAI initialization failed: {e}")
 
@@ -261,7 +252,7 @@ def detect_ai_content():
             'plagiarism_detection': plagiarism_results,
             'overall_assessment': generate_overall_assessment(ai_results, plagiarism_results, analysis_type),
             'methodology': {
-                'ai_models_used': 'GPT-4 Analysis' if analysis_type == 'pro' and openai_client else 'Pattern Matching',
+                'ai_models_used': 'GPT-3.5 Analysis' if analysis_type == 'pro' and openai_client else 'Pattern Matching',
                 'plagiarism_databases': '500+ sources' if analysis_type == 'pro' else '50+ sources',
                 'processing_time': '8 seconds' if analysis_type == 'pro' else '12 seconds',
                 'analysis_depth': 'comprehensive' if analysis_type == 'pro' else 'standard'
@@ -353,7 +344,7 @@ def analyze_ai_patterns(text):
         return create_fallback_ai_analysis(text, "basic")
 
 def get_openai_analysis(text):
-    """Advanced OpenAI-based analysis - Compatible with both old and new OpenAI versions"""
+    """Advanced OpenAI-based analysis - Using legacy syntax for 0.28.1"""
     try:
         if not openai_client:
             return {}
@@ -375,32 +366,17 @@ def get_openai_analysis(text):
         Text: {text[:1500]}
         """
         
-        # Handle both new and legacy OpenAI syntax
-        if openai_client == "legacy":
-            # Use legacy syntax
-            import openai
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500,
-                temperature=0.1
-            )
-            content = response.choices[0].message.content.strip()
-        else:
-            # Use new client syntax
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500,
-                temperature=0.1
-            )
-            content = response.choices[0].message.content.strip()
+        # Use legacy syntax for OpenAI 0.28.1
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert in AI text detection. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.1
+        )
+        content = response.choices[0].message.content.strip()
         
         result = json.loads(content)
         result['advanced_analysis'] = True
@@ -768,7 +744,7 @@ def get_url_source_verification(url, text):
         }
 
 def get_news_ai_analysis(text):
-    """AI analysis for news content - Compatible with both OpenAI versions"""
+    """AI analysis for news content - Using legacy syntax for 0.28.1"""
     try:
         if openai_client:
             prompt = f"""
@@ -788,30 +764,17 @@ def get_news_ai_analysis(text):
             Text: {text[:1500]}
             """
             
-            # Handle both new and legacy OpenAI syntax
-            if openai_client == "legacy":
-                import openai
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=800,
-                    temperature=0.1
-                )
-                content = response.choices[0].message.content.strip()
-            else:
-                response = openai_client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=800,
-                    temperature=0.1
-                )
-                content = response.choices[0].message.content.strip()
+            # Use legacy syntax for OpenAI 0.28.1
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a news credibility expert. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=800,
+                temperature=0.1
+            )
+            content = response.choices[0].message.content.strip()
             
             result = json.loads(content)
             result['status'] = 'success'
@@ -1083,6 +1046,8 @@ def get_real_news_api_sources(query):
     except Exception as e:
         logger.error(f"News API error: {e}")
         return None
+
+def get_fact_check_simulation(text):
     """Simulate fact-checking results with error handling"""
     try:
         # Simple simulation
