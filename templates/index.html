@@ -1,1209 +1,10 @@
-<!DOCTYP<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facts & Fakes AI - Complete Content Authenticity Platform</title>
     <meta name="description" content="Professional AI-powered tools for detecting misinformation, AI-generated content, and image authenticity. 4-in-1 platform for content verification.">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* Unified Navigation System */
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-            padding: 15px 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 800;
-            font-size: 1.3rem;
-        }
-
-        .nav-logo i {
-            color: #667eea;
-            font-size: 1.5rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #4a5568;
-            text-decoration: none;
-            padding: 10px 16px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.95rem;
-            position: relative;
-        }
-
-        .nav-links a:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            transform: translateY(-1px);
-        }
-
-        .nav-links a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .nav-cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #667eea;
-            cursor: pointer;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-            padding-top: 80px;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            animation: float 20s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .hero-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            animation: slideInUp 1s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-subtitle {
-            font-size: clamp(1.2rem, 2.5vw, 2rem);
-            margin-bottom: 20px;
-            opacity: 0.95;
-            animation: slideInUp 1s ease-out 0.3s both;
-            font-weight: 600;
-        }
-
-        .hero-description {
-            font-size: clamp(1rem, 2vw, 1.4rem);
-            margin-bottom: 40px;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-            opacity: 0.9;
-            animation: slideInUp 1s ease-out 0.6s both;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: slideInUp 1s ease-out 0.9s both;
-        }
-
-        .cta-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 15px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .cta-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-            color: white;
-        }
-
-        .cta-btn.primary {
-            background: rgba(255, 255, 255, 0.9);
-            color: #667eea;
-            border-color: white;
-        }
-
-        .cta-btn.primary:hover {
-            background: white;
-            transform: translateY(-3px) scale(1.05);
-            color: #667eea;
-        }
-
-        /* Social Proof Banner */
-        .social-proof {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            margin-top: 40px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .social-proof-text {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 15px;
-        }
-
-        .social-proof-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
-
-        .proof-stat {
-            text-align: center;
-        }
-
-        .proof-number {
-            font-size: 1.8rem;
-            font-weight: bold;
-            display: block;
-        }
-
-        .proof-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Problem Section */
-        .problem-section {
-            background: #f8f9fa;
-            padding: 100px 20px;
-            text-align: center;
-        }
-
-        .problem-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-size: clamp(2.5rem, 4vw, 3.5rem);
-            margin-bottom: 30px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .section-subtitle {
-            font-size: clamp(1.1rem, 2vw, 1.5rem);
-            margin-bottom: 60px;
-            color: #666;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .problem-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin-top: 60px;
-        }
-
-        .problem-card {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            border-left: 4px solid #dc3545;
-        }
-
-        .problem-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .problem-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-            color: #dc3545;
-        }
-
-        .problem-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .problem-description {
-            font-size: 1rem;
-            color: #666;
-            line-height: 1.6;
-        }
-
-        /* Solution Section */
-        .solution-section {
-            padding: 100px 20px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-
-        .solution-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .solution-intro {
-            max-width: 800px;
-            margin: 0 auto 80px;
-        }
-
-        .solution-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 40px;
-        }
-
-        .solution-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .solution-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .solution-icon {
-            font-size: 4rem;
-            margin-bottom: 25px;
-            display: block;
-        }
-
-        .solution-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .solution-description {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .solution-features {
-            list-style: none;
-            text-align: left;
-            margin-bottom: 30px;
-        }
-
-        .solution-features li {
-            padding: 8px 0;
-            position: relative;
-            padding-left: 25px;
-            opacity: 0.9;
-        }
-
-        .solution-features li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #4CAF50;
-            font-weight: bold;
-            background: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-        }
-
-        .solution-btn {
-            background: white;
-            color: #667eea;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .solution-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        /* Benefits Section */
-        .benefits-section {
-            background: white;
-            padding: 100px 20px;
-        }
-
-        .benefits-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .benefits-header {
-            text-align: center;
-            margin-bottom: 80px;
-        }
-
-        .benefits-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-
-        .benefit-card {
-            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .benefit-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .benefit-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            border-color: #667eea;
-        }
-
-        .benefit-icon {
-            font-size: 4rem;
-            margin-bottom: 25px;
-            display: block;
-            color: #667eea;
-        }
-
-        .benefit-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .benefit-description {
-            font-size: 1.1rem;
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .benefit-features {
-            list-style: none;
-            text-align: left;
-            margin-top: 20px;
-        }
-
-        .benefit-features li {
-            padding: 5px 0;
-            color: #555;
-            position: relative;
-            padding-left: 20px;
-        }
-
-        .benefit-features li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        /* Competitive Advantage */
-        .competitive-section {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 100px 20px;
-            text-align: center;
-        }
-
-        .competitive-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .competitive-intro {
-            margin-bottom: 60px;
-        }
-
-        .competitive-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-
-        .competitive-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .competitive-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .competitive-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #4facfe;
-        }
-
-        .competitive-card p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-
-        /* CTA Section */
-        .final-cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 100px 20px;
-            text-align: center;
-        }
-
-        .final-cta-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .final-cta h2 {
-            font-size: clamp(2.5rem, 4vw, 3.5rem);
-            margin-bottom: 30px;
-            font-weight: 700;
-        }
-
-        .final-cta p {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .final-cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .final-cta-btn {
-            padding: 18px 40px;
-            border: 2px solid white;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .final-cta-btn.primary {
-            background: white;
-            color: #667eea;
-        }
-
-        .final-cta-btn.secondary {
-            background: transparent;
-            color: white;
-        }
-
-        .final-cta-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-        }
-
-        .final-cta-btn.primary:hover {
-            background: #f8f9fa;
-            color: #667eea;
-        }
-
-        .final-cta-btn.secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        /* Footer */
-        .footer {
-            background: #212529;
-            color: #adb5bd;
-            padding: 60px 20px 30px;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .footer-section h3 {
-            color: white;
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-        }
-
-        .footer-section p, .footer-section ul {
-            line-height: 1.8;
-        }
-
-        .footer-section ul {
-            list-style: none;
-        }
-
-        .footer-section a {
-            color: #adb5bd;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-section a:hover {
-            color: #4facfe;
-        }
-
-        .footer-bottom {
-            border-top: 1px solid #495057;
-            padding-top: 30px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: rgba(255, 255, 255, 0.98);
-                backdrop-filter: blur(20px);
-                flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .hero {
-                padding: 40px 20px;
-                min-height: 80vh;
-                padding-top: 120px;
-            }
-
-            .cta-buttons, .final-cta-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .cta-btn, .final-cta-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .problem-grid, .solution-grid, .benefits-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .social-proof-stats {
-                gap: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Unified Navigation -->
-    <nav class="nav-bar">
-        <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>Facts & Fakes AI</span>
-            </a>
-            
-            <div class="nav-links" id="navLinks">
-                <a href="/" class="active"><i class="fas fa-home"></i> Home</a>
-                <a href="/news"><i class="fas fa-newspaper"></i> News Verification</a>
-                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
-                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
-                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
-                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
-            </div>
-            
-            <a href="/pricingplan" class="nav-cta">
-                <i class="fas fa-rocket"></i> Start Free Trial
-            </a>
-            
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <h1>🛡️ Complete Content Authenticity Platform</h1>
-            <p class="hero-subtitle">4-in-1 AI-Powered Solution</p>
-            <p class="hero-description">
-                Verify news credibility, detect AI-generated content, analyze image authenticity, and check for plagiarism - all in one unified platform designed for professionals who need reliable content verification.
-            </p>
-            <div class="cta-buttons">
-                <a href="/news" class="cta-btn primary">🚀 Start Free Analysis</a>
-                <a href="#solution" class="cta-btn">📊 See How It Works</a>
-            </div>
-
-            <div class="social-proof">
-                <p class="social-proof-text">Trusted by professionals worldwide</p>
-                <div class="social-proof-stats">
-                    <div class="proof-stat">
-                        <span class="proof-number">4</span>
-                        <span class="proof-label">Tools in One</span>
-                    </div>
-                    <div class="proof-stat">
-                        <span class="proof-number">24/7</span>
-                        <span class="proof-label">Available</span>
-                    </div>
-                    <div class="proof-stat">
-                        <span class="proof-number">Free</span>
-                        <span class="proof-label">To Start</span>
-                    </div>
-                    <div class="proof-stat">
-                        <span class="proof-number">Multi</span>
-                        <span class="proof-label">Language</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Problem Section -->
-    <section class="problem-section">
-        <div class="problem-container">
-            <h2 class="section-title">🚨 The Challenge of Digital Content</h2>
-            <p class="section-subtitle">
-                With AI tools becoming more sophisticated, distinguishing authentic content from generated material is increasingly complex
-            </p>
-            
-            <div class="problem-grid">
-                <div class="problem-card">
-                    <span class="problem-icon">📰</span>
-                    <h3 class="problem-title">News Credibility</h3>
-                    <p class="problem-description">
-                        How do you quickly assess if a news source is credible, what its political bias might be, and whether claims are factually supported?
-                    </p>
-                </div>
-                
-                <div class="problem-card">
-                    <span class="problem-icon">🤖</span>
-                    <h3 class="problem-title">AI-Generated Text</h3>
-                    <p class="problem-description">
-                        Modern AI tools like ChatGPT and Claude can produce convincing text. Identifying AI-generated content requires specialized detection methods.
-                    </p>
-                </div>
-                
-                <div class="problem-card">
-                    <span class="problem-icon">🖼️</span>
-                    <h3 class="problem-title">Image Authenticity</h3>
-                    <p class="problem-description">
-                        AI can now create photorealistic images and modify existing ones. Visual inspection alone is no longer sufficient for verification.
-                    </p>
-                </div>
-                
-                <div class="problem-card">
-                    <span class="problem-icon">📋</span>
-                    <h3 class="problem-title">Content Originality</h3>
-                    <p class="problem-description">
-                        With AI paraphrasing and content spinning, traditional plagiarism detection needs enhancement to catch sophisticated copying methods.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Solution Section -->
-    <section class="solution-section" id="solution">
-        <div class="solution-container">
-            <div class="solution-intro">
-                <h2 class="section-title">💡 Your Comprehensive Verification Solution</h2>
-                <p class="section-subtitle">
-                    Four specialized tools working together to provide complete content authenticity analysis
-                </p>
-            </div>
-            
-            <div class="solution-grid">
-                <div class="solution-card">
-                    <span class="solution-icon">📰</span>
-                    <h3 class="solution-title">News Verification Engine</h3>
-                    <p class="solution-description">
-                        Comprehensive analysis of news articles including source credibility assessment and political bias detection.
-                    </p>
-                    <ul class="solution-features">
-                        <li>Source credibility scoring</li>
-                        <li>Political bias analysis</li>
-                        <li>URL content fetching</li>
-                        <li>Cross-reference verification</li>
-                        <li>Professional reporting</li>
-                    </ul>
-                    <a href="/news" class="solution-btn">Analyze News Article</a>
-                </div>
-                
-                <div class="solution-card">
-                    <span class="solution-icon">🔍</span>
-                    <h3 class="solution-title">AI Content Detection</h3>
-                    <p class="solution-description">
-                        Advanced detection of AI-generated text using pattern analysis and linguistic indicators.
-                    </p>
-                    <ul class="solution-features">
-                        <li>Multi-model AI detection</li>
-                        <li>Confidence scoring</li>
-                        <li>Plagiarism checking</li>
-                        <li>Batch processing</li>
-                        <li>Detailed analysis reports</li>
-                    </ul>
-                    <a href="/unified" class="solution-btn">Check Content</a>
-                </div>
-                
-                <div class="solution-card">
-                    <span class="solution-icon">🖼️</span>
-                    <h3 class="solution-title">Image Analysis Tool</h3>
-                    <p class="solution-description">
-                        Sophisticated image authenticity verification using advanced computer vision techniques.
-                    </p>
-                    <ul class="solution-features">
-                        <li>AI generation detection</li>
-                        <li>Authenticity scoring</li>
-                        <li>Metadata analysis</li>
-                        <li>Visual consistency checking</li>
-                        <li>Technical verification</li>
-                    </ul>
-                    <a href="/imageanalysis" class="solution-btn">Analyze Images</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section class="benefits-section">
-        <div class="benefits-container">
-            <div class="benefits-header">
-                <h2 class="section-title">🏆 Why Choose Facts & Fakes AI</h2>
-                <p class="section-subtitle">
-                    The only platform that combines all authenticity verification tools in one place
-                </p>
-            </div>
-            
-            <div class="benefits-grid">
-                <div class="benefit-card">
-                    <span class="benefit-icon">⚡</span>
-                    <h3 class="benefit-title">Fast Processing</h3>
-                    <p class="benefit-description">
-                        Get analysis results quickly with our optimized processing engine designed for professional workflows.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Real-time analysis</li>
-                        <li>Progress tracking</li>
-                        <li>Instant results</li>
-                    </ul>
-                </div>
-                
-                <div class="benefit-card">
-                    <span class="benefit-icon">🎯</span>
-                    <h3 class="benefit-title">Comprehensive Analysis</h3>
-                    <p class="benefit-description">
-                        Multi-stage verification process with detailed confidence scoring and explanations for informed decision-making.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Confidence scoring</li>
-                        <li>Detailed explanations</li>
-                        <li>Multiple verification methods</li>
-                    </ul>
-                </div>
-                
-                <div class="benefit-card">
-                    <span class="benefit-icon">🔄</span>
-                    <h3 class="benefit-title">Regular Updates</h3>
-                    <p class="benefit-description">
-                        Our detection models are regularly updated to keep pace with evolving AI generation techniques and new threats.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Model improvements</li>
-                        <li>New feature releases</li>
-                        <li>Enhanced accuracy</li>
-                    </ul>
-                </div>
-                
-                <div class="benefit-card">
-                    <span class="benefit-icon">🛡️</span>
-                    <h3 class="benefit-title">Privacy & Security</h3>
-                    <p class="benefit-description">
-                        Your content is processed securely with encryption and is not stored permanently on our servers.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Encrypted processing</li>
-                        <li>No permanent storage</li>
-                        <li>Privacy protection</li>
-                    </ul>
-                </div>
-                
-                <div class="benefit-card">
-                    <span class="benefit-icon">🌐</span>
-                    <h3 class="benefit-title">Unified Platform</h3>
-                    <p class="benefit-description">
-                        Instead of using multiple separate tools, get everything you need for content verification in one place.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Single interface</li>
-                        <li>Integrated workflow</li>
-                        <li>Cost efficiency</li>
-                    </ul>
-                </div>
-                
-                <div class="benefit-card">
-                    <span class="benefit-icon">📊</span>
-                    <h3 class="benefit-title">Professional Reports</h3>
-                    <p class="benefit-description">
-                        Generate detailed analysis reports suitable for professional use in journalism, academia, and documentation.
-                    </p>
-                    <ul class="benefit-features">
-                        <li>Export capabilities</li>
-                        <li>Professional formatting</li>
-                        <li>Detailed findings</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Competitive Advantage -->
-    <section class="competitive-section">
-        <div class="competitive-container">
-            <div class="competitive-intro">
-                <h2 class="section-title">🥇 What Makes Us Different</h2>
-                <p class="section-subtitle">
-                    While others offer single-purpose tools, we provide a comprehensive authenticity verification ecosystem
-                </p>
-            </div>
-            
-            <div class="competitive-grid">
-                <div class="competitive-card">
-                    <h3>🔬 Multi-Tool Integration</h3>
-                    <p>
-                        Our platform integrates four essential verification tools, allowing you to cross-reference findings and get comprehensive analysis in one workflow.
-                    </p>
-                </div>
-                
-                <div class="competitive-card">
-                    <h3>🏢 Professional Focus</h3>
-                    <p>
-                        Built specifically for professionals in journalism, academia, and content creation who need reliable, defensible analysis results.
-                    </p>
-                </div>
-                
-                <div class="competitive-card">
-                    <h3>🌍 Accessible Technology</h3>
-                    <p>
-                        Advanced AI detection and verification technology made accessible through an intuitive web interface that works on any device.
-                    </p>
-                </div>
-                
-                <div class="competitive-card">
-                    <h3>🤝 Human-Centered Design</h3>
-                    <p>
-                        Our tools enhance human judgment rather than replace it, providing clear explanations and confidence scores to support decision-making.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Final CTA -->
-    <section class="final-cta">
-        <div class="final-cta-container">
-            <h2>Ready to Verify Content Authenticity?</h2>
-            <p>
-                Start using our comprehensive content verification platform today. Free to try, professional results.
-            </p>
-            <div class="final-cta-buttons">
-                <a href="/news" class="final-cta-btn primary">
-                    <i class="fas fa-rocket"></i>
-                    Start Free Analysis
-                </a>
-                <a href="/pricingplan" class="final-cta-btn secondary">
-                    <i class="fas fa-tags"></i>
-                    View Pricing Plans
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>🛡️ Facts & Fakes AI</h3>
-                    <p>A comprehensive content authenticity verification platform designed for professionals who need reliable analysis of news, text, and images.</p>
-                </div>
-                
-                <div class="footer-section">
-                    <h3>🔧 Our Tools</h3>
-                    <ul>
-                        <li><a href="/news">News Verification Engine</a></li>
-                        <li><a href="/unified">AI Content Detection</a></li>
-                        <li><a href="/imageanalysis">Image Analysis Tool</a></li>
-                        <li><a href="/pricingplan">Compare Plans</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3>💡 Technology</h3>
-                    <ul>
-                        <li>AI Content Detection</li>
-                        <li>Computer Vision Analysis</li>
-                        <li>News Source Verification</li>
-                        <li>Secure Processing</li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3>🎯 Use Cases</h3>
-                    <ul>
-                        <li>Journalism & News Verification</li>
-                        <li>Academic Research & Integrity</li>
-                        <li>Content Creation & Publishing</li>
-                        <li>Professional Documentation</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2024 Facts & Fakes AI. Comprehensive content authenticity verification platform.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            navLinks.classList.toggle('active');
-        }
-
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Intersection Observer for animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements for animation
-        document.querySelectorAll('.problem-card, .solution-card, .benefit-card, .competitive-card').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
-        });
-
-        // Navbar scroll effect
-        let lastScrollTop = 0;
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.nav-bar');
-            const st = window.pageYOffset || document.documentElement.scrollTop;
-            
-            if (st > 100) {
-                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
-            } else {
-                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-            }
-            lastScrollTop = st;
-        });
-
-        // Enhanced hover effects
-        document.querySelectorAll('.benefit-card, .solution-card, .competitive-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-15px) scale(1.02)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
-    </script>
-</body>
-</html> html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facts & Fakes AI - World-Class Content Authenticity Platform</title>
-    <meta name="description" content="Professional AI-powered tools for detecting misinformation, AI-generated content, and image authenticity. Trusted by professionals worldwide.">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -1371,9 +172,10 @@
 
         .hero-subtitle {
             font-size: clamp(1.2rem, 2.5vw, 1.8rem);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             opacity: 0.95;
             animation: slideInUp 1s ease-out 0.3s both;
+            font-weight: 600;
         }
 
         .hero-description {
@@ -1427,285 +229,360 @@
             color: #667eea;
         }
 
-        /* Stats Section */
-        .stats {
-            background: #f8f9fa;
-            padding: 80px 20px;
-            text-align: center;
-        }
-
-        .stats-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 20px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        /* Quick Stats */
+        .quick-stats {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
             gap: 40px;
-            margin-top: 50px;
+            flex-wrap: wrap;
         }
 
         .stat-item {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .stat-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            text-align: center;
         }
 
         .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            font-size: 1.1rem;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        /* Features Section */
-        .features {
-            padding: 100px 20px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-
-        .features-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .section-subtitle {
-            font-size: clamp(1.1rem, 2vw, 1.4rem);
-            margin-bottom: 60px;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin-top: 60px;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
             display: block;
         }
 
-        .feature-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 15px;
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
         }
 
-        .feature-description {
-            font-size: 1rem;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        /* Tools Section */
-        .tools {
-            padding: 100px 20px;
-            background: white;
-        }
-
-        .tools-container {
+        /* Main Content Sections */
+        .main-content {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 60px 20px;
         }
 
-        .tools-header {
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-header {
             text-align: center;
-            margin-bottom: 80px;
+            margin-bottom: 40px;
         }
 
-        .tools-header h2 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            color: #333;
-            margin-bottom: 20px;
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 15px;
             font-weight: 700;
+            color: #333;
         }
 
-        .tools-header p {
-            font-size: clamp(1.1rem, 2vw, 1.4rem);
-            color: #6c757d;
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #666;
             max-width: 600px;
             margin: 0 auto;
         }
 
+        /* Expandable Sections */
+        .expandable-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .expandable-header {
+            padding: 25px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+        }
+
+        .expandable-header:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .expandable-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .expandable-section.active .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .expandable-section.active .expandable-content {
+            max-height: 2000px;
+        }
+
+        .content-inner {
+            padding: 30px;
+        }
+
+        /* Tools Grid */
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
         }
 
         .tool-card {
-            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 20px;
-            padding: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #f0f0f0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
 
         .tool-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
             border-color: #667eea;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
         .tool-icon {
-            font-size: 4rem;
+            font-size: 3rem;
             margin-bottom: 20px;
             display: block;
             color: #667eea;
         }
 
         .tool-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #333;
+            font-size: 1.3rem;
+            font-weight: 600;
             margin-bottom: 15px;
+            color: #333;
         }
 
         .tool-description {
-            font-size: 1.1rem;
-            color: #6c757d;
-            margin-bottom: 25px;
+            color: #666;
+            margin-bottom: 20px;
             line-height: 1.6;
         }
 
         .tool-features {
             list-style: none;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-align: left;
         }
 
         .tool-features li {
-            padding: 8px 0;
-            color: #495057;
+            padding: 5px 0;
             position: relative;
-            padding-left: 25px;
+            padding-left: 20px;
+            color: #555;
+            font-size: 0.9rem;
         }
 
         .tool-features li::before {
             content: '✓';
             position: absolute;
             left: 0;
-            color: #28a745;
+            color: #4CAF50;
             font-weight: bold;
         }
 
         .tool-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            border: none;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 25px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
             transition: all 0.3s ease;
             display: inline-block;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
         .tool-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
             color: white;
-            text-decoration: none;
         }
 
-        /* Trust Section */
-        .trust {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 80px 20px;
+        /* Benefits Grid */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
         }
 
-        .trust-container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .benefit-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .trust h2 {
+        .benefit-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            color: #667eea;
+        }
+
+        .benefit-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .benefit-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Problem Cards */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .problem-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #dc3545;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .problem-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            color: #dc3545;
+        }
+
+        .problem-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .problem-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* CTA Section */
+        .final-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 20px;
+            margin: 60px 0;
+        }
+
+        .final-cta h2 {
             font-size: clamp(2rem, 4vw, 2.5rem);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-weight: 700;
         }
 
-        .trust-points {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .trust-point {
+        .final-cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .final-cta-btn {
+            padding: 15px 30px;
+            border: 2px solid white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .final-cta-btn.primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .final-cta-btn.secondary {
+            background: transparent;
+            color: white;
+        }
+
+        .final-cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-cta-btn.primary:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+
+        .final-cta-btn.secondary:hover {
             background: rgba(255, 255, 255, 0.1);
-            padding: 30px 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .trust-point h3 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            color: #4facfe;
+            color: white;
         }
 
         /* Footer */
@@ -1713,7 +590,6 @@
             background: #212529;
             color: #adb5bd;
             padding: 50px 20px 30px;
-            text-align: center;
         }
 
         .footer-container {
@@ -1724,22 +600,19 @@
         .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 30px;
+            margin-bottom: 30px;
         }
 
         .footer-section h3 {
             color: white;
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-        }
-
-        .footer-section p, .footer-section ul {
-            line-height: 1.8;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
         }
 
         .footer-section ul {
             list-style: none;
+            line-height: 1.8;
         }
 
         .footer-section a {
@@ -1754,7 +627,8 @@
 
         .footer-bottom {
             border-top: 1px solid #495057;
-            padding-top: 30px;
+            padding-top: 20px;
+            text-align: center;
             font-size: 0.9rem;
         }
 
@@ -1787,49 +661,31 @@
                 padding-top: 120px;
             }
 
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .cta-buttons {
+            .cta-buttons, .final-cta-buttons {
                 flex-direction: column;
                 align-items: center;
             }
 
-            .cta-btn {
+            .cta-btn, .final-cta-btn {
                 width: 100%;
                 max-width: 300px;
             }
 
-            .stats {
-                padding: 60px 20px;
+            .quick-stats {
+                gap: 20px;
             }
 
-            .features, .tools {
-                padding: 80px 20px;
+            .expandable-header {
+                padding: 20px;
             }
 
-            .tool-card {
-                padding: 30px 20px;
+            .expandable-header h3 {
+                font-size: 1.3rem;
             }
-        }
 
-        /* Loading Animation */
-        .loading-dots {
-            display: inline-block;
-            margin-left: 5px;
-        }
-
-        .loading-dots::after {
-            content: '';
-            animation: dots 2s infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: ''; }
-            25%, 45% { content: '.'; }
-            50%, 70% { content: '..'; }
-            75%, 95% { content: '...'; }
+            .content-inner {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -1851,8 +707,8 @@
                 <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
             </div>
             
-            <a href="/news" class="nav-cta">
-                <i class="fas fa-rocket"></i> Start Analysis
+            <a href="/pricingplan" class="nav-cta">
+                <i class="fas fa-rocket"></i> Start Free Trial
             </a>
             
             <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
@@ -1864,192 +720,227 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-container">
-            <h1>🛡️ Facts & Fakes AI</h1>
-            <p class="hero-subtitle">World-Class Content Authenticity Platform</p>
+            <h1>🛡️ Complete Content Authenticity Platform</h1>
+            <p class="hero-subtitle">4-in-1 AI-Powered Solution</p>
             <p class="hero-description">
-                In a world drowning in misinformation and AI-generated content, professionals need <strong>reliable, cutting-edge tools</strong> to separate fact from fiction. Our enterprise-grade AI platform delivers <strong>instant, accurate analysis</strong> you can trust.
+                Verify news credibility, detect AI-generated content, analyze image authenticity, and check for plagiarism - all in one unified platform designed for professionals.
             </p>
             <div class="cta-buttons">
-                <a href="/news" class="cta-btn primary">🚀 Start Verification</a>
-                <a href="#features" class="cta-btn">📊 See Features</a>
+                <a href="/news" class="cta-btn primary">🚀 Start Free Analysis</a>
+                <a href="#tools" class="cta-btn">📊 Explore Tools</a>
             </div>
-        </div>
-    </section>
 
-    <!-- Stats Section -->
-    <section class="stats">
-        <div class="stats-container">
-            <h2 class="section-title">Trusted by Professionals Worldwide</h2>
-            <div class="stats-grid">
+            <div class="quick-stats">
                 <div class="stat-item">
-                    <div class="stat-number">3</div>
-                    <div class="stat-label">AI-Powered Tools</div>
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">Tools in One</span>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Instant Analysis</div>
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Available</span>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">95%</div>
-                    <div class="stat-label">Accuracy Rate</div>
+                    <span class="stat-number">Free</span>
+                    <span class="stat-label">To Start</span>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Source Database</div>
+                    <span class="stat-number">Pro</span>
+                    <span class="stat-label">Quality</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="features-container">
-            <h2 class="section-title">Why Facts & Fakes AI?</h2>
-            <p class="section-subtitle">
-                Professional-grade authenticity detection powered by the latest AI technology
-            </p>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <span class="feature-icon">🧠</span>
-                    <h3 class="feature-title">Advanced AI Technology</h3>
-                    <p class="feature-description">
-                        Powered by GPT-4 and cutting-edge machine learning models that continuously improve and adapt to new threats.
-                    </p>
-                </div>
-                
-                <div class="feature-card">
-                    <span class="feature-icon">⚡</span>
-                    <h3 class="feature-title">Instant Results</h3>
-                    <p class="feature-description">
-                        Get professional-grade analysis in seconds, not hours. Perfect for newsrooms, research teams, and content moderators.
-                    </p>
-                </div>
-                
-                <div class="feature-card">
-                    <span class="feature-icon">🎯</span>
-                    <h3 class="feature-title">Enterprise Accuracy</h3>
-                    <p class="feature-description">
-                        Multi-stage verification systems and confidence scoring ensure you can make informed decisions with reliable data.
-                    </p>
-                </div>
-                
-                <div class="feature-card">
-                    <span class="feature-icon">🔄</span>
-                    <h3 class="feature-title">Always Current</h3>
-                    <p class="feature-description">
-                        Our AI models are continuously updated to detect the latest misinformation tactics and AI generation techniques.
-                    </p>
-                </div>
-                
-                <div class="feature-card">
-                    <span class="feature-icon">🛡️</span>
-                    <h3 class="feature-title">Professional Grade</h3>
-                    <p class="feature-description">
-                        Built for journalists, researchers, educators, and content professionals who need reliable authenticity verification.
-                    </p>
-                </div>
-                
-                <div class="feature-card">
-                    <span class="feature-icon">📱</span>
-                    <h3 class="feature-title">Universal Access</h3>
-                    <p class="feature-description">
-                        Works on any device, anywhere. No downloads required - just open your browser and start analyzing content.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Tools Section -->
-    <section class="tools" id="tools">
-        <div class="tools-container">
-            <div class="tools-header">
-                <h2>🔧 Professional AI Tools</h2>
-                <p>Three powerful tools covering every aspect of content authenticity</p>
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- Our Tools Section -->
+        <div class="section" id="tools">
+            <div class="section-header">
+                <h2 class="section-title">🔧 Professional AI Tools</h2>
+                <p class="section-subtitle">Four powerful tools covering every aspect of content authenticity</p>
             </div>
             
             <div class="tools-grid">
                 <div class="tool-card">
                     <span class="tool-icon">📰</span>
-                    <h3 class="tool-title">News Verification Engine</h3>
-                    <p class="tool-description">
-                        Advanced credibility analysis and bias detection for news articles and media content.
-                    </p>
+                    <h3 class="tool-title">News Verification</h3>
+                    <p class="tool-description">Comprehensive analysis of news articles including source credibility and political bias detection.</p>
                     <ul class="tool-features">
-                        <li>Political bias assessment with 6-dimensional analysis</li>
-                        <li>Source credibility scoring and verification</li>
-                        <li>Cross-platform consensus tracking</li>
-                        <li>Fact-checking integration with live APIs</li>
-                        <li>Executive summary report generation</li>
+                        <li>Source credibility scoring</li>
+                        <li>Political bias analysis</li>
+                        <li>URL content fetching</li>
+                        <li>Cross-reference verification</li>
                     </ul>
-                    <a href="/news" class="tool-btn">📊 Analyze News</a>
+                    <a href="/news" class="tool-btn">Analyze News</a>
                 </div>
                 
                 <div class="tool-card">
-                    <span class="tool-icon">📝</span>
-                    <h3 class="tool-title">Content Authenticity Checker</h3>
-                    <p class="tool-description">
-                        Unified AI detection and plagiarism verification for text content and documents.
-                    </p>
+                    <span class="tool-icon">🔍</span>
+                    <h3 class="tool-title">AI Content Detection</h3>
+                    <p class="tool-description">Advanced detection of AI-generated text using pattern analysis and linguistic indicators.</p>
                     <ul class="tool-features">
-                        <li>World-class AI generation detection</li>
-                        <li>Comprehensive plagiarism verification</li>
-                        <li>Real-time analysis and batch processing</li>
-                        <li>Linguistic pattern analysis</li>
-                        <li>Professional report downloads</li>
+                        <li>Multi-model AI detection</li>
+                        <li>Confidence scoring</li>
+                        <li>Plagiarism checking</li>
+                        <li>Batch processing</li>
                     </ul>
-                    <a href="/unified" class="tool-btn">🔍 Check Content</a>
+                    <a href="/unified" class="tool-btn">Check Content</a>
                 </div>
                 
                 <div class="tool-card">
                     <span class="tool-icon">🖼️</span>
-                    <h3 class="tool-title">AI Image Analysis Tool</h3>
-                    <p class="tool-description">
-                        Advanced image authenticity detection powered by cutting-edge computer vision.
-                    </p>
+                    <h3 class="tool-title">Image Analysis</h3>
+                    <p class="tool-description">Sophisticated image authenticity verification using advanced computer vision techniques.</p>
                     <ul class="tool-features">
-                        <li>AI generation detection for images</li>
-                        <li>Visual artifact analysis</li>
-                        <li>Metadata examination and verification</li>
-                        <li>Technical authenticity scoring</li>
-                        <li>Context and consistency verification</li>
+                        <li>AI generation detection</li>
+                        <li>Authenticity scoring</li>
+                        <li>Metadata analysis</li>
+                        <li>Visual consistency checking</li>
                     </ul>
-                    <a href="/imageanalysis" class="tool-btn">🎯 Analyze Images</a>
+                    <a href="/imageanalysis" class="tool-btn">Analyze Images</a>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Trust Section -->
-    <section class="trust">
-        <div class="trust-container">
-            <h2>🏆 Built for Professionals Who Demand Excellence</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 40px;">
-                When accuracy matters, professionals choose Facts & Fakes AI
-            </p>
-            
-            <div class="trust-points">
-                <div class="trust-point">
-                    <h3>🎓 Educators & Researchers</h3>
-                    <p>Verify academic content integrity and combat plagiarism with enterprise-grade detection tools.</p>
-                </div>
-                
-                <div class="trust-point">
-                    <h3>📺 Media & Journalists</h3>
-                    <p>Fast, reliable source verification and bias detection for breaking news and investigative reporting.</p>
-                </div>
-                
-                <div class="trust-point">
-                    <h3>🏢 Content Moderators</h3>
-                    <p>Scale your moderation efforts with AI-powered authenticity detection and misinformation flagging.</p>
-                </div>
-                
-                <div class="trust-point">
-                    <h3>🔬 Fact-Checkers</h3>
-                    <p>Professional-grade analysis tools to quickly identify suspicious content and verify authenticity claims.</p>
+        <!-- Expandable Sections -->
+        
+        <!-- Problems Section -->
+        <div class="expandable-section">
+            <div class="expandable-header" onclick="toggleSection(this)">
+                <h3><span class="header-icon">🚨</span> The Digital Content Challenge</h3>
+                <i class="fas fa-chevron-down expand-icon"></i>
+            </div>
+            <div class="expandable-content">
+                <div class="content-inner">
+                    <p style="text-align: center; margin-bottom: 30px; font-size: 1.1rem; color: #666;">
+                        With AI tools becoming more sophisticated, distinguishing authentic content from generated material is increasingly complex
+                    </p>
+                    <div class="problem-grid">
+                        <div class="problem-card">
+                            <span class="problem-icon">📰</span>
+                            <h4 class="problem-title">News Credibility</h4>
+                            <p class="problem-description">How do you quickly assess if a news source is credible, what its political bias might be, and whether claims are factually supported?</p>
+                        </div>
+                        <div class="problem-card">
+                            <span class="problem-icon">🤖</span>
+                            <h4 class="problem-title">AI-Generated Text</h4>
+                            <p class="problem-description">Modern AI tools like ChatGPT and Claude can produce convincing text. Identifying AI-generated content requires specialized detection methods.</p>
+                        </div>
+                        <div class="problem-card">
+                            <span class="problem-icon">🖼️</span>
+                            <h4 class="problem-title">Image Authenticity</h4>
+                            <p class="problem-description">AI can now create photorealistic images and modify existing ones. Visual inspection alone is no longer sufficient for verification.</p>
+                        </div>
+                        <div class="problem-card">
+                            <span class="problem-icon">📋</span>
+                            <h4 class="problem-title">Content Originality</h4>
+                            <p class="problem-description">With AI paraphrasing and content spinning, traditional plagiarism detection needs enhancement to catch sophisticated copying methods.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Benefits Section -->
+        <div class="expandable-section">
+            <div class="expandable-header" onclick="toggleSection(this)">
+                <h3><span class="header-icon">🏆</span> Why Choose Facts & Fakes AI</h3>
+                <i class="fas fa-chevron-down expand-icon"></i>
+            </div>
+            <div class="expandable-content">
+                <div class="content-inner">
+                    <p style="text-align: center; margin-bottom: 30px; font-size: 1.1rem; color: #666;">
+                        The only platform that combines all authenticity verification tools in one place
+                    </p>
+                    <div class="benefits-grid">
+                        <div class="benefit-card">
+                            <span class="benefit-icon">⚡</span>
+                            <h4 class="benefit-title">Fast Processing</h4>
+                            <p class="benefit-description">Get analysis results quickly with our optimized processing engine designed for professional workflows.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🎯</span>
+                            <h4 class="benefit-title">Comprehensive Analysis</h4>
+                            <p class="benefit-description">Multi-stage verification process with detailed confidence scoring and explanations for informed decision-making.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🔄</span>
+                            <h4 class="benefit-title">Regular Updates</h4>
+                            <p class="benefit-description">Our detection models are regularly updated to keep pace with evolving AI generation techniques and new threats.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🛡️</span>
+                            <h4 class="benefit-title">Privacy & Security</h4>
+                            <p class="benefit-description">Your content is processed securely with encryption and is not stored permanently on our servers.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🌐</span>
+                            <h4 class="benefit-title">Unified Platform</h4>
+                            <p class="benefit-description">Instead of using multiple separate tools, get everything you need for content verification in one place.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">📊</span>
+                            <h4 class="benefit-title">Professional Reports</h4>
+                            <p class="benefit-description">Generate detailed analysis reports suitable for professional use in journalism, academia, and documentation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competitive Advantage Section -->
+        <div class="expandable-section">
+            <div class="expandable-header" onclick="toggleSection(this)">
+                <h3><span class="header-icon">🥇</span> What Makes Us Different</h3>
+                <i class="fas fa-chevron-down expand-icon"></i>
+            </div>
+            <div class="expandable-content">
+                <div class="content-inner">
+                    <p style="text-align: center; margin-bottom: 30px; font-size: 1.1rem; color: #666;">
+                        While others offer single-purpose tools, we provide a comprehensive authenticity verification ecosystem
+                    </p>
+                    <div class="benefits-grid">
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🔬</span>
+                            <h4 class="benefit-title">Multi-Tool Integration</h4>
+                            <p class="benefit-description">Our platform integrates four essential verification tools, allowing you to cross-reference findings and get comprehensive analysis in one workflow.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🏢</span>
+                            <h4 class="benefit-title">Professional Focus</h4>
+                            <p class="benefit-description">Built specifically for professionals in journalism, academia, and content creation who need reliable, defensible analysis results.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🌍</span>
+                            <h4 class="benefit-title">Accessible Technology</h4>
+                            <p class="benefit-description">Advanced AI detection and verification technology made accessible through an intuitive web interface that works on any device.</p>
+                        </div>
+                        <div class="benefit-card">
+                            <span class="benefit-icon">🤝</span>
+                            <h4 class="benefit-title">Human-Centered Design</h4>
+                            <p class="benefit-description">Our tools enhance human judgment rather than replace it, providing clear explanations and confidence scores to support decision-making.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <h2>Ready to Verify Content Authenticity?</h2>
+        <p>Start using our comprehensive content verification platform today. Free to try, professional results.</p>
+        <div class="final-cta-buttons">
+            <a href="/news" class="final-cta-btn primary">
+                <i class="fas fa-rocket"></i>
+                Start Free Analysis
+            </a>
+            <a href="/pricingplan" class="final-cta-btn secondary">
+                <i class="fas fa-tags"></i>
+                View Pricing Plans
+            </a>
         </div>
     </section>
 
@@ -2059,41 +950,42 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>🛡️ Facts & Fakes AI</h3>
-                    <p>Professional content authenticity verification powered by cutting-edge AI technology. Trusted by professionals worldwide.</p>
+                    <p>A comprehensive content authenticity verification platform designed for professionals who need reliable analysis of news, text, and images.</p>
                 </div>
                 
                 <div class="footer-section">
-                    <h3>🔧 Tools</h3>
+                    <h3>🔧 Our Tools</h3>
                     <ul>
                         <li><a href="/news">News Verification Engine</a></li>
-                        <li><a href="/unified">Content Authenticity Checker</a></li>
-                        <li><a href="/imageanalysis">AI Image Analysis Tool</a></li>
+                        <li><a href="/unified">AI Content Detection</a></li>
+                        <li><a href="/imageanalysis">Image Analysis Tool</a></li>
+                        <li><a href="/pricingplan">Compare Plans</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>💡 Technology</h3>
                     <ul>
-                        <li>GPT-4 Integration</li>
-                        <li>Advanced Machine Learning</li>
-                        <li>Real-time API Processing</li>
-                        <li>Enterprise-grade Security</li>
+                        <li>AI Content Detection</li>
+                        <li>Computer Vision Analysis</li>
+                        <li>News Source Verification</li>
+                        <li>Secure Processing</li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>🎯 Use Cases</h3>
                     <ul>
-                        <li>Journalism & Media</li>
-                        <li>Academic Research</li>
-                        <li>Content Moderation</li>
-                        <li>Fact-checking Organizations</li>
+                        <li>Journalism & News Verification</li>
+                        <li>Academic Research & Integrity</li>
+                        <li>Content Creation & Publishing</li>
+                        <li>Professional Documentation</li>
                     </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Facts & Fakes AI. Professional content authenticity verification platform.</p>
+                <p>&copy; 2024 Facts & Fakes AI. Comprehensive content authenticity verification platform.</p>
             </div>
         </div>
     </footer>
@@ -2103,6 +995,20 @@
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
             navLinks.classList.toggle('active');
+        }
+
+        // Toggle expandable sections
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const isActive = section.classList.contains('active');
+            
+            // Close all sections first
+            document.querySelectorAll('.expandable-section').forEach(s => s.classList.remove('active'));
+            
+            // Open clicked section if it wasn't active
+            if (!isActive) {
+                section.classList.add('active');
+            }
         }
 
         // Smooth scrolling for navigation links
@@ -2135,7 +1041,7 @@
         }, observerOptions);
 
         // Observe elements for animation
-        document.querySelectorAll('.stat-item, .feature-card, .tool-card, .trust-point').forEach(el => {
+        document.querySelectorAll('.tool-card, .benefit-card, .problem-card').forEach(el => {
             el.style.opacity = '0';
             el.style.transform = 'translateY(20px)';
             el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -2151,7 +1057,24 @@
             } else {
                 navbar.style.background = 'rgba(255, 255, 255, 0.95)';
                 navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-            </div>
+            }
+        });
+
+        // Enhanced hover effects
+        document.querySelectorAll('.tool-card, .benefit-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Auto-open first expandable section on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can uncomment this if you want the first section open by default
+            // document.querySelector('.expandable-section').classList.add('active');
         });
     </script>
 </body>
