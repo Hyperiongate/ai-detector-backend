@@ -56,8 +56,8 @@ SOURCE_CREDIBILITY = {
 
 @app.route('/')
 def index():
-    """Serve the main unified AI Detection page as home page"""
-    return render_template('unified.html')
+    """Serve the main homepage"""
+    return render_template('index.html')
 
 @app.route('/unified')
 def unified():
