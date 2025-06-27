@@ -891,7 +891,7 @@ def simulate_deepfake_analysis(filename, media_type, tier):
 @app.errorhandler(404)
 def not_found(error):
     """Handle 404 errors by serving the main page"""
-    return render_template('unified.html')
+    return render_template('index.html')
 
 @app.errorhandler(413)
 def too_large(error):
