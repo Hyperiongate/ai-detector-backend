@@ -144,8 +144,7 @@ def get_current_user():
     try:
         anonymous_user = User(
             email=f"anonymous_{uuid.uuid4().hex[:8]}@temp.com",
-            subscription_tier='free',
-            is_anonymous=True
+            subscription_tier='free'
         )
         db.session.add(anonymous_user)
         db.session.commit()
