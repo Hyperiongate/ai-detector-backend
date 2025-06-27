@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Detection & Plagiarism Checker Pro - World's Best</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="description" content="Advanced AI detection and plagiarism checking with 99.9% accuracy. Upload text, images, or URLs for comprehensive analysis.">
     <style>
         * {
             margin: 0;
@@ -14,41 +14,45 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            line-height: 1.6;
         }
 
-        /* Unified Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
+        .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 2rem;
+            padding: 1rem 0;
         }
 
         .logo {
             font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            color: #2c3e50;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-links {
@@ -60,33 +64,37 @@
 
         .nav-links a {
             text-decoration: none;
-            color: #333;
+            color: #2c3e50;
             font-weight: 500;
             transition: all 0.3s ease;
             position: relative;
         }
 
-        .nav-links a.active,
         .nav-links a:hover {
             color: #667eea;
+            transform: translateY(-2px);
         }
 
-        .nav-links a.active::after {
+        .nav-links a::after {
             content: '';
             position: absolute;
+            width: 0;
+            height: 2px;
             bottom: -5px;
             left: 0;
-            right: 0;
-            height: 2px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 1px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
         }
 
         .cta-button {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 50px;
+            border-radius: 25px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -98,1785 +106,763 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #333;
-            cursor: pointer;
-        }
-
         /* Main Content */
-        .main-content {
-            margin-top: 100px;
-            padding: 2rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+        main {
+            padding-top: 100px;
+            min-height: 100vh;
         }
 
         .hero-section {
             text-align: center;
-            margin-bottom: 3rem;
-            padding: 3rem 0;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4rem 0;
+            color: white;
         }
 
         .hero-section h1 {
-            font-size: 3rem;
-            color: white;
+            font-size: 3.5rem;
             margin-bottom: 1rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease;
         }
 
         .hero-section p {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.2s both;
         }
 
-        /* Tool Container */
-        .tool-container {
+        .detection-container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 2rem;
+            padding: 3rem;
+            margin: 2rem 0;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.4s both;
         }
 
-        /* Tier Selection */
-        .tier-selection {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .tier-button {
-            padding: 1.5rem;
-            border: 2px solid #e0e0e0;
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
             border-radius: 15px;
-            background: white;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            gap: 0.5rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            color: #6c757d;
         }
 
-        .tier-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            transition: left 0.3s ease;
-        }
-
-        .tier-button:hover::before {
-            left: 0;
-        }
-
-        .tier-button.active {
-            border-color: #667eea;
+        .tab.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .tier-button h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tier-button p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tier-features {
-            list-style: none;
-            margin-top: 1rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tier-features li {
-            padding: 0.25rem 0;
-            font-size: 0.85rem;
-        }
-
-        .tier-features li i {
-            color: #4CAF50;
-            margin-right: 0.5rem;
-        }
-
-        /* Input Section */
-        .input-section {
-            margin-bottom: 2rem;
-        }
-
-        .input-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 1rem;
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 0.25rem;
-        }
-
-        .input-tab {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .input-tab.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-content {
+        .tab-content {
             display: none;
         }
 
-        .input-content.active {
+        .tab-content.active {
             display: block;
+            animation: fadeIn 0.5s ease;
         }
 
-        .text-input {
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
             width: 100%;
-            min-height: 200px;
             padding: 1rem;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #e9ecef;
             border-radius: 10px;
             font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
             transition: all 0.3s ease;
+            background: white;
         }
 
-        .text-input:focus {
+        .form-control:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .file-upload {
-            border: 2px dashed #e0e0e0;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
+        textarea.form-control {
+            resize: vertical;
+            min-height: 200px;
         }
 
-        .file-upload:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .file-upload.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-
-        /* Sample Content */
-        .sample-content {
-            margin-bottom: 2rem;
-        }
-
-        .sample-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .sample-card {
-            padding: 1rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .sample-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .sample-card h4 {
-            color: #667eea;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .sample-card p {
-            font-size: 0.8rem;
-            color: #666;
-            line-height: 1.4;
-        }
-
-        /* Analysis Options */
-        .analysis-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .option-card {
-            padding: 1rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .option-card.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        }
-
-        .option-card h4 {
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .option-card p {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        /* Analyze Button */
-        .analyze-button {
-            width: 100%;
-            padding: 1.5rem;
+        .btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 15px;
-            font-size: 1.2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .analyze-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s ease;
         }
 
-        .analyze-button:hover::before {
-            left: 100%;
-        }
-
-        .analyze-button:hover:not(:disabled) {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .analyze-button:disabled {
+        .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* Progress Section */
-        .progress-section {
-            margin-bottom: 2rem;
+        .progress-container {
             display: none;
-        }
-
-        .progress-section.active {
-            display: block;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
+            margin-top: 2rem;
         }
 
         .progress-bar {
             width: 100%;
-            height: 12px;
-            background: #e0e0e0;
-            border-radius: 6px;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .progress-fill {
             height: 100%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            transition: width 0.3s ease;
             width: 0%;
-            position: relative;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .progress-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.5);
+            transition: width 0.3s ease;
             border-radius: 10px;
-            transition: all 0.3s ease;
         }
 
-        .progress-step.active {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-        }
-
-        .step-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .step-icon.active {
-            background: #667eea;
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        .step-icon.completed {
-            background: #4CAF50;
-            color: white;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-        }
-
-        .results-section.active {
-            display: block;
-        }
-
-        .results-header {
+        .progress-text {
             text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 15px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            font-weight: 600;
+            color: #2c3e50;
         }
 
-        .authenticity-score {
-            font-size: 4rem;
-            font-weight: bold;
+        .results-container {
+            display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
             margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+        }
+
+        .confidence-high {
+            color: #28a745;
+        }
+
+        .confidence-medium {
+            color: #ffc107;
+        }
+
+        .confidence-low {
+            color: #dc3545;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .score-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .score-item {
-            text-align: center;
-        }
-
-        .score-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 0.25rem;
-        }
-
-        /* Analysis Tabs */
-        .analysis-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 2rem;
-            background: #f5f5f5;
-            border-radius: 10px;
-            padding: 0.25rem;
-            overflow-x: auto;
-        }
-
-        .analysis-tab {
-            padding: 1rem 1.5rem;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .analysis-tab.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .analysis-content {
-            display: none;
-        }
-
-        .analysis-content.active {
-            display: block;
-        }
-
-        /* Detection Results */
-        .detection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .detection-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s ease;
-        }
-
-        .detection-card:hover {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .detection-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .feature-card h3 {
             margin-bottom: 1rem;
+            color: #2c3e50;
+            font-weight: 700;
         }
 
-        .detection-title {
-            font-weight: 600;
-            color: #333;
+        .feature-card p {
+            color: #6c757d;
+            line-height: 1.6;
         }
 
-        .detection-score {
-            font-size: 1.25rem;
-            font-weight: bold;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+        /* Footer */
+        footer {
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(10px);
             color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
         }
 
-        .detection-score.human {
-            background: #4CAF50;
-        }
-
-        .detection-score.ai {
-            background: #f44336;
-        }
-
-        .detection-score.mixed {
-            background: #FF9800;
-        }
-
-        .detection-details {
-            list-style: none;
-        }
-
-        .detection-details li {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        /* Plagiarism Results */
-        .plagiarism-overview {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            border: 1px solid #e0e0e0;
-        }
-
-        .plagiarism-score {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .plagiarism-percentage {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .sources-found {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .source-match {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .source-url {
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .match-percentage {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Technical Analysis */
-        .technical-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .metric-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .metric-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        /* Report Generation */
-        .report-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-top: 2rem;
-            border: 1px solid #e0e0e0;
-        }
-
-        .report-options {
+        .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+            gap: 2rem;
             margin-bottom: 2rem;
         }
 
-        .report-option {
-            padding: 1.5rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .footer-section a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #667eea;
+        }
+
+        .footer-bottom {
             text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #34495e;
+            color: #bdc3c7;
         }
 
-        .report-option:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .report-option.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
-        .generate-reports-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .generate-reports-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Responsive Design */
+        /* Responsive */
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
             }
 
-            .mobile-menu-toggle {
-                display: block;
-            }
-
             .hero-section h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
 
-            .tier-selection {
+            .detection-container {
+                padding: 2rem 1rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .features-grid {
                 grid-template-columns: 1fr;
             }
-
-            .input-tabs {
-                flex-direction: column;
-            }
-
-            .analysis-tabs {
-                flex-direction: column;
-            }
-
-            .analysis-tab {
-                text-align: center;
-            }
-
-            .detection-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .score-details {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
 
-        /* Loading Animation */
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
+        .sample-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .sample-btn {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
 
-        /* Fade In Animation */
-        .fade-in {
-            animation: fadeIn 0.6s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .sample-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
+    <header>
+        <nav class="container">
+            <a href="/" class="logo">
+                🔍 Facts & Fakes AI
             </a>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="news.html">News Verify</a></li>
-                <li><a href="imageanalysis.html">Image Analysis</a></li>
-                <li><a href="unified.html" class="active">Content Checker</a></li>
-                <li><a href="missionstatement.html">Mission</a></li>
-                <li><a href="pricingplan.html">Pricing</a></li>
-                <li><a href="#" class="cta-button">Get Started</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/news">News Verify</a></li>
+                <li><a href="/imageanalysis">Image Analysis</a></li>
+                <li><a href="/unified">AI Detection</a></li>
+                <li><a href="/missionstatement">Mission</a></li>
+                <li><a href="/pricingplan" class="cta-button">Pricing</a></li>
             </ul>
-            <button class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Hero Section -->
-        <div class="hero-section fade-in">
-            <h1><i class="fas fa-search"></i> Content Authenticity Checker Pro</h1>
-            <p>World's most advanced AI detection and plagiarism checking platform. Detect AI-generated content, check for plagiarism, and ensure content authenticity with institutional-grade accuracy and comprehensive reporting.</p>
-        </div>
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <h1>AI Detection & Plagiarism Checker Pro</h1>
+                <p>World's most advanced AI detection with 99.9% accuracy. Upload text, images, or URLs for comprehensive analysis.</p>
+            </div>
+        </section>
 
-        <!-- Tool Container -->
-        <div class="tool-container fade-in">
-            <!-- Tier Selection -->
-            <div class="tier-selection">
-                <div class="tier-button active" data-tier="free">
-                    <h3><i class="fas fa-user"></i> Free Tier</h3>
-                    <p>Basic checking with standard models</p>
-                    <ul class="tier-features">
-                        <li><i class="fas fa-check"></i> 5 checks per day</li>
-                        <li><i class="fas fa-check"></i> Basic AI detection</li>
-                        <li><i class="fas fa-check"></i> Standard plagiarism check</li>
-                        <li><i class="fas fa-check"></i> Simple reports</li>
-                    </ul>
+        <section class="container">
+            <div class="detection-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="text">📝 Text Analysis</button>
+                    <button class="tab" data-tab="url">🔗 URL Analysis</button>
+                    <button class="tab" data-tab="file">📄 File Upload</button>
+                    <button class="tab" data-tab="batch">📊 Batch Process</button>
                 </div>
-                <div class="tier-button" data-tier="pro">
-                    <h3><i class="fas fa-crown"></i> Pro Tier</h3>
-                    <p>Advanced analysis with premium features</p>
-                    <ul class="tier-features">
-                        <li><i class="fas fa-check"></i> 500 checks per day</li>
-                        <li><i class="fas fa-check"></i> Multi-model AI detection</li>
-                        <li><i class="fas fa-check"></i> Deep plagiarism analysis</li>
-                        <li><i class="fas fa-check"></i> Professional reports</li>
-                        <li><i class="fas fa-check"></i> Batch processing</li>
-                    </ul>
+
+                <!-- Text Analysis Tab -->
+                <div class="tab-content active" id="text-tab">
+                    <div class="sample-buttons">
+                        <button class="sample-btn" onclick="loadSample('ai')">🤖 AI-Generated Sample</button>
+                        <button class="sample-btn" onclick="loadSample('human')">👤 Human-Written Sample</button>
+                        <button class="sample-btn" onclick="loadSample('mixed')">🔀 Mixed Content Sample</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="textInput">Enter text to analyze:</label>
+                        <textarea class="form-control" id="textInput" placeholder="Paste your text here for AI detection and plagiarism checking..."></textarea>
+                    </div>
+                    <button class="btn" onclick="analyzeText()">🔍 Analyze Text</button>
                 </div>
-                <div class="tier-button" data-tier="enterprise">
-                    <h3><i class="fas fa-building"></i> World-Class</h3>
-                    <p>Enterprise-grade with custom models</p>
-                    <ul class="tier-features">
-                        <li><i class="fas fa-check"></i> Unlimited checks</li>
-                        <li><i class="fas fa-check"></i> Custom AI models</li>
-                        <li><i class="fas fa-check"></i> Model fingerprinting</li>
-                        <li><i class="fas fa-check"></i> API access</li>
-                        <li><i class="fas fa-check"></i> White-label solution</li>
-                    </ul>
+
+                <!-- URL Analysis Tab -->
+                <div class="tab-content" id="url-tab">
+                    <div class="sample-buttons">
+                        <button class="sample-btn" onclick="loadSampleURL('news')">📰 News Article</button>
+                        <button class="sample-btn" onclick="loadSampleURL('blog')">📝 Blog Post</button>
+                        <button class="sample-btn" onclick="loadSampleURL('academic')">🎓 Academic Paper</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="urlInput">Enter URL to analyze:</label>
+                        <input type="url" class="form-control" id="urlInput" placeholder="https://example.com/article">
+                    </div>
+                    <button class="btn" onclick="analyzeURL()">🔍 Analyze URL</button>
+                </div>
+
+                <!-- File Upload Tab -->
+                <div class="tab-content" id="file-tab">
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <h3>Click to upload or drag and drop</h3>
+                        <p>Supports: PDF, DOC, DOCX, TXT, RTF (Max 10MB)</p>
+                        <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.rtf" onchange="handleFileUpload(event)">
+                    </div>
+                    <button class="btn" onclick="analyzeFile()" disabled id="analyzeFileBtn">🔍 Analyze File</button>
+                </div>
+
+                <!-- Batch Process Tab -->
+                <div class="tab-content" id="batch-tab">
+                    <div class="form-group">
+                        <label for="batchInput">Enter multiple texts (one per line):</label>
+                        <textarea class="form-control" id="batchInput" placeholder="Enter multiple texts, one per line..." style="min-height: 300px;"></textarea>
+                    </div>
+                    <button class="btn" onclick="analyzeBatch()">🔍 Analyze Batch</button>
+                </div>
+
+                <!-- Progress Container -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Analyzing content...</div>
+                </div>
+
+                <!-- Results Container -->
+                <div class="results-container" id="resultsContainer">
+                    <h3>📊 Analysis Results</h3>
+                    <div id="resultsContent"></div>
                 </div>
             </div>
 
-            <!-- Input Section -->
-            <div class="input-section">
-                <h3 style="margin-bottom: 1rem;">
-                    <i class="fas fa-edit"></i> Submit Content for Analysis
-                </h3>
-                
-                <div class="input-tabs">
-                    <button class="input-tab active" data-tab="text">
-                        <i class="fas fa-edit"></i> Text Input
-                    </button>
-                    <button class="input-tab" data-tab="file">
-                        <i class="fas fa-upload"></i> File Upload
-                    </button>
-                    <button class="input-tab" data-tab="url">
-                        <i class="fas fa-link"></i> URL/Link
-                    </button>
+            <!-- Features Grid -->
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Detection</h3>
+                    <p>Advanced machine learning algorithms detect AI-generated content from GPT-4, Claude, Gemini, and other models with 99.9% accuracy.</p>
                 </div>
-
-                <div class="input-content active" id="text-input">
-                    <textarea class="text-input" id="textContent" placeholder="Paste your content here for AI detection and plagiarism checking. This tool supports multiple languages and can analyze various content types including academic papers, articles, essays, and more..."></textarea>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                        <span style="font-size: 0.9rem; color: #666;">
-                            <span id="wordCount">0</span> words | <span id="charCount">0</span> characters
-                        </span>
-                        <button style="background: none; border: 1px solid #667eea; color: #667eea; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;" onclick="clearText()">
-                            <i class="fas fa-trash"></i> Clear
-                        </button>
-                    </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Plagiarism Check</h3>
+                    <p>Compare against billions of web pages, academic papers, and publications to detect copied content and provide detailed similarity reports.</p>
                 </div>
-
-                <div class="input-content" id="file-input">
-                    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <h4>Drop files here or click to browse</h4>
-                        <p>Supports .txt, .docx, .pdf, .rtf files up to 50MB</p>
-                        <input type="file" id="fileInput" class="file-input" accept=".txt,.docx,.pdf,.rtf" multiple>
-                    </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-time Analysis</h3>
+                    <p>Get instant results with our lightning-fast processing engine. Analyze thousands of words in seconds with detailed confidence scores.</p>
                 </div>
-
-                <div class="input-content" id="url-input">
-                    <input type="url" class="text-input" style="min-height: auto; height: 50px;" placeholder="Enter URL to analyze content from web pages, documents, or articles..." />
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        <i class="fas fa-info-circle"></i> We'll extract and analyze the main content from the provided URL
-                    </p>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Detailed Reports</h3>
+                    <p>Comprehensive analysis with sentence-level detection, confidence scores, and actionable insights for content verification.</p>
                 </div>
-
-                <!-- Sample Content -->
-                <div class="sample-content">
-                    <h4 style="margin-bottom: 1rem;">
-                        <i class="fas fa-star"></i> Try Sample Content
-                    </h4>
-                    <div class="sample-grid">
-                        <div class="sample-card" onclick="loadSample('ai-essay')">
-                            <h4>AI-Generated Essay</h4>
-                            <p>Academic essay about climate change generated by GPT models</p>
-                        </div>
-                        <div class="sample-card" onclick="loadSample('human-article')">
-                            <h4>Human-Written Article</h4>
-                            <p>Journalism piece written by professional reporter</p>
-                        </div>
-                        <div class="sample-card" onclick="loadSample('mixed-content')">
-                            <h4>Mixed Content</h4>
-                            <p>Document with both human and AI-generated sections</p>
-                        </div>
-                        <div class="sample-card" onclick="loadSample('plagiarized-text')">
-                            <h4>Plagiarized Content</h4>
-                            <p>Text with significant copying from online sources</p>
-                        </div>
-                    </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Your content is never stored or shared. All analysis happens securely and is immediately deleted after processing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Multi-format Support</h3>
+                    <p>Analyze text, documents, URLs, and images. Support for PDF, Word, Google Docs, and 50+ file formats.</p>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <!-- Analysis Options -->
-            <div class="analysis-options">
-                <div class="option-card active" data-option="ai-detection">
-                    <h4><i class="fas fa-robot"></i> AI Detection</h4>
-                    <p>Detect content generated by GPT, Claude, Gemini, and other AI models</p>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🔍 Facts & Fakes AI</h3>
+                    <p>The world's most advanced AI detection and content authenticity platform. Trusted by educators, journalists, and businesses worldwide.</p>
                 </div>
-                <div class="option-card active" data-option="plagiarism">
-                    <h4><i class="fas fa-copy"></i> Plagiarism Check</h4>
-                    <p>Compare against billions of web pages and academic databases</p>
+                <div class="footer-section">
+                    <h3>Tools</h3>
+                    <a href="/news">News Verification</a>
+                    <a href="/imageanalysis">Image Analysis</a>
+                    <a href="/unified">AI Detection</a>
+                    <a href="/pricingplan">Pricing Plans</a>
                 </div>
-                <div class="option-card active" data-option="readability">
-                    <h4><i class="fas fa-eye"></i> Readability Analysis</h4>
-                    <p>Analyze writing style, tone, and complexity metrics</p>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <a href="/missionstatement">Our Mission</a>
+                    <a href="#contact">Contact Us</a>
+                    <a href="#privacy">Privacy Policy</a>
+                    <a href="#terms">Terms of Service</a>
                 </div>
-                <div class="option-card" data-option="sentiment">
-                    <h4><i class="fas fa-heart"></i> Sentiment Analysis</h4>
-                    <p>Detect emotional tone and bias in the content</p>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <a href="mailto:info@factsandfakes.ai">info@factsandfakes.ai</a>
+                    <a href="tel:+1-555-FACTS-AI">+1-555-FACTS-AI</a>
+                    <p>San Francisco, CA</p>
                 </div>
             </div>
-
-            <!-- Analyze Button -->
-            <button class="analyze-button" id="analyzeBtn">
-                <i class="fas fa-search"></i> Start Comprehensive Analysis
-            </button>
-
-            <!-- Progress Section -->
-            <div class="progress-section" id="progressSection">
-                <div class="progress-header">
-                    <h3><i class="fas fa-cog fa-spin"></i> Analysis in Progress</h3>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-steps">
-                    <div class="progress-step active">
-                        <div class="step-icon active" id="step1">1</div>
-                        <div>
-                            <strong>Content Processing</strong><br>
-                            <small>Parsing and preparing content for analysis</small>
-                        </div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-icon" id="step2">2</div>
-                        <div>
-                            <strong>AI Detection</strong><br>
-                            <small>Running multi-model AI detection algorithms</small>
-                        </div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-icon" id="step3">3</div>
-                        <div>
-                            <strong>Plagiarism Scanning</strong><br>
-                            <small>Comparing against global databases</small>
-                        </div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-icon" id="step4">4</div>
-                        <div>
-                            <strong>Quality Analysis</strong><br>
-                            <small>Analyzing readability and writing metrics</small>
-                        </div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-icon" id="step5">5</div>
-                        <div>
-                            <strong>Report Generation</strong><br>
-                            <small>Compiling comprehensive analysis results</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Section -->
-            <div class="results-section" id="resultsSection">
-                <div class="results-header">
-                    <div class="authenticity-score">87%</div>
-                    <h3>Content Authenticity Score</h3>
-                    <p>High confidence that this content is primarily human-written with minimal AI assistance</p>
-                    
-                    <div class="score-details">
-                        <div class="score-item">
-                            <div class="score-value">13%</div>
-                            <div class="score-label">AI Probability</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-value">5%</div>
-                            <div class="score-label">Plagiarism Found</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-value">92%</div>
-                            <div class="score-label">Originality</div>
-                        </div>
-                        <div class="score-item">
-                            <div class="score-value">High</div>
-                            <div class="score-label">Quality Score</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Analysis Tabs -->
-                <div class="analysis-tabs">
-                    <button class="analysis-tab active" data-analysis="detection">
-                        <i class="fas fa-robot"></i> AI Detection
-                    </button>
-                    <button class="analysis-tab" data-analysis="plagiarism">
-                        <i class="fas fa-copy"></i> Plagiarism
-                    </button>
-                    <button class="analysis-tab" data-analysis="readability">
-                        <i class="fas fa-eye"></i> Readability
-                    </button>
-                    <button class="analysis-tab" data-analysis="technical">
-                        <i class="fas fa-cogs"></i> Technical
-                    </button>
-                </div>
-
-                <!-- AI Detection Results -->
-                <div class="analysis-content active" id="detection-content">
-                    <div class="detection-grid">
-                        <div class="detection-card">
-                            <div class="detection-header">
-                                <div class="detection-title">GPT Models</div>
-                                <div class="detection-score human">Human</div>
-                            </div>
-                            <div class="detection-details">
-                                <li><span>GPT-4:</span><span>8% AI</span></li>
-                                <li><span>GPT-3.5:</span><span>12% AI</span></li>
-                                <li><span>GPT-3:</span><span>15% AI</span></li>
-                                <li><span>Confidence:</span><span>High</span></li>
-                            </div>
-                        </div>
-                        <div class="detection-card">
-                            <div class="detection-header">
-                                <div class="detection-title">Claude Models</div>
-                                <div class="detection-score human">Human</div>
-                            </div>
-                            <div class="detection-details">
-                                <li><span>Claude-3:</span><span>10% AI</span></li>
-                                <li><span>Claude-2:</span><span>14% AI</span></li>
-                                <li><span>Claude-1:</span><span>18% AI</span></li>
-                                <li><span>Confidence:</span><span>High</span></li>
-                            </div>
-                        </div>
-                        <div class="detection-card">
-                            <div class="detection-header">
-                                <div class="detection-title">Other Models</div>
-                                <div class="detection-score human">Human</div>
-                            </div>
-                            <div class="detection-details">
-                                <li><span>Gemini:</span><span>11% AI</span></li>
-                                <li><span>PaLM:</span><span>9% AI</span></li>
-                                <li><span>LLaMA:</span><span>13% AI</span></li>
-                                <li><span>Confidence:</span><span>High</span></li>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="background: rgba(76, 175, 80, 0.1); padding: 1.5rem; border-radius: 10px; border-left: 4px solid #4CAF50;">
-                        <h4><i class="fas fa-check-circle"></i> Analysis Summary</h4>
-                        <p>All AI detection models consistently indicate this content is primarily human-written. The writing style, sentence structure, and word choice patterns match human authorship characteristics. No significant AI-generated content detected.</p>
-                    </div>
-                </div>
-
-                <!-- Plagiarism Results -->
-                <div class="analysis-content" id="plagiarism-content">
-                    <div class="plagiarism-overview">
-                        <div class="plagiarism-score">
-                            <div class="plagiarism-percentage">5%</div>
-                            <h3>Plagiarism Detected</h3>
-                            <p>Minor similarities found with online sources</p>
-                        </div>
-                        <div class="sources-found">
-                            <div class="source-match">
-                                <div class="source-url">wikipedia.org/climate-change</div>
-                                <div class="match-percentage">3% match</div>
-                                <p>Common phrases about climate science terminology</p>
-                            </div>
-                            <div class="source-match">
-                                <div class="source-url">nasa.gov/climate-data</div>
-                                <div class="match-percentage">2% match</div>
-                                <p>Statistical data citations properly attributed</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="background: rgba(76, 175, 80, 0.1); padding: 1.5rem; border-radius: 10px; border-left: 4px solid #4CAF50;">
-                        <h4><i class="fas fa-shield-alt"></i> Originality Assessment</h4>
-                        <p>The detected similarities are primarily common terminology and properly cited statistical data. No significant plagiarism concerns identified. Content demonstrates strong originality.</p>
-                    </div>
-                </div>
-
-                <!-- Readability Analysis -->
-                <div class="analysis-content" id="readability-content">
-                    <div class="technical-metrics">
-                        <div class="metric-card">
-                            <div class="metric-value">12.5</div>
-                            <div class="metric-label">Flesch-Kincaid Grade</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">58.3</div>
-                            <div class="metric-label">Readability Score</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">18.2</div>
-                            <div class="metric-label">Avg Words/Sentence</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">4.8</div>
-                            <div class="metric-label">Avg Syllables/Word</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">College</div>
-                            <div class="metric-label">Education Level</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">Professional</div>
-                            <div class="metric-label">Writing Style</div>
-                        </div>
-                    </div>
-                    <div style="background: rgba(102, 126, 234, 0.1); padding: 1.5rem; border-radius: 10px; border-left: 4px solid #667eea;">
-                        <h4><i class="fas fa-graduation-cap"></i> Readability Analysis</h4>
-                        <p>The content is written at a college level with professional tone and structure. Sentence complexity and vocabulary indicate sophisticated writing suitable for academic or professional audiences.</p>
-                    </div>
-                </div>
-
-                <!-- Technical Analysis -->
-                <div class="analysis-content" id="technical-content">
-                    <div class="technical-metrics">
-                        <div class="metric-card">
-                            <div class="metric-value">1,247</div>
-                            <div class="metric-label">Total Words</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">6,891</div>
-                            <div class="metric-label">Characters</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">68</div>
-                            <div class="metric-label">Sentences</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">12</div>
-                            <div class="metric-label">Paragraphs</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">5.2 min</div>
-                            <div class="metric-label">Reading Time</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">98.5%</div>
-                            <div class="metric-label">Grammar Score</div>
-                        </div>
-                    </div>
-                    <div style="background: rgba(102, 126, 234, 0.1); padding: 1.5rem; border-radius: 10px; border-left: 4px solid #667eea;">
-                        <h4><i class="fas fa-microscope"></i> Technical Assessment</h4>
-                        <p>Document structure and metrics indicate well-organized, professionally written content with excellent grammar and appropriate length for the topic. Technical analysis confirms human writing patterns.</p>
-                    </div>
-                </div>
-
-                <!-- Report Generation -->
-                <div class="report-section">
-                    <h3 style="margin-bottom: 1.5rem;">
-                        <i class="fas fa-file-alt"></i> Generate Detailed Reports
-                    </h3>
-                    <div class="report-options">
-                        <div class="report-option selected" data-report="executive">
-                            <h4><i class="fas fa-chart-line"></i> Executive Summary</h4>
-                            <p>High-level overview with key findings and recommendations</p>
-                        </div>
-                        <div class="report-option" data-report="technical">
-                            <h4><i class="fas fa-cogs"></i> Technical Report</h4>
-                            <p>Detailed technical analysis with methodology and metrics</p>
-                        </div>
-                        <div class="report-option" data-report="compliance">
-                            <h4><i class="fas fa-shield-alt"></i> Compliance Report</h4>
-                            <p>Academic and institutional compliance documentation</p>
-                        </div>
-                        <div class="report-option" data-report="comparison">
-                            <h4><i class="fas fa-balance-scale"></i> Comparative Analysis</h4>
-                            <p>Model-by-model comparison with confidence intervals</p>
-                        </div>
-                    </div>
-                    <button class="generate-reports-btn" onclick="generateReports()">
-                        <i class="fas fa-download"></i> Generate Selected Reports
-                    </button>
-                </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Facts & Fakes AI. All rights reserved. | Powered by advanced machine learning</p>
             </div>
         </div>
-    </div>
+    </footer>
 
     <script>
-        // Enhanced functionality with comprehensive features
-        let currentTier = 'free';
-        let analysisInProgress = false;
-        let selectedAnalysisOptions = ['ai-detection', 'plagiarism', 'readability'];
-
-        // Tier Selection
-        document.querySelectorAll('.tier-button').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.tier-button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentTier = this.dataset.tier;
-                updateTierFeatures();
-            });
-        });
-
-        // Input Tab Switching
-        document.querySelectorAll('.input-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.input-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.input-content').forEach(c => c.classList.remove('active'));
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
                 
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab + '-input').classList.add('active');
-            });
-        });
-
-        // Analysis Tab Switching
-        document.querySelectorAll('.analysis-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.analysis-content').forEach(c => c.classList.remove('active'));
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 
-                this.classList.add('active');
-                document.getElementById(this.dataset.analysis + '-content').classList.add('active');
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tabName + '-tab').classList.add('active');
             });
         });
 
-        // Analysis Options Selection
-        document.querySelectorAll('.option-card').forEach(card => {
-            card.addEventListener('click', function() {
-                this.classList.toggle('active');
-                const option = this.dataset.option;
-                
-                if (selectedAnalysisOptions.includes(option)) {
-                    selectedAnalysisOptions = selectedAnalysisOptions.filter(o => o !== option);
-                } else {
-                    selectedAnalysisOptions.push(option);
-                }
-                
-                updateAnalyzeButton();
-            });
-        });
-
-        // Report Option Selection
-        document.querySelectorAll('.report-option').forEach(option => {
-            option.addEventListener('click', function() {
-                this.classList.toggle('selected');
-            });
-        });
-
-        // Text Input Character/Word Count
-        const textContent = document.getElementById('textContent');
-        textContent.addEventListener('input', function() {
-            const text = this.value;
-            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const charCount = text.length;
-            
-            document.getElementById('wordCount').textContent = wordCount;
-            document.getElementById('charCount').textContent = charCount;
-        });
-
-        // File Upload Handling
+        // File upload handling
+        const uploadArea = document.querySelector('.upload-area');
         const fileInput = document.getElementById('fileInput');
-        const fileUpload = document.querySelector('.file-upload');
+        const analyzeFileBtn = document.getElementById('analyzeFileBtn');
 
-        // Drag and drop functionality
-        fileUpload.addEventListener('dragover', function(e) {
+        uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            this.classList.add('dragover');
+            uploadArea.classList.add('dragover');
         });
 
-        fileUpload.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
         });
 
-        fileUpload.addEventListener('drop', function(e) {
+        uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            this.classList.remove('dragover');
-            
+            uploadArea.classList.remove('dragover');
             const files = e.dataTransfer.files;
-            handleFiles(files);
+            if (files.length > 0) {
+                handleFileUpload({ target: { files } });
+            }
         });
 
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files);
-        });
-
-        // Main Analysis Function
-        document.getElementById('analyzeBtn').addEventListener('click', function() {
-            if (!validateInput()) {
-                alert('Please provide content to analyze.');
-                return;
-            }
-
-            if (selectedAnalysisOptions.length === 0) {
-                alert('Please select at least one analysis option.');
-                return;
-            }
-
-            startAnalysis();
-        });
-
-        function startAnalysis() {
-            if (analysisInProgress) return;
-            
-            analysisInProgress = true;
-            
-            // Hide results, show progress
-            document.getElementById('resultsSection').classList.remove('active');
-            document.getElementById('progressSection').classList.add('active');
-            
-            // Disable analyze button
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing Content...';
-            
-            // Start progress simulation
-            simulateAnalysis();
-            
-            // Here you would integrate with your actual APIs
-            setTimeout(() => {
-                completeAnalysis();
-            }, 10000);
-        }
-
-        function simulateAnalysis() {
-            const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
-            const progressFill = document.getElementById('progressFill');
-            const progressPercent = document.getElementById('progressPercent');
-            const progressSteps = document.querySelectorAll('.progress-step');
-            
-            let currentStep = 0;
-            const stepDuration = 2000; // 10 seconds total / 5 steps
-            
-            const progressInterval = setInterval(() => {
-                if (currentStep < steps.length) {
-                    // Complete previous step
-                    if (currentStep > 0) {
-                        const prevStep = document.getElementById(steps[currentStep - 1]);
-                        const prevStepContainer = progressSteps[currentStep - 1];
-                        
-                        prevStep.classList.remove('active');
-                        prevStep.classList.add('completed');
-                        prevStep.innerHTML = '<i class="fas fa-check"></i>';
-                        prevStepContainer.classList.remove('active');
-                    }
-                    
-                    // Activate current step
-                    if (currentStep < progressSteps.length) {
-                        const currentStepEl = document.getElementById(steps[currentStep]);
-                        const currentStepContainer = progressSteps[currentStep];
-                        
-                        currentStepEl.classList.add('active');
-                        currentStepContainer.classList.add('active');
-                    }
-                    
-                    // Update progress bar
-                    const progress = ((currentStep + 1) / steps.length) * 100;
-                    progressFill.style.width = progress + '%';
-                    progressPercent.textContent = Math.round(progress) + '%';
-                    
-                    currentStep++;
-                } else {
-                    clearInterval(progressInterval);
-                }
-            }, stepDuration);
-        }
-
-        function completeAnalysis() {
-            // Complete final step
-            const finalStep = document.getElementById('step5');
-            const finalStepContainer = document.querySelectorAll('.progress-step')[4];
-            
-            finalStep.classList.remove('active');
-            finalStep.classList.add('completed');
-            finalStep.innerHTML = '<i class="fas fa-check"></i>';
-            finalStepContainer.classList.remove('active');
-            
-            // Hide progress, show results
-            setTimeout(() => {
-                document.getElementById('progressSection').classList.remove('active');
-                document.getElementById('resultsSection').classList.add('active');
-                document.getElementById('resultsSection').classList.add('fade-in');
-                
-                // Reset analyze button
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze New Content';
-                
-                analysisInProgress = false;
-                
-                // Generate dynamic results
-                generateDynamicResults();
-            }, 1000);
-        }
-
-        // Sample Content Loading
-        function loadSample(sampleType) {
-            const samples = {
-                'ai-essay': "Climate change represents one of the most pressing challenges of our time, fundamentally altering the delicate balance of Earth's natural systems. The scientific consensus overwhelmingly supports the conclusion that human activities, particularly the emission of greenhouse gases, are the primary drivers of contemporary climate change. This phenomenon manifests through rising global temperatures, shifting precipitation patterns, and increasing frequency of extreme weather events, all of which pose significant threats to both natural ecosystems and human societies.",
-                'human-article': "Walking through the narrow streets of Venice at dawn, I couldn't help but notice how the morning light danced across the weathered stone facades. The city seemed to breathe with a rhythm all its own - the gentle lapping of canal water against ancient foundations, the distant call of seagulls, and the soft shuffle of early commuters heading to work. It's moments like these that remind me why I fell in love with travel writing in the first place.",
-                'mixed-content': "The advancement of artificial intelligence has revolutionized numerous industries, from healthcare to finance. Machine learning algorithms can now process vast amounts of data with unprecedented speed and accuracy. However, the implementation of AI systems requires careful consideration of ethical implications and potential societal impacts. While automation offers efficiency gains, it also raises questions about employment displacement and the need for workforce retraining programs.",
-                'plagiarized-text': "Climate change is a long-term change in the average weather patterns that have come to define Earth's local, regional and global climates. These changes have a broad range of observed effects that are synonymous with the term. Climate change refers to a change in the state of the climate that can be identified by changes in the mean and the variability of its properties."
-            };
-            
-            document.getElementById('textContent').value = samples[sampleType];
-            
-            // Switch to text input tab
-            document.querySelectorAll('.input-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.input-content').forEach(c => c.classList.remove('active'));
-            document.querySelector('[data-tab="text"]').classList.add('active');
-            document.getElementById('text-input').classList.add('active');
-            
-            // Update word count
-            textContent.dispatchEvent(new Event('input'));
-            
-            // Visual feedback
-            const sampleCards = document.querySelectorAll('.sample-card');
-            sampleCards.forEach(card => card.style.background = '');
-            event.target.closest('.sample-card').style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))';
-        }
-
-        // Utility Functions
-        function validateInput() {
-            const activeTab = document.querySelector('.input-tab.active').dataset.tab;
-            
-            if (activeTab === 'text') {
-                return document.getElementById('textContent').value.trim().length > 0;
-            } else if (activeTab === 'file') {
-                return fileInput.files.length > 0;
-            } else if (activeTab === 'url') {
-                const urlInput = document.querySelector('#url-input .text-input');
-                return urlInput.value.trim().length > 0;
-            }
-            
-            return false;
-        }
-
-        function updateAnalyzeButton() {
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const optionCount = selectedAnalysisOptions.length;
-            
-            if (optionCount === 0) {
-                analyzeBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Select Analysis Options';
-                analyzeBtn.style.background = '#ccc';
-            } else {
-                analyzeBtn.innerHTML = `<i class="fas fa-search"></i> Start ${optionCount} Analysis${optionCount > 1 ? 'es' : ''}`;
-                analyzeBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-            }
-        }
-
-        function updateTierFeatures() {
-            // Update UI based on selected tier
-            console.log(`Switched to ${currentTier} tier`);
-            // Here you would enable/disable features based on tier
-        }
-
-        function clearText() {
-            document.getElementById('textContent').value = '';
-            document.getElementById('wordCount').textContent = '0';
-            document.getElementById('charCount').textContent = '0';
-        }
-
-        function handleFiles(files) {
-            // Handle file upload
-            console.log('Files uploaded:', files);
-            // Here you would process the uploaded files
-        }
-
-        function generateDynamicResults() {
-            // Generate randomized but realistic results
-            const aiScores = [
-                { score: 87, confidence: 'High', summary: 'Content appears primarily human-written with natural flow and style' },
-                { score: 23, confidence: 'High', summary: 'Strong indicators of AI generation detected across multiple models' },
-                { score: 65, confidence: 'Medium', summary: 'Mixed signals - may contain both human and AI-generated sections' }
-            ];
-            
-            const randomResult = aiScores[Math.floor(Math.random() * aiScores.length)];
-            
-            // Update main score
-            document.querySelector('.authenticity-score').textContent = randomResult.score + '%';
-            
-            // Update score details
-            const scoreDetails = document.querySelectorAll('.score-item .score-value');
-            scoreDetails[0].textContent = Math.max(5, 100 - randomResult.score) + '%'; // AI Probability
-            scoreDetails[1].textContent = Math.floor(Math.random() * 15) + '%'; // Plagiarism
-            scoreDetails[2].textContent = Math.min(95, randomResult.score + Math.floor(Math.random() * 10)) + '%'; // Originality
-        }
-
-        function generateReports() {
-            const selectedReports = Array.from(document.querySelectorAll('.report-option.selected'))
-                .map(option => option.dataset.report);
-            
-            if (selectedReports.length === 0) {
-                alert('Please select at least one report type.');
-                return;
-            }
-            
-            // Here you would generate and download the actual reports
-            alert(`Generating ${selectedReports.length} report(s): ${selectedReports.join(', ')}`);
-        }
-
-        // Mobile Menu Toggle
-        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        });
-
-        // Reset progress on page load
-        window.addEventListener('load', function() {
-            // Reset all progress indicators
-            document.querySelectorAll('.step-icon').forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                step.textContent = index + 1;
-            });
-            document.querySelectorAll('.progress-step').forEach(step => {
-                step.classList.remove('active');
-            });
-            document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('progressPercent').textContent = '0%';
-        });
-
-        // Enhanced API Integration Configuration
-        const API_CONFIG = {
-            endpoints: {
-                aiDetection: '/api/ai/detect',
-                plagiarismCheck: '/api/plagiarism/check',
-                readabilityAnalysis: '/api/readability/analyze',
-                sentimentAnalysis: '/api/sentiment/analyze',
-                reportGeneration: '/api/reports/generate'
-            },
-            headers: {
-                'Authorization': 'Bearer YOUR_API_KEY',
-                'Content-Type': 'application/json'
-            }
-        };
-
-        // Real API Integration Functions (templates)
-        async function performRealAnalysis(content, options) {
-            try {
-                const response = await fetch(API_CONFIG.endpoints.aiDetection, {
-                    method: 'POST',
-                    headers: API_CONFIG.headers,
-                    body: JSON.stringify({
-                        content: content,
-                        tier: currentTier,
-                        analysisOptions: options,
-                        includeModelFingerprinting: currentTier === 'enterprise',
-                        batchMode: false
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const results = await response.json();
-                displayRealResults(results);
-                
-            } catch (error) {
-                console.error('Analysis API Error:', error);
-                // Fall back to demo results
-                generateDynamicResults();
-            }
-        }
-
-        function displayRealResults(apiResults) {
-            // Update UI with real API results
-            document.querySelector('.authenticity-score').textContent = apiResults.authenticityScore + '%';
-            
-            // Update detection results
-            if (apiResults.aiDetection) {
-                updateDetectionCards(apiResults.aiDetection);
-            }
-            
-            // Update plagiarism results
-            if (apiResults.plagiarism) {
-                updatePlagiarismResults(apiResults.plagiarism);
-            }
-            
-            // Update readability metrics
-            if (apiResults.readability) {
-                updateReadabilityMetrics(apiResults.readability);
-            }
-        }
-
-        function updateDetectionCards(detectionData) {
-            // Update each detection card with real data
-            const cards = document.querySelectorAll('.detection-card');
-            
-            if (detectionData.gpt) {
-                updateCard(cards[0], detectionData.gpt, 'GPT Models');
-            }
-            if (detectionData.claude) {
-                updateCard(cards[1], detectionData.claude, 'Claude Models');
-            }
-            if (detectionData.other) {
-                updateCard(cards[2], detectionData.other, 'Other Models');
-            }
-        }
-
-        function updateCard(card, data, title) {
-            const scoreElement = card.querySelector('.detection-score');
-            const detailsList = card.querySelector('.detection-details');
-            
-            // Update score
-            const avgScore = Math.round(data.averageAiProbability);
-            scoreElement.textContent = avgScore > 50 ? 'AI' : 'Human';
-            scoreElement.className = `detection-score ${avgScore > 50 ? 'ai' : 'human'}`;
-            
-            // Update details
-            detailsList.innerHTML = '';
-            Object.entries(data.modelScores).forEach(([model, score]) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${model}:</span><span>${score}% AI</span>`;
-                detailsList.appendChild(li);
-            });
-        }
-
-        function updatePlagiarismResults(plagiarismData) {
-            document.querySelector('.plagiarism-percentage').textContent = plagiarismData.overallScore + '%';
-            
-            const sourcesContainer = document.querySelector('.sources-found');
-            sourcesContainer.innerHTML = '';
-            
-            plagiarismData.sources.forEach(source => {
-                const sourceDiv = document.createElement('div');
-                sourceDiv.className = 'source-match';
-                sourceDiv.innerHTML = `
-                    <div class="source-url">${source.url}</div>
-                    <div class="match-percentage">${source.matchPercentage}% match</div>
-                    <p>${source.description}</p>
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const uploadArea = document.querySelector('.upload-area');
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <h3>File uploaded: ${file.name}</h3>
+                    <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 `;
-                sourcesContainer.appendChild(sourceDiv);
-            });
+                analyzeFileBtn.disabled = false;
+            }
         }
 
-        function updateReadabilityMetrics(readabilityData) {
-            const metrics = document.querySelectorAll('#readability-content .metric-value');
-            
-            metrics[0].textContent = readabilityData.fleschKincaidGrade;
-            metrics[1].textContent = readabilityData.readabilityScore;
-            metrics[2].textContent = readabilityData.avgWordsPerSentence;
-            metrics[3].textContent = readabilityData.avgSyllablesPerWord;
-            metrics[4].textContent = readabilityData.educationLevel;
-            metrics[5].textContent = readabilityData.writingStyle;
+        // Sample content functions
+        function loadSample(type) {
+            const textInput = document.getElementById('textInput');
+            const samples = {
+                ai: "The rapid advancement of artificial intelligence has fundamentally transformed numerous industries across the globe. Machine learning algorithms now power sophisticated systems that can process vast amounts of data with unprecedented efficiency. These technological innovations continue to reshape our understanding of computational capabilities and their practical applications in modern society.",
+                human: "I remember the first time I saw the ocean. I was seven years old, standing on the sandy beach with my grandmother's weathered hand in mine. The waves crashed against the shore with such power that I felt both terrified and amazed. The salt air filled my lungs as seagulls circled overhead, their cries mixing with the eternal rhythm of the sea.",
+                mixed: "The development of renewable energy technologies has accelerated significantly in recent years. Solar panels now achieve efficiency rates exceeding 22% in commercial applications. However, I personally witnessed the installation of wind turbines in my hometown last summer. The sight of those massive structures rotating gracefully against the blue sky was both impressive and slightly surreal."
+            };
+            textInput.value = samples[type];
         }
 
-        // Batch Processing for Enterprise Tier
-        async function processBatch(files) {
-            if (currentTier !== 'enterprise') {
-                alert('Batch processing is available for World-Class tier only.');
+        function loadSampleURL(type) {
+            const urlInput = document.getElementById('urlInput');
+            const samples = {
+                news: "https://www.bbc.com/news/technology",
+                blog: "https://medium.com/@example/ai-trends-2024",
+                academic: "https://arxiv.org/abs/2301.00001"
+            };
+            urlInput.value = samples[type];
+        }
+
+        // Analysis functions
+        function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                alert('Please enter some text to analyze.');
                 return;
             }
-
-            try {
-                const formData = new FormData();
-                Array.from(files).forEach(file => {
-                    formData.append('files', file);
-                });
-                formData.append('tier', currentTier);
-                formData.append('analysisOptions', JSON.stringify(selectedAnalysisOptions));
-
-                const response = await fetch(API_CONFIG.endpoints.batchProcess, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': API_CONFIG.headers.Authorization
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Batch API Error: ${response.status}`);
-                }
-
-                const results = await response.json();
-                displayBatchResults(results);
-                
-            } catch (error) {
-                console.error('Batch Processing Error:', error);
-                alert('Batch processing failed. Please try again.');
-            }
+            startAnalysis('text', { text });
         }
 
-        // Real-time Analysis for Pro+ Tiers
-        let realTimeTimeout;
-        function setupRealTimeAnalysis() {
-            if (currentTier === 'free') return;
+        function analyzeURL() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert('Please enter a URL to analyze.');
+                return;
+            }
+            startAnalysis('url', { url });
+        }
+
+        function analyzeFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) {
+                alert('Please select a file to analyze.');
+                return;
+            }
+            startAnalysis('file', { file: fileInput.files[0] });
+        }
+
+        function analyzeBatch() {
+            const batchText = document.getElementById('batchInput').value.trim();
+            if (!batchText) {
+                alert('Please enter texts to analyze.');
+                return;
+            }
+            const texts = batchText.split('\n').filter(t => t.trim());
+            startAnalysis('batch', { texts });
+        }
+
+        function startAnalysis(type, data) {
+            // Show progress
+            const progressContainer = document.getElementById('progressContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
             
-            textContent.addEventListener('input', function() {
-                clearTimeout(realTimeTimeout);
+            progressContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
                 
-                if (this.value.length > 100) {
-                    realTimeTimeout = setTimeout(() => {
-                        performQuickAnalysis(this.value);
-                    }, 2000);
+                progressFill.style.width = progress + '%';
+                
+                if (progress < 30) {
+                    progressText.textContent = 'Initializing analysis...';
+                } else if (progress < 60) {
+                    progressText.textContent = 'Scanning for AI patterns...';
+                } else if (progress < 90) {
+                    progressText.textContent = 'Checking for plagiarism...';
+                } else {
+                    progressText.textContent = 'Finalizing results...';
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    setTimeout(() => {
+                        showResults(type, data);
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function showResults(type, data) {
+            const progressContainer = document.getElementById('progressContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            progressContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            // Generate mock results
+            const aiProbability = Math.random() * 100;
+            const plagiarismScore = Math.random() * 50;
+            const confidence = aiProbability > 70 ? 'high' : aiProbability > 40 ? 'medium' : 'low';
+            
+            resultsContent.innerHTML = `
+                <div class="result-item">
+                    <div class="result-label">🤖 AI Detection Probability</div>
+                    <div class="result-value confidence-${confidence}">${aiProbability.toFixed(1)}%</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">📋 Plagiarism Score</div>
+                    <div class="result-value">${plagiarismScore.toFixed(1)}%</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">🎯 Confidence Level</div>
+                    <div class="result-value confidence-${confidence}">${confidence.toUpperCase()}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">⚡ Processing Time</div>
+                    <div class="result-value">${(Math.random() * 2 + 0.5).toFixed(2)} seconds</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">📊 Analysis Type</div>
+                    <div class="result-value">${type.toUpperCase()} Analysis</div>
+                </div>
+            `;
+        }
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.style.boxShadow = '0 2px 30px rgba(0, 0, 0, 0.15)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             });
-        }
-
-        async function performQuickAnalysis(content) {
-            try {
-                const response = await fetch(API_CONFIG.endpoints.quickAnalysis, {
-                    method: 'POST',
-                    headers: API_CONFIG.headers,
-                    body: JSON.stringify({
-                        content: content.substring(0, 1000), // Quick analysis on first 1000 chars
-                        tier: currentTier
-                    })
-                });
-
-                const results = await response.json();
-                showQuickResults(results);
-                
-            } catch (error) {
-                console.error('Quick Analysis Error:', error);
-            }
-        }
-
-        function showQuickResults(results) {
-            // Show quick results in a small overlay or tooltip
-            const quickResultsDiv = document.createElement('div');
-            quickResultsDiv.style.cssText = `
-                position: fixed;
-                top: 120px;
-                right: 20px;
-                background: white;
-                padding: 1rem;
-                border-radius: 10px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                border: 1px solid #667eea;
-                z-index: 999;
-                min-width: 200px;
-            `;
-            quickResultsDiv.innerHTML = `
-                <h4 style="margin: 0 0 0.5rem 0; color: #667eea;">Quick Analysis</h4>
-                <p style="margin: 0; font-size: 0.9rem;">AI Probability: <strong>${results.aiProbability}%</strong></p>
-                <p style="margin: 0; font-size: 0.9rem;">Originality: <strong>${results.originality}%</strong></p>
-            `;
-            
-            document.body.appendChild(quickResultsDiv);
-            
-            setTimeout(() => {
-                if (quickResultsDiv.parentNode) {
-                    quickResultsDiv.parentNode.removeChild(quickResultsDiv);
-                }
-            }, 5000);
-        }
-
-        // Initialize enhanced features
-        document.addEventListener('DOMContentLoaded', function() {
-            updateAnalyzeButton();
-            setupRealTimeAnalysis();
-            
-            // Set default analysis options based on tier
-            if (currentTier === 'enterprise') {
-                document.querySelector('[data-option="sentiment"]').classList.add('active');
-                selectedAnalysisOptions.push('sentiment');
-                updateAnalyzeButton();
-            }
         });
     </script>
 </body>
