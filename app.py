@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, session 
+from flask import Flask, render_template, request, jsonify, send_from_directory, session
 from flask_cors import CORS
 import requests
 import os
@@ -16,6 +16,7 @@ import uuid
 try:
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.exc import SQLAlchemyError
+    from sqlalchemy import text
     DATABASE_AVAILABLE = True
     print("✓ Database modules loaded successfully")
 except ImportError as e:
@@ -367,7 +368,7 @@ def health_check():
         if DATABASE_AVAILABLE:
             try:
                 with app.app_context():
-                    db.session.execute('SELECT 1')
+                    db.session.execute(text('SELECT 1'))
                     health_status['database'] = {'status': 'connected', 'type': 'postgresql'}
             except Exception as e:
                 health_status['database'] = {'status': 'error', 'error': str(e)}
