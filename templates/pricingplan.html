@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing Plans - Facts & Fakes AI | Simple & Transparent</title>
+    
+    <!-- Google Analytics 4 Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+        
+        // Custom Analytics Events for Pricing Page
+        function trackPricingEvent(eventName, eventData = {}) {
+            gtag('event', eventName, {
+                event_category: 'Pricing_Page',
+                page_title: 'Pricing Plans - Facts & Fakes AI | Simple & Transparent',
+                ...eventData
+            });
+            
+            // Backend analytics tracking
+            if (typeof backendAnalytics !== 'undefined') {
+                backendAnalytics.track(eventName, {
+                    page: 'pricing_plan',
+                    timestamp: new Date().toISOString(),
+                    ...eventData
+                });
+            }
+        }
+        
+        // Track page view
+        gtag('event', 'page_view', {
+            page_title: 'Pricing Plans - Facts & Fakes AI | Simple & Transparent',
+            page_location: window.location.href,
+            content_group1: 'Pricing Plans'
+        });
+    </script>
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -1048,12 +1083,166 @@
     </div>
 
     <script>
-        // Beta Modal Functions
+        // Initialize analytics tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            trackPricingEvent('pricing_page_loaded', {
+                user_agent: navigator.userAgent,
+                screen_resolution: `${screen.width}x${screen.height}`,
+                referrer: document.referrer
+            });
+            
+            setupPricingAnalytics();
+        });
+
+        // Setup comprehensive pricing page analytics
+        function setupPricingAnalytics() {
+            // Track navigation clicks
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function() {
+                    const destination = this.getAttribute('href');
+                    trackPricingEvent('navigation_clicked', {
+                        destination: destination,
+                        link_text: this.textContent.trim()
+                    });
+                });
+            });
+
+            // Track plan card interactions
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const planName = this.querySelector('.plan-name').textContent;
+                    trackPricingEvent('plan_card_hovered', {
+                        plan: planName
+                    });
+                });
+
+                card.addEventListener('click', function() {
+                    const planName = this.querySelector('.plan-name').textContent;
+                    trackPricingEvent('plan_card_clicked', {
+                        plan: planName
+                    });
+                });
+            });
+
+            // Track plan button clicks
+            document.querySelectorAll('.plan-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const planCard = this.closest('.plan-card');
+                    const planName = planCard.querySelector('.plan-name').textContent;
+                    const buttonText = this.textContent.trim();
+                    trackPricingEvent('plan_button_clicked', {
+                        plan: planName,
+                        button_text: buttonText,
+                        button_type: this.className.includes('primary') ? 'primary' : 'secondary'
+                    });
+                });
+            });
+
+            // Track CTA button clicks
+            document.querySelectorAll('.final-cta-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const buttonText = this.textContent.trim();
+                    trackPricingEvent('final_cta_clicked', {
+                        button_text: buttonText,
+                        button_type: this.className.includes('primary') ? 'primary' : 'secondary'
+                    });
+                });
+            });
+
+            // Track competitor comparison interactions
+            document.querySelectorAll('.comparison-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const companyName = this.querySelector('.comparison-title').textContent;
+                    trackPricingEvent('competitor_card_hovered', {
+                        competitor: companyName
+                    });
+                });
+
+                card.addEventListener('click', function() {
+                    const companyName = this.querySelector('.comparison-title').textContent;
+                    trackPricingEvent('competitor_card_clicked', {
+                        competitor: companyName
+                    });
+                });
+            });
+
+            // Track FAQ interactions
+            document.querySelectorAll('.faq-question').forEach(question => {
+                question.addEventListener('click', function() {
+                    const questionText = this.querySelector('h4').textContent;
+                    const isOpening = !this.parentElement.classList.contains('active');
+                    trackPricingEvent('faq_toggled', {
+                        question: questionText,
+                        action: isOpening ? 'expand' : 'collapse'
+                    });
+                });
+            });
+
+            // Track scroll depth
+            let maxScroll = 0;
+            let sectionsViewed = new Set();
+            
+            window.addEventListener('scroll', function() {
+                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                if (scrollPercent > maxScroll) {
+                    maxScroll = scrollPercent;
+                    if (maxScroll % 25 === 0 && maxScroll > 0) {
+                        trackPricingEvent('scroll_depth', {
+                            depth_percentage: maxScroll
+                        });
+                    }
+                }
+
+                // Track which sections come into view
+                const sections = document.querySelectorAll('.hero-section, .plans-comparison, .competitive-section, .faq-section, .final-cta-section');
+                sections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        const sectionId = section.className.split(' ')[0];
+                        if (!sectionsViewed.has(sectionId)) {
+                            sectionsViewed.add(sectionId);
+                            trackPricingEvent('section_viewed', {
+                                section: sectionId
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Track time on page
+            let pageStartTime = Date.now();
+            let engagementEvents = 0;
+
+            // Count engagement events
+            ['click', 'scroll', 'mousemove'].forEach(eventType => {
+                document.addEventListener(eventType, function() {
+                    engagementEvents++;
+                });
+            });
+
+            window.addEventListener('beforeunload', function() {
+                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
+                trackPricingEvent('page_session_end', {
+                    time_on_page: timeOnPage,
+                    max_scroll: maxScroll,
+                    engagement_events: engagementEvents,
+                    sections_viewed: Array.from(sectionsViewed)
+                });
+            });
+        }
+
+        // Beta Modal Functions with analytics
         function openBetaModal() {
+            trackPricingEvent('beta_modal_opened', {
+                source: 'pricing_page_banner'
+            });
             document.getElementById('betaModal').style.display = 'block';
         }
 
         function closeBetaModal() {
+            trackPricingEvent('beta_modal_closed', {
+                action: 'close_button'
+            });
             document.getElementById('betaModal').style.display = 'none';
         }
 
@@ -1066,6 +1255,12 @@
                 return;
             }
 
+            trackPricingEvent('beta_signup_attempted', {
+                email: email,
+                has_name: name.length > 0,
+                source: 'pricing_page'
+            });
+
             // Try to submit to backend, fall back to demo mode
             fetch('/api/beta-signup', {
                 method: 'POST',
@@ -1076,6 +1271,10 @@
             })
             .then(response => response.json())
             .then(data => {
+                trackPricingEvent('beta_signup_completed', {
+                    email: email,
+                    source: 'pricing_page'
+                });
                 alert('🎉 Welcome to the beta program! Check your email for next steps.');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
@@ -1083,6 +1282,11 @@
             .catch(error => {
                 // Demo mode fallback
                 console.log('Demo mode: Beta signup for', email);
+                trackPricingEvent('beta_signup_completed', {
+                    email: email,
+                    source: 'pricing_page',
+                    demo_mode: true
+                });
                 alert('🎉 Thanks for your interest! Beta program signup recorded.');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
@@ -1093,11 +1297,14 @@
         window.onclick = function(event) {
             const modal = document.getElementById('betaModal');
             if (event.target === modal) {
+                trackPricingEvent('beta_modal_closed', {
+                    action: 'outside_click'
+                });
                 closeBetaModal();
             }
         }
 
-        // FAQ functionality
+        // FAQ functionality with analytics
         function toggleFAQ(element) {
             const faqItem = element.parentElement;
             const isActive = faqItem.classList.contains('active');
@@ -1113,8 +1320,13 @@
             }
         }
 
-        // Pro Trial Function
+        // Pro Trial Function with analytics
         function startProTrial() {
+            trackPricingEvent('pro_trial_initiated', {
+                source: 'pricing_page',
+                button_location: event.target.closest('.plan-card') ? 'plan_card' : 'final_cta'
+            });
+
             alert(`🚀 Starting your 14-day Professional trial...
 
 ✓ Higher usage limits
@@ -1130,6 +1342,9 @@ Click OK to begin...`);
             
             // In a real implementation, this would redirect to sign-up
             setTimeout(() => {
+                trackPricingEvent('pro_trial_redirect', {
+                    destination: 'news.html'
+                });
                 window.location.href = 'news.html';
             }, 2000);
         }
@@ -1145,18 +1360,21 @@ Click OK to begin...`);
             });
         });
 
-        // Plan button interactions
-        document.querySelectorAll('.plan-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                if (this.onclick) return; // Skip if has onclick handler
-                
+        // Track beta email field focus
+        document.getElementById('betaEmail').addEventListener('focus', function() {
+            trackPricingEvent('beta_email_focused');
+        });
+
+        // Track plan comparison interactions
+        document.querySelectorAll('.plan-features li').forEach(feature => {
+            feature.addEventListener('mouseenter', function() {
+                const featureText = this.querySelector('.feature-text').textContent.trim();
                 const planCard = this.closest('.plan-card');
                 const planName = planCard.querySelector('.plan-name').textContent;
-                
-                if (planName.includes('Professional')) {
-                    e.preventDefault();
-                    startProTrial();
-                }
+                trackPricingEvent('plan_feature_hovered', {
+                    plan: planName,
+                    feature: featureText
+                });
             });
         });
     </script>
