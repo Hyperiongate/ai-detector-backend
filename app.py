@@ -841,6 +841,16 @@ def unified():
         logger.error(f"Error serving unified.html: {e}")
         return f"<h1>Unified Analysis</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
 
+@app.route('/imageanalysis')
+@app.route('/imageanalysis.html')
+def imageanalysis():
+    """Serve the image analysis page"""
+    try:
+        return render_template('imageanalysis.html')
+    except Exception as e:
+        logger.error(f"Error serving imageanalysis.html: {e}")
+        return f"<h1>Image Analysis</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
 @app.route('/contact')
 @app.route('/contact.html')
 def contact():
@@ -2229,6 +2239,7 @@ if __name__ == '__main__':
     logger.info("  • / - Homepage")
     logger.info("  • /news - News verification interface")
     logger.info("  • /unified - AI detection interface")
+    logger.info("  • /imageanalysis - Image analysis interface")
     logger.info("  • /contact - Contact page")
     logger.info("  • /missionstatement - Mission statement")
     logger.info("  • /pricingplan - Pricing information")
