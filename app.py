@@ -1057,7 +1057,8 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=port, debug=debug_mode)
     except Exception as e:
         logger.error(f"CRITICAL: Failed to start application: {e}")
-        raisefrom flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash, g
+        logger.error(f"Failed to initialize Flask app: {e}")
+raise
 from flask_cors import CORS
 import requests
 import os
