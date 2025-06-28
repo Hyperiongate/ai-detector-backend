@@ -1,9 +1,44 @@
-<!DOCTYPE html>
+d<!DOCTYPE html>
 <html lang="en">
 <head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Detection & Analysis - Facts & Fakes AI</title>
+    
+    <!-- Google Analytics 4 Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+        
+        // Custom Analytics Events for Image Analysis
+        function trackImageAnalysisEvent(eventName, eventData = {}) {
+            gtag('event', eventName, {
+                event_category: 'Image_Analysis',
+                page_title: 'AI Image Detection & Analysis',
+                ...eventData
+            });
+            
+            // Backend analytics tracking
+            if (typeof backendAnalytics !== 'undefined') {
+                backendAnalytics.track(eventName, {
+                    page: 'image_analysis',
+                    timestamp: new Date().toISOString(),
+                    ...eventData
+                });
+            }
+        }
+        
+        // Track page view
+        gtag('event', 'page_view', {
+            page_title: 'AI Image Detection & Analysis',
+            page_location: window.location.href,
+            content_group1: 'Image Analysis Tools'
+        });
+    </script>
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -1566,14 +1601,114 @@
     </div>
 
     <script>
-        // Enhanced image analysis functionality
+        // Enhanced image analysis functionality with comprehensive analytics
         let currentTier = 'free';
         let analysisInProgress = false;
         let currentImage = null;
         let cameraStream = null;
 
-        // Beta button functionality
+        // Initialize analytics tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            trackImageAnalysisEvent('image_analysis_page_load', {
+                user_agent: navigator.userAgent,
+                screen_resolution: `${screen.width}x${screen.height}`,
+                referrer: document.referrer
+            });
+            
+            setupAnalyticsTracking();
+        });
+
+        // Setup comprehensive analytics tracking
+        function setupAnalyticsTracking() {
+            // Track tier selection
+            document.querySelectorAll('.tier-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tier = this.getAttribute('data-tier');
+                    trackImageAnalysisEvent('tier_selected', {
+                        tier: tier,
+                        previous_tier: currentTier
+                    });
+                });
+            });
+
+            // Track upload method selection
+            document.querySelectorAll('.upload-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    const uploadMethod = this.getAttribute('data-method');
+                    trackImageAnalysisEvent('upload_method_selected', {
+                        method: uploadMethod
+                    });
+                });
+            });
+
+            // Track file input interactions
+            document.getElementById('imageInput').addEventListener('change', function() {
+                trackImageAnalysisEvent('image_file_selected', {
+                    file_count: this.files.length
+                });
+            });
+
+            // Track sample image interactions
+            document.querySelectorAll('.sample-image').forEach(sample => {
+                sample.addEventListener('click', function() {
+                    const sampleType = this.querySelector('.sample-label').textContent;
+                    trackImageAnalysisEvent('sample_image_selected', {
+                        sample_type: sampleType
+                    });
+                });
+            });
+
+            // Track analysis tab switches
+            document.querySelectorAll('.analysis-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const analysisType = this.getAttribute('data-analysis');
+                    trackImageAnalysisEvent('analysis_tab_switched', {
+                        tab: analysisType
+                    });
+                });
+            });
+
+            // Track report option selections
+            document.querySelectorAll('.report-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const reportType = this.getAttribute('data-report');
+                    trackImageAnalysisEvent('report_option_selected', {
+                        report_type: reportType
+                    });
+                });
+            });
+
+            // Track scroll depth
+            let maxScroll = 0;
+            window.addEventListener('scroll', function() {
+                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                if (scrollPercent > maxScroll) {
+                    maxScroll = scrollPercent;
+                    if (maxScroll % 25 === 0 && maxScroll > 0) {
+                        trackImageAnalysisEvent('scroll_depth', {
+                            depth_percentage: maxScroll
+                        });
+                    }
+                }
+            });
+
+            // Track time on page
+            let pageStartTime = Date.now();
+            window.addEventListener('beforeunload', function() {
+                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
+                trackImageAnalysisEvent('time_on_page', {
+                    seconds: timeOnPage,
+                    max_scroll: maxScroll
+                });
+            });
+        }
+
+        // Beta button functionality with analytics
         function joinBeta() {
+            trackImageAnalysisEvent('beta_modal_opened', {
+                source: 'image_analysis_page'
+            });
+
             // Show beta signup modal
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -1601,7 +1736,7 @@
                     position: relative;
                     animation: slideIn 0.3s ease;
                 ">
-                    <button onclick="this.closest('div').remove()" style="
+                    <button onclick="this.closest('div').remove(); trackImageAnalysisEvent('beta_modal_closed', {action: 'close_button'});" style="
                         position: absolute;
                         top: 15px;
                         right: 20px;
@@ -1656,6 +1791,11 @@
                 e.preventDefault();
                 const email = this.querySelector('input').value;
                 
+                trackImageAnalysisEvent('beta_signup_completed', {
+                    email: email,
+                    source: 'image_analysis_page'
+                });
+                
                 // Show success message
                 this.innerHTML = `
                     <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
@@ -1674,3 +1814,385 @@
                     modal.remove();
                 }, 2000);
             });
+
+            // Track email input focus
+            modal.querySelector('input[type="email"]').addEventListener('focus', function() {
+                trackImageAnalysisEvent('beta_email_focused');
+            });
+        }
+
+        // Tier selection functionality with analytics
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.tier-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.tier-button').forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update current tier
+                    currentTier = this.getAttribute('data-tier');
+                    
+                    trackImageAnalysisEvent('tier_changed', {
+                        new_tier: currentTier
+                    });
+                });
+            });
+
+            // Upload method switching
+            document.querySelectorAll('.upload-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    const selectedMethod = this.getAttribute('data-method');
+                    
+                    // Remove active class from all methods
+                    document.querySelectorAll('.upload-method').forEach(m => m.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Hide all input sections
+                    document.getElementById('urlInputSection').classList.remove('active');
+                    document.getElementById('cameraSection').classList.remove('active');
+                    
+                    // Show selected input section
+                    if (selectedMethod === 'url') {
+                        document.getElementById('urlInputSection').classList.add('active');
+                    } else if (selectedMethod === 'camera') {
+                        document.getElementById('cameraSection').classList.add('active');
+                        startCamera();
+                    }
+                    
+                    trackImageAnalysisEvent('upload_method_changed', {
+                        method: selectedMethod
+                    });
+                });
+            });
+
+            // File input handling
+            document.getElementById('imageInput').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleImageUpload(e.target.files[0]);
+                }
+            });
+
+            // Analysis tabs
+            document.querySelectorAll('.analysis-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetAnalysis = this.getAttribute('data-analysis');
+                    
+                    // Remove active class from all tabs and contents
+                    document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.analysis-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(targetAnalysis + '-content').classList.add('active');
+                });
+            });
+
+            // Report options
+            document.querySelectorAll('.report-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                });
+            });
+
+            // Analyze button
+            document.getElementById('analyzeBtn').addEventListener('click', function() {
+                if (!this.disabled && currentImage) {
+                    startAnalysis();
+                }
+            });
+        });
+
+        // Image upload handling with analytics
+        function handleImageUpload(file) {
+            trackImageAnalysisEvent('image_upload_started', {
+                file_size: file.size,
+                file_type: file.type,
+                file_name: file.name
+            });
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImage = e.target.result;
+                
+                // Update preview
+                const preview = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('previewImage');
+                previewImg.src = e.target.result;
+                preview.classList.add('active');
+                
+                // Update file info
+                updateImageInfo(file);
+                
+                // Enable analyze button
+                document.getElementById('analyzeBtn').disabled = false;
+                
+                trackImageAnalysisEvent('image_upload_completed', {
+                    file_size: file.size,
+                    file_type: file.type
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Update image information display
+        function updateImageInfo(file) {
+            document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        // Format file size helper
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Load sample images with analytics
+        function loadSample(sampleType) {
+            trackImageAnalysisEvent('sample_image_loaded', {
+                sample_type: sampleType
+            });
+
+            currentImage = `sample_${sampleType}`;
+            
+            // Update preview with sample data
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImage');
+            previewImg.src = document.querySelector(`[onclick="loadSample('${sampleType}')"] img`).src;
+            preview.classList.add('active');
+            
+            // Update sample info
+            document.getElementById('imageFormat').textContent = 'JPG';
+            document.getElementById('imageSize').textContent = '1920x1080';
+            document.getElementById('fileSize').textContent = '2.5 MB';
+            document.getElementById('colorDepth').textContent = '24-bit';
+            
+            // Enable analyze button
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+
+        // Load image from URL with analytics
+        function loadFromURL() {
+            const urlInput = document.querySelector('.url-input');
+            const imageUrl = urlInput.value.trim();
+            
+            if (imageUrl) {
+                trackImageAnalysisEvent('url_image_load_started', {
+                    url: imageUrl
+                });
+
+                currentImage = imageUrl;
+                
+                // Update preview
+                const preview = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('previewImage');
+                previewImg.src = imageUrl;
+                preview.classList.add('active');
+                
+                // Enable analyze button
+                document.getElementById('analyzeBtn').disabled = false;
+                
+                trackImageAnalysisEvent('url_image_loaded', {
+                    url: imageUrl
+                });
+            }
+        }
+
+        // Camera functionality with analytics
+        function startCamera() {
+            trackImageAnalysisEvent('camera_started');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    cameraStream = stream;
+                    const video = document.getElementById('cameraVideo');
+                    video.srcObject = stream;
+                })
+                .catch(function(err) {
+                    console.error('Camera access denied:', err);
+                    trackImageAnalysisEvent('camera_access_denied', {
+                        error: err.message
+                    });
+                });
+        }
+
+        function capturePhoto() {
+            trackImageAnalysisEvent('photo_captured');
+
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            currentImage = canvas.toDataURL('image/jpeg');
+            
+            // Update preview
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImage');
+            previewImg.src = currentImage;
+            preview.classList.add('active');
+            
+            // Enable analyze button
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+
+        function stopCamera() {
+            trackImageAnalysisEvent('camera_stopped');
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        // Analysis simulation with comprehensive tracking
+        function startAnalysis() {
+            trackImageAnalysisEvent('analysis_started', {
+                tier: currentTier,
+                image_type: typeof currentImage === 'string' && currentImage.startsWith('sample_') ? 'sample' : 'user_uploaded'
+            });
+
+            analysisInProgress = true;
+            
+            // Show progress section
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            // Simulate analysis steps
+            simulateAnalysisProgress();
+        }
+
+        function simulateAnalysisProgress() {
+            const steps = [
+                { id: 'step1', name: 'Image Processing', duration: 1000 },
+                { id: 'step2', name: 'AI Detection', duration: 2000 },
+                { id: 'step3', name: 'Metadata Analysis', duration: 1500 },
+                { id: 'step4', name: 'Pixel Analysis', duration: 2500 },
+                { id: 'step5', name: 'Report Generation', duration: 1000 }
+            ];
+            
+            let currentStep = 0;
+            let totalProgress = 0;
+            
+            function processStep() {
+                if (currentStep < steps.length) {
+                    const step = steps[currentStep];
+                    
+                    // Track step start
+                    trackImageAnalysisEvent('analysis_step_started', {
+                        step: step.name,
+                        step_number: currentStep + 1
+                    });
+                    
+                    // Update UI
+                    if (currentStep > 0) {
+                        document.getElementById(steps[currentStep - 1].id).classList.remove('active');
+                        document.getElementById(steps[currentStep - 1].id).classList.add('completed');
+                    }
+                    
+                    document.getElementById(step.id).classList.add('active');
+                    
+                    // Update progress bar
+                    const stepProgress = (currentStep + 1) / steps.length * 100;
+                    document.getElementById('progressFill').style.width = stepProgress + '%';
+                    document.getElementById('progressPercent').textContent = Math.round(stepProgress) + '%';
+                    
+                    currentStep++;
+                    
+                    setTimeout(() => {
+                        if (currentStep <= steps.length) {
+                            processStep();
+                        } else {
+                            completeAnalysis();
+                        }
+                    }, step.duration);
+                } else {
+                    completeAnalysis();
+                }
+            }
+            
+            processStep();
+        }
+
+        function completeAnalysis() {
+            trackImageAnalysisEvent('analysis_completed', {
+                tier: currentTier,
+                total_time: 'simulated',
+                authenticity_score: 87
+            });
+
+            // Hide progress, show results
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+            
+            // Re-enable analyze button
+            document.getElementById('analyzeBtn').disabled = false;
+            analysisInProgress = false;
+        }
+
+        // Report generation with analytics
+        function generateReports() {
+            const selectedReports = document.querySelectorAll('.report-option.selected');
+            const reportTypes = Array.from(selectedReports).map(option => option.getAttribute('data-report'));
+            
+            trackImageAnalysisEvent('reports_generated', {
+                report_types: reportTypes,
+                report_count: reportTypes.length,
+                tier: currentTier
+            });
+            
+            // Simulate report generation
+            reportTypes.forEach(reportType => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.download = `image_analysis_${reportType}_report.pdf`;
+                    link.click();
+                    
+                    trackImageAnalysisEvent('report_downloaded', {
+                        report_type: reportType
+                    });
+                }, 500);
+            });
+        }
+
+        // Drag and drop functionality with analytics
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.querySelector('.image-upload-area');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    trackImageAnalysisEvent('image_drag_dropped', {
+                        file_count: files.length
+                    });
+                    handleImageUpload(files[0]);
+                }
+            });
+        });
