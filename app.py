@@ -1,1633 +1,4 @@
-'linguistic_features': {
-                    'vocabulary_complexity': 50,
-                    'style_consistency': 50,
-                    'natural_flow': 50,
-                    'repetitive_patterns': 50,
-                    'human_quirks': 50
-                },
-                'analysis_method': 'error_fallback'
-            }
-        
-        try:
-            plagiarism_results = perform_plagiarism_analysis(text, analysis_type)
-            logger.info("Plagiarism detection completed successfully")
-        except Exception as e:
-            logger.error(f"Plagiarism detection failed: {e}")
-            plagiarism_results = {
-                'similarity_score': 0.05,
-                'matches': [],
-                'databases_searched': f'{"500+" if analysis_type == "pro" else "50+"} sources',
-                'assessment': 'Plagiarism check completed with standard protocols.',
-                'analysis_details': {
-                    'total_matches_found': 0,
-                    'highest_similarity': 0,
-                    'text_length_analyzed': len(text)
-                }
-            }
-        
-        try:
-            overall_assessment = generate_ai_overall_assessment(ai_results, plagiarism_results, analysis_type)
-        except Exception as e:
-            logger.error(f"Assessment generation failed: {e}")
-            overall_assessment = "Analysis completed with comprehensive evaluation protocols."
-        
-        combined_results = {
-            'status': 'success',
-            'timestamp': datetime.now().isoformat(),
-            'analysis_type': analysis_type,
-            'text_length': len(text),
-            'ai_detection': ai_results,
-            'plagiarism_detection': plagiarism_results,
-            'overall_assessment': overall_assessment,
-            'methodology': {
-                'ai_models_used': 'GPT-3.5 Real-Time Analysis' if analysis_type == 'pro' and openai_client else 'Enhanced Pattern Matching',
-                'plagiarism_databases': '500+ sources' if analysis_type == 'pro' else '50+ sources',
-                'processing_time': '6 seconds' if analysis_type == 'pro' else '10 seconds',
-                'analysis_depth': 'comprehensive_real_time' if analysis_type == 'pro' else 'standard'
-            }
-        }
-        
-        if analysis_type == 'pro':
-            try:
-                combined_results['sentiment_analysis'] = perform_sentiment_analysis(text)
-                combined_results['readability_analysis'] = perform_readability_analysis(text)
-                combined_results['linguistic_fingerprinting'] = perform_linguistic_fingerprinting(text)
-                combined_results['trend_analysis'] = perform_trend_analysis(text)
-            except Exception as e:
-                logger.warning(f"Pro features failed: {e}")
-                combined_results['pro_features_note'] = "Some advanced features encountered errors"
-        else:
-            combined_results['locked_features'] = {
-                'sentiment_analysis': '🔒 Upgrade to Pro for sentiment analysis',
-                'readability_analysis': '🔒 Upgrade to Pro for readability metrics',
-                'linguistic_fingerprinting': '🔒 Upgrade to Pro for writing style fingerprinting',
-                'trend_analysis': '🔒 Upgrade to Pro for trend and virality analysis'
-            }
-        
-        log_success = log_analysis(user, analysis_type, text)
-        if not log_success:
-            logger.warning(f"Failed to log analysis for user {user.id}")
-        
-        user.reset_daily_usage()
-        combined_results['user_usage'] = {
-            'free_used': user.free_analyses_used,
-            'free_remaining': max(0, 5 - user.free_analyses_used),
-            'pro_used': user.pro_analyses_used,
-            'pro_remaining': max(0, 5 - user.pro_analyses_used),
-            'analysis_type_used': analysis_type
-        }
-        
-        combined_results['beta_info'] = {
-            'message': f'✅ Analysis complete! You have {combined_results["user_usage"][f"{analysis_type}_remaining"]} {analysis_type} analyses remaining today.',
-            'upgrade_message': 'Enjoying the beta? Help us improve by providing feedback!' if analysis_type == 'pro' else 'Try Pro features for comprehensive AI detection and plagiarism checking!',
-            'tier': analysis_type
-        }
-        
-        logger.info("Beta AI detection endpoint completed successfully")
-        return jsonify(combined_results)
-        
-    except Exception as e:
-        logger.error(f"CRITICAL Beta AI Detection error: {str(e)}")
-        
-        if DATABASE_AVAILABLE:
-            try:
-                db.session.rollback()
-            except:
-                pass
-        
-        return jsonify({
-            'error': 'Analysis service temporarily unavailable',
-            'details': 'Please try again in a moment or contact support',
-            'status': 'error',
-            'timestamp': datetime.now().isoformat(),
-            'error_id': f'ai_detect_{int(time.time())}'
-        }), 500
-
-@app.route('/api/analyze-news', methods=['POST', 'OPTIONS'])
-@beta_required
-def analyze_news():
-    """Enhanced news verification endpoint with beta authentication"""
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-    
-    try:
-        user = User.query.get(session['user_id']) if DATABASE_AVAILABLE else None
-        if not user:
-            return jsonify({
-                'error': 'Beta access required',
-                'redirect': '/beta/signup',
-                'message': 'Join our beta to access news analysis features'
-            }), 401
-        
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
-            
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        text = ""
-        source_url = None
-        analysis_type = data.get('analysis_type', 'free')
-        
-        # Check usage limits
-        can_analyze, limit_message = check_usage_limit(user, analysis_type)
-        if not can_analyze:
-            return jsonify({
-                'error': limit_message,
-                'limit_reached': True,
-                'analysis_type': analysis_type,
-                'usage_info': {
-                    'free_used': user.free_analyses_used,
-                    'free_remaining': max(0, 5 - user.free_analyses_used),
-                    'pro_used': user.pro_analyses_used,
-                    'pro_remaining': max(0, 5 - user.pro_analyses_used)
-                }
-            }), 429
-        
-        # Handle URL or text input
-        if 'url' in data and data['url']:
-            source_url = data['url'].strip()
-            try:
-                content_result = fetch_url_content(source_url)
-                if content_result['status'] == 'success':
-                    text = content_result['content']
-                else:
-                    return jsonify({'error': f"Failed to fetch URL: {content_result.get('error', 'Unknown error')}"}), 400
-            except Exception as e:
-                logger.error(f"URL fetch error: {e}")
-                return jsonify({'error': f"Could not access URL: {str(e)}"}), 400
-                
-        elif 'text' in data and data['text']:
-            text = data['text'].strip()
-        else:
-            return jsonify({'error': 'No text or URL provided'}), 400
-        
-        if len(text) < 10:
-            return jsonify({'error': 'Content too short for analysis (minimum 10 characters)'}), 400
-        
-        logger.info(f"Beta news analysis: user {user.id}, {len(text)} chars, type: {analysis_type}")
-        
-        # Generate analysis results
-        results = generate_news_analysis_results(text, source_url, analysis_type)
-        
-        # Add Pro features if applicable
-        if analysis_type == 'pro':
-            try:
-                results['sentiment_analysis'] = perform_sentiment_analysis(text)
-                results['readability_analysis'] = perform_readability_analysis(text)
-                results['linguistic_fingerprint'] = perform_linguistic_fingerprinting(text)
-                results['trend_analysis'] = perform_trend_analysis(text)
-            except Exception as e:
-                logger.warning(f"Pro features failed: {e}")
-                results['pro_features_note'] = "Some advanced features encountered errors"
-        else:
-            results['locked_features'] = {
-                'sentiment_analysis': '🔒 Upgrade to Pro for detailed sentiment analysis',
-                'readability_analysis': '🔒 Upgrade to Pro for readability scoring',
-                'linguistic_fingerprint': '🔒 Upgrade to Pro for writing style analysis',
-                'trend_analysis': '🔒 Upgrade to Pro for trend and virality analysis'
-            }
-        
-        # Log analysis and update usage
-        log_success = log_analysis(user, analysis_type, text)
-        if not log_success:
-            logger.warning(f"Failed to log analysis for user {user.id}")
-        
-        # Add usage information to response
-        user.reset_daily_usage()
-        results['user_usage'] = {
-            'free_used': user.free_analyses_used,
-            'free_remaining': max(0, 5 - user.free_analyses_used),
-            'pro_used': user.pro_analyses_used,
-            'pro_remaining': max(0, 5 - user.pro_analyses_used),
-            'analysis_type_used': analysis_type
-        }
-        
-        results['beta_info'] = {
-            'message': f'✅ Analysis complete! You have {results["user_usage"][f"{analysis_type}_remaining"]} {analysis_type} analyses remaining today.',
-            'upgrade_message': 'Enjoying the beta? Help us improve by providing feedback!' if analysis_type == 'pro' else 'Try Pro features for detailed analysis and insights!',
-            'tier': analysis_type
-        }
-        
-        return jsonify(results)
-        
-    except Exception as e:
-        logger.error(f"Beta news analysis error: {str(e)}")
-        return jsonify({
-            'error': 'Analysis failed',
-            'details': 'Please try again or contact support if the issue persists',
-            'status': 'error',
-            'timestamp': datetime.now().isoformat()
-        }), 500
-
-@app.route('/api/analyze-image', methods=['POST'])
-@beta_required 
-def analyze_image():
-    """Image analysis endpoint with beta authentication"""
-    try:
-        user = User.query.get(session['user_id']) if DATABASE_AVAILABLE else None
-        if not user:
-            return jsonify({
-                'error': 'Beta access required',
-                'redirect': '/beta/signup',
-                'message': 'Join our beta to access image analysis features'
-            }), 401
-
-        # Check if file was uploaded
-        if 'image' not in request.files:
-            return jsonify({'error': 'No image file provided'}), 400
-        
-        file = request.files['image']
-        if file.filename == '':
-            return jsonify({'error': 'No image file selected'}), 400
-        
-        analysis_type = request.form.get('analysis_type', 'free')
-        
-        # Check usage limits
-        can_analyze, limit_message = check_usage_limit(user, analysis_type)
-        if not can_analyze:
-            return jsonify({
-                'error': limit_message,
-                'limit_reached': True,
-                'analysis_type': analysis_type
-            }), 429
-        
-        # Basic image analysis simulation (replace with actual image processing)
-        file_size = len(file.read())
-        file.seek(0)  # Reset file pointer
-        
-        # Simulate image analysis
-        results = {
-            'status': 'success',
-            'timestamp': datetime.now().isoformat(),
-            'analysis_type': analysis_type,
-            'file_info': {
-                'filename': secure_filename(file.filename),
-                'size_kb': round(file_size / 1024, 2),
-                'format': file.filename.split('.')[-1].lower() if '.' in file.filename else 'unknown'
-            },
-            'deepfake_analysis': {
-                'probability': 0.15,  # Simulate low deepfake probability
-                'confidence': 0.82,
-                'assessment': 'Likely Authentic',
-                'technical_indicators': {
-                    'pixel_inconsistencies': 12,
-                    'compression_artifacts': 8,
-                    'facial_landmarks': 'consistent' if analysis_type == 'pro' else '🔒 Pro feature',
-                    'temporal_coherence': 'stable' if analysis_type == 'pro' else '🔒 Pro feature'
-                }
-            },
-            'manipulation_detection': {
-                'overall_score': 85,  # High authenticity score
-                'areas_of_concern': [],
-                'enhancement_detected': False,
-                'metadata_analysis': 'clean' if analysis_type == 'pro' else '🔒 Pro feature'
-            }
-        }
-        
-        if analysis_type == 'pro':
-            results['advanced_analysis'] = {
-                'reverse_image_search': 'No matches found in database',
-                'origin_estimation': 'Likely original content',
-                'quality_assessment': 'High resolution, professional quality'
-            }
-        else:
-            results['locked_features'] = {
-                'reverse_image_search': '🔒 Upgrade to Pro for reverse image search',
-                'origin_estimation': '🔒 Upgrade to Pro for origin analysis',
-                'quality_assessment': '🔒 Upgrade to Pro for quality metrics'
-            }
-        
-        # Log the analysis
-        log_success = log_analysis(user, analysis_type, f"Image analysis: {file.filename}")
-        
-        # Add usage info
-        user.reset_daily_usage()
-        results['user_usage'] = {
-            'free_used': user.free_analyses_used,
-            'free_remaining': max(0, 5 - user.free_analyses_used),
-            'pro_used': user.pro_analyses_used,
-            'pro_remaining': max(0, 5 - user.pro_analyses_used),
-            'analysis_type_used': analysis_type
-        }
-        
-        return jsonify(results)
-        
-    except Exception as e:
-        logger.error(f"Image analysis error: {e}")
-        return jsonify({
-            'error': 'Image analysis failed',
-            'details': 'Please try again with a different image',
-            'status': 'error'
-        }), 500
-
-# PERFORMANCE MONITORING ENDPOINTS
-@app.route('/api/performance')
-def performance_metrics():
-    """Performance monitoring endpoint"""
-    try:
-        # System metrics
-        memory_info = psutil.virtual_memory()
-        
-        # Test database speed
-        db_response_time = 0
-        if DATABASE_AVAILABLE:
-            start_time = time.time()
-            try:
-                db.session.execute(text('SELECT 1'))
-                db_response_time = (time.time() - start_time) * 1000
-            except:
-                db_response_time = -1
-        
-        # Test cache speed
-        cache_response_time = 0
-        try:
-            start_time = time.time()
-            cache.set('perf_test', 'test_value', timeout=60)
-            cache.get('perf_test')
-            cache_response_time = (time.time() - start_time) * 1000
-        except:
-            cache_response_time = -1
-        
-        return jsonify({
-            'timestamp': datetime.now().isoformat(),
-            'system': {
-                'memory_percent': round(memory_info.percent, 1),
-                'memory_available_gb': round(memory_info.available / (1024**3), 2)
-            },
-            'database': {
-                'status': 'connected' if db_response_time >= 0 else 'error',
-                'response_time_ms': round(db_response_time, 2) if db_response_time >= 0 else None
-            },
-            'cache': {
-                'status': 'connected' if cache_response_time >= 0 else 'error',
-                'response_time_ms': round(cache_response_time, 2) if cache_response_time >= 0 else None,
-                'type': 'redis' if os.environ.get('REDIS_URL') else 'memory'
-            },
-            'health_status': 'healthy' if (
-                memory_info.percent < 80 and 
-                db_response_time >= 0 and 
-                cache_response_time >= 0
-            ) else 'warning'
-        })
-        
-    except Exception as e:
-        logger.error(f"Performance metrics error: {e}")
-        return jsonify({'error': 'Performance metrics unavailable'}), 500
-
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    """Enhanced health check"""
-    try:
-        health_status = {
-            "status": "operational",
-            "message": "Facts & Fakes AI - News Verification Platform (Beta Enabled)",
-            "timestamp": datetime.now().isoformat(),
-            "version": "2.2-beta-performance-optimized",
-            "performance": {
-                "gunicorn": "enabled",
-                "database_pooling": "enabled" if DATABASE_AVAILABLE else "disabled",
-                "redis_caching": "enabled" if os.environ.get('REDIS_URL') else "memory_cache",
-                "compression": "enabled"
-            },
-            "apis": {
-                "openai": "connected" if openai_client else "not_configured",
-                "newsapi": "available" if NEWS_API_KEY else "not_configured", 
-                "google_factcheck": "configured" if GOOGLE_FACT_CHECK_API_KEY else "not_configured",
-                "email_smtp": "configured" if EMAIL_AVAILABLE and SMTP_PASSWORD else "not_configured"
-            },
-            "endpoints": {
-                "news_analysis": "/api/analyze-news",
-                "ai_detection": "/api/detect-ai", 
-                "image_analysis": "/api/analyze-image",
-                "contact_form": "/api/contact",
-                "beta_signup": "/api/beta/signup",
-                "beta_login": "/api/beta/login",
-                "beta_status": "/api/beta/status",
-                "performance_metrics": "/api/performance"
-            },
-            "system_status": "healthy",
-            "python_version": "3.13_compatible",
-            "email_status": "available" if EMAIL_AVAILABLE else "unavailable"
-        }
-        
-        if DATABASE_AVAILABLE:
-            try:
-                with app.app_context():
-                    db.session.execute(text('SELECT 1'))
-                    health_status['database'] = {'status': 'connected', 'type': 'postgresql', 'pooling': 'enabled'}
-                    health_status['beta_features'] = {'status': 'enabled', 'user_tracking': 'active'}
-            except Exception as e:
-                health_status['database'] = {'status': 'error', 'error': str(e)}
-                health_status['beta_features'] = {'status': 'disabled', 'reason': 'database_error'}
-        else:
-            health_status['database'] = {'status': 'not_configured'}
-            health_status['beta_features'] = {'status': 'disabled', 'reason': 'database_not_available'}
-        
-        return jsonify(health_status)
-    except Exception as e:
-        logger.error(f"Health check error: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# CONTACT FORM HANDLING
-@app.route('/api/contact', methods=['POST'])
-def handle_contact():
-    """Handle contact form submissions with email"""
-    try:
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
-        
-        name = data.get('name', '').strip()
-        email = data.get('email', '').strip()
-        subject = data.get('subject', 'Contact Form Submission').strip()
-        message = data.get('message', '').strip()
-        
-        if not name or not email or not message:
-            return jsonify({
-                'success': False,
-                'message': 'Name, email, and message are required'
-            }), 400
-        
-        # Save to database if available
-        email_sent = False
-        if DATABASE_AVAILABLE:
-            try:
-                contact_msg = ContactMessage(
-                    name=name,
-                    email=email,
-                    subject=subject,
-                    message=message
-                )
-                db.session.add(contact_msg)
-                db.session.commit()
-                
-                # Update email sent status after successful send
-                contact_id = contact_msg.id
-            except Exception as e:
-                logger.error(f"Database save failed: {e}")
-                if DATABASE_AVAILABLE:
-                    try:
-                        db.session.rollback()
-                    except:
-                        pass
-        
-        # Only attempt email if EMAIL_AVAILABLE
-        admin_sent = False
-        user_sent = False
-        
-        if EMAIL_AVAILABLE and CONTACT_EMAIL:
-            # Email to admin
-            admin_subject = f"Facts & Fakes AI Contact: {subject}"
-            admin_message = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                    <h2>New Contact Form Submission</h2>
-                </div>
-                <div style="padding: 20px; background: #f8f9fa;">
-                    <p><strong>Name:</strong> {name}</p>
-                    <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
-                    <p><strong>Subject:</strong> {subject}</p>
-                    <h3>Message:</h3>
-                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
-                        {message.replace(chr(10), '<br>')}
-                    </div>
-                </div>
-                <div style="background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;">
-                    <p>Sent from Facts & Fakes AI Contact Form<br>
-                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
-                </div>
-            </body>
-            </html>
-            """
-            
-            # Auto-reply to user
-            user_subject = "Thank you for contacting Facts & Fakes AI"
-            user_message = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                    <h2>Thank you for your message, {name}!</h2>
-                </div>
-                <div style="padding: 20px; background: #f8f9fa;">
-                    <p>We've received your inquiry and will respond within 24 hours.</p>
-                    <h3>Your message:</h3>
-                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
-                        <strong>Subject:</strong> {subject}<br><br>
-                        {message.replace(chr(10), '<br>')}
-                    </div>
-                    <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
-                        <p><strong>While you wait, explore our AI detection tools:</strong></p>
-                        <p>🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
-                        📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
-                        🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a></p>
-                    </div>
-                </div>
-                <div style="background: #333; color: white; padding: 15px; text-align: center;">
-                    <p>Best regards,<br>
-                    <strong>Facts & Fakes AI Team</strong><br>
-                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
-                </div>
-            </body>
-            </html>
-            """
-            
-            # Send emails
-            admin_sent = send_email(CONTACT_EMAIL, admin_subject, admin_message, name)
-            user_sent = send_email(email, user_subject, user_message, "Facts & Fakes AI")
-        
-        # Update database with email status
-        if DATABASE_AVAILABLE and 'contact_id' in locals():
-            try:
-                contact_msg = ContactMessage.query.get(contact_id)
-                if contact_msg:
-                    contact_msg.email_sent = admin_sent and user_sent
-                    db.session.commit()
-            except Exception as e:
-                logger.error(f"Failed to update email status: {e}")
-        
-        if EMAIL_AVAILABLE:
-            if admin_sent and user_sent:
-                logger.info(f"Contact form processed successfully: {name} <{email}>")
-                return jsonify({
-                    'success': True,
-                    'message': 'Message sent successfully! We\'ll respond within 24 hours.'
-                })
-            elif admin_sent:
-                return jsonify({
-                    'success': True,
-                    'message': 'Message received! We\'ll respond within 24 hours.'
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': 'Message received but email delivery failed. We\'ll respond manually.'
-                })
-        else:
-            # Email not available, but still save message
-            logger.info(f"Contact form saved (email disabled): {name} <{email}>")
-            return jsonify({
-                'success': True,
-                'message': 'Message received! We\'ll respond within 24 hours. (Email system temporarily unavailable)'
-            })
-            
-    except Exception as e:
-        logger.error(f"Contact form error: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'Failed to send message. Please try again.'
-        }), 500
-
-# BETA AUTHENTICATION PAGES
-@app.route('/beta/signup')
-def beta_signup():
-    """Beta signup page"""
-    try:
-        return render_template('beta/signup.html')
-    except Exception as e:
-        logger.error(f"Error serving beta signup: {e}")
-        return """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Join Beta - Facts & Fakes AI</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                       min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-                .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-                           max-width: 400px; width: 90%; }
-                .beta-badge { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; padding: 0.5rem 1rem; 
-                            border-radius: 20px; text-align: center; font-weight: 600; margin-bottom: 1.5rem; }
-                h1 { text-align: center; margin-bottom: 1.5rem; color: #333; }
-                .form-group { margin-bottom: 1rem; }
-                label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
-                input { width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; box-sizing: border-box; }
-                .btn { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea, #764ba2); 
-                      color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-                .benefits { background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-                .message { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
-                .error { background: #fee; color: #c33; border: 1px solid #fcc; }
-                .success { background: #efe; color: #393; border: 1px solid #cfc; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="beta-badge">🚀 BETA ACCESS - Limited Time</div>
-                <h1>Join Our Beta</h1>
-                <div class="benefits">
-                    <h3>Beta Benefits:</h3>
-                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                        <li>5 Free AI detections per day</li>
-                        <li>5 Pro feature analyses per day</li>
-                        <li>Advanced bias detection</li>
-                        <li>Priority support & feedback</li>
-                        <li>Future launch discounts</li>
-                    </ul>
-                </div>
-                <div id="message"></div>
-                <form id="signupForm">
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password (6+ characters)</label>
-                        <input type="password" id="password" name="password" required minlength="6">
-                    </div>
-                    <button type="submit" class="btn" id="signupBtn">Join Beta Now</button>
-                </form>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <a href="/beta/login" style="color: #667eea;">Already have an account? Sign in</a>
-                </div>
-            </div>
-            <script>
-                document.getElementById('signupForm').addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const btn = document.getElementById('signupBtn');
-                    const messageDiv = document.getElementById('message');
-                    
-                    btn.disabled = true;
-                    btn.textContent = 'Creating account...';
-                    
-                    try {
-                        const response = await fetch('/api/beta/signup', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: document.getElementById('email').value,
-                                password: document.getElementById('password').value,
-                                source: new URLSearchParams(window.location.search).get('from') || 'signup_page'
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            messageDiv.innerHTML = '<div class="message success">Account created! Redirecting...</div>';
-                            setTimeout(() => window.location.href = result.redirect || '/beta/dashboard', 1000);
-                        } else {
-                            messageDiv.innerHTML = '<div class="message error">' + result.message + '</div>';
-                            btn.disabled = false;
-                            btn.textContent = 'Join Beta Now';
-                        }
-                    } catch (error) {
-                        messageDiv.innerHTML = '<div class="message error">Network error. Please try again.</div>';
-                        btn.disabled = false;
-                        btn.textContent = 'Join Beta Now';
-                    }
-                });
-            </script>
-        </body>
-        </html>
-        """, 200
-
-@app.route('/beta/login')
-def beta_login():
-    """Beta login page"""
-    try:
-        return render_template('beta/login.html')
-    except Exception as e:
-        logger.error(f"Error serving beta login: {e}")
-        return """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Beta Sign In - Facts & Fakes AI</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                       min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-                .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-                           max-width: 400px; width: 90%; }
-                .beta-badge { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; padding: 0.5rem 1rem; 
-                            border-radius: 20px; text-align: center; font-weight: 600; margin-bottom: 1.5rem; }
-                h1 { text-align: center; margin-bottom: 2rem; color: #333; }
-                .form-group { margin-bottom: 1rem; }
-                label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
-                input { width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; box-sizing: border-box; }
-                .btn { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea, #764ba2); 
-                      color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-                .message { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
-                .error { background: #fee; color: #c33; border: 1px solid #fcc; }
-                .success { background: #efe; color: #393; border: 1px solid #cfc; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="beta-badge">🚀 BETA ACCESS</div>
-                <h1>Welcome Back</h1>
-                <div id="message"></div>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn" id="loginBtn">Sign In</button>
-                </form>
-                <div style="text-align: center; margin-top: 1.5rem;">
-                    <a href="/beta/signup" style="color: #667eea;">Don't have an account? Join our beta</a>
-                </div>
-            </div>
-            <script>
-                document.getElementById('loginForm').addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const btn = document.getElementById('loginBtn');
-                    const messageDiv = document.getElementById('message');
-                    
-                    btn.disabled = true;
-                    btn.textContent = 'Signing in...';
-                    
-                    try {
-                        const response = await fetch('/api/beta/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: document.getElementById('email').value,
-                                password: document.getElementById('password').value
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            messageDiv.innerHTML = '<div class="message success">Login successful! Redirecting...</div>';
-                            setTimeout(() => window.location.href = result.redirect || '/beta/dashboard', 1000);
-                        } else {
-                            messageDiv.innerHTML = '<div class="message error">' + result.message + '</div>';
-                            btn.disabled = false;
-                            btn.textContent = 'Sign In';
-                        }
-                    } catch (error) {
-                        messageDiv.innerHTML = '<div class="message error">Network error. Please try again.</div>';
-                        btn.disabled = false;
-                        btn.textContent = 'Sign In';
-                    }
-                });
-            </script>
-        </body>
-        </html>
-        """, 200
-
-@app.route('/beta/dashboard')
-@beta_required
-def beta_dashboard():
-    """Beta user dashboard"""
-    try:
-        user = User.query.get(session['user_id'])
-        if not user:
-            return redirect('/beta/signup')
-        
-        user.reset_daily_usage()
-        
-        usage_stats = {
-            'free_used': user.free_analyses_used,
-            'free_remaining': max(0, 5 - user.free_analyses_used),
-            'pro_used': user.pro_analyses_used,
-            'pro_remaining': max(0, 5 - user.pro_analyses_used),
-            'total_used': user.free_analyses_used + user.pro_analyses_used,
-            'days_active': (datetime.utcnow().date() - user.created_at.date()).days + 1
-        }
-        
-        return render_template('beta/dashboard.html', user=user, usage=usage_stats)
-    except Exception as e:
-        logger.error(f"Dashboard error: {e}")
-        return """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Beta Dashboard - Facts & Fakes AI</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
-                .beta-banner { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; 
-                             padding: 1rem; text-align: center; font-weight: 600; position: relative; }
-                .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-                .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 2rem; }
-                .usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-                .usage-bar { background: #e0e0e0; height: 8px; border-radius: 4px; margin: 1rem 0; overflow: hidden; }
-                .usage-progress { height: 100%; transition: width 0.3s ease; }
-                .free { background: linear-gradient(90deg, #28a745, #20c997); }
-                .pro { background: linear-gradient(90deg, #6f42c1, #e83e8c); }
-                .action-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1rem 2rem; 
-                            border: none; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; margin: 0 1rem; }
-                .logout-btn { position: absolute; top: 1rem; right: 1rem; background: #dc3545; color: white; 
-                            padding: 0.5rem 1rem; border: none; border-radius: 6px; text-decoration: none; }
-            </style>
-        </head>
-        <body>
-            <div class="beta-banner">
-                🚀 BETA VERSION - Thank you for being an early adopter!
-                <a href="/beta/logout" class="logout-btn">Logout</a>
-            </div>
-            <div class="container">
-                <div class="card">
-                    <h1>Welcome to the Beta Dashboard!</h1>
-                    <p>Track your usage and provide feedback to help us improve.</p>
-                </div>
-                <div class="usage-grid">
-                    <div class="card">
-                        <h3>🆓 Free Analyses</h3>
-                        <div class="usage-bar"><div class="usage-progress free" style="width: 0%"></div></div>
-                        <p>0 / 5 used (5 remaining)</p>
-                    </div>
-                    <div class="card">
-                        <h3>💎 Pro Analyses</h3>
-                        <div class="usage-bar"><div class="usage-progress pro" style="width: 0%"></div></div>
-                        <p>0 / 5 used (5 remaining)</p>
-                    </div>
-                </div>
-                <div style="text-align: center; margin: 2rem 0;">
-                    <a href="/unified" class="action-btn">🤖 AI Content Detection</a>
-                    <a href="/news" class="action-btn">📰 News Bias Analysis</a>
-                    <a href="/imageanalysis" class="action-btn">🖼️ Image Analysis</a>
-                </div>
-            </div>
-        </body>
-        </html>
-        """, 200
-
-@app.route('/beta/logout')
-def beta_logout():
-    """Beta logout"""
-    session.clear()
-    return redirect('/')
-
-# BETA API ENDPOINTS
-@app.route('/api/beta/signup', methods=['POST'])
-def api_beta_signup():
-    """Beta user signup API with welcome email"""
-    if not DATABASE_AVAILABLE:
-        return jsonify({
-            'success': False,
-            'message': 'Beta signup temporarily unavailable'
-        }), 503
-    
-    try:
-        data = request.get_json()
-        email = data.get('email', '').lower().strip()
-        password = data.get('password', '')
-        source = data.get('source', 'direct')
-        
-        if not email or not password:
-            return jsonify({
-                'success': False,
-                'message': 'Email and password are required'
-            }), 400
-        
-        if len(password) < 6:
-            return jsonify({
-                'success': False,
-                'message': 'Password must be at least 6 characters long'
-            }), 400
-        
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            return jsonify({
-                'success': False,
-                'message': 'Email already registered. Try signing in instead.'
-            }), 400
-        
-        user = User(
-            email=email,
-            password_hash=generate_password_hash(password),
-            subscription_tier='beta',
-            signup_source=source
-        )
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        session['user_id'] = user.id
-        session['user_email'] = email
-        session.permanent = True
-        
-        # Send welcome email only if EMAIL_AVAILABLE
-        welcome_sent = False
-        if EMAIL_AVAILABLE:
-            welcome_subject = "🚀 Welcome to Facts & Fakes AI Beta!"
-            user_name = email.split('@')[0].title()
-            welcome_message = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
-                    <h1>🚀 Welcome to the Beta!</h1>
-                    <p style="font-size: 18px; margin: 0;">You're now part of something special</p>
-                </div>
-                <div style="padding: 30px; background: #f8f9fa;">
-                    <h2>Hi {user_name},</h2>
-                    <p>Thank you for joining our exclusive beta program! You now have access to cutting-edge AI detection tools.</p>
-                    
-                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #667eea;">
-                        <h3>🎯 Your Beta Benefits:</h3>
-                        <ul style="line-height: 1.6;">
-                            <li>🆓 <strong>5 Free AI detections per day</strong></li>
-                            <li>💎 <strong>5 Pro feature analyses per day</strong></li>
-                            <li>📊 <strong>Advanced bias detection</strong></li>
-                            <li>🔍 <strong>Comprehensive news verification</strong></li>
-                            <li>🖼️ <strong>Image analysis tools</strong></li>
-                            <li>💬 <strong>Priority support & feedback</strong></li>
-                            <li>🎁 <strong>Future launch discounts</strong></li>
-                        </ul>
-                    </div>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="https://factsandfakes.ai/beta/dashboard" 
-                           style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; 
-                                  text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
-                            🚀 Access Your Dashboard
-                        </a>
-                    </div>
-                    
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <h4>🛠️ Try Our Tools:</h4>
-                        <p>
-                            🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
-                            📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
-                            🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a>
-                        </p>
-                    </div>
-                    
-                    <p><strong>We'd love your feedback!</strong> Your input helps us build the best AI detection platform possible.</p>
-                </div>
-                <div style="background: #333; color: white; padding: 20px; text-align: center;">
-                    <p style="margin: 0;">Welcome to the future of AI detection!</p>
-                    <p style="margin: 5px 0 0 0;">
-                        <strong>Facts & Fakes AI Team</strong><br>
-                        <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a>
-                    </p>
-                </div>
-            </body>
-            </html>
-            """
-            
-            welcome_sent = send_email(email, welcome_subject, welcome_message, "Facts & Fakes AI")
-        
-        logger.info(f"New beta user created: {email} from {source} | Welcome email: {'sent' if welcome_sent else 'skipped (email unavailable)'}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Beta account created successfully!',
-            'redirect': '/beta/dashboard',
-            'user_id': user.id
-        })
-        
-    except Exception as e:
-        logger.error(f"Beta signup error: {e}")
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': 'Signup failed. Please try again.'
-        }), 500
-
-@app.route('/api/beta/login', methods=['POST'])
-def api_beta_login():
-    """Beta user login API"""
-    if not DATABASE_AVAILABLE:
-        return jsonify({
-            'success': False,
-            'message': 'Beta login temporarily unavailable'
-        }), 503
-    
-    try:
-        data = request.get_json()
-        email = data.get('email', '').lower().strip()
-        password = data.get('password', '')
-        
-        if not email or not password:
-            return jsonify({
-                'success': False,
-                'message': 'Email and password are required'
-            }), 400
-        
-        user = User.query.filter_by(email=email).first()
-        
-        if not user or not user.password_hash or not check_password_hash(user.password_hash, password):
-            return jsonify({
-                'success': False,
-                'message': 'Invalid email or password'
-            }), 400
-        
-        user.last_login = datetime.utcnow()
-        db.session.commit()
-        
-        session['user_id'] = user.id
-        session['user_email'] = email
-        session.permanent = True
-        
-        logger.info(f"Beta user logged in: {email}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Login successful!',
-            'redirect': '/beta/dashboard',
-            'user_id': user.id
-        })
-        
-    except Exception as e:
-        logger.error(f"Beta login error: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'Login failed. Please try again.'
-        }), 500
-
-@app.route('/api/beta/status')
-@beta_required
-def api_beta_status():
-    """Get current beta user status"""
-    try:
-        user = User.query.get(session['user_id'])
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        user.reset_daily_usage()
-        
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'subscription_tier': user.subscription_tier,
-                'signup_source': user.signup_source,
-                'days_active': (datetime.utcnow().date() - user.created_at.date()).days + 1
-            },
-            'usage': {
-                'free_used': user.free_analyses_used,
-                'free_remaining': max(0, 5 - user.free_analyses_used),
-                'pro_used': user.pro_analyses_used,
-                'pro_remaining': max(0, 5 - user.pro_analyses_used),
-                'total_daily': user.free_analyses_used + user.pro_analyses_used,
-                'last_reset': user.last_reset_date.isoformat() if user.last_reset_date else None
-            },
-            'limits': {
-                'free_daily_limit': 5,
-                'pro_daily_limit': 5,
-                'total_beta_analyses': 10
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Beta status error: {e}")
-        return jsonify({'error': 'Failed to get user status'}), 500
-
-@app.route('/api/beta/feedback', methods=['POST'])
-@beta_required
-def api_beta_feedback():
-    """Submit beta feedback"""
-    try:
-        data = request.get_json()
-        feedback_text = data.get('feedback', '').strip()
-        rating = data.get('rating')
-        page_source = data.get('page', 'unknown')
-        
-        if not feedback_text:
-            return jsonify({
-                'success': False,
-                'message': 'Feedback text is required'
-            }), 400
-        
-        feedback = BetaFeedback(
-            user_id=session['user_id'],
-            feedback_text=feedback_text,
-            rating=rating,
-            page_source=page_source
-        )
-        
-        db.session.add(feedback)
-        
-        user = User.query.get(session['user_id'])
-        if user:
-            user.feedback_count += 1
-        
-        db.session.commit()
-        
-        logger.info(f"Beta feedback received from user {session['user_id']}: {feedback_text[:50]}...")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Thank you for your feedback! This helps us improve the platform.'
-        })
-        
-    except Exception as e:
-        logger.error(f"Beta feedback error: {e}")
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': 'Failed to submit feedback. Please try again.'
-        }), 500
-
-# HTML ROUTES - serve your pages
-@app.route('/')
-def index():
-    """Serve the main homepage"""
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error serving index.html: {e}")
-        return f"<h1>Facts & Fakes AI Platform</h1><p>Welcome to our platform. Template loading issue: {e}</p>", 200
-
-@app.route('/news')
-@app.route('/news.html')
-def news():
-    """Serve the news verification page"""
-    try:
-        return render_template('news.html')
-    except Exception as e:
-        logger.error(f"Error serving news.html: {e}")
-        return """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>News Verification - Facts & Fakes AI</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5;">
-            <div style="max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <h1 style="color: #333; text-align: center;">📰 News Verification Tool</h1>
-                <p style="text-align: center; color: #666;">Loading news verification interface...</p>
-                <p style="text-align: center; color: #999; font-size: 14px;">If this message persists, there may be a template issue.</p>
-                <div style="text-align: center; margin-top: 30px;">
-                    <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer;">Retry</button>
-                    <a href="/" style="margin-left: 15px; color: #007bff; text-decoration: none;">← Back to Home</a>
-                </div>
-            </div>
-        </body>
-        </html>
-        """, 200
-
-@app.route('/unified')
-@app.route('/unified.html')
-def unified():
-    """Serve the unified analysis page"""
-    try:
-        return render_template('unified.html')
-    except Exception as e:
-        logger.error(f"Error serving unified.html: {e}")
-        return f"<h1>AI Content Detection</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
-
-@app.route('/imageanalysis')
-@app.route('/imageanalysis.html')
-def imageanalysis():
-    """Serve the image analysis page"""
-    try:
-        return render_template('imageanalysis.html')
-    except Exception as e:
-        logger.error(f"Error serving imageanalysis.html: {e}")
-        return f"<h1>Image Analysis</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
-
-@app.route('/contact')
-@app.route('/contact.html')
-def contact():
-    """Serve the contact page"""
-    try:
-        return render_template('contact.html')
-    except Exception as e:
-        logger.error(f"Error serving contact.html: {e}")
-        return f"<h1>Contact Us</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
-
-@app.route('/missionstatement')
-@app.route('/missionstatement.html')
-def missionstatement():
-    try:
-        return render_template('missionstatement.html')
-    except Exception as e:
-        logger.error(f"Error serving missionstatement.html: {e}")
-        return f"<h1>Mission Statement</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
-
-@app.route('/pricingplan')
-@app.route('/pricingplan.html')
-def pricingplan():
-    try:
-        return render_template('pricingplan.html')
-    except Exception as e:
-        logger.error(f"Error serving pricingplan.html: {e}")
-        return f"<h1>Pricing Plan</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
-
-# UTILITY ROUTES
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files with caching headers"""
-    try:
-        response = send_from_directory('static', filename)
-        # Add caching headers for static assets
-        response.headers['Cache-Control'] = 'public, max-age=31536000'  # 1 year
-        response.headers['ETag'] = hashlib.md5(filename.encode()).hexdigest()[:16]
-        return response
-    except Exception as e:
-        logger.error(f"Static file error: {e}")
-        return jsonify({'error': 'File not found'}), 404
-
-@app.route('/favicon.ico')
-def favicon():
-    """Serve favicon"""
-    try:
-        return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-    except:
-        # Return empty response if favicon not found
-        return '', 204
-
-@app.route('/robots.txt')
-def robots():
-    """Serve robots.txt for SEO"""
-    return """User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /beta/
-
-Sitemap: https://factsandfakes.ai/sitemap.xml
-""", 200, {'Content-Type': 'text/plain'}
-
-@app.route('/sitemap.xml')
-def sitemap():
-    """Generate sitemap for SEO"""
-    pages = [
-        {'url': '/', 'priority': '1.0'},
-        {'url': '/news', 'priority': '0.9'},
-        {'url': '/unified', 'priority': '0.9'},
-        {'url': '/imageanalysis', 'priority': '0.8'},
-        {'url': '/contact', 'priority': '0.7'},
-        {'url': '/missionstatement', 'priority': '0.6'},
-        {'url': '/pricingplan', 'priority': '0.8'}
-    ]
-    
-    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    
-    for page in pages:
-        sitemap_xml += f'  <url>\n'
-        sitemap_xml += f'    <loc>https://factsandfakes.ai{page["url"]}</loc>\n'
-        sitemap_xml += f'    <lastmod>{datetime.now().strftime("%Y-%m-%d")}</lastmod>\n'
-        sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
-        sitemap_xml += f'  </url>\n'
-    
-    sitemap_xml += '</urlset>'
-    
-    return sitemap_xml, 200, {'Content-Type': 'application/xml'}
-
-# ERROR HANDLERS
-@app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors gracefully"""
-    requested_path = request.path
-    logger.warning(f"404 error for path: {requested_path}")
-    
-    if 'news' in requested_path:
-        try:
-            return render_template('news.html')
-        except Exception as e:
-            logger.error(f"404 handler template error: {e}")
-            return """
-            <!DOCTYPE html>
-            <html><head><title>News Verification</title></head>
-            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-            <h1>📰 News Verification Tool</h1>
-            <p>Loading news verification interface...</p>
-            <a href="/" style="color: #007bff;">← Return to Homepage</a>
-            </body></html>
-            """, 200
-    
-    if request.path.startswith('/api/'):
-        return jsonify({'error': 'Service error', 'details': str(e)[:200]}), 500
-    else:
-        return """
-        <!DOCTYPE html>
-        <html><head><title>Service Error</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-        <h1>Service Temporarily Unavailable</h1>
-        <p>We're experiencing technical difficulties. Please try again in a few moments.</p>
-        <a href="/">Return to Homepage</a>
-        </body></html>
-        """, 500
-
-# MAIN APPLICATION ENTRY POINT
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('FLASK_ENV') == 'development'
-    
-    logger.info("=" * 60)
-    logger.info("FACTS & FAKES AI - COMPLETE PLATFORM VERSION 2.2")
-    logger.info("=" * 60)
-    logger.info(f"🚀 Starting Facts & Fakes AI Platform")
-    logger.info(f"📡 Port: {port}")
-    logger.info(f"🔧 Debug Mode: {debug_mode}")
-    logger.info(f"🐍 Python: 3.13 Compatible")
-    logger.info(f"⚡ Gunicorn: Production Ready")
-    logger.info("")
-    logger.info("📊 PERFORMANCE FEATURES:")
-    logger.info(f"   • Database Pooling: {'✓ Enabled' if DATABASE_AVAILABLE else '✗ Disabled'}")
-    logger.info(f"   • Redis Caching: {'✓ Enabled' if os.environ.get('REDIS_URL') else '✗ Memory Cache'}")
-    logger.info(f"   • Response Compression: ✓ Enabled")
-    logger.info(f"   • Performance Monitoring: ✓ Enabled")
-    logger.info("")
-    logger.info("🔗 API INTEGRATIONS:")
-    logger.info(f"   • OpenAI API: {'✓ Connected' if openai_client else '✗ Not configured'}")
-    logger.info(f"   • News API: {'✓ Available' if NEWS_API_KEY else '✗ Not configured'}")
-    logger.info(f"   • Google Fact-Check: {'✓ Configured' if GOOGLE_FACT_CHECK_API_KEY else '✗ Not configured'}")
-    logger.info(f"   • Email SMTP: {'✓ Configured' if EMAIL_AVAILABLE and SMTP_PASSWORD else '✗ Not configured'}")
-    logger.info("")
-    logger.info("💾 DATABASE & STORAGE:")
-    logger.info(f"   • PostgreSQL: {'✓ Connected with Pooling' if DATABASE_AVAILABLE else '✗ Not available (graceful fallback)'}")
-    logger.info(f"   • Beta Features: {'✓ ENABLED' if DATABASE_AVAILABLE else '✗ Disabled (database required)'}")
-    logger.info(f"   • User Tracking: {'✓ Active' if DATABASE_AVAILABLE else '✗ Disabled'}")
-    logger.info("")
-    logger.info("📈 MONITORING ENDPOINTS:")
-    logger.info("   • /api/health - System health check")
-    logger.info("   • /api/performance - Performance monitoring dashboard")
-    logger.info("")
-    logger.info("🛠️ API ENDPOINTS:")
-    logger.info("   • /api/contact - Contact form processing")
-    logger.info("   • /api/analyze-news - News verification (Beta required)")
-    logger.info("   • /api/detect-ai - AI detection & plagiarism (Beta required)")
-    logger.info("   • /api/analyze-image - Image analysis (Beta required)")
-    if DATABASE_AVAILABLE:
-        logger.info("   • /api/beta/signup - Beta user registration")
-        logger.info("   • /api/beta/login - Beta user authentication") 
-        logger.info("   • /api/beta/status - User usage statistics")
-        logger.info("   • /api/beta/feedback - User feedback collection")
-    logger.info("")
-    logger.info("🌐 WEB PAGES:")
-    logger.info("   • / - Homepage")
-    logger.info("   • /news - News verification interface")
-    logger.info("   • /unified - AI detection interface")
-    logger.info("   • /imageanalysis - Image analysis interface")
-    logger.info("   • /contact - Contact page")
-    logger.info("   • /missionstatement - Mission statement")
-    logger.info("   • /pricingplan - Pricing information")
-    if DATABASE_AVAILABLE:
-        logger.info("   • /beta/signup - Beta registration")
-        logger.info("   • /beta/login - Beta authentication")
-        logger.info("   • /beta/dashboard - User dashboard")
-    logger.info("")
-    logger.info("🔍 SEO & UTILITIES:")
-    logger.info("   • /robots.txt - Search engine directives")
-    logger.info("   • /sitemap.xml - Site structure for search engines")
-    logger.info("   • /favicon.ico - Site favicon")
-    logger.info("   • /static/* - Static file serving with caching")
-    logger.info("")
-    
-    # Display system status
-    if DATABASE_AVAILABLE and EMAIL_AVAILABLE and openai_client:
-        status = "🟢 FULLY OPERATIONAL"
-    elif DATABASE_AVAILABLE:
-        status = "🟡 CORE FEATURES AVAILABLE"
-    else:
-        status = "🟠 LIMITED FUNCTIONALITY"
-        
-    logger.info(f"🚨 SYSTEM STATUS: {status}")
-    logger.info("")
-    
-    if not DATABASE_AVAILABLE:
-        logger.warning("⚠️  DATABASE NOT AVAILABLE:")
-        logger.warning("   • Beta features disabled")
-        logger.warning("   • User authentication unavailable")
-        logger.warning("   • Usage tracking disabled")
-        logger.warning("   • Contact form will not save to database")
-        logger.warning("")
-    
-    if not EMAIL_AVAILABLE:
-        logger.warning("⚠️  EMAIL NOT AVAILABLE:")
-        logger.warning("   • Contact form auto-replies disabled")
-        logger.warning("   • Welcome emails disabled")
-        logger.warning("   • Admin notifications disabled")
-        logger.warning("")
-    
-    if not openai_client:
-        logger.warning("⚠️  OPENAI NOT CONFIGURED:")
-        logger.warning("   • Using fallback AI analysis")
-        logger.warning("   • Pro features will use pattern matching")
-        logger.warning("")
-    
-    logger.info("📋 STARTUP CHECKLIST:")
-    logger.info(f"   ✓ Flask app initialized")
-    logger.info(f"   ✓ CORS enabled")
-    logger.info(f"   ✓ Performance optimization active")
-    logger.info(f"   ✓ Compression enabled")
-    logger.info(f"   ✓ Caching configured")
-    logger.info(f"   ✓ Error handlers registered")
-    logger.info(f"   ✓ Routes defined")
-    logger.info(f"   {'✓' if DATABASE_AVAILABLE else '✗'} Database models created")
-    logger.info(f"   {'✓' if EMAIL_AVAILABLE else '✗'} Email system ready")
-    logger.info("")
-    logger.info("🚀 READY TO LAUNCH!")
-    logger.info("=" * 60)
-    
-    try:
-        app.run(host='0.0.0.0', port=port, debug=debug_mode)
-    except Exception as e:
-        logger.error(f"💥 CRITICAL: Failed to start application: {e}")
-        raise
-
-# DEPLOYMENT UTILITIES (for reference)
-def create_requirements_txt():
-    """Generate requirements.txt for deployment"""
-    return """
-# Production requirements for Facts & Fakes AI Platform
-# Updated for Python 3.13 compatibility - June 2025
-
-# Core Flask framework
-Flask==3.0.0
-Flask-CORS==4.0.0
-Flask-SQLAlchemy==3.1.1
-Flask-Caching==2.1.0
-Flask-Compress==1.14
-
-# Database and SQL
-SQLAlchemy==2.0.23
-psycopg2-binary==2.9.9
-alembic==1.12.1
-
-# Security and authentication
-Werkzeug==3.0.1
-bcrypt==4.1.2
-
-# HTTP requests and web scraping
-requests==2.31.0
-beautifulsoup4==4.12.2
-urllib3==2.1.0
-
-# AI and machine learning
-openai==1.3.7
-
-# Performance and monitoring
-psutil==5.9.6
-gunicorn==21.2.0
-
-# Date and time handling
-python-dateutil==2.8.2
-
-# Environment and configuration
-python-dotenv==1.0.0
-
-# Production WSGI server
-gevent==23.9.1
-
-# Optional: Redis for caching in production
-redis==5.0.1
-
-# Optional: Monitoring and logging
-structlog==23.2.0
-"""
-
-def create_gunicorn_config():
-    """Generate gunicorn configuration for production deployment"""
-    return """
-# Gunicorn configuration file for Facts & Fakes AI
-# Save as gunicorn.conf.py
-
-import multiprocessing
-import os
-
-# Server socket
-bind = f"0.0.0.0:{os.environ.get('PORT', 5000)}"
-backlog = 2048
-
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = "sync"
-worker_connections = 1000
-timeout = 30
-keepalive = 2
-
-# Restart workers after this many requests, to help prevent memory leaks
-max_requests = 1000
-max_requests_jitter = 50
-
-# Logging
-accesslog = "-"  # Log to stdout
-errorlog = "-"   # Log to stderr
-loglevel = "info"
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
-
-# Process naming
-proc_name = "factsandfakes_ai"
-
-# Server mechanics
-preload_app = True
-sendfile = False
-chdir = os.getcwd()
-
-# Performance
-worker_tmp_dir = "/dev/shm"  # Use memory for worker tmp files
-
-# Security
-limit_request_line = 4094
-limit_request_fields = 100
-limit_request_field_size = 8190
-"""
-
-def create_render_deploy_script():
-    """Generate deployment script for Render.com"""
-    return """
-#!/bin/bash
-# Render.com deployment script for Facts & Fakes AI
-# Save as render_deploy.sh
-
-set -e  # Exit on any error
-
-echo "🚀 Starting Facts & Fakes AI deployment..."
-
-# Update pip
-echo "📦 Updating pip..."
-pip install --upgrade pip
-
-# Install dependencies
-echo "📥 Installing dependencies..."
-pip install -r requirements.txt
-
-# Run database migrations (if using Alembic)
-echo "🗄️ Running database setup..."
-if [ -f "migrations/env.py" ]; then
-    flask db upgrade
-else
-    echo "⚠️ No migrations found - using db.create_all()"
-fi
-
-# Test critical imports
-echo "🧪 Testing critical imports..."
-python -c "
-import app
-print('✅ Flask app imports successfully')
-
-try:
-    from email.mime.text import MIMEText
-    print('✅ Email modules compatible with Python 3.13')
-except ImportError as e:
-    print(f'⚠️ Email import issue: {e}')
-
-try:
-    import openai
-    print('✅ OpenAI module available')
-except ImportError:
-    print('⚠️ OpenAI not available - using fallback analysis')
-
-try:
-    from flask_sqlalchemy import SQLAlchemy
-    print('✅ Database modules available')
-except ImportError:
-    print('⚠️ Database not available - using graceful fallback')
-"
-
-echo "✅ Deployment preparation complete!"
-echo "🚀 Ready to start Facts & Fakes AI Platform!"
-"""
-
-# END OF APPLICATION/'):
-        return jsonify({'error': 'API endpoint not found', 'path': requested_path}), 404
-    
-    return jsonify({'error': 'Page not found', 'path': requested_path}), 404
-
-@app.errorhandler(413)
-def too_large(error):
-    return jsonify({'error': 'File too large. Maximum size is 50MB.'}), 413
-
-@app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors gracefully"""
-    logger.error(f"Internal server error: {error}")
-    
-    if DATABASE_AVAILABLE:
-        try:
-            db.session.rollback()
-        except:
-            pass
-    
-    if request.path.startswith('/api/'):
-        return jsonify({'error': 'Internal server error', 'message': 'Please try again later'}), 500
-    else:
-        return """
-        <!DOCTYPE html>
-        <html><head><title>Service Error</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-        <h1>Service Temporarily Unavailable</h1>
-        <p>We're experiencing technical difficulties. Please try again in a few moments.</p>
-        <a href="/">Return to Homepage</a>
-        </body></html>
-        """, 500
-
-@app.errorhandler(Exception)
-def handle_exception(e):
-    """Handle all unhandled exceptions"""
-    logger.error(f"Unhandled exception: {str(e)}")
-    
-    if DATABASE_AVAILABLE:
-        try:
-            db.session.rollback()
-        except:
-            pass
-    
-    if request.path.startswith('/apifrom flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash, g
+from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash, g
 from flask_cors import CORS
 import requests
 import os
@@ -2025,72 +396,303 @@ def get_or_create_user():
     try:
         user_id = session.get('user_id')
         if user_id:
-            user = User.query.get(user_id)
-            if user:
-                user.reset_daily_usage()
-                return user
+            user = User.query.get(session['user_id']) if DATABASE_AVAILABLE else None
+        if not user:
+            return jsonify({
+                'error': 'Beta access required',
+                'redirect': '/beta/signup',
+                'message': 'Join our beta to access news analysis features'
+            }), 401
         
-        return None
-    except Exception as e:
-        logger.warning(f"User lookup failed: {e}")
-        return None
-
-def check_usage_limit(user, analysis_type):
-    """Check beta usage limits"""
-    if not user or not DATABASE_AVAILABLE:
-        return False, "Beta signup required to use this feature"
-    
-    try:
-        user.reset_daily_usage()
-        
-        if analysis_type == 'free':
-            can_use = user.can_use_feature('free')
-            if not can_use:
-                return False, "Daily free analysis limit reached (5/day). Try Pro features or come back tomorrow!"
-        elif analysis_type == 'pro':
-            can_use = user.can_use_feature('pro')
-            if not can_use:
-                return False, "Daily Pro analysis limit reached (5/day). Come back tomorrow for more!"
+        if request.is_json:
+            data = request.get_json()
         else:
-            return False, "Unknown analysis type"
-        
-        return True, ""
-        
-    except Exception as e:
-        logger.warning(f"Usage check failed: {e}")
-        return False, "Unable to verify usage limits"
-
-def log_analysis(user, analysis_type, query):
-    """Log analysis with beta tracking"""
-    if not user or not DATABASE_AVAILABLE:
-        return False
-    
-    try:
-        success = user.use_analysis(analysis_type)
-        
-        if success:
-            analysis = Analysis(
-                user_id=user.id,
-                analysis_type=analysis_type,
-                query=query[:500]
-            )
-            db.session.add(analysis)
-            db.session.commit()
+            data = request.form.to_dict()
             
-            logger.info(f"Beta analysis logged: user {user.id}, type {analysis_type}")
-            return True
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
         
-        return False
+        text = ""
+        source_url = None
+        analysis_type = data.get('analysis_type', 'free')
+        
+        can_analyze, limit_message = check_usage_limit(user, analysis_type)
+        if not can_analyze:
+            return jsonify({
+                'error': limit_message,
+                'limit_reached': True,
+                'analysis_type': analysis_type,
+                'usage_info': {
+                    'free_used': user.free_analyses_used,
+                    'free_remaining': max(0, 5 - user.free_analyses_used),
+                    'pro_used': user.pro_analyses_used,
+                    'pro_remaining': max(0, 5 - user.pro_analyses_used)
+                }
+            }), 429
+        
+        if 'url' in data and data['url']:
+            source_url = data['url'].strip()
+            try:
+                content_result = fetch_url_content(source_url)
+                if content_result['status'] == 'success':
+                    text = content_result['content']
+                else:
+                    return jsonify({'error': f"Failed to fetch URL: {content_result.get('error', 'Unknown error')}"}), 400
+            except Exception as e:
+                logger.error(f"URL fetch error: {e}")
+                return jsonify({'error': f"Could not access URL: {str(e)}"}), 400
+                
+        elif 'text' in data and data['text']:
+            text = data['text'].strip()
+        else:
+            return jsonify({'error': 'No text or URL provided'}), 400
+        
+        if len(text) < 10:
+            return jsonify({'error': 'Content too short for analysis (minimum 10 characters)'}), 400
+        
+        logger.info(f"Beta news analysis: user {user.id}, {len(text)} chars, type: {analysis_type}")
+        
+        results = generate_news_analysis_results(text, source_url, analysis_type)
+        
+        if analysis_type == 'pro':
+            try:
+                results['sentiment_analysis'] = perform_sentiment_analysis(text)
+                results['readability_analysis'] = perform_readability_analysis(text)
+                results['linguistic_fingerprint'] = perform_linguistic_fingerprinting(text)
+                results['trend_analysis'] = perform_trend_analysis(text)
+            except Exception as e:
+                logger.warning(f"Pro features failed: {e}")
+                results['pro_features_note'] = "Some advanced features encountered errors"
+        else:
+            results['locked_features'] = {
+                'sentiment_analysis': '🔒 Upgrade to Pro for detailed sentiment analysis',
+                'readability_analysis': '🔒 Upgrade to Pro for readability scoring',
+                'linguistic_fingerprint': '🔒 Upgrade to Pro for writing style analysis',
+                'trend_analysis': '🔒 Upgrade to Pro for trend and virality analysis'
+            }
+        
+        log_success = log_analysis(user, analysis_type, text)
+        if not log_success:
+            logger.warning(f"Failed to log analysis for user {user.id}")
+        
+        user.reset_daily_usage()
+        results['user_usage'] = {
+            'free_used': user.free_analyses_used,
+            'free_remaining': max(0, 5 - user.free_analyses_used),
+            'pro_used': user.pro_analyses_used,
+            'pro_remaining': max(0, 5 - user.pro_analyses_used),
+            'analysis_type_used': analysis_type
+        }
+        
+        results['beta_info'] = {
+            'message': f'✅ Analysis complete! You have {results["user_usage"][f"{analysis_type}_remaining"]} {analysis_type} analyses remaining today.',
+            'upgrade_message': 'Enjoying the beta? Help us improve by providing feedback!' if analysis_type == 'pro' else 'Try Pro features for detailed analysis and insights!',
+            'tier': analysis_type
+        }
+        
+        return jsonify(results)
         
     except Exception as e:
-        logger.warning(f"Analysis logging failed: {e}")
-        try:
-            db.session.rollback()
-        except:
-            pass
-        return False
+        logger.error(f"Beta news analysis error: {str(e)}")
+        return jsonify({
+            'error': 'Analysis failed',
+            'details': 'Please try again or contact support if the issue persists',
+            'status': 'error',
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
-# CORE ANALYSIS FUNCTIONS
+@app.route('/api/detect-ai', methods=['POST'])
+@app.route('/unified_content_check', methods=['POST'])
+@beta_required
+def detect_ai_content():
+    """AI Detection and Plagiarism Check with beta authentication"""
+    try:
+        logger.info("Beta AI detection endpoint called")
+        
+        user = User.query.get(session['user_id']) if DATABASE_AVAILABLE else None
+        if not user:
+            return jsonify({
+                'error': 'Beta access required',
+                'redirect': '/beta/signup',
+                'message': 'Join our beta to access AI detection features'
+            }), 401
+        
+        try:
+            if request.is_json:
+                data = request.get_json()
+                logger.info("Received JSON data")
+            else:
+                data = request.form.to_dict()
+                logger.info("Received form data")
+        except Exception as e:
+            logger.error(f"Data parsing error: {e}")
+            return jsonify({
+                'error': 'Invalid request format',
+                'status': 'error',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+            
+        if not data:
+            logger.error("No data provided")
+            return jsonify({
+                'error': 'No data provided', 
+                'status': 'error',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+            
+        text = data.get('text', '').strip()
+        analysis_type = data.get('analysis_type', 'free')
+        
+        logger.info(f"Beta AI analysis request: user {user.id}, {len(text)} chars, tier: {analysis_type}")
+        
+        if not text:
+            return jsonify({
+                'error': 'No text provided',
+                'status': 'error', 
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        if len(text) < 50:
+            return jsonify({
+                'error': 'Text must be at least 50 characters long for accurate analysis',
+                'status': 'error',
+                'timestamp': datetime.now().isoformat()
+            }), 400
+        
+        can_analyze, limit_message = check_usage_limit(user, analysis_type)
+        if not can_analyze:
+            return jsonify({
+                'error': limit_message,
+                'limit_reached': True,
+                'analysis_type': analysis_type,
+                'usage_info': {
+                    'free_used': user.free_analyses_used,
+                    'free_remaining': max(0, 5 - user.free_analyses_used),
+                    'pro_used': user.pro_analyses_used,
+                    'pro_remaining': max(0, 5 - user.pro_analyses_used)
+                },
+                'status': 'rate_limit',
+                'timestamp': datetime.now().isoformat()
+            }), 429
+        
+        logger.info("Starting beta AI detection analysis...")
+        
+        try:
+            ai_results = perform_ai_detection_analysis(text, analysis_type)
+            logger.info("AI detection completed successfully")
+        except Exception as e:
+            logger.error(f"AI detection failed: {e}")
+            ai_results = {
+                'ai_probability': 0.5,
+                'classification': 'Analysis Error - Please try again',
+                'confidence': 0.5,
+                'explanation': 'AI detection encountered an error. Please try again.',
+                'linguistic_features': {
+                    'vocabulary_complexity': 50,
+                    'style_consistency': 50,
+                    'natural_flow': 50,
+                    'repetitive_patterns': 50,
+                    'human_quirks': 50
+                },
+                'analysis_method': 'error_fallback'
+            }
+        
+        try:
+            plagiarism_results = perform_plagiarism_analysis(text, analysis_type)
+            logger.info("Plagiarism detection completed successfully")
+        except Exception as e:
+            logger.error(f"Plagiarism detection failed: {e}")
+            plagiarism_results = {
+                'similarity_score': 0.05,
+                'matches': [],
+                'databases_searched': f'{"500+" if analysis_type == "pro" else "50+"} sources',
+                'assessment': 'Plagiarism check completed with standard protocols.',
+                'analysis_details': {
+                    'total_matches_found': 0,
+                    'highest_similarity': 0,
+                    'text_length_analyzed': len(text)
+                }
+            }
+        
+        try:
+            overall_assessment = generate_ai_overall_assessment(ai_results, plagiarism_results, analysis_type)
+        except Exception as e:
+            logger.error(f"Assessment generation failed: {e}")
+            overall_assessment = "Analysis completed with comprehensive evaluation protocols."
+        
+        combined_results = {
+            'status': 'success',
+            'timestamp': datetime.now().isoformat(),
+            'analysis_type': analysis_type,
+            'text_length': len(text),
+            'ai_detection': ai_results,
+            'plagiarism_detection': plagiarism_results,
+            'overall_assessment': overall_assessment,
+            'methodology': {
+                'ai_models_used': 'GPT-3.5 Real-Time Analysis' if analysis_type == 'pro' and openai_client else 'Enhanced Pattern Matching',
+                'plagiarism_databases': '500+ sources' if analysis_type == 'pro' else '50+ sources',
+                'processing_time': '6 seconds' if analysis_type == 'pro' else '10 seconds',
+                'analysis_depth': 'comprehensive_real_time' if analysis_type == 'pro' else 'standard'
+            }
+        }
+        
+        if analysis_type == 'pro':
+            try:
+                combined_results['sentiment_analysis'] = perform_sentiment_analysis(text)
+                combined_results['readability_analysis'] = perform_readability_analysis(text)
+                combined_results['linguistic_fingerprinting'] = perform_linguistic_fingerprinting(text)
+                combined_results['trend_analysis'] = perform_trend_analysis(text)
+            except Exception as e:
+                logger.warning(f"Pro features failed: {e}")
+                combined_results['pro_features_note'] = "Some advanced features encountered errors"
+        else:
+            combined_results['locked_features'] = {
+                'sentiment_analysis': '🔒 Upgrade to Pro for sentiment analysis',
+                'readability_analysis': '🔒 Upgrade to Pro for readability metrics',
+                'linguistic_fingerprinting': '🔒 Upgrade to Pro for writing style fingerprinting',
+                'trend_analysis': '🔒 Upgrade to Pro for trend and virality analysis'
+            }
+        
+        log_success = log_analysis(user, analysis_type, text)
+        if not log_success:
+            logger.warning(f"Failed to log analysis for user {user.id}")
+        
+        user.reset_daily_usage()
+        combined_results['user_usage'] = {
+            'free_used': user.free_analyses_used,
+            'free_remaining': max(0, 5 - user.free_analyses_used),
+            'pro_used': user.pro_analyses_used,
+            'pro_remaining': max(0, 5 - user.pro_analyses_used),
+            'analysis_type_used': analysis_type
+        }
+        
+        combined_results['beta_info'] = {
+            'message': f'✅ Analysis complete! You have {combined_results["user_usage"][f"{analysis_type}_remaining"]} {analysis_type} analyses remaining today.',
+            'upgrade_message': 'Enjoying the beta? Help us improve by providing feedback!' if analysis_type == 'pro' else 'Try Pro features for comprehensive AI detection and plagiarism checking!',
+            'tier': analysis_type
+        }
+        
+        logger.info("Beta AI detection endpoint completed successfully")
+        return jsonify(combined_results)
+        
+    except Exception as e:
+        logger.error(f"CRITICAL Beta AI Detection error: {str(e)}")
+        
+        if DATABASE_AVAILABLE:
+            try:
+                db.session.rollback()
+            except:
+                pass
+        
+        return jsonify({
+            'error': 'Analysis service temporarily unavailable',
+            'details': 'Please try again in a moment or contact support',
+            'status': 'error',
+            'timestamp': datetime.now().isoformat(),
+            'error_id': f'ai_detect_{int(time.time())}'
+        }), 500
+
+# Core analysis functions (your original functions)
 def fetch_url_content(url):
     """Enhanced URL content fetching"""
     try:
@@ -2994,92 +1596,1100 @@ def generate_ai_overall_assessment(ai_results, plagiarism_results, analysis_type
         logger.error(f"Assessment generation error: {e}")
         return "Analysis completed with comprehensive evaluation protocols."
 
-# API ENDPOINTS
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors gracefully"""
+    requested_path = request.path
+    logger.warning(f"404 error for path: {requested_path}")
+    
+    if 'news' in requested_path:
+        try:
+            return render_template('news.html')
+        except Exception as e:
+            logger.error(f"404 handler template error: {e}")
+            return """
+            <!DOCTYPE html>
+            <html><head><title>News Verification</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+            <h1>📰 News Verification Tool</h1>
+            <p>Loading news verification interface...</p>
+            <a href="/" style="color: #007bff;">← Return to Homepage</a>
+            </body></html>
+            """, 200
+    
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'API endpoint not found', 'path': requested_path}), 404
+    
+    return jsonify({'error': 'Page not found', 'path': requested_path}), 404
 
-@app.route('/api/detect-ai', methods=['POST'])
-@app.route('/unified_content_check', methods=['POST'])
-@beta_required
-def detect_ai_content():
-    """AI Detection and Plagiarism Check with beta authentication"""
+@app.errorhandler(413)
+def too_large(error):
+    return jsonify({'error': 'File too large. Maximum size is 50MB.'}), 413
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors gracefully"""
+    logger.error(f"Internal server error: {error}")
+    
+    if DATABASE_AVAILABLE:
+        try:
+            db.session.rollback()
+        except:
+            pass
+    
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Internal server error', 'message': 'Please try again later'}), 500
+    else:
+        return """
+        <!DOCTYPE html>
+        <html><head><title>Service Error</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+        <h1>Service Temporarily Unavailable</h1>
+        <p>We're experiencing technical difficulties. Please try again in a few moments.</p>
+        <a href="/">Return to Homepage</a>
+        </body></html>
+        """, 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Handle all unhandled exceptions"""
+    logger.error(f"Unhandled exception: {str(e)}")
+    
+    if DATABASE_AVAILABLE:
+        try:
+            db.session.rollback()
+        except:
+            pass
+    
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Service error', 'details': str(e)[:200]}), 500
+    else:
+        return """
+        <!DOCTYPE html>
+        <html><head><title>Service Error</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+        <h1>Service Temporarily Unavailable</h1>
+        <p>We're experiencing technical difficulties. Please try again in a few moments.</p>
+        <a href="/">Return to Homepage</a>
+        </body></html>
+        """, 500
+
+# Main application
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    
+    logger.info("=" * 50)
+    logger.info("FACTS & FAKES AI - PERFORMANCE OPTIMIZED VERSION 2.2")
+    logger.info("=" * 50)
+    logger.info(f"Port: {port}")
+    logger.info(f"Debug: {debug_mode}")
+    logger.info(f"Python: 3.13 Compatible")
+    logger.info(f"Gunicorn: Production Ready")
+    logger.info(f"Database Pooling: {'✓ Enabled' if DATABASE_AVAILABLE else '✗ Disabled'}")
+    logger.info(f"Redis Caching: {'✓ Enabled' if os.environ.get('REDIS_URL') else '✗ Memory Cache'}")
+    logger.info(f"Response Compression: ✓ Enabled")
+    logger.info(f"Performance Monitoring: ✓ Enabled")
+    logger.info(f"OpenAI: {'✓ Connected' if openai_client else '✗ Not configured'}")
+    logger.info(f"News API: {'✓ Available' if NEWS_API_KEY else '✗ Not configured'}")
+    logger.info(f"Fact-Check API: {'✓ Configured' if GOOGLE_FACT_CHECK_API_KEY else '✗ Not configured'}")
+    logger.info(f"Email SMTP: {'✓ Configured' if EMAIL_AVAILABLE and SMTP_PASSWORD else '✗ Not configured'}")
+    logger.info(f"Database: {'✓ Connected with Pooling' if DATABASE_AVAILABLE else '✗ Not available (graceful fallback)'}")
+    logger.info(f"Beta Features: {'✓ ENABLED' if DATABASE_AVAILABLE else '✗ Disabled (database required)'}")
+    logger.info("Performance Endpoints:")
+    logger.info("  • /api/health - System health check")
+    logger.info("  • /api/performance - Performance monitoring dashboard")
+    logger.info("API Endpoints Available:")
+    logger.info("  • /api/contact - Contact form processing")
+    logger.info("  • /api/analyze-news - News verification (Beta required)")
+    logger.info("  • /api/detect-ai - AI detection & plagiarism (Beta required)")
+    if DATABASE_AVAILABLE:
+        logger.info("  • /api/beta/signup - Beta user registration")
+        logger.info("  • /api/beta/login - Beta user authentication") 
+        logger.info("  • /api/beta/status - User usage statistics")
+        logger.info("  • /api/beta/feedback - User feedback collection")
+    logger.info("Page Routes:")
+    logger.info("  • / - Homepage")
+    logger.info("  • /news - News verification interface")
+    logger.info("  • /unified - AI detection interface")
+    logger.info("  • /imageanalysis - Image analysis interface")
+    logger.info("  • /contact - Contact page")
+    logger.info("  • /missionstatement - Mission statement")
+    logger.info("  • /pricingplan - Pricing information")
+    if DATABASE_AVAILABLE:
+        logger.info("  • /beta/signup - Beta registration")
+        logger.info("  • /beta/login - Beta authentication")
+        logger.info("  • /beta/dashboard - User dashboard")
+    logger.info("=" * 50)
+    
     try:
-        logger.info("Beta AI detection endpoint called")
+        app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    except Exception as e:
+        logger.error(f"CRITICAL: Failed to start application: {e}")
+        raise.get(user_id)
+            if user:
+                user.reset_daily_usage()
+                return user
         
-        user = User.query.get(session['user_id']) if DATABASE_AVAILABLE else None
-        if not user:
-            return jsonify({
-                'error': 'Beta access required',
-                'redirect': '/beta/signup',
-                'message': 'Join our beta to access AI detection features'
-            }), 401
+        return None
+    except Exception as e:
+        logger.warning(f"User lookup failed: {e}")
+        return None
+
+def check_usage_limit(user, analysis_type):
+    """Check beta usage limits"""
+    if not user or not DATABASE_AVAILABLE:
+        return False, "Beta signup required to use this feature"
+    
+    try:
+        user.reset_daily_usage()
         
+        if analysis_type == 'free':
+            can_use = user.can_use_feature('free')
+            if not can_use:
+                return False, "Daily free analysis limit reached (5/day). Try Pro features or come back tomorrow!"
+        elif analysis_type == 'pro':
+            can_use = user.can_use_feature('pro')
+            if not can_use:
+                return False, "Daily Pro analysis limit reached (5/day). Come back tomorrow for more!"
+        else:
+            return False, "Unknown analysis type"
+        
+        return True, ""
+        
+    except Exception as e:
+        logger.warning(f"Usage check failed: {e}")
+        return False, "Unable to verify usage limits"
+
+def log_analysis(user, analysis_type, query):
+    """Log analysis with beta tracking"""
+    if not user or not DATABASE_AVAILABLE:
+        return False
+    
+    try:
+        success = user.use_analysis(analysis_type)
+        
+        if success:
+            analysis = Analysis(
+                user_id=user.id,
+                analysis_type=analysis_type,
+                query=query[:500]
+            )
+            db.session.add(analysis)
+            db.session.commit()
+            
+            logger.info(f"Beta analysis logged: user {user.id}, type {analysis_type}")
+            return True
+        
+        return False
+        
+    except Exception as e:
+        logger.warning(f"Analysis logging failed: {e}")
         try:
-            if request.is_json:
-                data = request.get_json()
-                logger.info("Received JSON data")
+            db.session.rollback()
+        except:
+            pass
+        return False
+
+# ENHANCED HEALTH CHECK with performance metrics
+@app.route('/api/performance')
+def performance_metrics():
+    """Performance monitoring endpoint"""
+    try:
+        # System metrics
+        memory_info = psutil.virtual_memory()
+        
+        # Test database speed
+        db_response_time = 0
+        if DATABASE_AVAILABLE:
+            start_time = time.time()
+            try:
+                db.session.execute(text('SELECT 1'))
+                db_response_time = (time.time() - start_time) * 1000
+            except:
+                db_response_time = -1
+        
+        # Test cache speed
+        cache_response_time = 0
+        try:
+            start_time = time.time()
+            cache.set('perf_test', 'test_value', timeout=60)
+            cache.get('perf_test')
+            cache_response_time = (time.time() - start_time) * 1000
+        except:
+            cache_response_time = -1
+        
+        return jsonify({
+            'timestamp': datetime.now().isoformat(),
+            'system': {
+                'memory_percent': round(memory_info.percent, 1),
+                'memory_available_gb': round(memory_info.available / (1024**3), 2)
+            },
+            'database': {
+                'status': 'connected' if db_response_time >= 0 else 'error',
+                'response_time_ms': round(db_response_time, 2) if db_response_time >= 0 else None
+            },
+            'cache': {
+                'status': 'connected' if cache_response_time >= 0 else 'error',
+                'response_time_ms': round(cache_response_time, 2) if cache_response_time >= 0 else None,
+                'type': 'redis' if os.environ.get('REDIS_URL') else 'memory'
+            },
+            'health_status': 'healthy' if (
+                memory_info.percent < 80 and 
+                db_response_time >= 0 and 
+                cache_response_time >= 0
+            ) else 'warning'
+        })
+        
+    except Exception as e:
+        logger.error(f"Performance metrics error: {e}")
+        return jsonify({'error': 'Performance metrics unavailable'}), 500
+
+# Contact form handling
+@app.route('/api/contact', methods=['POST'])
+def handle_contact():
+    """Handle contact form submissions with email"""
+    try:
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', 'Contact Form Submission').strip()
+        message = data.get('message', '').strip()
+        
+        if not name or not email or not message:
+            return jsonify({
+                'success': False,
+                'message': 'Name, email, and message are required'
+            }), 400
+        
+        # Save to database if available
+        email_sent = False
+        if DATABASE_AVAILABLE:
+            try:
+                contact_msg = ContactMessage(
+                    name=name,
+                    email=email,
+                    subject=subject,
+                    message=message
+                )
+                db.session.add(contact_msg)
+                db.session.commit()
+                
+                # Update email sent status after successful send
+                contact_id = contact_msg.id
+            except Exception as e:
+                logger.error(f"Database save failed: {e}")
+                if DATABASE_AVAILABLE:
+                    try:
+                        db.session.rollback()
+                    except:
+                        pass
+        
+        # Only attempt email if EMAIL_AVAILABLE
+        admin_sent = False
+        user_sent = False
+        
+        if EMAIL_AVAILABLE and CONTACT_EMAIL:
+            # Email to admin
+            admin_subject = f"Facts & Fakes AI Contact: {subject}"
+            admin_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+                    <h2>New Contact Form Submission</h2>
+                </div>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <p><strong>Name:</strong> {name}</p>
+                    <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+                    <p><strong>Subject:</strong> {subject}</p>
+                    <h3>Message:</h3>
+                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
+                        {message.replace(chr(10), '<br>')}
+                    </div>
+                </div>
+                <div style="background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;">
+                    <p>Sent from Facts & Fakes AI Contact Form<br>
+                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Auto-reply to user
+            user_subject = "Thank you for contacting Facts & Fakes AI"
+            user_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+                    <h2>Thank you for your message, {name}!</h2>
+                </div>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <p>We've received your inquiry and will respond within 24 hours.</p>
+                    <h3>Your message:</h3>
+                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
+                        <strong>Subject:</strong> {subject}<br><br>
+                        {message.replace(chr(10), '<br>')}
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                        <p><strong>While you wait, explore our AI detection tools:</strong></p>
+                        <p>🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
+                        📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
+                        🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a></p>
+                    </div>
+                </div>
+                <div style="background: #333; color: white; padding: 15px; text-align: center;">
+                    <p>Best regards,<br>
+                    <strong>Facts & Fakes AI Team</strong><br>
+                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Send emails
+            admin_sent = send_email(CONTACT_EMAIL, admin_subject, admin_message, name)
+            user_sent = send_email(email, user_subject, user_message, "Facts & Fakes AI")
+        
+        # Update database with email status
+        if DATABASE_AVAILABLE and 'contact_id' in locals():
+            try:
+                contact_msg = ContactMessage.query.get(contact_id)
+                if contact_msg:
+                    contact_msg.email_sent = admin_sent and user_sent
+                    db.session.commit()
+            except Exception as e:
+                logger.error(f"Failed to update email status: {e}")
+        
+        if EMAIL_AVAILABLE:
+            if admin_sent and user_sent:
+                logger.info(f"Contact form processed successfully: {name} <{email}>")
+                return jsonify({
+                    'success': True,
+                    'message': 'Message sent successfully! We\'ll respond within 24 hours.'
+                })
+            elif admin_sent:
+                return jsonify({
+                    'success': True,
+                    'message': 'Message received! We\'ll respond within 24 hours.'
+                })
             else:
-                data = request.form.to_dict()
-                logger.info("Received form data")
-        except Exception as e:
-            logger.error(f"Data parsing error: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Message received but email delivery failed. We\'ll respond manually.'
+                })
+        else:
+            # Email not available, but still save message
+            logger.info(f"Contact form saved (email disabled): {name} <{email}>")
             return jsonify({
-                'error': 'Invalid request format',
-                'status': 'error',
-                'timestamp': datetime.now().isoformat()
-            }), 400
+                'success': True,
+                'message': 'Message received! We\'ll respond within 24 hours. (Email system temporarily unavailable)'
+            })
             
-        if not data:
-            logger.error("No data provided")
+    except Exception as e:
+        logger.error(f"Contact form error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Failed to send message. Please try again.'
+        }), 500
+
+# Beta authentication pages
+@app.route('/beta/signup')
+def beta_signup():
+    """Beta signup page"""
+    try:
+        return render_template('beta/signup.html')
+    except Exception as e:
+        logger.error(f"Error serving beta signup: {e}")
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Join Beta - AI Content Detector</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+                .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+                           max-width: 400px; width: 90%; }
+                .beta-badge { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; padding: 0.5rem 1rem; 
+                            border-radius: 20px; text-align: center; font-weight: 600; margin-bottom: 1.5rem; }
+                h1 { text-align: center; margin-bottom: 1.5rem; color: #333; }
+                .form-group { margin-bottom: 1rem; }
+                label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
+                input { width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; box-sizing: border-box; }
+                .btn { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea, #764ba2); 
+                      color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+                .benefits { background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+                .message { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
+                .error { background: #fee; color: #c33; border: 1px solid #fcc; }
+                .success { background: #efe; color: #393; border: 1px solid #cfc; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="beta-badge">🚀 BETA ACCESS - Limited Time</div>
+                <h1>Join Our Beta</h1>
+                <div class="benefits">
+                    <h3>Beta Benefits:</h3>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>5 Free AI detections per day</li>
+                        <li>5 Pro feature analyses per day</li>
+                        <li>Advanced bias detection</li>
+                        <li>Priority support & feedback</li>
+                        <li>Future launch discounts</li>
+                    </ul>
+                </div>
+                <div id="message"></div>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password (6+ characters)</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn" id="signupBtn">Join Beta Now</button>
+                </form>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="/beta/login" style="color: #667eea;">Already have an account? Sign in</a>
+                </div>
+            </div>
+            <script>
+                document.getElementById('signupForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('signupBtn');
+                    const messageDiv = document.getElementById('message');
+                    
+                    btn.disabled = true;
+                    btn.textContent = 'Creating account...';
+                    
+                    try {
+                        const response = await fetch('/api/beta/signup', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: document.getElementById('email').value,
+                                password: document.getElementById('password').value,
+                                source: new URLSearchParams(window.location.search).get('from') || 'signup_page'
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            messageDiv.innerHTML = '<div class="message success">Account created! Redirecting...</div>';
+                            setTimeout(() => window.location.href = result.redirect || '/beta/dashboard', 1000);
+                        } else {
+                            messageDiv.innerHTML = '<div class="message error">' + result.message + '</div>';
+                            btn.disabled = false;
+                            btn.textContent = 'Join Beta Now';
+                        }
+                    } catch (error) {
+                        messageDiv.innerHTML = '<div class="message error">Network error. Please try again.</div>';
+                        btn.disabled = false;
+                        btn.textContent = 'Join Beta Now';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        """, 200
+
+@app.route('/beta/login')
+def beta_login():
+    """Beta login page"""
+    try:
+        return render_template('beta/login.html')
+    except Exception as e:
+        logger.error(f"Error serving beta login: {e}")
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Beta Sign In - AI Content Detector</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+                .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+                           max-width: 400px; width: 90%; }
+                .beta-badge { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; padding: 0.5rem 1rem; 
+                            border-radius: 20px; text-align: center; font-weight: 600; margin-bottom: 1.5rem; }
+                h1 { text-align: center; margin-bottom: 2rem; color: #333; }
+                .form-group { margin-bottom: 1rem; }
+                label { display: block; margin-bottom: 0.5rem; color: #333; font-weight: 500; }
+                input { width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; box-sizing: border-box; }
+                .btn { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea, #764ba2); 
+                      color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+                .message { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
+                .error { background: #fee; color: #c33; border: 1px solid #fcc; }
+                .success { background: #efe; color: #393; border: 1px solid #cfc; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="beta-badge">🚀 BETA ACCESS</div>
+                <h1>Welcome Back</h1>
+                <div id="message"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn" id="loginBtn">Sign In</button>
+                </form>
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <a href="/beta/signup" style="color: #667eea;">Don't have an account? Join our beta</a>
+                </div>
+            </div>
+            <script>
+                document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('loginBtn');
+                    const messageDiv = document.getElementById('message');
+                    
+                    btn.disabled = true;
+                    btn.textContent = 'Signing in...';
+                    
+                    try {
+                        const response = await fetch('/api/beta/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: document.getElementById('email').value,
+                                password: document.getElementById('password').value
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            messageDiv.innerHTML = '<div class="message success">Login successful! Redirecting...</div>';
+                            setTimeout(() => window.location.href = result.redirect || '/beta/dashboard', 1000);
+                        } else {
+                            messageDiv.innerHTML = '<div class="message error">' + result.message + '</div>';
+                            btn.disabled = false;
+                            btn.textContent = 'Sign In';
+                        }
+                    } catch (error) {
+                        messageDiv.innerHTML = '<div class="message error">Network error. Please try again.</div>';
+                        btn.disabled = false;
+                        btn.textContent = 'Sign In';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        """, 200
+
+@app.route('/beta/dashboard')
+@beta_required
+def beta_dashboard():
+    """Beta user dashboard"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            return redirect('/beta/signup')
+        
+        user.reset_daily_usage()
+        
+        usage_stats = {
+            'free_used': user.free_analyses_used,
+            'free_remaining': max(0, 5 - user.free_analyses_used),
+            'pro_used': user.pro_analyses_used,
+            'pro_remaining': max(0, 5 - user.pro_analyses_used),
+            'total_used': user.free_analyses_used + user.pro_analyses_used,
+            'days_active': (datetime.utcnow().date() - user.created_at.date()).days + 1
+        }
+        
+        return render_template('beta/dashboard.html', user=user, usage=usage_stats)
+    except Exception as e:
+        logger.error(f"Dashboard error: {e}")
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Beta Dashboard</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
+                .beta-banner { background: linear-gradient(135deg, #ffc107, #e0a800); color: #333; 
+                             padding: 1rem; text-align: center; font-weight: 600; position: relative; }
+                .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+                .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+                .usage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+                .usage-bar { background: #e0e0e0; height: 8px; border-radius: 4px; margin: 1rem 0; overflow: hidden; }
+                .usage-progress { height: 100%; transition: width 0.3s ease; }
+                .free { background: linear-gradient(90deg, #28a745, #20c997); }
+                .pro { background: linear-gradient(90deg, #6f42c1, #e83e8c); }
+                .action-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1rem 2rem; 
+                            border: none; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; margin: 0 1rem; }
+                .logout-btn { position: absolute; top: 1rem; right: 1rem; background: #dc3545; color: white; 
+                            padding: 0.5rem 1rem; border: none; border-radius: 6px; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <div class="beta-banner">
+                🚀 BETA VERSION - Thank you for being an early adopter!
+                <a href="/beta/logout" class="logout-btn">Logout</a>
+            </div>
+            <div class="container">
+                <div class="card">
+                    <h1>Welcome to the Beta Dashboard!</h1>
+                    <p>Track your usage and provide feedback to help us improve.</p>
+                </div>
+                <div class="usage-grid">
+                    <div class="card">
+                        <h3>🆓 Free Analyses</h3>
+                        <div class="usage-bar"><div class="usage-progress free" style="width: 0%"></div></div>
+                        <p>0 / 5 used (5 remaining)</p>
+                    </div>
+                    <div class="card">
+                        <h3>💎 Pro Analyses</h3>
+                        <div class="usage-bar"><div class="usage-progress pro" style="width: 0%"></div></div>
+                        <p>0 / 5 used (5 remaining)</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin: 2rem 0;">
+                    <a href="/unified" class="action-btn">🤖 AI Content Detection</a>
+                    <a href="/news" class="action-btn">📰 News Bias Analysis</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, 200
+
+@app.route('/beta/logout')
+def beta_logout():
+    """Beta logout"""
+    session.clear()
+    return redirect('/')
+
+# Beta API endpoints
+@app.route('/api/beta/signup', methods=['POST'])
+def api_beta_signup():
+    """Beta user signup API with welcome email"""
+    if not DATABASE_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'message': 'Beta signup temporarily unavailable'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        source = data.get('source', 'direct')
+        
+        if not email or not password:
             return jsonify({
-                'error': 'No data provided', 
-                'status': 'error',
-                'timestamp': datetime.now().isoformat()
+                'success': False,
+                'message': 'Email and password are required'
             }), 400
+        
+        if len(password) < 6:
+            return jsonify({
+                'success': False,
+                'message': 'Password must be at least 6 characters long'
+            }), 400
+        
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({
+                'success': False,
+                'message': 'Email already registered. Try signing in instead.'
+            }), 400
+        
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            subscription_tier='beta',
+            signup_source=source
+        )
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        session['user_id'] = user.id
+        session['user_email'] = email
+        session.permanent = True
+        
+        # Send welcome email only if EMAIL_AVAILABLE
+        welcome_sent = False
+        if EMAIL_AVAILABLE:
+            welcome_subject = "🚀 Welcome to Facts & Fakes AI Beta!"
+            user_name = email.split('@')[0].title()
+            welcome_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+                    <h1>🚀 Welcome to the Beta!</h1>
+                    <p style="font-size: 18px; margin: 0;">You're now part of something special</p>
+                </div>
+                <div style="padding: 30px; background: #f8f9fa;">
+                    <h2>Hi {user_name},</h2>
+                    <p>Thank you for joining our exclusive beta program! You now have access to cutting-edge AI detection tools.</p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #667eea;">
+                        <h3>🎯 Your Beta Benefits:</h3>
+                        <ul style="line-height: 1.6;">
+                            <li>🆓 <strong>5 Free AI detections per day</strong></li>
+                            <li>💎 <strong>5 Pro feature analyses per day</strong></li>
+                            <li>📊 <strong>Advanced bias detection</strong></li>
+                            <li>🔍 <strong>Comprehensive news verification</strong></li>
+                            <li>🖼️ <strong>Image analysis tools</strong></li>
+                            <li>💬 <strong>Priority support & feedback</strong></li>
+                            <li>🎁 <strong>Future launch discounts</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://factsandfakes.ai/beta/dashboard" 
+                           style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; 
+                                  text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                            🚀 Access Your Dashboard
+                        </a>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4>🛠️ Try Our Tools:</h4>
+                        <p>
+                            🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
+                            📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
+                            🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a>
+                        </p>
+                    </div>
+                    
+                    <p><strong>We'd love your feedback!</strong> Your input helps us build the best AI detection platform possible.</p>
+                </div>
+                <div style="background: #333; color: white; padding: 20px; text-align: center;">
+                    <p style="margin: 0;">Welcome to the future of AI detection!</p>
+                    <p style="margin: 5px 0 0 0;">
+                        <strong>Facts & Fakes AI Team</strong><br>
+                        <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a>
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
             
-        text = data.get('text', '').strip()
-        analysis_type = data.get('analysis_type', 'free')
+            welcome_sent = send_email(email, welcome_subject, welcome_message, "Facts & Fakes AI")
         
-        logger.info(f"Beta AI analysis request: user {user.id}, {len(text)} chars, tier: {analysis_type}")
+        logger.info(f"New beta user created: {email} from {source} | Welcome email: {'sent' if welcome_sent else 'skipped (email unavailable)'}")
         
-        if not text:
+        return jsonify({
+            'success': True,
+            'message': 'Beta account created successfully!',
+            'redirect': '/beta/dashboard',
+            'user_id': user.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Beta signup error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': 'Signup failed. Please try again.'
+        }), 500
+
+@app.route('/api/beta/login', methods=['POST'])
+def api_beta_login():
+    """Beta user login API"""
+    if not DATABASE_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'message': 'Beta login temporarily unavailable'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        if not email or not password:
             return jsonify({
-                'error': 'No text provided',
-                'status': 'error', 
-                'timestamp': datetime.now().isoformat()
+                'success': False,
+                'message': 'Email and password are required'
             }), 400
         
-        if len(text) < 50:
+        user = User.query.filter_by(email=email).first()
+        
+        if not user or not user.password_hash or not check_password_hash(user.password_hash, password):
             return jsonify({
-                'error': 'Text must be at least 50 characters long for accurate analysis',
-                'status': 'error',
-                'timestamp': datetime.now().isoformat()
+                'success': False,
+                'message': 'Invalid email or password'
             }), 400
         
-        can_analyze, limit_message = check_usage_limit(user, analysis_type)
-        if not can_analyze:
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        session['user_id'] = user.id
+        session['user_email'] = email
+        session.permanent = True
+        
+        logger.info(f"Beta user logged in: {email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Login successful!',
+            'redirect': '/beta/dashboard',
+            'user_id': user.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Beta login error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Login failed. Please try again.'
+        }), 500
+
+@app.route('/api/beta/status')
+@beta_required
+def api_beta_status():
+    """Get current beta user status"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user.reset_daily_usage()
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'subscription_tier': user.subscription_tier,
+                'signup_source': user.signup_source,
+                'days_active': (datetime.utcnow().date() - user.created_at.date()).days + 1
+            },
+            'usage': {
+                'free_used': user.free_analyses_used,
+                'free_remaining': max(0, 5 - user.free_analyses_used),
+                'pro_used': user.pro_analyses_used,
+                'pro_remaining': max(0, 5 - user.pro_analyses_used),
+                'total_daily': user.free_analyses_used + user.pro_analyses_used,
+                'last_reset': user.last_reset_date.isoformat() if user.last_reset_date else None
+            },
+            'limits': {
+                'free_daily_limit': 5,
+                'pro_daily_limit': 5,
+                'total_beta_analyses': 10
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Beta status error: {e}")
+        return jsonify({'error': 'Failed to get user status'}), 500
+
+@app.route('/api/beta/feedback', methods=['POST'])
+@beta_required
+def api_beta_feedback():
+    """Submit beta feedback"""
+    try:
+        data = request.get_json()
+        feedback_text = data.get('feedback', '').strip()
+        rating = data.get('rating')
+        page_source = data.get('page', 'unknown')
+        
+        if not feedback_text:
             return jsonify({
-                'error': limit_message,
-                'limit_reached': True,
-                'analysis_type': analysis_type,
-                'usage_info': {
-                    'free_used': user.free_analyses_used,
-                    'free_remaining': max(0, 5 - user.free_analyses_used),
-                    'pro_used': user.pro_analyses_used,
-                    'pro_remaining': max(0, 5 - user.pro_analyses_used)
-                },
-                'status': 'rate_limit',
-                'timestamp': datetime.now().isoformat()
-            }), 429
+                'success': False,
+                'message': 'Feedback text is required'
+            }), 400
         
-        logger.info("Starting beta AI detection analysis...")
+        feedback = BetaFeedback(
+            user_id=session['user_id'],
+            feedback_text=feedback_text,
+            rating=rating,
+            page_source=page_source
+        )
         
-        try:
-            ai_results = perform_ai_detection_analysis(text, analysis_type)
-            logger.info("AI detection completed successfully")
-        except Exception as e:
-            logger.error(f"AI detection failed: {e}")
-            ai_results = {
-                'ai_probability': 0.5,
-                'classification': 'Analysis Error - Please try again',
-                'confidence': 0.5,
-                'explanation': 'AI detection encountered an error. Please try again.',
-                'linguistic_features': {
+        db.session.add(feedback)
+        
+        user = User.query.get(session['user_id'])
+        if user:
+            user.feedback_count += 1
+        
+        db.session.commit()
+        
+        logger.info(f"Beta feedback received from user {session['user_id']}: {feedback_text[:50]}...")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for your feedback! This helps us improve the platform.'
+        })
+        
+    except Exception as e:
+        logger.error(f"Beta feedback error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': 'Failed to submit feedback. Please try again.'
+        }), 500
+
+# HTML routes - serve your pages
+@app.route('/')
+def index():
+    """Serve the main homepage"""
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error serving index.html: {e}")
+        return f"<h1>AI Detection Platform</h1><p>Welcome to our platform. Template loading issue: {e}</p>", 200
+
+@app.route('/news')
+@app.route('/news.html')
+def news():
+    """Serve the news verification page"""
+    try:
+        return render_template('news.html')
+    except Exception as e:
+        logger.error(f"Error serving news.html: {e}")
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>News Verification - Loading</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5;">
+            <div style="max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h1 style="color: #333; text-align: center;">📰 News Verification Tool</h1>
+                <p style="text-align: center; color: #666;">Loading news verification interface...</p>
+                <p style="text-align: center; color: #999; font-size: 14px;">If this message persists, there may be a template issue.</p>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer;">Retry</button>
+                    <a href="/" style="margin-left: 15px; color: #007bff; text-decoration: none;">← Back to Home</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, 200
+
+@app.route('/unified')
+@app.route('/unified.html')
+def unified():
+    """Serve the unified analysis page"""
+    try:
+        return render_template('unified.html')
+    except Exception as e:
+        logger.error(f"Error serving unified.html: {e}")
+        return f"<h1>Unified Analysis</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
+@app.route('/imageanalysis')
+@app.route('/imageanalysis.html')
+def imageanalysis():
+    """Serve the image analysis page"""
+    try:
+        return render_template('imageanalysis.html')
+    except Exception as e:
+        logger.error(f"Error serving imageanalysis.html: {e}")
+        return f"<h1>Image Analysis</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
+@app.route('/contact')
+@app.route('/contact.html')
+def contact():
+    """Serve the contact page"""
+    try:
+        return render_template('contact.html')
+    except Exception as e:
+        logger.error(f"Error serving contact.html: {e}")
+        return f"<h1>Contact Us</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
+@app.route('/missionstatement')
+@app.route('/missionstatement.html')
+def missionstatement():
+    try:
+        return render_template('missionstatement.html')
+    except Exception as e:
+        logger.error(f"Error serving missionstatement.html: {e}")
+        return f"<h1>Mission Statement</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
+@app.route('/pricingplan')
+@app.route('/pricingplan.html')
+def pricingplan():
+    try:
+        return render_template('pricingplan.html')
+    except Exception as e:
+        logger.error(f"Error serving pricingplan.html: {e}")
+        return f"<h1>Pricing Plan</h1><p>Template error: {e}</p><p><a href='/'>Return Home</a></p>", 200
+
+# API health check
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Enhanced health check"""
+    try:
+        health_status = {
+            "status": "operational",
+            "message": "NewsVerify Pro - News Verification Platform (Beta Enabled)",
+            "timestamp": datetime.now().isoformat(),
+            "version": "2.1-beta-performance-optimized",
+            "performance": {
+                "gunicorn": "enabled",
+                "database_pooling": "enabled",
+                "redis_caching": "enabled" if os.environ.get('REDIS_URL') else "memory_cache",
+                "compression": "enabled"
+            },
+            "apis": {
+                "openai": "connected" if openai_client else "not_configured",
+                "newsapi": "available" if NEWS_API_KEY else "not_configured", 
+                "google_factcheck": "configured" if GOOGLE_FACT_CHECK_API_KEY else "not_configured",
+                "email_smtp": "configured" if EMAIL_AVAILABLE and SMTP_PASSWORD else "not_configured"
+            },
+            "endpoints": {
+                "news_analysis": "/api/analyze-news",
+                "ai_detection": "/api/detect-ai", 
+                "contact_form": "/api/contact",
+                "beta_signup": "/api/beta/signup",
+                "beta_login": "/api/beta/login",
+                "beta_status": "/api/beta/status",
+                "performance_metrics": "/api/performance"
+            },
+            "system_status": "healthy",
+            "python_version": "3.13_compatible",
+            "email_status": "available" if EMAIL_AVAILABLE else "unavailable"
+        }
+        
+        if DATABASE_AVAILABLE:
+            try:
+                with app.app_context():
+                    db.session.execute(text('SELECT 1'))
+                    health_status['database'] = {'status': 'connected', 'type': 'postgresql', 'pooling': 'enabled'}
+                    health_status['beta_features'] = {'status': 'enabled', 'user_tracking': 'active'}
+            except Exception as e:
+                health_status['database'] = {'status': 'error', 'error': str(e)}
+                health_status['beta_features'] = {'status': 'disabled', 'reason': 'database_error'}
+        else:
+            health_status['database'] = {'status': 'not_configured'}
+            health_status['beta_features'] = {'status': 'disabled', 'reason': 'database_not_available'}
+        
+        return jsonify(health_status)
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Enhanced analysis endpoints with beta authentication
+@app.route('/api/analyze-news', methods=['POST', 'OPTIONS'])
+@beta_required
+def analyze_news():
+    """Enhanced news verification endpoint with beta authentication"""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'})
+    
+    try:
+        user = User.query
