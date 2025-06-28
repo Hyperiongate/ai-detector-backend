@@ -21,34 +21,29 @@
             line-height: 1.6;
         }
 
-        /* Unified Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        .nav-container {
+        nav {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 2rem;
         }
 
         .logo {
+            color: white;
             font-size: 1.5rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             text-decoration: none;
         }
 
@@ -56,65 +51,92 @@
             display: flex;
             list-style: none;
             gap: 2rem;
-            align-items: center;
         }
 
         .nav-links a {
+            color: white;
             text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
+            transition: opacity 0.3s;
         }
 
-        .nav-links a.active,
         .nav-links a:hover {
-            color: #667eea;
+            opacity: 0.8;
         }
 
-        .nav-links a.active::after {
+        .nav-links a.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        /* Beta Banner */
+        .beta-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            padding: 8px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .beta-banner::before {
             content: '';
             position: absolute;
-            bottom: -5px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 1px;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+            transform: rotate(45deg);
         }
 
-        .cta-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .beta-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
             color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .beta-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .beta-join-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 25px;
+            cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            font-size: 0.9rem;
         }
 
-        .cta-button:hover {
+        .beta-join-btn:hover {
+            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #333;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         /* Main Content */
         .main-content {
-            margin-top: 100px;
             padding: 2rem;
             max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
 
         /* Hero Section */
@@ -537,14 +559,150 @@
             transform: translateY(-2px);
         }
 
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .highlight-box h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-header h2 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-body .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-body input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .modal-body input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
-            }
-
-            .mobile-menu-toggle {
-                display: block;
             }
 
             .hero-section h1 {
@@ -563,45 +721,48 @@
                 flex-direction: column;
                 align-items: center;
             }
-        }
 
-        .highlight-box {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border: 2px solid #667eea;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: center;
-        }
+            .beta-content {
+                flex-direction: column;
+                gap: 8px;
+            }
 
-        .highlight-box h3 {
-            color: #667eea;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="/" class="logo">
-                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
-            </a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verify</a></li>
-                <li><a href="/imageanalysis">Image Analysis</a></li>
-                <li><a href="/unified">Content Checker</a></li>
-                <li><a href="/missionstatement">Mission</a></li>
-                <li><a href="/pricingplan" class="active">Pricing</a></li>
-                <li><a href="#" class="cta-button">Get Started</a></li>
-            </ul>
-            <button class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
+    <!-- Beta Banner -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <span class="beta-badge">BETA</span>
+            <span>🚀 Join our exclusive beta program and get early access to premium features!</span>
+            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
         </div>
-    </nav>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Facts & Fakes AI</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="news.html">News Verify</a></li>
+                <li><a href="unified.html">Content Check</a></li>
+                <li><a href="imageanalysis.html">Image Analysis</a></li>
+                <li><a href="missionstatement.html">Mission</a></li>
+                <li><a href="pricingplan.html" class="active">Pricing</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -658,7 +819,7 @@
                     </li>
                 </ul>
                 
-                <a href="/news" class="plan-button secondary">Start Free Now</a>
+                <a href="news.html" class="plan-button secondary">Start Free Now</a>
             </div>
 
             <!-- Professional Plan -->
@@ -711,7 +872,7 @@
                     </li>
                 </ul>
                 
-                <a href="#" class="plan-button primary">Start 14-Day Free Trial</a>
+                <button class="plan-button primary" onclick="startProTrial()">Start 14-Day Free Trial</button>
             </div>
         </div>
 
@@ -851,17 +1012,91 @@
             <p>Try our comprehensive content verification platform today</p>
             
             <div class="final-cta-buttons">
-                <a href="/news" class="final-cta-btn primary">
+                <a href="news.html" class="final-cta-btn primary">
                     Start Free Now
                 </a>
-                <a href="#" class="final-cta-btn secondary">
+                <button class="final-cta-btn secondary" onclick="startProTrial()">
                     Try Pro (14 Days Free)
-                </a>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBetaModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🚀 Join Our Beta Program</h2>
+                <p>Get exclusive early access to premium features and help shape the future of AI content verification!</p>
+            </div>
+            <div class="modal-body">
+                <form id="betaSignupForm">
+                    <div class="input-group">
+                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="betaName" placeholder="Your name (optional)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
+                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Beta Modal Functions
+        function openBetaModal() {
+            document.getElementById('betaModal').style.display = 'block';
+        }
+
+        function closeBetaModal() {
+            document.getElementById('betaModal').style.display = 'none';
+        }
+
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            const name = document.getElementById('betaName').value;
+
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+
+            // Try to submit to backend, fall back to demo mode
+            fetch('/api/beta-signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('🎉 Welcome to the beta program! Check your email for next steps.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            })
+            .catch(error => {
+                // Demo mode fallback
+                console.log('Demo mode: Beta signup for', email);
+                alert('🎉 Thanks for your interest! Beta program signup recorded.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('betaModal');
+            if (event.target === modal) {
+                closeBetaModal();
+            }
+        }
+
         // FAQ functionality
         function toggleFAQ(element) {
             const faqItem = element.parentElement;
@@ -878,41 +1113,26 @@
             }
         }
 
-        // Mobile Menu Toggle
-        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        });
+        // Pro Trial Function
+        function startProTrial() {
+            alert(`🚀 Starting your 14-day Professional trial...
 
-        // Plan button interactions
-        document.querySelectorAll('.plan-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                if (this.href === '#') {
-                    e.preventDefault();
-                    
-                    const planCard = this.closest('.plan-card');
-                    const planName = planCard.querySelector('.plan-name').textContent;
-                    
-                    if (planName.includes('Professional')) {
-                        alert('Starting your 14-day Professional trial...\n\nYou\'ll get higher limits and advanced features.');
-                    }
-                }
-            });
-        });
+✓ Higher usage limits
+✓ Priority processing speed  
+✓ Advanced AI detection models
+✓ Export reports (PDF, CSV)
+✓ API access included
+✓ Priority email support
 
-        // CTA button interactions
-        document.querySelectorAll('.final-cta-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                if (this.href === '#') {
-                    e.preventDefault();
-                    
-                    if (this.textContent.includes('Start Free')) {
-                        window.location.href = '/news';
-                    } else if (this.textContent.includes('Try Pro')) {
-                        alert('Starting your 14-day Professional trial...');
-                    }
-                }
-            });
-        });
+No credit card required for trial!
+
+Click OK to begin...`);
+            
+            // In a real implementation, this would redirect to sign-up
+            setTimeout(() => {
+                window.location.href = 'news.html';
+            }, 2000);
+        }
 
         // Enhanced hover effects
         document.querySelectorAll('.plan-card, .comparison-card').forEach(card => {
@@ -922,6 +1142,21 @@
             
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Plan button interactions
+        document.querySelectorAll('.plan-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (this.onclick) return; // Skip if has onclick handler
+                
+                const planCard = this.closest('.plan-card');
+                const planName = planCard.querySelector('.plan-name').textContent;
+                
+                if (planName.includes('Professional')) {
+                    e.preventDefault();
+                    startProTrial();
+                }
             });
         });
     </script>
