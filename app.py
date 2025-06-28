@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for, flash, g
 from flask_cors import CORS
 import requests
 import os
@@ -13,6 +13,12 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import uuid
+
+# PERFORMANCE OPTIMIZATION IMPORTS
+import psutil
+from flask_caching import Cache
+from flask_compress import Compress
+from sqlalchemy.pool import QueuePool
 
 # SAFE Email imports - Python 3.13 compatible
 try:
@@ -76,62 +82,59 @@ except Exception as e:
     logger.error(f"Failed to initialize Flask app: {e}")
     raise
 
+# PERFORMANCE OPTIMIZATION SETUP
+def get_cache_config():
+    """Configure caching based on environment"""
+    redis_url = os.environ.get('REDIS_URL')
+    
+    if redis_url:
+        # Production: Use Redis/Key Value
+        return {
+            'CACHE_TYPE': 'RedisCache',
+            'CACHE_REDIS_URL': redis_url,
+            'CACHE_DEFAULT_TIMEOUT': 300,  # 5 minutes default
+            'CACHE_KEY_PREFIX': 'factsandfakes:',
+        }
+    else:
+        # Development/Fallback: Use simple cache
+        return {
+            'CACHE_TYPE': 'SimpleCache',
+            'CACHE_DEFAULT_TIMEOUT': 300,
+        }
+
+# Initialize performance components
+cache = Cache(app, config=get_cache_config())
+Compress(app)  # Enable response compression
+
+# COMPRESSION CONFIGURATION
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/xml', 'application/json',
+    'application/javascript', 'text/javascript', 'application/xml', 'text/plain'
+]
+app.config['COMPRESS_LEVEL'] = 6
+app.config['COMPRESS_MIN_SIZE'] = 500
+
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ai-detection-secret-key-2024')
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Beta sessions last 30 days
 
-# Email configuration for Bluehost - with safety checks
-if EMAIL_AVAILABLE:
-    SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
-    SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
-    SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
-    SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
-    CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
-else:
-    SMTP_SERVER = None
-    SMTP_PORT = None
-    SMTP_USERNAME = None
-    SMTP_PASSWORD = None
-    CONTACT_EMAIL = None
-
-def send_email(to_email, subject, message, from_name=None):
-    """Send email via Bluehost SMTP - Python 3.13 compatible"""
-    if not EMAIL_AVAILABLE:
-        logger.warning("Email functionality not available - MIME imports failed")
-        return False
-        
-    if not SMTP_PASSWORD:
-        logger.warning("SMTP_PASSWORD not configured - email disabled")
-        return False
-        
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{from_name} <{SMTP_USERNAME}>" if from_name else SMTP_USERNAME
-        msg['To'] = to_email
-        msg['Subject'] = subject
-        
-        msg.attach(MIMEText(message, 'html'))
-        
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(SMTP_USERNAME, to_email, text)
-        server.quit()
-        
-        logger.info(f"Email sent successfully to {to_email}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Email sending failed to {to_email}: {e}")
-        return False
-
-# SAFE database configuration (ONLY if database available)
+# ENHANCED DATABASE CONFIGURATION WITH CONNECTION POOLING
 if DATABASE_AVAILABLE:
     try:
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///fallback.db')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        
+        # CONNECTION POOLING for performance
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'poolclass': QueuePool,
+            'pool_size': 10,          # Number of connections to maintain
+            'pool_recycle': 3600,     # Recycle connections every hour
+            'pool_pre_ping': True,    # Verify connections before use
+            'max_overflow': 20,       # Additional connections if pool is full
+            'pool_timeout': 30,       # Timeout for getting connection
+            'pool_reset_on_return': 'commit',
+        }
         
         # Initialize database
         db = SQLAlchemy(app)
@@ -240,6 +243,20 @@ if DATABASE_AVAILABLE:
 else:
     db = None
 
+# Email configuration for Bluehost - with safety checks
+if EMAIL_AVAILABLE:
+    SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
+    SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+    SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
+    SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+    CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
+else:
+    SMTP_SERVER = None
+    SMTP_PORT = None
+    SMTP_USERNAME = None
+    SMTP_PASSWORD = None
+    CONTACT_EMAIL = None
+
 # API Keys from environment variables with validation
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
@@ -279,6 +296,86 @@ SOURCE_CREDIBILITY = {
     'economist.com': {'credibility': 88, 'bias': 'center', 'type': 'magazine'}
 }
 
+# PERFORMANCE MONITORING
+@app.before_request
+def start_timer():
+    g.start_time = time.time()
+
+@app.after_request
+def add_performance_headers(response):
+    """Add performance headers and monitoring"""
+    
+    # Add performance timing
+    if hasattr(g, 'start_time'):
+        duration = time.time() - g.start_time
+        response.headers['X-Response-Time'] = f"{duration:.3f}s"
+        
+        # Log slow requests
+        if duration > 2.0:
+            logger.warning(f"Slow request: {request.endpoint} took {duration:.2f}s")
+    
+    # Add caching headers for static content
+    if request.endpoint == 'static':
+        response.headers['Cache-Control'] = 'public, max-age=31536000'  # 1 year
+    elif request.endpoint in ['index', 'news', 'unified', 'imageanalysis', 'contact', 'missionstatement', 'pricingplan']:
+        response.headers['Cache-Control'] = 'public, max-age=300'  # 5 minutes
+    
+    return response
+
+# ENHANCED HEALTH CHECK with performance metrics
+@app.route('/api/performance')
+def performance_metrics():
+    """Performance monitoring endpoint"""
+    try:
+        # System metrics
+        memory_info = psutil.virtual_memory()
+        
+        # Test database speed
+        db_response_time = 0
+        if DATABASE_AVAILABLE:
+            start_time = time.time()
+            try:
+                db.session.execute(text('SELECT 1'))
+                db_response_time = (time.time() - start_time) * 1000
+            except:
+                db_response_time = -1
+        
+        # Test cache speed
+        cache_response_time = 0
+        try:
+            start_time = time.time()
+            cache.set('perf_test', 'test_value', timeout=60)
+            cache.get('perf_test')
+            cache_response_time = (time.time() - start_time) * 1000
+        except:
+            cache_response_time = -1
+        
+        return jsonify({
+            'timestamp': datetime.now().isoformat(),
+            'system': {
+                'memory_percent': round(memory_info.percent, 1),
+                'memory_available_gb': round(memory_info.available / (1024**3), 2)
+            },
+            'database': {
+                'status': 'connected' if db_response_time >= 0 else 'error',
+                'response_time_ms': round(db_response_time, 2) if db_response_time >= 0 else None
+            },
+            'cache': {
+                'status': 'connected' if cache_response_time >= 0 else 'error',
+                'response_time_ms': round(cache_response_time, 2) if cache_response_time >= 0 else None,
+                'type': 'redis' if os.environ.get('REDIS_URL') else 'memory'
+            },
+            'health_status': 'healthy' if (
+                memory_info.percent < 80 and 
+                db_response_time >= 0 and 
+                cache_response_time >= 0
+            ) else 'warning'
+        })
+        
+    except Exception as e:
+        logger.error(f"Performance metrics error: {e}")
+        return jsonify({'error': 'Performance metrics unavailable'}), 500
+
 # Beta authentication decorators
 def login_required(f):
     @wraps(f)
@@ -311,6 +408,38 @@ def beta_required(f):
             
         return f(*args, **kwargs)
     return decorated_function
+
+def send_email(to_email, subject, message, from_name=None):
+    """Send email via Bluehost SMTP - Python 3.13 compatible"""
+    if not EMAIL_AVAILABLE:
+        logger.warning("Email functionality not available - MIME imports failed")
+        return False
+        
+    if not SMTP_PASSWORD:
+        logger.warning("SMTP_PASSWORD not configured - email disabled")
+        return False
+        
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{from_name} <{SMTP_USERNAME}>" if from_name else SMTP_USERNAME
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(message, 'html'))
+        
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        text = msg.as_string()
+        server.sendmail(SMTP_USERNAME, to_email, text)
+        server.quit()
+        
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Email sending failed to {to_email}: {e}")
+        return False
 
 # Enhanced database helper functions
 def get_or_create_user():
@@ -2510,7 +2639,7 @@ if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info("=" * 50)
-    logger.info("NEWSVERIFY PRO - BETA-ENABLED VERSION 2.1 - PYTHON 3.13 COMPATIBLE")
+    logger.info("NEWSVERIFY PRO - OPTIMIZED VERSION 2.1 - PYTHON 3.13 COMPATIBLE")
     logger.info("=" * 50)
     logger.info(f"Port: {port}")
     logger.info(f"Debug: {debug_mode}")
@@ -2521,8 +2650,22 @@ if __name__ == '__main__':
     logger.info(f"Email SMTP: {'✓ Configured' if EMAIL_AVAILABLE and SMTP_PASSWORD else '✗ Not configured'}")
     logger.info(f"Database: {'✓ Connected' if DATABASE_AVAILABLE else '✗ Not available (graceful fallback)'}")
     logger.info(f"Beta Features: {'✓ ENABLED' if DATABASE_AVAILABLE else '✗ Disabled (database required)'}")
+    logger.info(f"Redis Cache: {'✓ ENABLED' if os.environ.get('REDIS_URL') else '✓ MEMORY CACHE FALLBACK'}")
+    logger.info(f"Response Compression: ✓ ENABLED")
+    logger.info(f"Connection Pooling: {'✓ ENABLED' if DATABASE_AVAILABLE else '✗ N/A'}")
+    logger.info(f"Performance Monitoring: ✓ ENABLED")
+    logger.info("Performance Enhancements Added:")
+    logger.info("  • Gunicorn configuration support")
+    logger.info("  • Redis/Key Value caching with memory fallback")
+    logger.info("  • Database connection pooling")
+    logger.info("  • Response compression (gzip)")
+    logger.info("  • Performance monitoring endpoint")
+    logger.info("  • Request timing and slow request logging")
+    logger.info("  • Cache headers for static content")
+    logger.info("  • System monitoring with psutil")
     logger.info("API Endpoints Available:")
     logger.info("  • /api/health - System health check")
+    logger.info("  • /api/performance - Performance metrics")
     logger.info("  • /api/contact - Contact form processing")
     logger.info("  • /api/analyze-news - News verification (Beta required)")
     logger.info("  • /api/detect-ai - AI detection & plagiarism (Beta required)")
