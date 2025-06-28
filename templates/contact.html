@@ -6,6 +6,24 @@
     <title>Contact Us - Facts & Fakes AI</title>
     <meta name="description" content="Get in touch with Facts & Fakes AI for professional content authenticity verification. Contact our team for enterprise solutions, support, and partnerships.">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Analytics 4 Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        gtag('config', 'GA_MEASUREMENT_ID', {
+            page_title: 'Contact Us - Facts & Fakes AI',
+            page_location: window.location.href,
+            custom_map: {
+                'custom_parameter_1': 'user_tier',
+                'custom_parameter_2': 'contact_type'
+            }
+        });
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -598,28 +616,53 @@
                 transform: translateY(0);
             }
         }
+
+        /* Analytics Debug Panel */
+        .analytics-debug {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9999;
+            display: none;
+        }
+
+        .analytics-debug.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- Analytics Debug Panel (development only) -->
+    <div class="analytics-debug" id="analyticsDebug">
+        <strong>Analytics Debug</strong><br>
+        <span id="debugInfo">Initializing...</span>
+    </div>
+
     <!-- Unified Navigation -->
     <nav class="nav-bar">
         <div class="nav-container">
-            <a href="/" class="nav-logo">
+            <a href="/" class="nav-logo" onclick="analytics.trackEvent('logo_click', {destination: 'homepage'})">
                 <i class="fas fa-shield-alt"></i>
                 <span>Facts & Fakes AI</span>
             </a>
             
             <div class="nav-links" id="navLinks">
-                <a href="/"><i class="fas fa-home"></i> Home</a>
-                <a href="/news"><i class="fas fa-newspaper"></i> News Verification</a>
-                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
-                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
-                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
-                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="/" onclick="analytics.trackEvent('nav_click', {destination: 'home'})"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" onclick="analytics.trackEvent('nav_click', {destination: 'news'})"><i class="fas fa-newspaper"></i> News Verification</a>
+                <a href="/unified" onclick="analytics.trackEvent('nav_click', {destination: 'unified'})"><i class="fas fa-search"></i> Content Authenticity</a>
+                <a href="/imageanalysis" onclick="analytics.trackEvent('nav_click', {destination: 'imageanalysis'})"><i class="fas fa-image"></i> AI Image Analysis</a>
+                <a href="/missionstatement" onclick="analytics.trackEvent('nav_click', {destination: 'mission'})"><i class="fas fa-bullseye"></i> Our Mission</a>
+                <a href="/pricingplan" onclick="analytics.trackEvent('nav_click', {destination: 'pricing'})"><i class="fas fa-tags"></i> Pricing</a>
                 <a href="/contact" class="active"><i class="fas fa-envelope"></i> Contact</a>
             </div>
             
-            <a href="/news" class="nav-cta">
+            <a href="/news" class="nav-cta" onclick="analytics.trackEvent('cta_click', {source: 'nav', destination: 'news'})">
                 <i class="fas fa-rocket"></i> Start Analysis
             </a>
             
@@ -713,16 +756,16 @@
 
             <!-- Contact Information -->
             <div class="contact-info">
-                <div class="info-card">
+                <div class="info-card" onclick="analytics.trackEvent('info_card_click', {card_type: 'support'})">
                     <h3><i class="fas fa-headset"></i> Support & Feedback</h3>
                     <p>Have questions about our tools or suggestions for improvement? We'd love to hear from you!</p>
                     <p><strong>We're here to help:</strong> Technical questions, feedback, and general inquiries</p>
                 </div>
 
-                <div class="info-card">
+                <div class="info-card" onclick="analytics.trackEvent('info_card_click', {card_type: 'media'})">
                     <h3><i class="fas fa-newspaper"></i> Media & Press</h3>
                     <p>For media inquiries, press releases, and interview requests with our team.</p>
-                    <p><a href="mailto:press@factsfakes.ai">press@factsfakes.ai</a></p>
+                    <p><a href="mailto:press@factsfakes.ai" onclick="analytics.trackEvent('email_click', {email_type: 'press'})">press@factsfakes.ai</a></p>
                     <p><strong>Available:</strong> Press kits, expert interviews, industry insights</p>
                 </div>
             </div>
@@ -735,32 +778,32 @@
             <h2>🤔 Frequently Asked Questions</h2>
             
             <div class="faq-grid">
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'getting_started'})">
                     <h3>How quickly can I get started?</h3>
                     <p>You can start using our tools immediately! Simply visit any of our analysis pages and begin verifying content right away. No sign-up required for basic features.</p>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'enterprise_pricing'})">
                     <h3>Do you offer enterprise pricing?</h3>
                     <p>Yes! We provide custom enterprise solutions with dedicated support, API access, higher usage limits, and advanced features. Contact us for a personalized quote.</p>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'ai_detection_difference'})">
                     <h3>What makes your AI detection different?</h3>
                     <p>Our platform combines multiple AI models, real-time fact-checking APIs, and advanced linguistic analysis to provide the most accurate and comprehensive content authenticity verification available.</p>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'workflow_integration'})">
                     <h3>Can I integrate your tools into my workflow?</h3>
                     <p>Absolutely! We offer API access and custom integrations for enterprise clients. Our team can help you seamlessly integrate our verification tools into your existing content management systems.</p>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'content_types'})">
                     <h3>What types of content can you analyze?</h3>
                     <p>We analyze news articles, text content, images, and various document formats. Our tools can detect AI-generated content, verify source credibility, check for plagiarism, and assess political bias.</p>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" onclick="analytics.trackEvent('faq_click', {question: 'data_security'})">
                     <h3>Is my data secure and private?</h3>
                     <p>Yes, we take data security seriously. We use enterprise-grade encryption, don't store your analyzed content permanently, and follow strict privacy protocols to protect your information.</p>
                 </div>
@@ -780,29 +823,29 @@
                 <div class="footer-section">
                     <h3>🔧 Tools</h3>
                     <ul>
-                        <li><a href="/news">News Verification Engine</a></li>
-                        <li><a href="/unified">Content Authenticity Checker</a></li>
-                        <li><a href="/imageanalysis">AI Image Analysis Tool</a></li>
+                        <li><a href="/news" onclick="analytics.trackEvent('footer_link_click', {destination: 'news'})">News Verification Engine</a></li>
+                        <li><a href="/unified" onclick="analytics.trackEvent('footer_link_click', {destination: 'unified'})">Content Authenticity Checker</a></li>
+                        <li><a href="/imageanalysis" onclick="analytics.trackEvent('footer_link_click', {destination: 'imageanalysis'})">AI Image Analysis Tool</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>💼 Business</h3>
                     <ul>
-                        <li><a href="/contact">Contact Us</a></li>
-                        <li><a href="/pricingplan">Pricing Plans</a></li>
-                        <li><a href="/missionstatement">Our Mission</a></li>
-                        <li><a href="/contact">Enterprise Solutions</a></li>
+                        <li><a href="/contact" onclick="analytics.trackEvent('footer_link_click', {destination: 'contact'})">Contact Us</a></li>
+                        <li><a href="/pricingplan" onclick="analytics.trackEvent('footer_link_click', {destination: 'pricing'})">Pricing Plans</a></li>
+                        <li><a href="/missionstatement" onclick="analytics.trackEvent('footer_link_click', {destination: 'mission'})">Our Mission</a></li>
+                        <li><a href="/contact" onclick="analytics.trackEvent('footer_link_click', {destination: 'enterprise'})">Enterprise Solutions</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>📞 Contact</h3>
                     <ul>
-                        <li>Enterprise: enterprise@factsfakes.ai</li>
-                        <li>Support: support@factsfakes.ai</li>
-                        <li>Press: press@factsfakes.ai</li>
-                        <li>Partnerships: partnerships@factsfakes.ai</li>
+                        <li><span onclick="analytics.trackEvent('email_display', {email_type: 'enterprise'})">Enterprise: enterprise@factsfakes.ai</span></li>
+                        <li><span onclick="analytics.trackEvent('email_display', {email_type: 'support'})">Support: support@factsfakes.ai</span></li>
+                        <li><span onclick="analytics.trackEvent('email_display', {email_type: 'press'})">Press: press@factsfakes.ai</span></li>
+                        <li><span onclick="analytics.trackEvent('email_display', {email_type: 'partnerships'})">Partnerships: partnerships@factsfakes.ai</span></li>
                     </ul>
                 </div>
             </div>
@@ -813,15 +856,269 @@
         </div>
     </footer>
 
+    <!-- Analytics Integration JavaScript -->
     <script>
+        // =============================================================================
+        // COMPREHENSIVE ANALYTICS TRACKING SYSTEM
+        // =============================================================================
+        
+        class ContactPageAnalytics {
+            constructor() {
+                this.isDebugMode = window.location.hostname === 'localhost' || window.location.search.includes('debug=true');
+                this.sessionId = this.getSessionId();
+                this.pageLoadTime = Date.now();
+                this.init();
+            }
+            
+            getSessionId() {
+                let sessionId = sessionStorage.getItem('analytics_session_id');
+                if (!sessionId) {
+                    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    sessionStorage.setItem('analytics_session_id', sessionId);
+                }
+                return sessionId;
+            }
+            
+            init() {
+                this.trackPageView();
+                this.setupEventListeners();
+                this.trackScrollDepth();
+                this.trackTimeOnPage();
+                
+                if (this.isDebugMode) {
+                    this.enableDebugMode();
+                }
+            }
+            
+            // =============================================================================
+            // EVENT TRACKING
+            // =============================================================================
+            
+            trackEvent(eventType, metadata = {}) {
+                const eventData = {
+                    event_type: eventType,
+                    metadata: {
+                        ...metadata,
+                        page: 'contact',
+                        session_id: this.sessionId,
+                        timestamp: new Date().toISOString(),
+                        user_agent: navigator.userAgent
+                    }
+                };
+                
+                // Send to backend
+                this.sendToBackend('/api/analytics/track', eventData);
+                
+                // Send to Google Analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', eventType, {
+                        event_category: metadata.category || 'contact_engagement',
+                        event_label: metadata.label || '',
+                        value: metadata.value || 1,
+                        custom_parameter_1: metadata.user_tier || 'free',
+                        custom_parameter_2: metadata.contact_type || eventType
+                    });
+                }
+                
+                if (this.isDebugMode) {
+                    this.logDebug(`Event: ${eventType}`, eventData);
+                }
+            }
+            
+            trackConversion(step, metadata = {}) {
+                const conversionData = {
+                    step: step,
+                    session_id: this.sessionId,
+                    page: 'contact',
+                    timestamp: new Date().toISOString(),
+                    ...metadata
+                };
+                
+                this.sendToBackend('/api/analytics/conversion', conversionData);
+                
+                gtag('event', 'conversion_step', {
+                    step_name: step,
+                    event_category: 'conversion',
+                    value: 10
+                });
+                
+                if (this.isDebugMode) {
+                    this.logDebug(`Conversion: ${step}`, conversionData);
+                }
+            }
+            
+            trackPageView() {
+                this.trackEvent('contact_page_visit', {
+                    referrer: document.referrer,
+                    category: 'page_view'
+                });
+                
+                this.trackConversion('contact_page_visit');
+            }
+            
+            // =============================================================================
+            // FORM TRACKING
+            // =============================================================================
+            
+            trackFormInteraction(interaction, fieldName = null, value = null) {
+                this.trackEvent('form_interaction', {
+                    interaction_type: interaction,
+                    field_name: fieldName,
+                    has_value: !!value,
+                    category: 'form_engagement'
+                });
+            }
+            
+            trackFormSubmission(formData, success = true) {
+                this.trackEvent('contact_form_submission', {
+                    inquiry_type: formData.inquiryType,
+                    has_company: !!formData.company,
+                    message_length: formData.message ? formData.message.length : 0,
+                    success: success,
+                    category: 'conversion'
+                });
+                
+                if (success) {
+                    this.trackConversion('contact_form_completed', {
+                        inquiry_type: formData.inquiryType
+                    });
+                }
+            }
+            
+            // =============================================================================
+            // BEHAVIORAL TRACKING
+            // =============================================================================
+            
+            trackScrollDepth() {
+                let maxScroll = 0;
+                let scrollTimer;
+                
+                window.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimer);
+                    scrollTimer = setTimeout(() => {
+                        const scrollPercent = Math.round(
+                            (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100
+                        );
+                        
+                        if (scrollPercent > maxScroll) {
+                            maxScroll = scrollPercent;
+                            
+                            if (scrollPercent >= 25 && maxScroll < 25) {
+                                this.trackEvent('scroll_depth_25');
+                            } else if (scrollPercent >= 50 && maxScroll < 50) {
+                                this.trackEvent('scroll_depth_50');
+                            } else if (scrollPercent >= 75 && maxScroll < 75) {
+                                this.trackEvent('scroll_depth_75');
+                            } else if (scrollPercent >= 90 && maxScroll < 90) {
+                                this.trackEvent('scroll_depth_90');
+                            }
+                        }
+                    }, 250);
+                });
+            }
+            
+            trackTimeOnPage() {
+                setTimeout(() => this.trackEvent('time_on_page_30s'), 30000);
+                setTimeout(() => this.trackEvent('time_on_page_60s'), 60000);
+                setTimeout(() => this.trackEvent('time_on_page_2min'), 120000);
+                
+                window.addEventListener('beforeunload', () => {
+                    const timeOnPage = Math.round((Date.now() - this.pageLoadTime) / 1000);
+                    this.trackEvent('page_exit', {
+                        time_on_page_seconds: timeOnPage,
+                        max_scroll_depth: maxScroll || 0
+                    });
+                });
+            }
+            
+            // =============================================================================
+            // EVENT LISTENERS
+            // =============================================================================
+            
+            setupEventListeners() {
+                // Form field interactions
+                document.addEventListener('focusin', (e) => {
+                    if (e.target.closest('#contactForm')) {
+                        this.trackFormInteraction('field_focus', e.target.name);
+                    }
+                });
+                
+                document.addEventListener('change', (e) => {
+                    if (e.target.closest('#contactForm')) {
+                        this.trackFormInteraction('field_change', e.target.name, e.target.value);
+                    }
+                });
+                
+                // Button clicks
+                document.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.type === 'submit') {
+                        this.trackEvent('button_click', {
+                            button_text: e.target.textContent,
+                            button_id: e.target.id || 'unknown',
+                            category: 'interaction'
+                        });
+                    }
+                });
+            }
+            
+            // =============================================================================
+            // API COMMUNICATION
+            // =============================================================================
+            
+            sendToBackend(endpoint, data) {
+                fetch(endpoint, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                }).catch(error => {
+                    if (this.isDebugMode) {
+                        console.error('Analytics backend error:', error);
+                    }
+                });
+            }
+            
+            // =============================================================================
+            // DEBUG FUNCTIONALITY
+            // =============================================================================
+            
+            enableDebugMode() {
+                const debugPanel = document.getElementById('analyticsDebug');
+                if (debugPanel) {
+                    debugPanel.classList.add('show');
+                }
+            }
+            
+            logDebug(message, data = null) {
+                console.log(`[Contact Analytics] ${message}`, data);
+                
+                const debugInfo = document.getElementById('debugInfo');
+                if (debugInfo) {
+                    debugInfo.innerHTML = `${message}<br>Session: ${this.sessionId}<br>Page: Contact`;
+                }
+            }
+        }
+        
+        // Initialize analytics
+        const analytics = new ContactPageAnalytics();
+        
+        // =============================================================================
+        // EXISTING FUNCTIONALITY WITH ANALYTICS INTEGRATION
+        // =============================================================================
+        
         // Mobile menu toggle
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
             navLinks.classList.toggle('active');
+            analytics.trackEvent('mobile_menu_toggle', {
+                action: navLinks.classList.contains('active') ? 'open' : 'close'
+            });
         }
 
         // Beta button functionality
         function joinBeta() {
+            analytics.trackEvent('beta_button_click', {category: 'conversion'});
+            analytics.trackConversion('beta_modal_opened');
+            
             // Show beta signup modal
             const modal = document.createElement('div');
             modal.style.cssText = `
@@ -849,7 +1146,7 @@
                     position: relative;
                     animation: slideIn 0.3s ease;
                 ">
-                    <button onclick="this.closest('div').remove()" style="
+                    <button onclick="this.closest('div').remove(); analytics.trackEvent('beta_modal_close')" style="
                         position: absolute;
                         top: 15px;
                         right: 20px;
@@ -904,6 +1201,9 @@
                 e.preventDefault();
                 const email = this.querySelector('input').value;
                 
+                analytics.trackConversion('beta_email_entered');
+                analytics.trackConversion('beta_signup_completed');
+                
                 // Show success message
                 this.innerHTML = `
                     <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
@@ -914,9 +1214,6 @@
                     </p>
                 `;
                 
-                // Log beta signup (replace with actual backend call)
-                console.log('Beta signup:', email);
-                
                 // Close modal after 2 seconds
                 setTimeout(() => {
                     modal.remove();
@@ -926,18 +1223,23 @@
             // Close modal when clicking outside
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
+                    analytics.trackEvent('beta_modal_close', {method: 'outside_click'});
                     modal.remove();
                 }
             });
         }
 
-        // Contact form handling with enhanced backend integration
+        // Contact form handling with enhanced analytics
         document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Get form data
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
+            
+            analytics.trackConversion('contact_form_submitted', {
+                inquiry_type: data.inquiryType
+            });
             
             const submitBtn = this.querySelector('.submit-btn');
             const originalText = submitBtn.innerHTML;
@@ -958,6 +1260,7 @@
                 
                 if (response.ok) {
                     // Success
+                    analytics.trackFormSubmission(data, true);
                     const successMessage = document.getElementById('successMessage');
                     successMessage.classList.add('show');
                     this.reset();
@@ -970,7 +1273,7 @@
                 }
             } catch (error) {
                 // Fallback for demo purposes
-                console.log('Contact form submitted (demo mode):', data);
+                analytics.trackFormSubmission(data, true);
                 
                 // Show success message anyway for demo
                 const successMessage = document.getElementById('successMessage');
@@ -1010,6 +1313,12 @@
                 if (entry.isIntersecting) {
                     entry.target.style.opacity = '1';
                     entry.target.style.transform = 'translateY(0)';
+                    
+                    // Track when elements come into view
+                    analytics.trackEvent('element_viewed', {
+                        element_class: entry.target.className,
+                        element_id: entry.target.id || 'unknown'
+                    });
                 }
             });
         }, observerOptions);
@@ -1035,6 +1344,29 @@
             }
         `;
         document.head.appendChild(style);
+
+        // Track page performance
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const perfData = performance.timing;
+                const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+                
+                analytics.trackEvent('page_performance', {
+                    load_time_ms: loadTime,
+                    dom_ready_time: perfData.domContentLoadedEventEnd - perfData.navigationStart,
+                    is_slow_load: loadTime > 3000
+                });
+            }, 0);
+        });
+
+        // Track JavaScript errors
+        window.addEventListener('error', function(e) {
+            analytics.trackEvent('javascript_error', {
+                error_message: e.message,
+                error_filename: e.filename,
+                error_line: e.lineno
+            });
+        });
     </script>
 </body>
 </html>
