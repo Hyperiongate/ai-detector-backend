@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NewsVerify Pro - News Verification Platform</title>
+    
+    <!-- Google Analytics 4 Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+        
+        // Custom Analytics Events for News Verification Page
+        function trackNewsEvent(eventName, eventData = {}) {
+            gtag('event', eventName, {
+                event_category: 'News_Verification',
+                page_title: 'NewsVerify Pro - News Verification Platform',
+                ...eventData
+            });
+            
+            // Backend analytics tracking
+            if (typeof backendAnalytics !== 'undefined') {
+                backendAnalytics.track(eventName, {
+                    page: 'news_verification',
+                    timestamp: new Date().toISOString(),
+                    ...eventData
+                });
+            }
+        }
+        
+        // Track page view
+        gtag('event', 'page_view', {
+            page_title: 'NewsVerify Pro - News Verification Platform',
+            page_location: window.location.href,
+            content_group1: 'News Verification'
+        });
+    </script>
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
     <style>
         * {
@@ -698,12 +733,119 @@
     </div>
 
     <script>
-        // Beta Modal Functions
+        // Initialize analytics tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            trackNewsEvent('news_verification_page_loaded', {
+                user_agent: navigator.userAgent,
+                screen_resolution: `${screen.width}x${screen.height}`,
+                referrer: document.referrer
+            });
+            
+            setupNewsAnalytics();
+        });
+
+        // Setup comprehensive news verification analytics
+        function setupNewsAnalytics() {
+            // Track navigation clicks
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function() {
+                    const destination = this.getAttribute('href');
+                    trackNewsEvent('navigation_clicked', {
+                        destination: destination,
+                        link_text: this.textContent.trim()
+                    });
+                });
+            });
+
+            // Track tool card interactions
+            document.querySelectorAll('.tool-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const toolTitle = this.querySelector('h3').textContent;
+                    trackNewsEvent('tool_card_hovered', {
+                        tool: toolTitle
+                    });
+                });
+            });
+
+            // Track form field interactions
+            document.querySelectorAll('input, textarea').forEach(field => {
+                field.addEventListener('focus', function() {
+                    const fieldType = this.type || 'textarea';
+                    const fieldId = this.id;
+                    trackNewsEvent('form_field_focused', {
+                        field_type: fieldType,
+                        field_id: fieldId
+                    });
+                });
+
+                field.addEventListener('input', function() {
+                    const fieldId = this.id;
+                    const hasContent = this.value.length > 0;
+                    trackNewsEvent('form_field_input', {
+                        field_id: fieldId,
+                        has_content: hasContent,
+                        content_length: this.value.length
+                    });
+                });
+            });
+
+            // Track results tab interactions
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.textContent.trim();
+                    trackNewsEvent('results_tab_clicked', {
+                        tab: tabName
+                    });
+                });
+            });
+
+            // Track scroll depth
+            let maxScroll = 0;
+            window.addEventListener('scroll', function() {
+                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+                if (scrollPercent > maxScroll) {
+                    maxScroll = scrollPercent;
+                    if (maxScroll % 25 === 0 && maxScroll > 0) {
+                        trackNewsEvent('scroll_depth', {
+                            depth_percentage: maxScroll
+                        });
+                    }
+                }
+            });
+
+            // Track time on page
+            let pageStartTime = Date.now();
+            let engagementEvents = 0;
+
+            // Count engagement events
+            ['click', 'scroll', 'mousemove', 'keydown'].forEach(eventType => {
+                document.addEventListener(eventType, function() {
+                    engagementEvents++;
+                });
+            });
+
+            window.addEventListener('beforeunload', function() {
+                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
+                trackNewsEvent('page_session_end', {
+                    time_on_page: timeOnPage,
+                    max_scroll: maxScroll,
+                    engagement_events: engagementEvents
+                });
+            });
+        }
+
+        // Beta Modal Functions with analytics
         function openBetaModal() {
+            trackNewsEvent('beta_modal_opened', {
+                source: 'news_verification_banner'
+            });
             document.getElementById('betaModal').style.display = 'block';
         }
 
         function closeBetaModal() {
+            trackNewsEvent('beta_modal_closed', {
+                action: 'close_button'
+            });
             document.getElementById('betaModal').style.display = 'none';
         }
 
@@ -716,6 +858,12 @@
                 return;
             }
 
+            trackNewsEvent('beta_signup_attempted', {
+                email: email,
+                has_name: name.length > 0,
+                source: 'news_verification'
+            });
+
             // Try to submit to backend, fall back to demo mode
             fetch('/api/beta-signup', {
                 method: 'POST',
@@ -726,6 +874,10 @@
             })
             .then(response => response.json())
             .then(data => {
+                trackNewsEvent('beta_signup_completed', {
+                    email: email,
+                    source: 'news_verification'
+                });
                 alert('🎉 Welcome to the beta program! Check your email for next steps.');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
@@ -733,6 +885,11 @@
             .catch(error => {
                 // Demo mode fallback
                 console.log('Demo mode: Beta signup for', email);
+                trackNewsEvent('beta_signup_completed', {
+                    email: email,
+                    source: 'news_verification',
+                    demo_mode: true
+                });
                 alert('🎉 Thanks for your interest! Beta program signup recorded.');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
@@ -743,12 +900,18 @@
         window.onclick = function(event) {
             const modal = document.getElementById('betaModal');
             if (event.target === modal) {
+                trackNewsEvent('beta_modal_closed', {
+                    action: 'outside_click'
+                });
                 closeBetaModal();
             }
         }
 
-        // News Verification Functions
+        // News Verification Functions with analytics
         function showProgress(type) {
+            trackNewsEvent('analysis_started', {
+                analysis_type: type
+            });
             document.getElementById(type + 'Progress').style.display = 'block';
             animateProgress(type);
         }
@@ -775,18 +938,25 @@
                 if (currentStep < steps.length) {
                     progressFill.style.width = steps[currentStep].width;
                     progressText.textContent = steps[currentStep].text;
+                    
+                    trackNewsEvent('analysis_progress', {
+                        analysis_type: type,
+                        step: currentStep + 1,
+                        progress_percent: parseInt(steps[currentStep].width)
+                    });
+                    
                     currentStep++;
                 } else {
                     clearInterval(interval);
                     setTimeout(() => {
                         hideProgress(type);
-                        showResults();
+                        showResults(type);
                     }, 1000);
                 }
             }, 1000);
         }
 
-        function showResults() {
+        function showResults(analysisType) {
             // Simulate different results
             const scores = [75, 82, 91, 68, 88];
             const score = scores[Math.floor(Math.random() * scores.length)];
@@ -794,19 +964,34 @@
             const scoreElement = document.getElementById('credibilityScore');
             scoreElement.textContent = `Credibility: ${score}%`;
             
+            let scoreCategory;
             if (score >= 80) {
                 scoreElement.className = 'credibility-score score-high';
+                scoreCategory = 'high';
             } else if (score >= 60) {
                 scoreElement.className = 'credibility-score score-medium';
+                scoreCategory = 'medium';
             } else {
                 scoreElement.className = 'credibility-score score-low';
+                scoreCategory = 'low';
             }
+
+            trackNewsEvent('analysis_completed', {
+                analysis_type: analysisType,
+                credibility_score: score,
+                score_category: scoreCategory
+            });
 
             // Update content based on score
             updateResultsContent(score);
             
             document.getElementById('resultsContainer').style.display = 'block';
             document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+            
+            trackNewsEvent('results_displayed', {
+                analysis_type: analysisType,
+                score: score
+            });
         }
 
         function updateResultsContent(score) {
@@ -829,6 +1014,10 @@
         }
 
         function switchTab(tabName) {
+            trackNewsEvent('results_tab_switched', {
+                tab: tabName
+            });
+
             // Hide all tabs
             const tabs = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => tab.classList.remove('active'));
@@ -841,11 +1030,15 @@
             event.target.classList.add('active');
         }
 
-        // Form Handlers
+        // Form Handlers with analytics
         document.getElementById('urlForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const url = document.getElementById('newsUrl').value;
             if (url) {
+                trackNewsEvent('url_analysis_submitted', {
+                    url: url,
+                    url_domain: new URL(url).hostname
+                });
                 showProgress('url');
             }
         });
@@ -854,6 +1047,10 @@
             e.preventDefault();
             const text = document.getElementById('newsText').value;
             if (text.trim()) {
+                trackNewsEvent('text_analysis_submitted', {
+                    text_length: text.length,
+                    word_count: text.split(' ').length
+                });
                 showProgress('text');
             }
         });
@@ -862,6 +1059,11 @@
             e.preventDefault();
             const file = document.getElementById('batchFile').files[0];
             if (file) {
+                trackNewsEvent('batch_analysis_submitted', {
+                    file_name: file.name,
+                    file_size: file.size,
+                    file_type: file.type
+                });
                 showProgress('batch');
             }
         });
@@ -870,8 +1072,16 @@
             e.preventDefault();
             const domain = document.getElementById('sourceDomain').value;
             if (domain) {
+                trackNewsEvent('source_verification_submitted', {
+                    domain: domain
+                });
                 showProgress('source');
             }
+        });
+
+        // Track beta email field focus
+        document.getElementById('betaEmail').addEventListener('focus', function() {
+            trackNewsEvent('beta_email_focused');
         });
     </script>
 </body>
