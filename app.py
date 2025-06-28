@@ -152,7 +152,7 @@ if DATABASE_AVAILABLE:
         
         # ENHANCED USER MODEL WITH FLASK-LOGIN AUTHENTICATION
         class User(UserMixin, db.Model):
-            __tablename__ = 'users'
+            __tablename__ = 'user'
             
             # Primary identification
             id = db.Column(db.Integer, primary_key=True)
