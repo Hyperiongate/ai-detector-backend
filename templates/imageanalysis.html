@@ -107,9 +107,93 @@
             cursor: pointer;
         }
 
+        /* Beta Banner Styles */
+        .beta-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 999;
+            margin-top: 85px;
+        }
+
+        .beta-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .beta-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .beta-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .beta-text i {
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .beta-join-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .beta-join-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .beta-join-btn:active {
+            transform: translateY(0);
+        }
+
         /* Main Content */
         .main-content {
-            margin-top: 100px;
+            margin-top: 20px;
             padding: 2rem;
             max-width: 1200px;
             margin-left: auto;
@@ -950,6 +1034,21 @@
                 display: block;
             }
 
+            .beta-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .beta-text {
+                font-size: 0.9rem;
+            }
+            
+            .beta-join-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
             .hero-section h1 {
                 font-size: 2rem;
             }
@@ -1015,11 +1114,12 @@
             </a>
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verify</a></li>
-                <li><a href="/imageanalysis" class="active">Image Analysis</a></li>
-                <li><a href="/unified">Content Checker</a></li>
-                <li><a href="/missionstatement">Mission</a></li>
+                <li><a href="/news">News Verification</a></li>
+                <li><a href="/unified">Content Authenticity</a></li>
+                <li><a href="/imageanalysis" class="active">AI Image Analysis</a></li>
+                <li><a href="/missionstatement">Our Mission</a></li>
                 <li><a href="/pricingplan">Pricing</a></li>
+                <li><a href="/contact">Contact</a></li>
                 <li><a href="#" class="cta-button">Get Started</a></li>
             </ul>
             <button class="mobile-menu-toggle">
@@ -1027,6 +1127,19 @@
             </button>
         </div>
     </nav>
+
+    <!-- Beta Banner -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <div class="beta-text">
+                <i class="fas fa-flask"></i>
+                <strong>BETA VERSION</strong> - Join our beta for free access to the entire site
+            </div>
+            <button class="beta-join-btn" onclick="joinBeta()">
+                <i class="fas fa-rocket"></i> Join Beta
+            </button>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -1459,175 +1572,105 @@
         let currentImage = null;
         let cameraStream = null;
 
-        // Tier Selection
-        document.querySelectorAll('.tier-button').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.tier-button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentTier = this.dataset.tier;
-                updateTierFeatures();
-            });
-        });
-
-        // Upload Method Selection
-        document.querySelectorAll('.upload-method').forEach(method => {
-            method.addEventListener('click', function() {
-                document.querySelectorAll('.upload-method').forEach(m => m.classList.remove('active'));
-                this.classList.add('active');
+        // Beta button functionality
+        function joinBeta() {
+            // Show beta signup modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 20px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    position: relative;
+                    animation: slideIn 0.3s ease;
+                ">
+                    <button onclick="this.closest('div').remove()" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 20px;
+                        background: none;
+                        border: none;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        color: #999;
+                    ">&times;</button>
+                    
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                    <h2 style="color: #333; margin-bottom: 15px;">Join the Beta!</h2>
+                    <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
+                        Get free access to all our professional tools during the beta period. 
+                        We're constantly improving and your feedback helps us build better tools!
+                    </p>
+                    
+                    <form id="betaSignupForm" style="margin-bottom: 20px;">
+                        <input type="email" placeholder="Enter your email" required style="
+                            width: 100%;
+                            padding: 15px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            margin-bottom: 15px;
+                        ">
+                        <button type="submit" style="
+                            background: linear-gradient(135deg, #f59e0b, #d97706);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            width: 100%;
+                            font-size: 1rem;
+                        ">
+                            <i class="fas fa-rocket"></i> Join Beta Now
+                        </button>
+                    </form>
+                    
+                    <p style="font-size: 0.85rem; color: #999;">
+                        No spam, ever. Unsubscribe anytime.
+                    </p>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle beta signup form
+            modal.querySelector('#betaSignupForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input').value;
                 
-                // Hide all input sections
-                document.getElementById('urlInputSection').classList.remove('active');
-                document.getElementById('cameraSection').classList.remove('active');
+                // Show success message
+                this.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
+                        <i class="fas fa-check-circle"></i> Welcome to the beta!
+                    </div>
+                    <p style="color: #666; margin-top: 10px;">
+                        You now have full access to all features. Start exploring!
+                    </p>
+                `;
                 
-                // Show appropriate section
-                if (this.dataset.method === 'url') {
-                    document.getElementById('urlInputSection').classList.add('active');
-                } else if (this.dataset.method === 'camera') {
-                    document.getElementById('cameraSection').classList.add('active');
-                    startCamera();
-                }
-            });
-        });
-
-        // Analysis Tab Switching
-        document.querySelectorAll('.analysis-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.analysis-content').forEach(c => c.classList.remove('active'));
+                // Log beta signup (replace with actual backend call)
+                console.log('Beta signup:', email);
                 
-                this.classList.add('active');
-                document.getElementById(this.dataset.analysis + '-content').classList.add('active');
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    modal.remove();
+                }, 2000);
             });
-        });
-
-        // Report Option Selection
-        document.querySelectorAll('.report-option').forEach(option => {
-            option.addEventListener('click', function() {
-                this.classList.toggle('selected');
-            });
-        });
-
-        // File Upload Handling
-        const imageInput = document.getElementById('imageInput');
-        const uploadArea = document.querySelector('.image-upload-area');
-
-        // Drag and drop functionality
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleImageUpload(files[0]);
-            }
-        });
-
-        imageInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                handleImageUpload(this.files[0]);
-            }
-        });
-
-        // Main Analysis Function
-        document.getElementById('analyzeBtn').addEventListener('click', function() {
-            if (!currentImage) {
-                alert('Please upload an image first.');
-                return;
-            }
-
-            startAnalysis();
-        });
-
-        // Image Upload Handler
-        function handleImageUpload(file) {
-            if (!file.type.startsWith('image/')) {
-                alert('Please select a valid image file.');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                currentImage = e.target.result;
-                displayImagePreview(currentImage, file);
-                enableAnalysis();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function displayImagePreview(imageSrc, file) {
-            const preview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            previewImage.src = imageSrc;
-            preview.classList.add('active');
-
-            // Update image info
-            const img = new Image();
-            img.onload = function() {
-                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
-            };
-            img.src = imageSrc;
-
-            document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
-            document.getElementById('fileSize').textContent = formatFileSize(file.size);
-            document.getElementById('colorDepth').textContent = '24-bit'; // Default assumption
-        }
-
-        function enableAnalysis() {
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Image Authenticity';
-        }
-
-        // Sample Image Loading
-        function loadSample(sampleType) {
-            const samples = {
-                'ai-portrait': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#667eea"/><text x="200" y="150" font-family="Arial" font-size="20" fill="white" text-anchor="middle" dy=".3em">AI Generated Portrait Sample</text></svg>',
-                'deepfake': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f44336"/><text x="200" y="150" font-family="Arial" font-size="20" fill="white" text-anchor="middle" dy=".3em">Deepfake Sample</text></svg>',
-                'real-photo': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#4CAF50"/><text x="200" y="150" font-family="Arial" font-size="20" fill="white" text-anchor="middle" dy=".3em">Authentic Photo Sample</text></svg>',
-                'manipulated': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#FF9800"/><text x="200" y="150" font-family="Arial" font-size="20" fill="white" text-anchor="middle" dy=".3em">Manipulated Image Sample</text></svg>'
-            };
-            
-            currentImage = samples[sampleType];
-            
-            const preview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            previewImage.src = currentImage;
-            preview.classList.add('active');
-            
-            // Update info for sample
-            document.getElementById('imageSize').textContent = '400x300';
-            document.getElementById('imageFormat').textContent = 'SVG';
-            document.getElementById('fileSize').textContent = '1.2 KB';
-            document.getElementById('colorDepth').textContent = '24-bit';
-            
-            enableAnalysis();
-            
-            // Visual feedback
-            document.querySelectorAll('.sample-image').forEach(img => {
-                img.style.transform = '';
-                img.style.border = '2px solid #e0e0e0';
-            });
-            event.target.closest('.sample-image').style.transform = 'scale(1.05)';
-            event.target.closest('.sample-image').style.border = '2px solid #667eea';
-        }
-
-        // URL Image Loading
-        function loadFromURL() {
-            const urlInput = document.querySelector('.url-input');
-            const url = urlInput.value.trim();
-            
-            if (!url) {
-                alert('Please enter a valid image URL.');
-                return;
