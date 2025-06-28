@@ -108,9 +108,93 @@
             cursor: pointer;
         }
 
+        /* Beta Banner Styles */
+        .beta-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 999;
+            margin-top: 85px;
+        }
+
+        .beta-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .beta-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .beta-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .beta-text i {
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .beta-join-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .beta-join-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .beta-join-btn:active {
+            transform: translateY(0);
+        }
+
         /* Main Content */
         .main-content {
-            margin-top: 100px;
+            margin-top: 20px;
             padding: 2rem;
             max-width: 1200px;
             margin-left: auto;
@@ -578,6 +662,21 @@
                 display: block;
             }
 
+            .beta-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .beta-text {
+                font-size: 0.9rem;
+            }
+            
+            .beta-join-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
             .hero-section h1 {
                 font-size: 2.5rem;
             }
@@ -675,11 +774,12 @@
             </a>
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verify</a></li>
-                <li><a href="/imageanalysis">Image Analysis</a></li>
-                <li><a href="/unified">Content Checker</a></li>
-                <li><a href="/missionstatement" class="active">Mission</a></li>
+                <li><a href="/news">News Verification</a></li>
+                <li><a href="/unified">Content Authenticity</a></li>
+                <li><a href="/imageanalysis">AI Image Analysis</a></li>
+                <li><a href="/missionstatement" class="active">Our Mission</a></li>
                 <li><a href="/pricingplan">Pricing</a></li>
+                <li><a href="/contact">Contact</a></li>
                 <li><a href="#" class="cta-button">Get Started</a></li>
             </ul>
             <button class="mobile-menu-toggle">
@@ -687,6 +787,19 @@
             </button>
         </div>
     </nav>
+
+    <!-- Beta Banner -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <div class="beta-text">
+                <i class="fas fa-flask"></i>
+                <strong>BETA VERSION</strong> - Join our beta for free access to the entire site
+            </div>
+            <button class="beta-join-btn" onclick="joinBeta()">
+                <i class="fas fa-rocket"></i> Join Beta
+            </button>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -944,7 +1057,7 @@
                     <i class="fas fa-rocket"></i>
                     Start Protecting Truth
                 </a>
-                <a href="#" class="cta-btn secondary">
+                <a href="/contact" class="cta-btn secondary">
                     <i class="fas fa-users"></i>
                     Partner With Us
                 </a>
@@ -953,6 +1066,117 @@
     </div>
 
     <script>
+        // Beta button functionality
+        function joinBeta() {
+            // Show beta signup modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 20px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    position: relative;
+                    animation: slideIn 0.3s ease;
+                ">
+                    <button onclick="this.closest('div').remove()" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 20px;
+                        background: none;
+                        border: none;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        color: #999;
+                    ">&times;</button>
+                    
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                    <h2 style="color: #333; margin-bottom: 15px;">Join the Beta!</h2>
+                    <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
+                        Get free access to all our professional tools during the beta period. 
+                        We're constantly improving and your feedback helps us build better tools!
+                    </p>
+                    
+                    <form id="betaSignupForm" style="margin-bottom: 20px;">
+                        <input type="email" placeholder="Enter your email" required style="
+                            width: 100%;
+                            padding: 15px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            margin-bottom: 15px;
+                        ">
+                        <button type="submit" style="
+                            background: linear-gradient(135deg, #f59e0b, #d97706);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            width: 100%;
+                            font-size: 1rem;
+                        ">
+                            <i class="fas fa-rocket"></i> Join Beta Now
+                        </button>
+                    </form>
+                    
+                    <p style="font-size: 0.85rem; color: #999;">
+                        No spam, ever. Unsubscribe anytime.
+                    </p>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle beta signup form
+            modal.querySelector('#betaSignupForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input').value;
+                
+                // Show success message
+                this.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
+                        <i class="fas fa-check-circle"></i> Welcome to the beta!
+                    </div>
+                    <p style="color: #666; margin-top: 10px;">
+                        You now have full access to all features. Start exploring!
+                    </p>
+                `;
+                
+                // Log beta signup (replace with actual backend call)
+                console.log('Beta signup:', email);
+                
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    modal.remove();
+                }, 2000);
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
         // Mobile Menu Toggle
         document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
             document.querySelector('.nav-links').classList.toggle('active');
@@ -1086,6 +1310,20 @@
                 item.style.animationDelay = `${index * 0.2}s`;
             });
         });
+
+        // Add fadeIn and slideIn animations for modal
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
