@@ -13,9 +13,28 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import uuid
-import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+
+# SAFE Email imports - Python 3.13 compatible
+try:
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    EMAIL_AVAILABLE = True
+    print("✓ Email modules loaded successfully")
+except ImportError:
+    try:
+        # Fallback for different Python versions
+        import smtplib
+        from email.MIMEText import MIMEText
+        from email.MIMEMultipart import MIMEMultipart
+        EMAIL_AVAILABLE = True
+        print("✓ Email modules loaded successfully (fallback)")
+    except ImportError:
+        EMAIL_AVAILABLE = False
+        MIMEText = None
+        MIMEMultipart = None
+        smtplib = None
+        print("⚠ Email functionality disabled - MIME imports failed")
 
 # SAFE Database imports - will not break if missing
 try:
@@ -62,26 +81,37 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ai-detection-secret-key
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Beta sessions last 30 days
 
-# Email configuration for Bluehost
-SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
-SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
-SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
-SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
-CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
+# Email configuration for Bluehost - with safety checks
+if EMAIL_AVAILABLE:
+    SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
+    SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+    SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
+    SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+    CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
+else:
+    SMTP_SERVER = None
+    SMTP_PORT = None
+    SMTP_USERNAME = None
+    SMTP_PASSWORD = None
+    CONTACT_EMAIL = None
 
 def send_email(to_email, subject, message, from_name=None):
-    """Send email via Bluehost SMTP"""
+    """Send email via Bluehost SMTP - Python 3.13 compatible"""
+    if not EMAIL_AVAILABLE:
+        logger.warning("Email functionality not available - MIME imports failed")
+        return False
+        
     if not SMTP_PASSWORD:
         logger.warning("SMTP_PASSWORD not configured - email disabled")
         return False
         
     try:
-        msg = MimeMultipart()
+        msg = MIMEMultipart()
         msg['From'] = f"{from_name} <{SMTP_USERNAME}>" if from_name else SMTP_USERNAME
         msg['To'] = to_email
         msg['Subject'] = subject
         
-        msg.attach(MimeText(message, 'html'))
+        msg.attach(MIMEText(message, 'html'))
         
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
@@ -400,65 +430,70 @@ def handle_contact():
                     except:
                         pass
         
-        # Email to admin
-        admin_subject = f"Facts & Fakes AI Contact: {subject}"
-        admin_message = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                <h2>New Contact Form Submission</h2>
-            </div>
-            <div style="padding: 20px; background: #f8f9fa;">
-                <p><strong>Name:</strong> {name}</p>
-                <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
-                <p><strong>Subject:</strong> {subject}</p>
-                <h3>Message:</h3>
-                <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
-                    {message.replace(chr(10), '<br>')}
-                </div>
-            </div>
-            <div style="background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;">
-                <p>Sent from Facts & Fakes AI Contact Form<br>
-                <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
-            </div>
-        </body>
-        </html>
-        """
+        # Only attempt email if EMAIL_AVAILABLE
+        admin_sent = False
+        user_sent = False
         
-        # Auto-reply to user
-        user_subject = "Thank you for contacting Facts & Fakes AI"
-        user_message = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
-                <h2>Thank you for your message, {name}!</h2>
-            </div>
-            <div style="padding: 20px; background: #f8f9fa;">
-                <p>We've received your inquiry and will respond within 24 hours.</p>
-                <h3>Your message:</h3>
-                <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
-                    <strong>Subject:</strong> {subject}<br><br>
-                    {message.replace(chr(10), '<br>')}
+        if EMAIL_AVAILABLE and CONTACT_EMAIL:
+            # Email to admin
+            admin_subject = f"Facts & Fakes AI Contact: {subject}"
+            admin_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+                    <h2>New Contact Form Submission</h2>
                 </div>
-                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
-                    <p><strong>While you wait, explore our AI detection tools:</strong></p>
-                    <p>🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
-                    📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
-                    🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a></p>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <p><strong>Name:</strong> {name}</p>
+                    <p><strong>Email:</strong> <a href="mailto:{email}">{email}</a></p>
+                    <p><strong>Subject:</strong> {subject}</p>
+                    <h3>Message:</h3>
+                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
+                        {message.replace(chr(10), '<br>')}
+                    </div>
                 </div>
-            </div>
-            <div style="background: #333; color: white; padding: 15px; text-align: center;">
-                <p>Best regards,<br>
-                <strong>Facts & Fakes AI Team</strong><br>
-                <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        # Send emails
-        admin_sent = send_email(CONTACT_EMAIL, admin_subject, admin_message, name)
-        user_sent = send_email(email, user_subject, user_message, "Facts & Fakes AI")
+                <div style="background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;">
+                    <p>Sent from Facts & Fakes AI Contact Form<br>
+                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Auto-reply to user
+            user_subject = "Thank you for contacting Facts & Fakes AI"
+            user_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+                    <h2>Thank you for your message, {name}!</h2>
+                </div>
+                <div style="padding: 20px; background: #f8f9fa;">
+                    <p>We've received your inquiry and will respond within 24 hours.</p>
+                    <h3>Your message:</h3>
+                    <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #667eea;">
+                        <strong>Subject:</strong> {subject}<br><br>
+                        {message.replace(chr(10), '<br>')}
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                        <p><strong>While you wait, explore our AI detection tools:</strong></p>
+                        <p>🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
+                        📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
+                        🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a></p>
+                    </div>
+                </div>
+                <div style="background: #333; color: white; padding: 15px; text-align: center;">
+                    <p>Best regards,<br>
+                    <strong>Facts & Fakes AI Team</strong><br>
+                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a></p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Send emails
+            admin_sent = send_email(CONTACT_EMAIL, admin_subject, admin_message, name)
+            user_sent = send_email(email, user_subject, user_message, "Facts & Fakes AI")
         
         # Update database with email status
         if DATABASE_AVAILABLE and 'contact_id' in locals():
@@ -470,21 +505,29 @@ def handle_contact():
             except Exception as e:
                 logger.error(f"Failed to update email status: {e}")
         
-        if admin_sent and user_sent:
-            logger.info(f"Contact form processed successfully: {name} <{email}>")
-            return jsonify({
-                'success': True,
-                'message': 'Message sent successfully! We\'ll respond within 24 hours.'
-            })
-        elif admin_sent:
-            return jsonify({
-                'success': True,
-                'message': 'Message received! We\'ll respond within 24 hours.'
-            })
+        if EMAIL_AVAILABLE:
+            if admin_sent and user_sent:
+                logger.info(f"Contact form processed successfully: {name} <{email}>")
+                return jsonify({
+                    'success': True,
+                    'message': 'Message sent successfully! We\'ll respond within 24 hours.'
+                })
+            elif admin_sent:
+                return jsonify({
+                    'success': True,
+                    'message': 'Message received! We\'ll respond within 24 hours.'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Message received but email delivery failed. We\'ll respond manually.'
+                })
         else:
+            # Email not available, but still save message
+            logger.info(f"Contact form saved (email disabled): {name} <{email}>")
             return jsonify({
-                'success': False,
-                'message': 'Message received but email delivery failed. We\'ll respond manually.'
+                'success': True,
+                'message': 'Message received! We\'ll respond within 24 hours. (Email system temporarily unavailable)'
             })
             
     except Exception as e:
@@ -824,66 +867,68 @@ def api_beta_signup():
         session['user_email'] = email
         session.permanent = True
         
-        # Send welcome email
-        welcome_subject = "🚀 Welcome to Facts & Fakes AI Beta!"
-        user_name = email.split('@')[0].title()
-        welcome_message = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
-                <h1>🚀 Welcome to the Beta!</h1>
-                <p style="font-size: 18px; margin: 0;">You're now part of something special</p>
-            </div>
-            <div style="padding: 30px; background: #f8f9fa;">
-                <h2>Hi {user_name},</h2>
-                <p>Thank you for joining our exclusive beta program! You now have access to cutting-edge AI detection tools.</p>
-                
-                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #667eea;">
-                    <h3>🎯 Your Beta Benefits:</h3>
-                    <ul style="line-height: 1.6;">
-                        <li>🆓 <strong>5 Free AI detections per day</strong></li>
-                        <li>💎 <strong>5 Pro feature analyses per day</strong></li>
-                        <li>📊 <strong>Advanced bias detection</strong></li>
-                        <li>🔍 <strong>Comprehensive news verification</strong></li>
-                        <li>🖼️ <strong>Image analysis tools</strong></li>
-                        <li>💬 <strong>Priority support & feedback</strong></li>
-                        <li>🎁 <strong>Future launch discounts</strong></li>
-                    </ul>
+        # Send welcome email only if EMAIL_AVAILABLE
+        welcome_sent = False
+        if EMAIL_AVAILABLE:
+            welcome_subject = "🚀 Welcome to Facts & Fakes AI Beta!"
+            user_name = email.split('@')[0].title()
+            welcome_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+                    <h1>🚀 Welcome to the Beta!</h1>
+                    <p style="font-size: 18px; margin: 0;">You're now part of something special</p>
                 </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="https://factsandfakes.ai/beta/dashboard" 
-                       style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; 
-                              text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
-                        🚀 Access Your Dashboard
-                    </a>
+                <div style="padding: 30px; background: #f8f9fa;">
+                    <h2>Hi {user_name},</h2>
+                    <p>Thank you for joining our exclusive beta program! You now have access to cutting-edge AI detection tools.</p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #667eea;">
+                        <h3>🎯 Your Beta Benefits:</h3>
+                        <ul style="line-height: 1.6;">
+                            <li>🆓 <strong>5 Free AI detections per day</strong></li>
+                            <li>💎 <strong>5 Pro feature analyses per day</strong></li>
+                            <li>📊 <strong>Advanced bias detection</strong></li>
+                            <li>🔍 <strong>Comprehensive news verification</strong></li>
+                            <li>🖼️ <strong>Image analysis tools</strong></li>
+                            <li>💬 <strong>Priority support & feedback</strong></li>
+                            <li>🎁 <strong>Future launch discounts</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://factsandfakes.ai/beta/dashboard" 
+                           style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; 
+                                  text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                            🚀 Access Your Dashboard
+                        </a>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4>🛠️ Try Our Tools:</h4>
+                        <p>
+                            🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
+                            📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
+                            🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a>
+                        </p>
+                    </div>
+                    
+                    <p><strong>We'd love your feedback!</strong> Your input helps us build the best AI detection platform possible.</p>
                 </div>
-                
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h4>🛠️ Try Our Tools:</h4>
-                    <p>
-                        🤖 <a href="https://factsandfakes.ai/unified.html">AI Content Detection</a><br>
-                        📰 <a href="https://factsandfakes.ai/news.html">News Bias Analysis</a><br>
-                        🖼️ <a href="https://factsandfakes.ai/imageanalysis.html">Image Analysis</a>
+                <div style="background: #333; color: white; padding: 20px; text-align: center;">
+                    <p style="margin: 0;">Welcome to the future of AI detection!</p>
+                    <p style="margin: 5px 0 0 0;">
+                        <strong>Facts & Fakes AI Team</strong><br>
+                        <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a>
                     </p>
                 </div>
-                
-                <p><strong>We'd love your feedback!</strong> Your input helps us build the best AI detection platform possible.</p>
-            </div>
-            <div style="background: #333; color: white; padding: 20px; text-align: center;">
-                <p style="margin: 0;">Welcome to the future of AI detection!</p>
-                <p style="margin: 5px 0 0 0;">
-                    <strong>Facts & Fakes AI Team</strong><br>
-                    <a href="https://factsandfakes.ai" style="color: #667eea;">factsandfakes.ai</a>
-                </p>
-            </div>
-        </body>
-        </html>
-        """
+            </body>
+            </html>
+            """
+            
+            welcome_sent = send_email(email, welcome_subject, welcome_message, "Facts & Fakes AI")
         
-        welcome_sent = send_email(email, welcome_subject, welcome_message, "Facts & Fakes AI")
-        
-        logger.info(f"New beta user created: {email} from {source} | Welcome email: {'sent' if welcome_sent else 'failed'}")
+        logger.info(f"New beta user created: {email} from {source} | Welcome email: {'sent' if welcome_sent else 'skipped (email unavailable)'}")
         
         return jsonify({
             'success': True,
@@ -1133,12 +1178,12 @@ def health_check():
             "status": "operational",
             "message": "NewsVerify Pro - News Verification Platform (Beta Enabled)",
             "timestamp": datetime.now().isoformat(),
-            "version": "2.1-beta-email",
+            "version": "2.1-beta-email-python313",
             "apis": {
                 "openai": "connected" if openai_client else "not_configured",
                 "newsapi": "available" if NEWS_API_KEY else "not_configured", 
                 "google_factcheck": "configured" if GOOGLE_FACT_CHECK_API_KEY else "not_configured",
-                "email_smtp": "configured" if SMTP_PASSWORD else "not_configured"
+                "email_smtp": "configured" if EMAIL_AVAILABLE and SMTP_PASSWORD else "not_configured"
             },
             "endpoints": {
                 "news_analysis": "/api/analyze-news",
@@ -1148,7 +1193,9 @@ def health_check():
                 "beta_login": "/api/beta/login",
                 "beta_status": "/api/beta/status"
             },
-            "system_status": "healthy"
+            "system_status": "healthy",
+            "python_version": "3.13_compatible",
+            "email_status": "available" if EMAIL_AVAILABLE else "unavailable"
         }
         
         if DATABASE_AVAILABLE:
@@ -2463,14 +2510,15 @@ if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info("=" * 50)
-    logger.info("NEWSVERIFY PRO - BETA-ENABLED VERSION 2.1 WITH EMAIL")
+    logger.info("NEWSVERIFY PRO - BETA-ENABLED VERSION 2.1 - PYTHON 3.13 COMPATIBLE")
     logger.info("=" * 50)
     logger.info(f"Port: {port}")
     logger.info(f"Debug: {debug_mode}")
+    logger.info(f"Python: 3.13 Compatible")
     logger.info(f"OpenAI: {'✓ Connected' if openai_client else '✗ Not configured'}")
     logger.info(f"News API: {'✓ Available' if NEWS_API_KEY else '✗ Not configured'}")
     logger.info(f"Fact-Check API: {'✓ Configured' if GOOGLE_FACT_CHECK_API_KEY else '✗ Not configured'}")
-    logger.info(f"Email SMTP: {'✓ Configured' if SMTP_PASSWORD else '✗ Not configured'}")
+    logger.info(f"Email SMTP: {'✓ Configured' if EMAIL_AVAILABLE and SMTP_PASSWORD else '✗ Not configured'}")
     logger.info(f"Database: {'✓ Connected' if DATABASE_AVAILABLE else '✗ Not available (graceful fallback)'}")
     logger.info(f"Beta Features: {'✓ ENABLED' if DATABASE_AVAILABLE else '✗ Disabled (database required)'}")
     logger.info("API Endpoints Available:")
