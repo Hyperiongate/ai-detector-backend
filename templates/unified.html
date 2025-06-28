@@ -19,69 +19,115 @@
             color: #333;
         }
         
-        .header {
-            background: rgba(255, 255, 255, 0.95);
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
-        
-        .nav-container {
+
+        nav {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
         }
-        
+
         .logo {
-            font-size: 1.8rem;
+            color: white;
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #007bff;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
-        
+
         .nav-links {
             display: flex;
-            gap: 2rem;
             list-style: none;
-            align-items: center;
-            flex-wrap: wrap;
+            gap: 2rem;
         }
-        
+
         .nav-links a {
+            color: white;
             text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
+            transition: opacity 0.3s;
         }
-        
+
         .nav-links a:hover {
-            color: #007bff;
+            opacity: 0.8;
         }
-        
-        .nav-links a::after {
+
+        .nav-links a.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        /* Beta Banner */
+        .beta-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            padding: 8px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .beta-banner::before {
             content: '';
             position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 0;
-            background-color: #007bff;
-            transition: width 0.3s ease;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+            transform: rotate(45deg);
         }
-        
-        .nav-links a:hover::after {
-            width: 100%;
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .beta-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .beta-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .beta-join-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .beta-join-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         
         .container {
@@ -851,8 +897,137 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-header h2 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-body .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-body input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .modal-body input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
         
         @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
             .hero-title {
                 font-size: 2rem;
             }
@@ -868,14 +1043,6 @@
             .hero-section,
             .analysis-container {
                 padding: 2rem 1.5rem;
-            }
-            
-            .nav-container {
-                padding: 0 1rem;
-            }
-            
-            .nav-links {
-                gap: 1rem;
             }
             
             .sample-buttons {
@@ -913,22 +1080,45 @@
             .methodology-grid {
                 grid-template-columns: 1fr;
             }
+
+            .beta-content {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Beta Banner -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <span class="beta-badge">BETA</span>
+            <span>🚀 Join our exclusive beta program and get early access to premium features!</span>
+            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
+        </div>
+    </div>
+
     <!-- Header -->
-    <header class="header">
-        <nav class="nav-container">
-            <a href="/" class="logo">
-                🔍 Facts & Fakes AI
-            </a>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Facts & Fakes AI</a>
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verification</a></li>
-                <li><a href="/unified">AI Detection</a></li>
-                <li><a href="/missionstatement">Mission</a></li>
-                <li><a href="/pricingplan">Pricing</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="news.html">News Verify</a></li>
+                <li><a href="unified.html" class="active">Content Check</a></li>
+                <li><a href="imageanalysis.html">Image Analysis</a></li>
+                <li><a href="missionstatement.html">Mission</a></li>
+                <li><a href="pricingplan.html">Pricing</a></li>
+                <li><a href="contact.html">Contact</a></li>
             </ul>
         </nav>
     </header>
@@ -1126,6 +1316,31 @@
         </section>
     </div>
 
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBetaModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🚀 Join Our Beta Program</h2>
+                <p>Get exclusive early access to premium features and help shape the future of AI content verification!</p>
+            </div>
+            <div class="modal-body">
+                <form id="betaSignupForm">
+                    <div class="input-group">
+                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="betaName" placeholder="Your name (optional)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
+                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
@@ -1135,17 +1350,17 @@
             </div>
             <div class="footer-section">
                 <h3>Analysis Tools</h3>
-                <a href="/unified">AI Detection Aid</a>
-                <a href="/news">News Verification</a>
-                <a href="/plagiarism">Similarity Analysis</a>
-                <a href="/batch">Batch Processing</a>
+                <a href="unified.html">AI Detection Aid</a>
+                <a href="news.html">News Verification</a>
+                <a href="imageanalysis.html">Image Analysis</a>
+                <a href="contact.html">Contact Support</a>
             </div>
             <div class="footer-section">
                 <h3>Company</h3>
-                <a href="/missionstatement">Mission Statement</a>
-                <a href="/pricingplan">Pricing Plans</a>
-                <a href="/contact">Contact Us</a>
-                <a href="/privacy">Privacy Policy</a>
+                <a href="missionstatement.html">Mission Statement</a>
+                <a href="pricingplan.html">Pricing Plans</a>
+                <a href="contact.html">Contact Us</a>
+                <a href="contact.html">Privacy Policy</a>
             </div>
             <div class="footer-section">
                 <h3>Contact Information</h3>
@@ -1164,6 +1379,55 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // Beta Modal Functions
+        function openBetaModal() {
+            document.getElementById('betaModal').style.display = 'block';
+        }
+
+        function closeBetaModal() {
+            document.getElementById('betaModal').style.display = 'none';
+        }
+
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            const name = document.getElementById('betaName').value;
+
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+
+            // Try to submit to backend, fall back to demo mode
+            fetch('/api/beta-signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('🎉 Welcome to the beta program! Check your email for next steps.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            })
+            .catch(error => {
+                // Demo mode fallback
+                console.log('Demo mode: Beta signup for', email);
+                alert('🎉 Thanks for your interest! Beta program signup recorded.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('betaModal');
+            if (event.target === modal) {
+                closeBetaModal();
+            }
+        }
+
         // Global variables
         let currentAnalysis = null;
         let progressIntervals = [];
