@@ -1,67 +1,14 @@
-<!-- Unified Navigation System - Compact and Fixed -->
-<nav class="nav-bar">
-    <div class="nav-container">
-        <a href="/" class="nav-logo">
-            <i class="fas fa-shield-alt"></i>
-            <span>Facts & Fakes AI</span>
-        </a>
-        
-        <div class="nav-links" id="navLinks">
-            <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
-            <a href="/news" class="nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
-            <a href="/unified" class="nav-link"><i class="fas fa-search"></i> Content Check</a>
-            <a href="/imageanalysis" class="nav-link"><i class="fas fa-image"></i> Image Analysis</a>
-            <a href="/missionstatement" class="nav-link"><i class="fas fa-bullseye"></i> Mission</a>
-            <a href="/pricingplan" class="nav-link"><i class="fas fa-tags"></i> Pricing</a>
-            <a href="/contact" class="nav-link"><i class="fas fa-envelope"></i> Contact</a>
-        </div>
-        
-        <div class="nav-auth" id="navAuth">
-            <a href="/login" class="nav-login">Login</a>
-            <a href="/pricingplan" class="nav-signup">Sign Up</a>
-            <!-- Beta balloon - positioned absolutely -->
-            <div class="beta-balloon">
-                sign up now to start your free trial
-            </div>
-        </div>
-        
-        <!-- User menu for logged in users (hidden by default) -->
-        <div class="user-menu" id="userMenu" style="display: none;">
-            <div class="user-menu-toggle" onclick="toggleUserDropdown()">
-                <span id="userEmail">user@example.com</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="user-dropdown" id="userDropdown">
-                <div class="user-info">
-                    <div class="user-email" id="userEmailDropdown">user@example.com</div>
-                    <div class="user-plan" id="userPlan">Free Plan</div>
-                </div>
-                <div class="usage-info">
-                    <div class="usage-label">Daily Usage</div>
-                    <div class="usage-bar">
-                        <div class="usage-progress" id="usageProgress" style="width: 0%;"></div>
-                    </div>
-                    <div class="usage-text" id="usageText">0 / 5 analyses used</div>
-                </div>
-                <div class="dropdown-links">
-                    <a href="/account"><i class="fas fa-user"></i> Account Settings</a>
-                    <a href="/billing"><i class="fas fa-credit-card"></i> Billing</a>
-                    <a href="/api-keys"><i class="fas fa-key"></i> API Keys</a>
-                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </div>
-            </div>
-        </div>
-        
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
-</nav>
-
-<!-- Navigation Styles -->
+<!-- Facts & Fakes AI Navigation Header -->
 <style>
-/* Navigation Bar Styles */
-.nav-bar {
+/* Reset any conflicting styles */
+.ff-nav * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main navigation bar */
+.ff-nav {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -69,11 +16,12 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
-    transition: all 0.3s ease;
+    z-index: 9999;
+    height: 60px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.nav-container {
+.ff-nav-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -83,7 +31,8 @@
     height: 60px;
 }
 
-.nav-logo {
+/* Logo */
+.ff-nav-logo {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -94,21 +43,22 @@
     transition: transform 0.3s ease;
 }
 
-.nav-logo:hover {
+.ff-nav-logo:hover {
     transform: scale(1.05);
 }
 
-.nav-logo i {
+.ff-nav-logo i {
     font-size: 1.4rem;
 }
 
-.nav-links {
+/* Navigation links */
+.ff-nav-links {
     display: flex;
     gap: 5px;
     align-items: center;
 }
 
-.nav-link {
+.ff-nav-link {
     color: #4a5568;
     text-decoration: none;
     padding: 8px 16px;
@@ -121,30 +71,31 @@
     gap: 6px;
 }
 
-.nav-link:hover {
+.ff-nav-link:hover {
     background: rgba(102, 126, 234, 0.1);
     color: #667eea;
     transform: translateY(-2px);
 }
 
-.nav-link.active {
+.ff-nav-link.active {
     background: rgba(102, 126, 234, 0.15);
     color: #667eea;
     font-weight: 600;
 }
 
-.nav-link i {
+.ff-nav-link i {
     font-size: 0.9rem;
 }
 
-.nav-auth {
+/* Auth buttons */
+.ff-nav-auth {
     display: flex;
     gap: 10px;
     align-items: center;
     position: relative;
 }
 
-.nav-login, .nav-signup {
+.ff-nav-login, .ff-nav-signup {
     padding: 8px 20px;
     text-decoration: none;
     border-radius: 8px;
@@ -153,30 +104,30 @@
     transition: all 0.3s ease;
 }
 
-.nav-login {
+.ff-nav-login {
     color: #667eea;
     border: 2px solid #667eea;
 }
 
-.nav-login:hover {
+.ff-nav-login:hover {
     background: #667eea;
     color: white;
     transform: translateY(-2px);
 }
 
-.nav-signup {
+.ff-nav-signup {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: 2px solid transparent;
 }
 
-.nav-signup:hover {
+.ff-nav-signup:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
-/* Beta Balloon */
-.beta-balloon {
+/* Beta balloon */
+.ff-beta-balloon {
     position: absolute;
     top: -35px;
     right: 50px;
@@ -187,11 +138,11 @@
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
-    animation: bounce 2s infinite;
+    animation: ff-bounce 2s infinite;
     box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
-.beta-balloon::after {
+.ff-beta-balloon::after {
     content: '';
     position: absolute;
     bottom: -6px;
@@ -203,17 +154,18 @@
     border-top: 6px solid #f7931e;
 }
 
-@keyframes bounce {
+@keyframes ff-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
 }
 
-/* User Menu */
-.user-menu {
+/* User menu */
+.ff-user-menu {
     position: relative;
+    display: none;
 }
 
-.user-menu-toggle {
+.ff-user-menu-toggle {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -227,11 +179,11 @@
     font-size: 0.9rem;
 }
 
-.user-menu-toggle:hover {
+.ff-user-menu-toggle:hover {
     background: rgba(102, 126, 234, 0.2);
 }
 
-.user-dropdown {
+.ff-user-dropdown {
     position: absolute;
     top: 100%;
     right: 0;
@@ -247,87 +199,14 @@
     transition: all 0.3s ease;
 }
 
-.user-dropdown.active {
+.ff-user-dropdown.active {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-.user-info {
-    padding: 20px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.user-email {
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 4px;
-}
-
-.user-plan {
-    font-size: 0.85rem;
-    color: #667eea;
-    font-weight: 500;
-}
-
-.usage-info {
-    padding: 20px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.usage-label {
-    font-size: 0.85rem;
-    color: #718096;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.usage-bar {
-    background: #e2e8f0;
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.usage-progress {
-    height: 100%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    transition: width 0.5s ease;
-}
-
-.usage-text {
-    font-size: 0.8rem;
-    color: #4a5568;
-}
-
-.dropdown-links {
-    padding: 10px 0;
-}
-
-.dropdown-links a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
-    color: #4a5568;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.dropdown-links a:hover {
-    background: rgba(102, 126, 234, 0.05);
-    color: #667eea;
-}
-
-.dropdown-links a i {
-    width: 16px;
-    text-align: center;
-}
-
-/* Mobile Menu Button */
-.mobile-menu-btn {
+/* Mobile menu button */
+.ff-mobile-menu-btn {
     display: none;
     background: none;
     border: none;
@@ -338,17 +217,13 @@
     transition: all 0.3s ease;
 }
 
-.mobile-menu-btn:hover {
+.ff-mobile-menu-btn:hover {
     color: #667eea;
 }
 
-/* Mobile Responsive */
+/* Mobile responsive */
 @media (max-width: 768px) {
-    .nav-container {
-        padding: 0 15px;
-    }
-    
-    .nav-links {
+    .ff-nav-links {
         display: none;
         position: absolute;
         top: 100%;
@@ -361,85 +236,148 @@
         border-top: 1px solid #e2e8f0;
     }
     
-    .nav-links.active {
+    .ff-nav-links.active {
         display: flex;
     }
     
-    .nav-link {
+    .ff-nav-link {
         width: 100%;
         padding: 12px 20px;
-        border-radius: 8px;
     }
     
-    .mobile-menu-btn {
+    .ff-mobile-menu-btn {
         display: block;
     }
     
-    .nav-auth {
+    .ff-nav-auth {
         display: none;
     }
     
-    .user-menu {
+    .ff-user-menu {
         display: none !important;
     }
     
-    .beta-balloon {
+    .ff-beta-balloon {
         display: none;
-    }
-}
-
-@media (max-width: 1024px) {
-    .nav-link span {
-        display: none;
-    }
-    
-    .nav-link {
-        padding: 8px 12px;
     }
 }
 </style>
 
-<script>
-// Check authentication status
-async function checkAuthStatus() {
-    try {
-        const response = await fetch('/api/user/status');
-        const data = await response.json();
+<nav class="ff-nav">
+    <div class="ff-nav-container">
+        <a href="/" class="ff-nav-logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>Facts & Fakes AI</span>
+        </a>
         
-        if (data.authenticated) {
-            // Show user menu, hide login/signup
-            document.getElementById('navAuth').style.display = 'none';
-            document.getElementById('userMenu').style.display = 'block';
-            
-            // Update user info
-            document.getElementById('userEmail').textContent = data.email || 'User';
-            document.getElementById('userEmailDropdown').textContent = data.email || 'User';
-            document.getElementById('userPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
-            
-            // Update usage
-            const usagePercent = (data.usage_today / data.daily_limit) * 100;
-            document.getElementById('usageProgress').style.width = usagePercent + '%';
-            document.getElementById('usageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
-        }
-    } catch (error) {
-        console.log('Auth check failed:', error);
-    }
-}
+        <div class="ff-nav-links" id="ffNavLinks">
+            <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+            <a href="/unified" class="ff-nav-link"><i class="fas fa-search"></i> Content Check</a>
+            <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+            <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+            <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+            <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+        
+        <div class="ff-nav-auth" id="ffNavAuth">
+            <a href="/login" class="ff-nav-login">Login</a>
+            <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+            <div class="ff-beta-balloon">
+                sign up now to start your free trial
+            </div>
+        </div>
+        
+        <div class="ff-user-menu" id="ffUserMenu">
+            <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                <span id="ffUserEmail">user@example.com</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="ff-user-dropdown" id="ffUserDropdown">
+                <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                    <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                </div>
+                <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                    <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                        <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                </div>
+                <div style="padding: 10px 0;">
+                    <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                    <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                    <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                    <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+        
+        <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
 
-// Toggle mobile menu
-function toggleMobileMenu() {
-    const navLinks = document.getElementById('navLinks');
+<script>
+// Namespace all functions to avoid conflicts
+window.ffNav = {
+    checkAuthStatus: async function() {
+        try {
+            const response = await fetch('/api/user/status');
+            const data = await response.json();
+            
+            if (data.authenticated) {
+                document.getElementById('ffNavAuth').style.display = 'none';
+                document.getElementById('ffUserMenu').style.display = 'block';
+                
+                document.getElementById('ffUserEmail').textContent = data.email || 'User';
+                document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
+                document.getElementById('ffUserPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+                
+                const usagePercent = (data.usage_today / data.daily_limit) * 100;
+                document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
+            }
+        } catch (error) {
+            console.log('Auth check failed:', error);
+        }
+    },
+    
+    init: function() {
+        this.checkAuthStatus();
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.ff-user-menu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                document.getElementById('ffUserDropdown').classList.remove('active');
+            }
+        });
+        
+        // Add active class to current page
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.ff-nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    }
+};
+
+// Global functions for onclick handlers
+function ffToggleMobileMenu() {
+    const navLinks = document.getElementById('ffNavLinks');
     navLinks.classList.toggle('active');
 }
 
-// Toggle user dropdown
-function toggleUserDropdown() {
-    const dropdown = document.getElementById('userDropdown');
+function ffToggleUserDropdown() {
+    const dropdown = document.getElementById('ffUserDropdown');
     dropdown.classList.toggle('active');
 }
 
-// Logout function
-async function logout() {
+async function ffLogout() {
     try {
         await fetch('/api/logout', { method: 'POST' });
         window.location.href = '/';
@@ -448,24 +386,12 @@ async function logout() {
     }
 }
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuthStatus();
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        const userMenu = document.querySelector('.user-menu');
-        if (userMenu && !userMenu.contains(event.target)) {
-            document.getElementById('userDropdown').classList.remove('active');
-        }
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        window.ffNav.init();
     });
-    
-    // Add active class to current page
-    const currentPath = window.location.pathname;
-    document.querySelectorAll('.nav-link').forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
-    });
-});
+} else {
+    window.ffNav.init();
+}
 </script>
