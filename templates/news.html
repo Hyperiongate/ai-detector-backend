@@ -41,6 +41,7 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -55,48 +56,7 @@
             min-height: 100vh;
             color: #333;
             line-height: 1.6;
-        }
-
-        /* Standardized Header */
-        header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-
-        .nav-links a:hover {
-            opacity: 0.8;
+            padding-top: 60px; /* Account for fixed header */
         }
 
         /* Beta Banner */
@@ -1057,10 +1017,10 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
+            body {
+                padding-top: 60px;
             }
-
+            
             .container {
                 padding: 15px;
             }
@@ -1118,6 +1078,8 @@
     </style>
 </head>
 <body>
+    {% include 'header.html' %}
+
     <!-- Beta Banner -->
     <div class="beta-banner">
         <div class="beta-content">
@@ -1126,21 +1088,6 @@
             <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
         </div>
     </div>
-
-    <header>
-        <nav>
-            <a href="/" class="logo">Facts & Fakes AI</a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verify</a></li>
-                <li><a href="/unified">Content Check</a></li>
-                <li><a href="/imageanalysis">Image Analysis</a></li>
-                <li><a href="/missionstatement">Mission</a></li>
-                <li><a href="/pricingplan">Pricing</a></li>
-                <li><a href="/contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
 
     <div class="container">
         <div class="header">
@@ -1165,7 +1112,7 @@
                 <p>Comprehensive credibility analysis using verified AI methodologies</p>
             </div>
 
-            <!-- Enhanced Tools Employed Section -->
+            // Enhanced Tools Employed Section -->
             <div class="tools-employed">
                 <div class="tools-title">
                     <i class="fas fa-cogs"></i>
@@ -1204,6 +1151,12 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Authentication Message Area -->
+            <div id="authMessageArea"></div>
+
+            <!-- Usage Counter -->
+            <div id="usageCounter"></div>
 
             <!-- Enhanced Progress Bars -->
             <div class="progress-section" id="progressSection" style="display: none;">
@@ -1299,6 +1252,14 @@
                 </button>
             </div>
 
+            <!-- Comparison Toggle -->
+            <div class="comparison-toggle">
+                <button id="comparisonToggle" class="comparison-btn">
+                    What's the difference between free and pro? ▼
+                </button>
+                <div id="comparisonDropdown" class="comparison-dropdown"></div>
+            </div>
+
             <div class="results" id="results">
                 <!-- Results will be populated here -->
             </div>
@@ -1330,6 +1291,7 @@
         </div>
     </div>
 
+    <script src="/static/auth-analysis.js"></script>
     <script>
         // Initialize analytics tracking
         document.addEventListener('DOMContentLoaded', function() {
@@ -1536,6 +1498,12 @@
         async function runAnalysis(tier = 'free') {
             currentTier = tier;
             
+            // Check authentication for pro features
+            if (tier === 'pro' && window.authAnalysis && !window.authAnalysis.checkAuth()) {
+                window.authAnalysis.showAuthMessage();
+                return;
+            }
+            
             trackNewsEvent('analysis_started', {
                 tier: tier,
                 input_type: currentInputType
@@ -1648,6 +1616,11 @@
                 setTimeout(() => {
                     progressSection.style.display = 'none';
                     showEnhancedResults(results, tier);
+                    
+                    // Update usage if authenticated
+                    if (window.authAnalysis && typeof window.authAnalysis.updateUsage === 'function') {
+                        window.authAnalysis.updateUsage();
+                    }
                 }, 1000);
 
                 trackNewsEvent('analysis_completed', {
@@ -2729,6 +2702,11 @@ Professional News Verification Platform
                 }
             `;
             document.head.appendChild(style);
+            
+            // Initialize authentication features if available
+            if (window.authAnalysis && typeof window.authAnalysis.init === 'function') {
+                window.authAnalysis.init();
+            }
         });
     </script>
 </body>
