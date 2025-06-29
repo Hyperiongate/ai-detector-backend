@@ -41,6 +41,7 @@
     </script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
     <style>
         * {
             margin: 0;
@@ -55,101 +56,7 @@
             overflow-x: hidden;
         }
 
-        /* Unified Navigation System */
-        .nav-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-            padding: 15px 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 800;
-            font-size: 1.3rem;
-        }
-
-        .nav-logo i {
-            color: #667eea;
-            font-size: 1.5rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: #4a5568;
-            text-decoration: none;
-            padding: 10px 16px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.95rem;
-            position: relative;
-        }
-
-        .nav-links a:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            transform: translateY(-1px);
-        }
-
-        .nav-links a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .nav-cta {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #667eea;
-            cursor: pointer;
-        }
-
-        /* Beta Banner Styles */
+        /* Beta Banner Styles - Adjusted for new header */
         .beta-banner {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
@@ -159,7 +66,7 @@
             position: relative;
             overflow: hidden;
             z-index: 999;
-            margin-top: 85px;
+            margin-top: 70px; /* Reduced from 85px for smaller header */
         }
 
         .beta-banner::before {
@@ -753,27 +660,10 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: rgba(255, 255, 255, 0.98);
-                backdrop-filter: blur(20px);
-                flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            .beta-banner {
+                margin-top: 60px; /* Even smaller for mobile */
             }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
+            
             .beta-content {
                 flex-direction: column;
                 gap: 15px;
@@ -824,33 +714,7 @@
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-bar">
-        <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <i class="fas fa-shield-alt"></i>
-                <span>Facts & Fakes AI</span>
-            </a>
-            
-            <div class="nav-links" id="navLinks">
-                <a href="/" class="active"><i class="fas fa-home"></i> Home</a>
-                <a href="/news"><i class="fas fa-newspaper"></i> News Verification</a>
-                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
-                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
-                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
-                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
-                <a href="/contact"><i class="fas fa-envelope"></i> Contact</a>
-            </div>
-            
-            <a href="/pricingplan" class="nav-cta">
-                <i class="fas fa-rocket"></i> Start Free Trial
-            </a>
-            
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
+    {% include 'header.html' %}
 
     <!-- Beta Banner -->
     <div class="beta-banner">
@@ -1152,16 +1016,21 @@
 
         // Setup comprehensive homepage analytics
         function setupHomepageAnalytics() {
-            // Track navigation clicks
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.addEventListener('click', function() {
-                    const destination = this.getAttribute('href');
-                    trackHomepageEvent('navigation_clicked', {
-                        destination: destination,
-                        link_text: this.textContent.trim()
+            // Wait for header to load, then track navigation clicks
+            setTimeout(() => {
+                const navLinks = document.querySelectorAll('.nav-links a');
+                if (navLinks.length > 0) {
+                    navLinks.forEach(link => {
+                        link.addEventListener('click', function() {
+                            const destination = this.getAttribute('href');
+                            trackHomepageEvent('navigation_clicked', {
+                                destination: destination,
+                                link_text: this.textContent.trim()
+                            });
+                        });
                     });
-                });
-            });
+                }
+            }, 100);
 
             // Track CTA button clicks
             document.querySelectorAll('.cta-btn, .final-cta-btn, .tool-btn').forEach(button => {
@@ -1405,17 +1274,6 @@
             });
         }
 
-        // Mobile menu toggle with analytics
-        function toggleMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const isOpening = !navLinks.classList.contains('active');
-            navLinks.classList.toggle('active');
-            
-            trackHomepageEvent('mobile_menu_toggled', {
-                action: isOpening ? 'open' : 'close'
-            });
-        }
-
         // Toggle expandable sections with analytics
         function toggleSection(header) {
             const section = header.parentElement;
@@ -1468,18 +1326,6 @@
             el.style.transform = 'translateY(20px)';
             el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
             observer.observe(el);
-        });
-
-        // Navbar scroll effect
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.nav-bar');
-            if (window.scrollY > 100) {
-                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.1)';
-            } else {
-                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-            }
         });
 
         // Enhanced hover effects
