@@ -40,7 +40,7 @@
     </script>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
@@ -1112,7 +1112,7 @@
                 <p>Comprehensive credibility analysis using verified AI methodologies</p>
             </div>
 
-            // Enhanced Tools Employed Section -->
+            <!-- Enhanced Tools Employed Section -->
             <div class="tools-employed">
                 <div class="tools-title">
                     <i class="fas fa-cogs"></i>
@@ -1720,60 +1720,6 @@
                         </div>
                     </div>
                     
-                    ${tier === 'pro' ? `
-                    <button class="download-report" onclick="downloadReport()">
-                        <i class="fas fa-download"></i>
-                        Download Detailed Report (PDF)
-                    </button>
-                    ` : ''}
-                </div>
-
-                <!-- ANALYSIS SECTIONS - ORGANIZED IN DROPDOWNS -->
-                <div class="analysis-cards">
-                    ${generateAnalysisDropdowns(results, tier)}
-                </div>
-
-                ${tier === 'free' ? generateUpgradePrompt() : ''}
-            `;
-            
-            resultsDiv.style.display = 'block';
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-            
-            // Initialize dropdowns - all closed by default except main assessment
-            initializeDropdowns();
-            
-            // Create charts if pro version
-            if (tier === 'pro') {
-                setTimeout(() => {
-                    try {
-                        if (results.source_verification?.sources?.length > 0) {
-                            createSourceChart(results.source_verification.sources);
-                        }
-                    } catch (error) {
-                        console.log('Chart creation skipped:', error.message);
-                    }
-                }, 500);
-            }
-        }
-
-        function generateCompactDialogue(score, assessment) {
-            if (score >= 80) {
-                return `This content demonstrates strong credibility indicators with professional standards and reliable sourcing patterns. The assessment reveals minimal red flags and consistent verification across multiple data points.`;
-            } else if (score >= 60) {
-                return `This content shows moderate credibility with some areas requiring caution. While basic standards are met, additional verification is recommended before sharing or relying on this information.`;
-            } else {
-                return `This content exhibits significant credibility concerns with multiple red flags identified. Exercise extreme caution and seek additional verification from trusted sources before considering this content reliable.`;
-            }
-        }
-
-        function generateAnalysisDropdowns(results, tier) {
-            return `
-                <!-- Political Bias Analysis -->
-                <div class="dropdown-section">
-                    <div class="dropdown-header ${tier === 'free' ? 'locked' : ''}" onclick="toggleDropdown(this, '${tier}')">
-                        <span><i class="fas fa-balance-scale"></i> Political Bias & Objectivity Analysis</span>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
                     ${tier === 'pro' ? `
                     <div class="dropdown-content">
                         ${generateBiasAnalysisContent(results)}
@@ -2710,4 +2656,58 @@ Professional News Verification Platform
         });
     </script>
 </body>
-</html>
+</html>'pro' ? `
+                    <button class="download-report" onclick="downloadReport()">
+                        <i class="fas fa-download"></i>
+                        Download Detailed Report (PDF)
+                    </button>
+                    ` : ''}
+                </div>
+
+                <!-- ANALYSIS SECTIONS - ORGANIZED IN DROPDOWNS -->
+                <div class="analysis-cards">
+                    ${generateAnalysisDropdowns(results, tier)}
+                </div>
+
+                ${tier === 'free' ? generateUpgradePrompt() : ''}
+            `;
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            // Initialize dropdowns - all closed by default except main assessment
+            initializeDropdowns();
+            
+            // Create charts if pro version
+            if (tier === 'pro') {
+                setTimeout(() => {
+                    try {
+                        if (results.source_verification?.sources?.length > 0) {
+                            createSourceChart(results.source_verification.sources);
+                        }
+                    } catch (error) {
+                        console.log('Chart creation skipped:', error.message);
+                    }
+                }, 500);
+            }
+        }
+
+        function generateCompactDialogue(score, assessment) {
+            if (score >= 80) {
+                return `This content demonstrates strong credibility indicators with professional standards and reliable sourcing patterns. The assessment reveals minimal red flags and consistent verification across multiple data points.`;
+            } else if (score >= 60) {
+                return `This content shows moderate credibility with some areas requiring caution. While basic standards are met, additional verification is recommended before sharing or relying on this information.`;
+            } else {
+                return `This content exhibits significant credibility concerns with multiple red flags identified. Exercise extreme caution and seek additional verification from trusted sources before considering this content reliable.`;
+            }
+        }
+
+        function generateAnalysisDropdowns(results, tier) {
+            return `
+                <!-- Political Bias Analysis -->
+                <div class="dropdown-section">
+                    <div class="dropdown-header ${tier === 'free' ? 'locked' : ''}" onclick="toggleDropdown(this, '${tier}')">
+                        <span><i class="fas fa-balance-scale"></i> Political Bias & Objectivity Analysis</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    ${tier ===
