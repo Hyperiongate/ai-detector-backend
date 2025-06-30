@@ -53,93 +53,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
-        }
-
-        /* Unified Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-links a.active,
-        .nav-links a:hover {
-            color: #667eea;
-        }
-
-        .nav-links a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 1px;
-        }
-
-        .cta-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #333;
-            cursor: pointer;
+            padding-top: 60px; /* Account for fixed header */
         }
 
         /* Beta Banner Styles */
@@ -152,7 +66,6 @@
             position: relative;
             overflow: hidden;
             z-index: 999;
-            margin-top: 85px;
         }
 
         .beta-banner::before {
@@ -1061,12 +974,8 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-toggle {
-                display: block;
+            body {
+                padding-top: 60px; /* Maintain header spacing on mobile */
             }
 
             .beta-content {
@@ -1138,30 +1047,21 @@
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Navbar enhancement for scroll effect */
+        .ff-nav {
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="/" class="logo">
-                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
-            </a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verification</a></li>
-                <li><a href="/unified">Content Authenticity</a></li>
-                <li><a href="/imageanalysis" class="active">AI Image Analysis</a></li>
-                <li><a href="/missionstatement">Our Mission</a></li>
-                <li><a href="/pricingplan">Pricing</a></li>
-                <li><a href="/contact">Contact</a></li>
-                <li><a href="#" class="cta-button">Get Started</a></li>
-            </ul>
-            <button class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
+    <!-- Include Header -->
+    {% include 'header.html' %}
 
     <!-- Beta Banner -->
     <div class="beta-banner">
@@ -1618,6 +1518,130 @@
             setupAnalyticsTracking();
         });
 
+        // Navbar scroll effect enhancement
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.ff-nav');
+            if (navbar) {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+
+        // Beta button functionality
+        function joinBeta() {
+            trackImageAnalysisEvent('beta_button_clicked');
+            
+            // Show beta signup modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 20px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    position: relative;
+                    animation: slideIn 0.3s ease;
+                ">
+                    <button onclick="this.closest('div').parentElement.remove();" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 20px;
+                        background: none;
+                        border: none;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        color: #999;
+                    ">&times;</button>
+                    
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                    <h2 style="color: #333; margin-bottom: 15px;">Join the Beta!</h2>
+                    <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
+                        Get free access to all our professional tools during the beta period. 
+                        We're constantly improving and your feedback helps us build better tools!
+                    </p>
+                    
+                    <form id="betaSignupForm" style="margin-bottom: 20px;">
+                        <input type="email" placeholder="Enter your email" required style="
+                            width: 100%;
+                            padding: 15px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            margin-bottom: 15px;
+                        ">
+                        <button type="submit" style="
+                            background: linear-gradient(135deg, #f59e0b, #d97706);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            width: 100%;
+                            font-size: 1rem;
+                        ">
+                            <i class="fas fa-rocket"></i> Join Beta Now
+                        </button>
+                    </form>
+                    
+                    <p style="font-size: 0.85rem; color: #999;">
+                        No spam, ever. Unsubscribe anytime.
+                    </p>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle beta signup form
+            modal.querySelector('#betaSignupForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input').value;
+                
+                trackImageAnalysisEvent('beta_signup_completed', { email_provided: true });
+                
+                // Show success message
+                this.innerHTML = `
+                    <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
+                        <i class="fas fa-check-circle"></i> Welcome to the beta!
+                    </div>
+                    <p style="color: #666; margin-top: 10px;">
+                        You now have full access to all features. Start exploring!
+                    </p>
+                `;
+                
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    modal.remove();
+                }, 2000);
+            });
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
         // Setup comprehensive analytics tracking
         function setupAnalyticsTracking() {
             // Track tier selection
@@ -1690,3 +1714,313 @@
                         });
                     }
                 }
+            });
+        }
+
+        // Tier selection functionality
+        document.querySelectorAll('.tier-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.tier-button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTier = this.getAttribute('data-tier');
+            });
+        });
+
+        // Upload method selection
+        document.querySelectorAll('.upload-method').forEach(method => {
+            method.addEventListener('click', function() {
+                document.querySelectorAll('.upload-method').forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+                
+                const uploadMethod = this.getAttribute('data-method');
+                
+                // Hide all upload sections
+                document.querySelector('.image-upload-area').style.display = uploadMethod === 'upload' ? 'block' : 'none';
+                document.getElementById('urlInputSection').classList.toggle('active', uploadMethod === 'url');
+                document.getElementById('cameraSection').classList.toggle('active', uploadMethod === 'camera');
+                
+                if (uploadMethod === 'camera') {
+                    startCamera();
+                } else {
+                    stopCamera();
+                }
+            });
+        });
+
+        // File upload functionality
+        const imageInput = document.getElementById('imageInput');
+        const uploadArea = document.querySelector('.image-upload-area');
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    displayImage(file);
+                    trackImageAnalysisEvent('image_uploaded', {
+                        file_type: file.type,
+                        file_size: file.size
+                    });
+                }
+            }
+        }
+        
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewSection = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+                
+                previewImage.src = e.target.result;
+                previewSection.classList.add('active');
+                
+                // Update image info
+                document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                
+                // Enable analyze button
+                document.getElementById('analyzeBtn').disabled = false;
+                
+                currentImage = file;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+            else return Math.round(bytes / 1048576 * 10) / 10 + ' MB';
+        }
+        
+        // URL loading
+        function loadFromURL() {
+            const urlInput = document.querySelector('.url-input');
+            const url = urlInput.value.trim();
+            
+            if (url) {
+                const previewSection = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+                
+                previewImage.src = url;
+                previewSection.classList.add('active');
+                
+                document.getElementById('analyzeBtn').disabled = false;
+                
+                trackImageAnalysisEvent('image_url_loaded', {
+                    url_domain: new URL(url).hostname
+                });
+            }
+        }
+        
+        // Camera functionality
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    cameraStream = stream;
+                    const video = document.getElementById('cameraVideo');
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error('Camera access denied:', err);
+                    trackImageAnalysisEvent('camera_access_denied');
+                });
+        }
+        
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+        
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+                displayImage(blob);
+                stopCamera();
+                document.getElementById('cameraSection').classList.remove('active');
+                trackImageAnalysisEvent('camera_photo_captured');
+            }, 'image/jpeg');
+        }
+        
+        // Sample image loading
+        function loadSample(sampleType) {
+            const previewSection = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            // In a real implementation, these would be actual sample images
+            const sampleImages = {
+                'ai-portrait': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23667eea"/><text x="200" y="150" font-family="Arial" font-size="24" fill="white" text-anchor="middle" dy=".3em">AI Portrait Sample</text></svg>',
+                'deepfake': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23f44336"/><text x="200" y="150" font-family="Arial" font-size="24" fill="white" text-anchor="middle" dy=".3em">Deepfake Sample</text></svg>',
+                'real-photo': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%234CAF50"/><text x="200" y="150" font-family="Arial" font-size="24" fill="white" text-anchor="middle" dy=".3em">Real Photo Sample</text></svg>',
+                'manipulated': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23FF9800"/><text x="200" y="150" font-family="Arial" font-size="24" fill="white" text-anchor="middle" dy=".3em">Manipulated Sample</text></svg>'
+            };
+            
+            previewImage.src = sampleImages[sampleType];
+            previewSection.classList.add('active');
+            
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+        
+        // Analysis functionality
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            if (!analysisInProgress) {
+                startAnalysis();
+            }
+        });
+        
+        function startAnalysis() {
+            analysisInProgress = true;
+            
+            trackImageAnalysisEvent('analysis_started', {
+                tier: currentTier,
+                has_image: !!currentImage
+            });
+            
+            // Hide results, show progress
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('progressSection').classList.add('active');
+            
+            // Simulate analysis progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 2;
+                updateProgress(progress);
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    showResults();
+                }
+            }, 100);
+        }
+        
+        function updateProgress(percent) {
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+            
+            // Update step icons
+            const steps = [20, 40, 60, 80, 100];
+            steps.forEach((threshold, index) => {
+                const stepIcon = document.getElementById(`step${index + 1}`);
+                const stepElement = stepIcon.parentElement;
+                
+                if (percent >= threshold) {
+                    stepIcon.classList.add('completed');
+                    stepIcon.innerHTML = '<i class="fas fa-check"></i>';
+                    stepElement.classList.remove('active');
+                } else if (percent >= threshold - 20) {
+                    stepIcon.classList.add('active');
+                    stepElement.classList.add('active');
+                }
+            });
+        }
+        
+        function showResults() {
+            analysisInProgress = false;
+            
+            // Hide progress, show results
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('resultsSection').classList.add('active');
+            
+            // Generate random results for demo
+            const authenticityScore = Math.floor(Math.random() * 40) + 60;
+            const scoreElement = document.getElementById('authenticityScore');
+            scoreElement.textContent = authenticityScore + '%';
+            
+            // Update score class based on value
+            scoreElement.className = 'authenticity-score';
+            if (authenticityScore >= 80) {
+                scoreElement.classList.add('human');
+            } else if (authenticityScore >= 50) {
+                scoreElement.classList.add('uncertain');
+            } else {
+                scoreElement.classList.add('ai');
+            }
+            
+            trackImageAnalysisEvent('analysis_completed', {
+                authenticity_score: authenticityScore,
+                tier: currentTier,
+                duration_seconds: 5
+            });
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.analysis-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const analysisType = this.getAttribute('data-analysis');
+                
+                // Update active tab
+                document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.analysis-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${analysisType}-content`).classList.add('active');
+            });
+        });
+        
+        // Report option selection
+        document.querySelectorAll('.report-option').forEach(option => {
+            option.addEventListener('click', function() {
+                this.classList.toggle('selected');
+            });
+        });
+        
+        // Generate reports
+        function generateReports() {
+            const selectedReports = [];
+            document.querySelectorAll('.report-option.selected').forEach(option => {
+                selectedReports.push(option.getAttribute('data-report'));
+            });
+            
+            if (selectedReports.length > 0) {
+                trackImageAnalysisEvent('reports_generated', {
+                    report_types: selectedReports,
+                    report_count: selectedReports.length
+                });
+                
+                alert('Generating ' + selectedReports.length + ' report(s)...\n\nIn the full version, this would download PDF reports.');
+            }
+        }
+
+        // Add fadeIn and slideIn animations for modal
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
