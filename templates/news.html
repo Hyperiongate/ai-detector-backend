@@ -1982,6 +1982,16 @@
 
     <script src="/static/auth-analysis.js"></script>
     <script>
+        // Check if auth script loaded
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, checking dependencies...');
+            if (typeof showNotification === 'undefined') {
+                // Define showNotification if auth-analysis.js didn't load
+                window.showNotification = function(message, type) {
+                    alert(message);
+                };
+            }
+        });
         // Enhanced Analysis System - Best of both implementations
         class EnhancedNewsAnalyzer {
             constructor() {
@@ -1994,6 +2004,12 @@
             initializeEventListeners() {
                 // Confidence tooltips
                 this.initializeTooltips();
+            }
+
+            reset() {
+                this.evidenceItems = [];
+                this.currentFilter = 'all';
+                this.analysisProgress = 0;
             }
 
             initializeTooltips() {
@@ -2066,6 +2082,7 @@
             }
 
 
+                                
                 let biasLabel = 'Center';
                 let biasScore = 0;
                 
@@ -3209,6 +3226,7 @@
         }
 
         async function runAnalysis(tier) {
+            console.log('Analysis started with tier:', tier);
             currentTier = tier;
             const content = currentInputType === 'text' ? 
                 document.getElementById('news-text').value : 
@@ -3251,6 +3269,7 @@
                 let extractedData = null;
                 
                 if (currentInputType === 'url') {
+                    console.log('Preprocessing URL:', content);
                     const preprocessResponse = await fetch('/api/preprocess-content', {
                         method: 'POST',
                         headers: {
@@ -3263,11 +3282,13 @@
                         extractedData = await preprocessResponse.json();
                         if (extractedData.success) {
                             processedContent = extractedData.clean_text;
+                            console.log('Content extracted successfully');
                         }
                     }
                 }
 
                 // Step 2: Call real news analysis API
+                console.log('Calling news analysis API...');
                 const analysisResponse = await fetch('/api/analyze-news', {
                     method: 'POST',
                     headers: {
@@ -3280,10 +3301,12 @@
                 });
 
                 if (!analysisResponse.ok) {
+                    console.error('Analysis API returned:', analysisResponse.status);
                     throw new Error('Analysis failed');
                 }
 
                 const realResults = await analysisResponse.json();
+                console.log('Analysis results received:', realResults);
                 
                 // Step 3: Parse real AI analysis results
                 const results = parseRealAnalysisResults(realResults, extractedData, tier);
@@ -3314,6 +3337,7 @@
                 clearInterval(progressInterval);
                 
                 // Fallback to enhanced demo if API fails
+                console.log('Falling back to demo mode');
                 const results = await analyzer.runAnalysis(content, tier);
                 
                 setTimeout(() => {
