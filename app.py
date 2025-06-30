@@ -128,9 +128,7 @@ if OPENAI_AVAILABLE and Config.OPENAI_API_KEY:
 connection_pool = None
 if Config.DATABASE_URL:
     try:
-        connection_pool = ConnectionPool(DATABASE_URL, min_size=1, max_size=20)
-            Config.DATABASE_URL
-        )
+        connection_pool = ConnectionPool(Config.DATABASE_URL, min_size=1, max_size=20)
         logger.info("Database connection pool initialized")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -479,38 +477,30 @@ def get_db_connection():
     """Get database connection from pool"""
     if connection_pool:
         try:
-            return connection_pool.getconn()
+            return connection_pool.connection()
         except Exception as e:
             logger.error(f"Database connection error: {e}")
             return None
     return None
 
-def return_db_connection(conn):
-    """Return connection to pool"""
-    if connection_pool and conn:
-        connection_pool.putconn(conn)
-
 def execute_db_query(query, params=None, fetch=False):
     """Execute database query with connection pooling"""
-    conn = get_db_connection()
-    if not conn:
+    if not connection_pool:
         return None
     
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(query, params)
-            if fetch:
-                result = cur.fetchall()
-            else:
-                result = cur.rowcount
-            conn.commit()
-            return result
+        with connection_pool.connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cur:
+                cur.execute(query, params)
+                if fetch:
+                    result = cur.fetchall()
+                else:
+                    result = cur.rowcount
+                conn.commit()
+                return result
     except Exception as e:
         logger.error(f"Database query error: {e}")
-        conn.rollback()
         return None
-    finally:
-        return_db_connection(conn)
 
 # User management functions
 def create_user_tables():
