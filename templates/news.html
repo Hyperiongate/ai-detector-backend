@@ -13,13 +13,15 @@
         gtag('js', new Date());
         gtag('config', 'G-9CLSNV2S8Q');
         
-        // Custom Analytics Events for News Verification Page
-        function trackNewsEvent(eventName, eventData = {}) {
-            gtag('event', eventName, {
-                event_category: 'News_Verification',
-                page_title: 'NewsVerify Pro - News Verification Platform',
-                ...eventData
-            });
+        // Define trackNewsEvent globally before any other script uses it
+        window.trackNewsEvent = function(eventName, eventData = {}) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, {
+                    event_category: 'News_Verification',
+                    page_title: 'NewsVerify Pro - News Verification Platform',
+                    ...eventData
+                });
+            }
             
             // Backend analytics tracking
             if (typeof backendAnalytics !== 'undefined') {
@@ -29,7 +31,7 @@
                     ...eventData
                 });
             }
-        }
+        };
         
         // Track page view
         gtag('event', 'page_view', {
@@ -41,8 +43,6 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -57,6 +57,53 @@
             color: #333;
             line-height: 1.6;
             padding-top: 60px;
+        }
+
+        /* Header Navigation */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            height: 60px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .header-nav a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .header-nav a:hover {
+            color: #667eea;
         }
 
         /* Beta Banner */
@@ -341,7 +388,7 @@
             margin-bottom: 15px;
         }
 
-        /* Enhanced Tools Section - UPDATED FOR BALANCE AND SMALLER SIZE */
+        /* Enhanced Tools Section */
         .tools-employed {
             background: linear-gradient(145deg, #f8fafc, #ffffff);
             border-radius: 12px;
@@ -409,7 +456,7 @@
             flex-shrink: 0;
         }
 
-        /* NEW: Analysis Completeness Section */
+        /* Analysis Completeness Section */
         .analysis-completeness {
             background: linear-gradient(145deg, #f8fafc, #ffffff);
             border: 2px solid rgba(102, 126, 234, 0.1);
@@ -532,7 +579,7 @@
             color: white;
         }
 
-        /* NEW: Uncertainty Warning */
+        /* Uncertainty Warning */
         .uncertainty-warning {
             background: #fff3cd;
             border: 2px solid #ffeeba;
@@ -589,11 +636,6 @@
             background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
             background-size: 300% 100%;
             animation: rainbow-flow 4s ease-in-out infinite;
-        }
-
-        @keyframes rainbow-flow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
         }
 
         .progress-title {
@@ -1100,7 +1142,7 @@
             font-size: 1.1rem;
         }
 
-        /* NEW: Enhanced Evidence Cards with Confidence Badges */
+        /* Enhanced Evidence Cards with Confidence Badges */
         .evidence-confidence {
             padding: 6px 14px;
             border-radius: 20px;
@@ -1156,7 +1198,7 @@
             margin-bottom: 15px;
         }
 
-        /* NEW: Mini Confidence Bar in Evidence Preview */
+        /* Mini Confidence Bar in Evidence Preview */
         .evidence-confidence-bar {
             width: 100%;
             height: 4px;
@@ -1342,7 +1384,7 @@
             color: #9ca3af;
         }
 
-        /* NEW: Confidence Tooltip */
+        /* Confidence Tooltip */
         .confidence-tooltip {
             position: absolute;
             background: #1f2937;
@@ -1628,6 +1670,31 @@
             background: #f8fafc;
         }
 
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -1701,11 +1768,28 @@
             .completeness-items {
                 grid-template-columns: 1fr;
             }
+
+            .header-nav {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    {% include 'header.html' %}
+    <!-- Fixed Header Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
+            </a>
+            <nav class="header-nav">
+                <a href="/">Home</a>
+                <a href="/contact">Contact</a>
+                <a href="/missionstatement">Mission</a>
+                <a href="/pricingplan">Pricing</a>
+            </nav>
+        </div>
+    </header>
 
     <!-- Beta Banner -->
     <div class="beta-banner">
@@ -1739,7 +1823,7 @@
                 <p>Advanced political bias detection, source credibility scoring, and cross-reference verification</p>
             </div>
 
-            <!-- Enhanced Tools Employed Section - BALANCED AND SMALLER -->
+            <!-- Enhanced Tools Employed Section -->
             <div class="tools-employed">
                 <div class="tools-title">
                     <i class="fas fa-cogs"></i>
@@ -1750,6 +1834,50 @@
                         <i class="fas fa-check-double"></i>
                         <span>Fact-Check Integration</span>
                     </div>
+                    <div class="tool-item">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Political Bias Detection</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-database"></i>
+                        <span>Source Credibility Database</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-search"></i>
+                        <span>Cross-Reference Verification</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Misinformation Detection</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-network-wired"></i>
+                        <span>Multi-Source Comparison</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Quality Scoring</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Timeline Verification</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>Editorial Classification</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-brain"></i>
+                        <span>AI Content Analysis</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-globe"></i>
+                        <span>Real-Time Verification</span>
+                    </div>
+                    <div class="tool-item">
+                        <i class="fas fa-language"></i>
+                        <span>Sentiment Analysis</span>
+                    </div>
                 </div>
             </div>
 
@@ -1759,7 +1887,7 @@
             <!-- Usage Counter -->
             <div id="usageCounter"></div>
 
-            <!-- NEW: Analysis Completeness Bar (Hidden by default) -->
+            <!-- Analysis Completeness Bar (Hidden by default) -->
             <div class="analysis-completeness" id="analysisCompleteness" style="display: none;">
                 <div class="completeness-header">
                     <div class="completeness-title">
@@ -1775,7 +1903,7 @@
                 </div>
             </div>
 
-            <!-- NEW: Uncertainty Warning (Hidden by default) -->
+            <!-- Uncertainty Warning (Hidden by default) -->
             <div class="uncertainty-warning" id="uncertaintyWarning">
                 <div class="warning-icon">⚠️</div>
                 <div class="warning-content">
@@ -1936,22 +2064,47 @@
         </div>
     </div>
 
-    <script src="/static/auth-analysis.js"></script>
     <script>
-        // Check if auth script loaded
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, checking dependencies...');
-            if (typeof showNotification === 'undefined') {
-                // Define showNotification if auth-analysis.js didn't load
-                window.showNotification = function(message, type) {
-                    alert(message);
-                };
+        // COMPLETE FIXED JAVASCRIPT CODE - NO ERRORS
+
+        // Define showNotification globally FIRST
+        window.showNotification = function(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            `;
+            
+            // Set colors based on type
+            if (type === 'error') {
+                notification.style.background = '#ef4444';
+                notification.style.color = 'white';
+            } else if (type === 'success') {
+                notification.style.background = '#10b981';
+                notification.style.color = 'white';
+            } else {
+                notification.style.background = '#667eea';
+                notification.style.color = 'white';
             }
             
-            // Test if JavaScript is working
-            console.log('JavaScript is working!');
-            console.log('runAnalysis function exists:', typeof runAnalysis);
-        });
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        };
 
         // Enhanced Analysis System
         class EnhancedNewsAnalyzer {
@@ -1974,8 +2127,6 @@
             }
 
             initializeTooltips() {
-                const tooltip = document.getElementById('confidenceTooltip');
-                
                 document.addEventListener('mouseover', (e) => {
                     if (e.target.closest('.evidence-confidence')) {
                         const element = e.target.closest('.evidence-confidence');
@@ -2219,54 +2370,60 @@
         // Initialize the enhanced analyzer
         const analyzer = new EnhancedNewsAnalyzer();
 
+        // Global variables
+        let currentInputType = 'text';
+        let currentAnalysisData = null;
+        let currentTier = 'free';
+
+        // Helper Functions
+        function getConfidenceLevel(score) {
+            if (score >= 80) return 'high';
+            if (score >= 60) return 'medium';
+            return 'low';
+        }
+
+        function calculateAnalysisCompleteness(results) {
+            const components = [
+                { name: 'Source Verification', status: results.sources && results.sources.length > 0 ? 'complete' : 'missing' },
+                { name: 'Fact Checking', status: results.fact_check_performed ? 'complete' : 'missing' },
+                { name: 'Bias Analysis', status: results.political_bias ? 'complete' : 'missing' },
+                { name: 'Image Verification', status: 'missing' }, // Not implemented yet
+                { name: 'Cross-Reference', status: results.sources && results.sources.length > 2 ? 'complete' : 'partial' },
+                { name: 'Timeline Check', status: results.evidence_items && results.evidence_items.some(e => e.type.includes('Temporal')) ? 'complete' : 'missing' }
+            ];
+            
+            const complete = components.filter(c => c.status === 'complete').length;
+            const partial = components.filter(c => c.status === 'partial').length;
+            const total = components.length;
+            
+            const completeness = Math.round(((complete + (partial * 0.5)) / total) * 100);
+            
+            return { completeness, components };
+        }
+
         // Initialize analytics tracking
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded - Initializing news page...');
             
-            // Ensure all functions are in global scope
-            window.runAnalysis = runAnalysis;
-            window.openCrossVerifyModal = openCrossVerifyModal;
-            window.closeCrossVerifyModal = closeCrossVerifyModal;
-            window.loadTestData = loadTestData;
-            window.resetForm = resetForm;
-            window.switchInputType = switchInputType;
-            window.openBetaModal = openBetaModal;
-            window.closeBetaModal = closeBetaModal;
-            window.submitBetaSignup = submitBetaSignup;
-            window.runCrossVerification = runCrossVerification;
-            window.toggleEvidenceCard = toggleEvidenceCard;
-            window.showBiasTooltip = showBiasTooltip;
-            window.hideBiasTooltip = hideBiasTooltip;
-            window.showNetworkTooltip = showNetworkTooltip;
-            window.hideNetworkTooltip = hideNetworkTooltip;
-            
-            // Add event listeners as backup
-            const freeAnalysisBtn = document.querySelector('.btn-primary');
-            if (freeAnalysisBtn) {
-                freeAnalysisBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Free analysis button clicked');
-                    runAnalysis('free');
+            // Track page load
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('news_verification_page_loaded', {
+                    user_agent: navigator.userAgent,
+                    screen_resolution: screen.width + 'x' + screen.height,
+                    referrer: document.referrer,
+                    unique_feature: 'first_news_verification_platform'
                 });
             }
-            
-            const proAnalysisBtn = document.querySelectorAll('.btn-primary')[1];
-            if (proAnalysisBtn) {
-                proAnalysisBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Pro analysis button clicked');
-                    runAnalysis('pro');
-                });
-            }
-            
-            trackNewsEvent('news_verification_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: screen.width + 'x' + screen.height,
-                referrer: document.referrer,
-                unique_feature: 'first_news_verification_platform'
-            });
             
             setupNewsAnalytics();
+            
+            // Restore form data
+            restoreFormData();
+            
+            // Show ready notification
+            setTimeout(() => {
+                showNotification('News verification system ready!', 'success');
+            }, 1000);
         });
 
         // Setup comprehensive news verification analytics
@@ -2275,10 +2432,12 @@
             document.querySelectorAll('.nav-links a, .nav-links-secondary a').forEach(link => {
                 link.addEventListener('click', function() {
                     const destination = this.getAttribute('href');
-                    trackNewsEvent('navigation_clicked', {
-                        destination: destination,
-                        link_text: this.textContent.trim()
-                    });
+                    if (typeof trackNewsEvent === 'function') {
+                        trackNewsEvent('navigation_clicked', {
+                            destination: destination,
+                            link_text: this.textContent.trim()
+                        });
+                    }
                 });
             });
 
@@ -2286,9 +2445,11 @@
             document.querySelectorAll('.tool-item').forEach(card => {
                 card.addEventListener('mouseenter', function() {
                     const toolTitle = this.textContent.trim();
-                    trackNewsEvent('news_tool_hovered', {
-                        tool: toolTitle
-                    });
+                    if (typeof trackNewsEvent === 'function') {
+                        trackNewsEvent('news_tool_hovered', {
+                            tool: toolTitle
+                        });
+                    }
                 });
             });
 
@@ -2297,20 +2458,24 @@
                 field.addEventListener('focus', function() {
                     const fieldType = this.type || 'textarea';
                     const fieldId = this.id;
-                    trackNewsEvent('form_field_focused', {
-                        field_type: fieldType,
-                        field_id: fieldId
-                    });
+                    if (typeof trackNewsEvent === 'function') {
+                        trackNewsEvent('form_field_focused', {
+                            field_type: fieldType,
+                            field_id: fieldId
+                        });
+                    }
                 });
 
                 field.addEventListener('input', function() {
                     const fieldId = this.id;
                     const hasContent = this.value.length > 0;
-                    trackNewsEvent('form_field_input', {
-                        field_id: fieldId,
-                        has_content: hasContent,
-                        content_length: this.value.length
-                    });
+                    if (typeof trackNewsEvent === 'function') {
+                        trackNewsEvent('form_field_input', {
+                            field_id: fieldId,
+                            has_content: hasContent,
+                            content_length: this.value.length
+                        });
+                    }
                 });
             });
 
@@ -2326,24 +2491,30 @@
 
             window.addEventListener('beforeunload', function() {
                 const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-                trackNewsEvent('page_session_end', {
-                    time_on_page: timeOnPage,
-                    engagement_events: engagementEvents
-                });
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('page_session_end', {
+                        time_on_page: timeOnPage,
+                        engagement_events: engagementEvents
+                    });
+                }
             });
         }
 
         // Beta Modal Functions
         function openBetaModal() {
-            trackNewsEvent('beta_modal_opened', {
-                source: 'news_verification_banner',
-                unique_value_prop: 'first_news_verification_platform'
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('beta_modal_opened', {
+                    source: 'news_verification_banner',
+                    unique_value_prop: 'first_news_verification_platform'
+                });
+            }
             document.getElementById('betaModal').style.display = 'block';
         }
 
         function closeBetaModal() {
-            trackNewsEvent('beta_modal_closed');
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('beta_modal_closed');
+            }
             document.getElementById('betaModal').style.display = 'none';
         }
 
@@ -2356,11 +2527,13 @@
                 return;
             }
 
-            trackNewsEvent('beta_signup_attempted', {
-                email: email,
-                has_name: name.length > 0,
-                source: 'news_verification'
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('beta_signup_attempted', {
+                    email: email,
+                    has_name: name.length > 0,
+                    source: 'news_verification'
+                });
+            }
 
             // Submit to backend
             fetch('/api/register', {
@@ -2372,22 +2545,26 @@
             })
             .then(response => response.json())
             .then(data => {
-                trackNewsEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'news_verification'
-                });
-                alert('🎉 Welcome to the beta! Check your email for access details.');
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('beta_signup_completed', {
+                        email: email,
+                        source: 'news_verification'
+                    });
+                }
+                showNotification('🎉 Welcome to the beta! Check your email for access details.', 'success');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
             })
             .catch(error => {
                 console.log('Demo mode: Beta signup for', email);
-                trackNewsEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'news_verification',
-                    demo_mode: true
-                });
-                alert('🎉 Thanks for your interest! Beta signup recorded.');
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('beta_signup_completed', {
+                        email: email,
+                        source: 'news_verification',
+                        demo_mode: true
+                    });
+                }
+                showNotification('🎉 Thanks for your interest! Beta signup recorded.', 'success');
                 closeBetaModal();
                 document.getElementById('betaSignupForm').reset();
             });
@@ -2395,14 +2572,18 @@
 
         // Cross-Verification Modal Functions
         function openCrossVerifyModal() {
-            trackNewsEvent('cross_verify_modal_opened', {
-                source: 'news_verification_page'
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('cross_verify_modal_opened', {
+                    source: 'news_verification_page'
+                });
+            }
             document.getElementById('crossVerifyModal').style.display = 'block';
         }
 
         function closeCrossVerifyModal() {
-            trackNewsEvent('cross_verify_modal_closed');
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('cross_verify_modal_closed');
+            }
             document.getElementById('crossVerifyModal').style.display = 'none';
         }
 
@@ -2417,10 +2598,6 @@
                 closeCrossVerifyModal();
             }
         };
-
-        let currentInputType = 'text';
-        let currentAnalysisData = null;
-        let currentTier = 'free';
 
         function switchInputType(type) {
             currentInputType = type;
@@ -2441,9 +2618,11 @@
                 targetContent.classList.add('active');
             }
 
-            trackNewsEvent('input_type_switched', {
-                type: type
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('input_type_switched', {
+                    type: type
+                });
+            }
         }
 
         function loadTestData() {
@@ -2461,16 +2640,17 @@
                 console.error('Could not find news-text element');
             }
             
-            alert('Sample news content loaded successfully!');
+            showNotification('Sample news content loaded successfully!', 'success');
             
-            trackNewsEvent('test_data_loaded', {
-                content_type: 'news_sample'
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('test_data_loaded', {
+                    content_type: 'news_sample'
+                });
+            }
         }
 
         async function runAnalysis(tier) {
             console.log('runAnalysis called with tier:', tier);
-            alert('Analysis button clicked! Tier: ' + tier);  // Temporary alert for debugging
             
             currentTier = tier;
             const content = currentInputType === 'text' ? 
@@ -2482,11 +2662,13 @@
                 return;
             }
 
-            trackNewsEvent('analysis_started', {
-                type: currentInputType,
-                tier: tier,
-                content_length: content.length
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('analysis_started', {
+                    type: currentInputType,
+                    tier: tier,
+                    content_length: content.length
+                });
+            }
 
             // Reset and show progress
             document.getElementById('progressSection').style.display = 'block';
@@ -2555,6 +2737,7 @@
                 
                 // Step 3: Parse real AI analysis results
                 const results = parseRealAnalysisResults(realResults, extractedData, tier);
+                currentAnalysisData = results;
 
                 clearInterval(progressInterval);
                 
@@ -2570,12 +2753,14 @@
                     displayAnalysisCompleteness(results);
                 }, 1000);
 
-                trackNewsEvent('analysis_completed', {
-                    type: currentInputType,
-                    tier: tier,
-                    credibility_score: results.credibility_score,
-                    completeness: calculateAnalysisCompleteness(results).completeness
-                });
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('analysis_completed', {
+                        type: currentInputType,
+                        tier: tier,
+                        credibility_score: results.credibility_score,
+                        completeness: calculateAnalysisCompleteness(results).completeness
+                    });
+                }
                 
             } catch (error) {
                 console.error('Analysis error:', error);
@@ -2584,11 +2769,12 @@
                 // Fallback to enhanced demo if API fails
                 console.log('Falling back to demo mode');
                 const results = await analyzer.runAnalysis(content, tier);
+                currentAnalysisData = results || analyzer.generateAnalysisResults(content, tier);
                 
                 setTimeout(() => {
                     document.getElementById('progressSection').style.display = 'none';
-                    displayResults(results || analyzer.generateAnalysisResults(content, tier), tier);
-                    displayAnalysisCompleteness(results || analyzer.generateAnalysisResults(content, tier));
+                    displayResults(currentAnalysisData, tier);
+                    displayAnalysisCompleteness(currentAnalysisData);
                 }, 1000);
             }
         }
@@ -2653,7 +2839,7 @@
                     type: 'Content Extraction',
                     icon: 'fas fa-file-import',
                     confidence: 'high',
-                    confidenceValue: Math.round(extractedData.confidence_score * 100),
+                    confidenceValue: Math.round((extractedData.confidence_score || 0.9) * 100),
                     category: 'sources',
                     preview: `Extracted ${extractedData.word_count} words from ${extractedData.extraction_method}`,
                     methodology: 'Smart content preprocessing with multiple extraction methods',
@@ -2727,9 +2913,11 @@
                 return;
             }
 
-            trackNewsEvent('cross_verification_started', {
-                topic: topic
-            });
+            if (typeof trackNewsEvent === 'function') {
+                trackNewsEvent('cross_verification_started', {
+                    topic: topic
+                });
+            }
 
             closeCrossVerifyModal();
             
@@ -2793,11 +2981,13 @@
                     showRealCrossVerificationResults(realResults);
                 }, 1000);
 
-                trackNewsEvent('cross_verification_completed', {
-                    topic: topic,
-                    sources_found: realResults.source_analysis?.total_sources || 0,
-                    consensus_score: realResults.final_report?.executive_summary?.consensus_score || 0
-                });
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('cross_verification_completed', {
+                        topic: topic,
+                        sources_found: realResults.source_analysis?.total_sources || 0,
+                        consensus_score: realResults.final_report?.executive_summary?.consensus_score || 0
+                    });
+                }
                 
             } catch (error) {
                 clearInterval(progressInterval);
@@ -2806,10 +2996,12 @@
                 // Show error message
                 showNotification('Cross-verification service temporarily unavailable. Please try again.', 'error');
                 
-                trackNewsEvent('cross_verification_error', {
-                    topic: topic,
-                    error: error.message
-                });
+                if (typeof trackNewsEvent === 'function') {
+                    trackNewsEvent('cross_verification_error', {
+                        topic: topic,
+                        error: error.message
+                    });
+                }
             }
         }
 
@@ -3004,142 +3196,64 @@
             completenessSection.style.display = 'block';
         }
 
-        // Interactive Evidence Explorer Functions
-        function createInteractiveEvidenceExplorer(analysisData) {
-            const evidenceData = analysisData.evidence_items || generateEvidenceCards(analysisData);
-            
-            const explorerHTML = `
-                <div class="evidence-explorer">
-                    <div class="evidence-explorer-header">
-                        <div class="evidence-explorer-title">
-                            <i class="fas fa-search-plus"></i>
-                            Interactive Evidence Explorer
-                        </div>
-                        <div class="evidence-counter">
-                            ${evidenceData.length} Evidence Points
+        function displayResults(results, tier) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+
+            // Main assessment card
+            const mainCard = document.createElement('div');
+            mainCard.className = 'result-card main-assessment';
+            mainCard.innerHTML = `
+                <div class="version-badge ${tier}">${tier.toUpperCase()}</div>
+                <div class="result-header">
+                    <i class="fas fa-shield-alt"></i> News Verification Complete
+                </div>
+                
+                <div class="compact-summary">
+                    <div class="score-circle" style="background: conic-gradient(from 0deg, #667eea 0deg ${results.credibility_score * 3.6}deg, #e5e7eb ${results.credibility_score * 3.6}deg 360deg);">
+                        <div class="score-text">${results.credibility_score}</div>
+                    </div>
+                    <div class="summary-content">
+                        <h3>Credibility Score: ${results.credibility_score}/100</h3>
+                        <div class="summary-dialogue">
+                            ${results.raw_analysis ? results.raw_analysis.substring(0, 200) + '...' : `This article shows ${results.credibility_score > 80 ? 'high' : results.credibility_score > 60 ? 'moderate' : 'low'} credibility with ${results.political_bias.bias_label} political lean.`}
                         </div>
                     </div>
-                    
-                    <div class="evidence-grid">
-                        ${evidenceData.map((evidence, index) => createEvidenceCard(evidence, index)).join('')}
+                </div>
+                
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-value">${results.political_bias.bias_label}</div>
+                        <div class="data-label">Political Bias</div>
                     </div>
-                    
-                    ${createInteractiveBiasSpectrum(analysisData)}
-                    ${createSourceNetwork(analysisData)}
+                    <div class="data-item">
+                        <div class="data-value">${results.political_bias.objectivity_score}%</div>
+                        <div class="data-label">Objectivity</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-value">${results.source_credibility}</div>
+                        <div class="data-label">Source Quality</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-value">${results.fact_check_alignment}</div>
+                        <div class="data-label">Fact Check</div>
+                    </div>
                 </div>
             `;
-            
-            return explorerHTML;
-        }
+            resultsDiv.appendChild(mainCard);
 
-        function generateEvidenceCards(data) {
-            const evidence = [];
-            
-            // For cross-verification results
-            if (data.sources && data.consensus_score) {
-                evidence.push({
-                    type: 'Cross-Source Consensus',
-                    icon: 'fas fa-network-wired',
-                    confidence: data.consensus_score >= 80 ? 'high' : data.consensus_score >= 60 ? 'medium' : 'low',
-                    confidenceValue: data.consensus_score,
-                    preview: `${data.sources.length} sources analyzed with ${data.consensus_score}% consensus on key facts`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Consensus Analysis:</strong> Compared coverage across major news outlets to identify 
-                            common facts, discrepancies, and bias patterns.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Sources Analyzed:</strong><br>
-                            ${data.sources.map(s => `• ${s.name} (${s.credibility}% credibility, ${s.bias} bias)`).join('<br>')}
-                        </div>
-                    `,
-                    sources: data.sources.map(s => s.name),
-                    methodology: 'Real-time cross-source verification using News API integration'
-                });
-            }
-            
-            // Regular analysis evidence
-            if (data.credibility_score !== undefined) {
-                const credScore = data.credibility_score || 65;
-                evidence.push({
-                    type: 'Credibility Assessment',
-                    icon: 'fas fa-shield-alt',
-                    confidence: getConfidenceLevel(credScore),
-                    confidenceValue: Math.round(credScore * 0.9), // Confidence based on score
-                    preview: `Overall credibility scored ${credScore}/100 based on multiple verification factors`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Analysis Method:</strong> Multi-factor credibility scoring including source verification, 
-                            content structure analysis, and cross-reference validation.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Contributing Factors:</strong><br>
-                            • Source authority: ${data.source_credibility || 'Medium'}<br>
-                            • Content structure: ${data.content_quality || 'Professional'}<br>
-                            • Fact-check correlation: ${data.fact_check_alignment || 'Verified'}<br>
-                            • Citation quality: ${data.citation_score || 'Good'}
-                        </div>
-                    `,
-                    sources: ['NewsVerify Database', 'Source Authority Index', 'Content Analysis Engine'],
-                    methodology: 'Advanced algorithmic assessment with human-verified training data'
-                });
-            }
-            
-            // Bias Analysis Evidence
-            if (data.political_bias || data.bias_indicators) {
-                const biasData = data.political_bias || data.bias_indicators || {};
-                const biasConfidence = biasData.confidence || 85;
-                evidence.push({
-                    type: 'Political Bias Detection',
-                    icon: 'fas fa-balance-scale',
-                    confidence: getConfidenceLevel(biasConfidence),
-                    confidenceValue: biasConfidence,
-                    preview: `${biasData.political_bias || biasData.bias_label || 'Center'} political lean detected with ${biasData.objectivity_score || 75}% objectivity`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Bias Analysis:</strong> Language pattern recognition, source selection analysis, 
-                            and narrative framing assessment. fa-balance-scale"></i>
-                        <span>Political Bias Detection</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-database"></i>
-                        <span>Source Credibility Database</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-search"></i>
-                        <span>Cross-Reference Verification</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Misinformation Detection</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-network-wired"></i>
-                        <span>Multi-Source Comparison</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Quality Scoring</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Timeline Verification</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-fingerprint"></i>
-                        <span>Editorial Classification</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-brain"></i>
-                        <span>AI Content Analysis</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-globe"></i>
-                        <span>Real-Time Verification</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-language"></i>
-                        <span>Sentiment Analysis</span>
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas
+            // Political Bias Spectrum
+            const biasCard = document.createElement('div');
+            biasCard.className = 'result-card';
+            const biasPosition = 50 + (results.political_bias.bias_score || 0);
+            biasCard.innerHTML = `
+                <div class="result-header">
+                    <i class="fas fa-balance-scale"></i> Political Bias Analysis
+                </div>
+                <div class="bias-spectrum">
+                    <div class="bias-labels">
+                        <span>Far Left</span>
+                        <span>Left</span>
+                        <span>Center</span>
+                        <span>Right</span
