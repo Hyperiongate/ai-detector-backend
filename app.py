@@ -216,6 +216,12 @@ if DB_AVAILABLE:
         welcome_email_sent = db.Column(db.Boolean, default=False)
 
 # Add this function to create demo users
+# Admin/Demo credentials
+ADMIN_CREDENTIALS = {
+    'admin@factsandfakes.ai': 'admin123',
+    'demo@factsandfakes.ai': 'demo123',
+    'test@factsandfakes.ai': 'test123'
+}
 # Function to create demo users - DEFINED AFTER MODELS
 def create_demo_user_if_not_exists():
     """Create demo users if they don't exist - with proper error handling"""
@@ -431,9 +437,7 @@ def signup():
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    if not DB_AVAILABLE:
-        return jsonify({'error': 'Database not available - authentication disabled'}), 503
-    
+    # Always allow demo mode - no database required
     try:
         data = request.get_json()
         email = data.get('email', '').lower().strip()
@@ -442,47 +446,53 @@ def api_login():
         if not email or not password:
             return jsonify({'error': 'Email and password required'}), 400
         
-        # Check for demo/admin credentials first
+        # Check for demo/admin credentials - always works
         if email in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[email] == password:
-            # Create demo user if doesn't exist
+            # Set demo session
+            session.permanent = True
+            session['user_id'] = 1
+            session['user_email'] = email
+            session['subscription_tier'] = 'pro'
+            session['demo_mode'] = True
+            
+            return jsonify({
+                'success': True,
+                'user': {
+                    'email': email,
+                    'subscription_tier': 'pro',
+                    'daily_limit': 999,
+                    'analyses_today': 0
+                }
+            })
+        
+        # If database available, try regular authentication
+        if DB_AVAILABLE and db is not None:
             user = User.query.filter_by(email=email).first()
-            if not user:
-                user = User(email=email)
-                user.set_password(password)
-                user.subscription_tier = 'pro'
-                user.is_beta_user = True
-                user.is_active = True
-                db.session.add(user)
+            if user and user.check_password(password):
+                if not user.is_active:
+                    return jsonify({'error': 'Account deactivated'}), 403
+                
+                # Update login info
+                user.last_login = datetime.utcnow()
                 db.session.commit()
-                print(f"✓ Created demo user: {email}")
-        else:
-            # Regular user authentication
-            user = User.query.filter_by(email=email).first()
-            if not user or not user.check_password(password):
-                return jsonify({'error': 'Invalid email or password'}), 401
+                
+                # Set session
+                session.permanent = True
+                session['user_id'] = user.id
+                session['user_email'] = user.email
+                session['subscription_tier'] = user.subscription_tier
+                
+                return jsonify({
+                    'success': True,
+                    'user': {
+                        'email': user.email,
+                        'subscription_tier': user.subscription_tier,
+                        'daily_limit': user.get_daily_limit(),
+                        'analyses_today': user.daily_analyses_count
+                    }
+                })
         
-        if not user.is_active:
-            return jsonify({'error': 'Account deactivated'}), 403
-        
-        # Update login info
-        user.last_login = datetime.utcnow()
-        db.session.commit()
-        
-        # Set session
-        session.permanent = True
-        session['user_id'] = user.id
-        session['user_email'] = user.email
-        session['subscription_tier'] = user.subscription_tier
-        
-        return jsonify({
-            'success': True,
-            'user': {
-                'email': user.email,
-                'subscription_tier': user.subscription_tier,
-                'daily_limit': user.get_daily_limit(),
-                'analyses_today': user.daily_analyses_count
-            }
-        })
+        return jsonify({'error': 'Invalid email or password'}), 401
         
     except Exception as e:
         print(f"Login error: {e}")
@@ -490,9 +500,7 @@ def api_login():
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
-    if not DB_AVAILABLE:
-        return jsonify({'error': 'Database not available - signup disabled'}), 503
-    
+    # Allow signup in demo mode
     try:
         data = request.get_json()
         email = data.get('email', '').lower().strip()
@@ -504,6 +512,23 @@ def api_signup():
         
         if len(password) < 8:
             return jsonify({'error': 'Password must be at least 8 characters'}), 400
+        
+        # If database unavailable, create demo session
+        if not DB_AVAILABLE or db is None:
+            session.permanent = True
+            session['user_id'] = 1
+            session['user_email'] = email
+            session['subscription_tier'] = 'pro'
+            session['demo_mode'] = True
+            
+            return jsonify({
+                'success': True,
+                'user': {
+                    'email': email,
+                    'subscription_tier': 'pro',
+                    'daily_limit': 999
+                }
+            })
         
         # Check if user exists
         if User.query.filter_by(email=email).first():
