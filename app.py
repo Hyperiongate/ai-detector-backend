@@ -18,8 +18,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # Database imports
 import psycopg
-from psycopg2.extras import RealDictCursor
-import psycopg2.pool
+from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 
 # Environment and configuration
 from dotenv import load_dotenv
@@ -128,7 +128,7 @@ if OPENAI_AVAILABLE and Config.OPENAI_API_KEY:
 connection_pool = None
 if Config.DATABASE_URL:
     try:
-        connection_pool = psycopg2.pool.SimpleConnectionPool(
+        connection_pool = ConnectionPool(...)
             1, 20,
             Config.DATABASE_URL
         )
