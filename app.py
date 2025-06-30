@@ -128,8 +128,7 @@ if OPENAI_AVAILABLE and Config.OPENAI_API_KEY:
 connection_pool = None
 if Config.DATABASE_URL:
     try:
-        connection_pool = ConnectionPool(...)
-            1, 20,
+        connection_pool = ConnectionPool(DATABASE_URL, min_size=1, max_size=20)
             Config.DATABASE_URL
         )
         logger.info("Database connection pool initialized")
