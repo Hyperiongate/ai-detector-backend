@@ -17,7 +17,7 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Database imports
-import psycopg2
+import psycopg
 from psycopg2.extras import RealDictCursor
 import psycopg2.pool
 
