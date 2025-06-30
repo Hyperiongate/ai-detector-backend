@@ -55,20 +55,12 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 # Initialize database
 if DB_AVAILABLE:
     db = SQLAlchemy(app)
-else:
-    db = None
-
-# Admin/Demo credentials
-ADMIN_CREDENTIALS = {
-    'admin@factsandfakes.ai': 'admin123',
-    'demo@factsandfakes.ai': 'demo123',
-    'test@factsandfakes.ai': 'test123'
-}
-
-# Database Models - ALWAYS DEFINE, but functionality depends on DB_AVAILABLE
-if DB_AVAILABLE:
-    # Full SQLAlchemy models when database is available
+    
+    # Database Models - ONLY DEFINE WHEN DB IS AVAILABLE
     class User(db.Model):
+        __tablename__ = 'user'
+        __table_args__ = {'extend_existing': True}
+        
         id = db.Column(db.Integer, primary_key=True)
         email = db.Column(db.String(120), unique=True, nullable=False, index=True)
         password_hash = db.Column(db.String(200), nullable=False)
@@ -109,6 +101,9 @@ if DB_AVAILABLE:
             db.session.commit()
 
     class Contact(db.Model):
+        __tablename__ = 'contact'
+        __table_args__ = {'extend_existing': True}
+        
         id = db.Column(db.Integer, primary_key=True)
         name = db.Column(db.String(100), nullable=False)
         email = db.Column(db.String(120), nullable=False)
@@ -119,6 +114,9 @@ if DB_AVAILABLE:
         user_agent = db.Column(db.String(500))
 
     class BetaSignup(db.Model):
+        __tablename__ = 'beta_signup'
+        __table_args__ = {'extend_existing': True}
+        
         id = db.Column(db.Integer, primary_key=True)
         email = db.Column(db.String(120), unique=True, nullable=False, index=True)
         created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -127,6 +125,9 @@ if DB_AVAILABLE:
         welcome_email_sent = db.Column(db.Boolean, default=False)
 
 else:
+    # Database not available - create stubs and set db to None
+    db = None
+    
     # Stub classes when database is not available
     class User:
         """Stub User class when database unavailable"""
@@ -215,6 +216,7 @@ if DB_AVAILABLE:
         welcome_email_sent = db.Column(db.Boolean, default=False)
 
 # Add this function to create demo users
+# Function to create demo users - DEFINED AFTER MODELS
 def create_demo_user_if_not_exists():
     """Create demo users if they don't exist - with proper error handling"""
     if not DB_AVAILABLE:
