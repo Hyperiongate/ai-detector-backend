@@ -54,93 +54,7 @@
             min-height: 100vh;
             color: #333;
             line-height: 1.6;
-        }
-
-        /* Unified Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-links a.active,
-        .nav-links a:hover {
-            color: #667eea;
-        }
-
-        .nav-links a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 1px;
-        }
-
-        .cta-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #333;
-            cursor: pointer;
+            padding-top: 60px; /* Account for fixed header */
         }
 
         /* Beta Banner Styles */
@@ -153,7 +67,6 @@
             position: relative;
             overflow: hidden;
             z-index: 999;
-            margin-top: 85px;
         }
 
         .beta-banner::before {
@@ -687,14 +600,20 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* Navbar enhancement for scroll effect */
+        .ff-nav {
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-toggle {
-                display: block;
+            body {
+                padding-top: 60px; /* Maintain header spacing on mobile */
             }
 
             .beta-content {
@@ -801,27 +720,8 @@
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="/" class="logo">
-                <i class="fas fa-shield-alt"></i> Facts & Fakes AI
-            </a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verification</a></li>
-                <li><a href="/unified">Content Authenticity</a></li>
-                <li><a href="/imageanalysis">AI Image Analysis</a></li>
-                <li><a href="/missionstatement" class="active">Our Mission</a></li>
-                <li><a href="/pricingplan">Pricing</a></li>
-                <li><a href="/contact">Contact</a></li>
-                <li><a href="#" class="cta-button">Get Started</a></li>
-            </ul>
-            <button class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
+    <!-- Include Header -->
+    {% include 'header.html' %}
 
     <!-- Beta Banner -->
     <div class="beta-banner">
@@ -1112,21 +1012,38 @@
             setupMissionAnalytics();
         });
 
+        // Navbar scroll effect enhancement
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.ff-nav');
+            if (navbar) {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+
         // Setup comprehensive mission page analytics
         function setupMissionAnalytics() {
-            // Track navigation clicks
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.addEventListener('click', function() {
-                    const destination = this.getAttribute('href');
-                    trackMissionEvent('navigation_clicked', {
-                        destination: destination,
-                        link_text: this.textContent.trim()
+            // Wait for header to load, then track navigation clicks
+            setTimeout(() => {
+                const navLinks = document.querySelectorAll('.ff-nav-links a');
+                if (navLinks.length > 0) {
+                    navLinks.forEach(link => {
+                        link.addEventListener('click', function() {
+                            const destination = this.getAttribute('href');
+                            trackMissionEvent('navigation_clicked', {
+                                destination: destination,
+                                link_text: this.textContent.trim()
+                            });
+                        });
                     });
-                });
-            });
+                }
+            }, 100);
 
             // Track CTA button clicks
-            document.querySelectorAll('.cta-btn, .cta-button').forEach(button => {
+            document.querySelectorAll('.cta-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const buttonText = this.textContent.trim();
                     const destination = this.getAttribute('href');
@@ -1271,7 +1188,7 @@
                     position: relative;
                     animation: slideIn 0.3s ease;
                 ">
-                    <button onclick="this.closest('div').remove(); trackMissionEvent('beta_modal_closed', {action: 'close_button'});" style="
+                    <button onclick="this.closest('div').parentElement.remove(); trackMissionEvent('beta_modal_closed', {action: 'close_button'});" style="
                         position: absolute;
                         top: 15px;
                         right: 20px;
@@ -1363,16 +1280,6 @@
                 }
             });
         }
-
-        // Mobile Menu Toggle with analytics
-        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
-            const isOpening = !document.querySelector('.nav-links').classList.contains('active');
-            document.querySelector('.nav-links').classList.toggle('active');
-            
-            trackMissionEvent('mobile_menu_toggled', {
-                action: isOpening ? 'open' : 'close'
-            });
-        });
 
         // Scroll Animation Observer
         const observerOptions = {
