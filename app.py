@@ -125,9 +125,10 @@ class Config:
     # Development Auth Bypass
     DISABLE_AUTH = os.getenv('DISABLE_AUTH', 'false').lower() == 'true'
 
-# Initialize OpenAI
+# Initialize OpenAI - Updated for newer library
 if OPENAI_AVAILABLE and Config.OPENAI_API_KEY:
-    openai.api_key = Config.OPENAI_API_KEY
+    # Don't set global api_key for newer versions
+    logger.info("OpenAI API key configured")
 
 # Database connection pool
 connection_pool = None
