@@ -405,6 +405,164 @@
             color: #667eea;
         }
 
+        /* NEW: Analysis Completeness Section */
+        .analysis-completeness {
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-completeness::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
+            background-size: 300% 100%;
+            animation: rainbow-flow 4s ease-in-out infinite;
+        }
+
+        @keyframes rainbow-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .completeness-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .completeness-title {
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .completeness-percentage {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .completeness-progress-bar {
+            width: 100%;
+            height: 16px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .completeness-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #10b981);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 1.5s ease;
+            position: relative;
+            background-size: 200% 100%;
+            animation: gradient-flow 3s ease-in-out infinite;
+        }
+
+        .completeness-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .completeness-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .completeness-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+
+        .completeness-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .icon-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .icon-partial {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .icon-missing {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* NEW: Uncertainty Warning */
+        .uncertainty-warning {
+            background: #fff3cd;
+            border: 2px solid #ffeeba;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .uncertainty-warning.active {
+            display: flex;
+        }
+
+        .warning-icon {
+            font-size: 2rem;
+            color: #f39c12;
+            flex-shrink: 0;
+        }
+
+        .warning-content h4 {
+            color: #856404;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .warning-content p {
+            color: #856404;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
         /* Progress Section */
         .progress-section {
             margin-bottom: 30px;
@@ -938,27 +1096,44 @@
             font-size: 1.1rem;
         }
 
+        /* NEW: Enhanced Evidence Cards with Confidence Badges */
         .evidence-confidence {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: help;
+            transition: all 0.3s ease;
+        }
+
+        .evidence-confidence:hover {
+            transform: scale(1.05);
+        }
+
+        .confidence-percentage {
+            font-size: 0.9rem;
         }
 
         .confidence-high {
             background: rgba(16, 185, 129, 0.1);
             color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .confidence-medium {
             background: rgba(245, 158, 11, 0.1);
             color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .confidence-low {
             background: rgba(239, 68, 68, 0.1);
             color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .expand-indicator {
@@ -975,6 +1150,21 @@
             font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 15px;
+        }
+
+        /* NEW: Mini Confidence Bar in Evidence Preview */
+        .evidence-confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .evidence-confidence-fill {
+            height: 100%;
+            transition: width 0.8s ease;
         }
 
         .evidence-details {
@@ -1146,6 +1336,39 @@
             margin-bottom: 5px;
             font-size: 0.85rem;
             color: #9ca3af;
+        }
+
+        /* NEW: Confidence Tooltip */
+        .confidence-tooltip {
+            position: absolute;
+            background: #1f2937;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 250px;
+        }
+
+        .confidence-tooltip.visible {
+            opacity: 1;
+        }
+
+        .confidence-tooltip::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid #1f2937;
         }
 
         /* Locked Content */
@@ -1470,6 +1693,10 @@
             .network-nodes {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .completeness-items {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -1553,6 +1780,31 @@
 
             <!-- Usage Counter -->
             <div id="usageCounter"></div>
+
+            <!-- NEW: Analysis Completeness Bar (Hidden by default) -->
+            <div class="analysis-completeness" id="analysisCompleteness" style="display: none;">
+                <div class="completeness-header">
+                    <div class="completeness-title">
+                        <i class="fas fa-tasks"></i> Analysis Completeness
+                    </div>
+                    <div class="completeness-percentage" id="completenessPercentage">0%</div>
+                </div>
+                <div class="completeness-progress-bar">
+                    <div class="completeness-progress-fill" id="completenessProgressFill"></div>
+                </div>
+                <div class="completeness-items" id="completenessItems">
+                    <!-- Items will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- NEW: Uncertainty Warning (Hidden by default) -->
+            <div class="uncertainty-warning" id="uncertaintyWarning">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-content">
+                    <h4>Limited Data Available</h4>
+                    <p>Some analysis components could not be completed due to limited data sources. Confidence levels may be lower than usual.</p>
+                </div>
+            </div>
 
             <!-- Enhanced Progress Bars -->
             <div class="progress-section" id="progressSection" style="display: none;">
@@ -1649,726 +1901,3 @@
                 <button class="btn btn-secondary" onclick="resetForm()">
                     <i class="fas fa-redo"></i> Reset
                 </button>
-            </div>
-
-            <div class="results" id="results">
-                <!-- Results will be populated here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Beta Modal with Fixed Labels -->
-    <div id="betaModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeBetaModal()">&times;</span>
-            <div class="modal-header">
-                <h2>🚀 Join Our Beta Program</h2>
-                <p>Get exclusive early access to the world's first news verification platform and help shape the future of media analysis!</p>
-            </div>
-            <div class="modal-body">
-                <form id="betaSignupForm">
-                    <div class="input-group">
-                        <label for="betaEmail" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Email Address *</label>
-                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="betaName" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Name (Optional)</label>
-                        <input type="text" id="betaName" placeholder="Your name (optional)">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
-                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cross-Verification Modal -->
-    <div id="crossVerifyModal" class="cross-verify-modal">
-        <div class="cross-verify-content">
-            <span class="close" onclick="closeCrossVerifyModal()">&times;</span>
-            <div class="cross-verify-header">
-                <h2><i class="fas fa-network-wired"></i> Cross-Source Verification</h2>
-                <p>Verify news across multiple sources in real-time</p>
-            </div>
-            <div class="cross-verify-body">
-                <label for="crossVerifyTopic" style="display: block; margin-bottom: 8px; font-weight: 700; color: #4a5568;">Enter News Topic or Keywords</label>
-                <input type="text" id="crossVerifyTopic" class="cross-verify-input" placeholder="e.g., Infrastructure Bill, Climate Summit, Election Results">
-                <p style="color: #6b7280; font-size: 0.9rem;">We'll search and compare coverage from Reuters, CNN, Fox News, BBC, and more trusted sources.</p>
-            </div>
-            <div class="cross-verify-footer">
-                <button type="button" class="btn-secondary" onclick="closeCrossVerifyModal()">Cancel</button>
-                <button type="button" class="btn btn-cross-verify" onclick="runCrossVerification()">
-                    <i class="fas fa-search"></i> Start Cross-Verification
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script src="/static/auth-analysis.js"></script>
-    <script>
-        // Initialize analytics tracking
-        document.addEventListener('DOMContentLoaded', function() {
-            trackNewsEvent('news_verification_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: screen.width + 'x' + screen.height,
-                referrer: document.referrer,
-                unique_feature: 'first_news_verification_platform'
-            });
-            
-            setupNewsAnalytics();
-        });
-
-        // Setup comprehensive news verification analytics
-        function setupNewsAnalytics() {
-            // Track navigation clicks
-            document.querySelectorAll('.nav-links a, .nav-links-secondary a').forEach(link => {
-                link.addEventListener('click', function() {
-                    const destination = this.getAttribute('href');
-                    trackNewsEvent('navigation_clicked', {
-                        destination: destination,
-                        link_text: this.textContent.trim()
-                    });
-                });
-            });
-
-            // Track tool interactions
-            document.querySelectorAll('.tool-item').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    const toolTitle = this.textContent.trim();
-                    trackNewsEvent('news_tool_hovered', {
-                        tool: toolTitle
-                    });
-                });
-            });
-
-            // Track form interactions
-            document.querySelectorAll('input, textarea').forEach(field => {
-                field.addEventListener('focus', function() {
-                    const fieldType = this.type || 'textarea';
-                    const fieldId = this.id;
-                    trackNewsEvent('form_field_focused', {
-                        field_type: fieldType,
-                        field_id: fieldId
-                    });
-                });
-
-                field.addEventListener('input', function() {
-                    const fieldId = this.id;
-                    const hasContent = this.value.length > 0;
-                    trackNewsEvent('form_field_input', {
-                        field_id: fieldId,
-                        has_content: hasContent,
-                        content_length: this.value.length
-                    });
-                });
-            });
-
-            // Track engagement metrics
-            let pageStartTime = Date.now();
-            let engagementEvents = 0;
-
-            ['click', 'scroll', 'mousemove', 'keydown'].forEach(eventType => {
-                document.addEventListener(eventType, function() {
-                    engagementEvents++;
-                });
-            });
-
-            window.addEventListener('beforeunload', function() {
-                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-                trackNewsEvent('page_session_end', {
-                    time_on_page: timeOnPage,
-                    engagement_events: engagementEvents
-                });
-            });
-        }
-
-        // Beta Modal Functions
-        function openBetaModal() {
-            trackNewsEvent('beta_modal_opened', {
-                source: 'news_verification_banner',
-                unique_value_prop: 'first_news_verification_platform'
-            });
-            document.getElementById('betaModal').style.display = 'block';
-        }
-
-        function closeBetaModal() {
-            trackNewsEvent('beta_modal_closed');
-            document.getElementById('betaModal').style.display = 'none';
-        }
-
-        function submitBetaSignup() {
-            const email = document.getElementById('betaEmail').value;
-            const name = document.getElementById('betaName').value;
-
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-
-            trackNewsEvent('beta_signup_attempted', {
-                email: email,
-                has_name: name.length > 0,
-                source: 'news_verification'
-            });
-
-            // Submit to backend
-            fetch('/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email, password: 'temp123' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                trackNewsEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'news_verification'
-                });
-                alert('🎉 Welcome to the beta! Check your email for access details.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            })
-            .catch(error => {
-                console.log('Demo mode: Beta signup for', email);
-                trackNewsEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'news_verification',
-                    demo_mode: true
-                });
-                alert('🎉 Thanks for your interest! Beta signup recorded.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            });
-        }
-
-        // Cross-Verification Modal Functions
-        function openCrossVerifyModal() {
-            trackNewsEvent('cross_verify_modal_opened', {
-                source: 'news_verification_page'
-            });
-            document.getElementById('crossVerifyModal').style.display = 'block';
-        }
-
-        function closeCrossVerifyModal() {
-            trackNewsEvent('cross_verify_modal_closed');
-            document.getElementById('crossVerifyModal').style.display = 'none';
-        }
-
-        async function runCrossVerification() {
-            const topic = document.getElementById('crossVerifyTopic').value.trim();
-            
-            if (!topic) {
-                showNotification('Please enter a news topic to verify across sources.', 'error');
-                return;
-            }
-
-            trackNewsEvent('cross_verification_started', {
-                topic: topic
-            });
-
-            closeCrossVerifyModal();
-            
-            // Show progress
-            const progressSection = document.getElementById('progressSection');
-            progressSection.style.display = 'block';
-            resetProgressBars();
-            
-            // Update progress messages for cross-verification
-            document.getElementById('progress1Status').textContent = 'Searching multiple news sources...';
-            document.getElementById('progress2Status').textContent = 'Analyzing source credibility...';
-            document.getElementById('progress3Status').textContent = 'Comparing coverage differences...';
-            document.getElementById('progress4Status').textContent = 'Calculating consensus score...';
-            document.getElementById('progress5Status').textContent = 'Generating cross-verification report...';
-            
-            // Start progress animation
-            const progressBars = ['progress1', 'progress2', 'progress3', 'progress4', 'progress5'];
-            let currentBar = 0;
-            
-            const progressInterval = setInterval(() => {
-                if (currentBar < progressBars.length) {
-                    document.getElementById(progressBars[currentBar]).style.width = '100%';
-                    currentBar++;
-                }
-            }, 800);
-
-            try {
-                // Make API call to cross-verification endpoint
-                const response = await fetch('/api/cross-verify-sources', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ topic: topic })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Cross-verification failed');
-                }
-
-                const results = await response.json();
-                
-                clearInterval(progressInterval);
-                
-                // Complete all progress bars
-                progressBars.forEach(bar => {
-                    document.getElementById(bar).style.width = '100%';
-                });
-                
-                // Update status
-                ['progress1Status', 'progress2Status', 'progress3Status', 'progress4Status', 'progress5Status'].forEach(id => {
-                    document.getElementById(id).textContent = 'Completed ✓';
-                });
-                
-                // Hide progress and show results
-                setTimeout(() => {
-                    progressSection.style.display = 'none';
-                    showCrossVerificationResults(results);
-                }, 1000);
-
-                trackNewsEvent('cross_verification_completed', {
-                    topic: topic,
-                    sources_found: results.sources ? results.sources.length : 0,
-                    consensus_score: results.consensus_score || 0
-                });
-                
-            } catch (error) {
-                clearInterval(progressInterval);
-                progressSection.style.display = 'none';
-                
-                // Show demo results if API fails
-                const demoResults = generateDemoCrossVerificationResults(topic);
-                showCrossVerificationResults(demoResults);
-                
-                trackNewsEvent('cross_verification_demo_mode', {
-                    topic: topic,
-                    error: error.message
-                });
-            }
-        }
-
-        function generateDemoCrossVerificationResults(topic) {
-            const sources = [
-                { name: 'Reuters', credibility: 95, bias: 'center', coverage: 'comprehensive' },
-                { name: 'CNN', credibility: 85, bias: 'center-left', coverage: 'detailed' },
-                { name: 'Fox News', credibility: 80, bias: 'center-right', coverage: 'moderate' },
-                { name: 'BBC', credibility: 92, bias: 'center', coverage: 'comprehensive' },
-                { name: 'The Guardian', credibility: 88, bias: 'left', coverage: 'detailed' }
-            ];
-            
-            return {
-                topic: topic,
-                sources: sources.slice(0, Math.floor(Math.random() * 3) + 3),
-                consensus_score: Math.floor(Math.random() * 20) + 70,
-                key_claims: [
-                    { claim: 'Main claim about ' + topic, verification: 'verified', sources: 4 },
-                    { claim: 'Secondary detail about ' + topic, verification: 'partially verified', sources: 3 },
-                    { claim: 'Disputed aspect of ' + topic, verification: 'disputed', sources: 2 }
-                ],
-                discrepancies: Math.floor(Math.random() * 3) + 1,
-                timestamp: new Date().toISOString()
-            };
-        }
-
-        function showCrossVerificationResults(results) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-            
-            // Create cross-verification results card
-            const crossVerifyCard = document.createElement('div');
-            crossVerifyCard.className = 'result-card main-assessment';
-            
-            const consensusColor = results.consensus_score >= 80 ? '#10b981' : results.consensus_score >= 60 ? '#f59e0b' : '#ef4444';
-            
-            crossVerifyCard.innerHTML = `
-                <div class="result-header">
-                    <i class="fas fa-network-wired"></i> Cross-Source Verification Results
-                    <span style="background: ${consensusColor}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.85rem; margin-left: auto;">
-                        ${results.consensus_score}% CONSENSUS
-                    </span>
-                </div>
-                
-                <div class="compact-summary">
-                    <div class="score-circle" style="background: conic-gradient(from 0deg, ${consensusColor} 0deg ${results.consensus_score * 3.6}deg, #e5e7eb ${results.consensus_score * 3.6}deg 360deg);">
-                        <div class="score-text" style="color: ${consensusColor};">${results.consensus_score}</div>
-                    </div>
-                    <div class="summary-content">
-                        <h3 style="color: #374151;">Cross-Verification Complete: ${results.topic}</h3>
-                        <div class="summary-dialogue">
-                            Analyzed ${results.sources.length} major news sources. 
-                            ${results.consensus_score >= 80 ? 'High consensus found across sources.' : 
-                              results.consensus_score >= 60 ? 'Moderate consensus with some variations.' : 
-                              'Low consensus - significant differences in coverage.'}
-                            ${results.discrepancies} discrepancies identified.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="data-grid">
-                    <div class="data-item">
-                        <div class="data-value">${results.sources.length}</div>
-                        <div class="data-label">Sources Analyzed</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${results.consensus_score}%</div>
-                        <div class="data-label">Consensus Score</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${results.key_claims ? results.key_claims.length : 0}</div>
-                        <div class="data-label">Claims Verified</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${results.discrepancies || 0}</div>
-                        <div class="data-label">Discrepancies</div>
-                    </div>
-                </div>
-            `;
-            
-            resultsDiv.appendChild(crossVerifyCard);
-            
-            // Add Interactive Evidence Explorer
-            const explorerHTML = createInteractiveEvidenceExplorer(results);
-            resultsDiv.insertAdjacentHTML('beforeend', explorerHTML);
-            
-            resultsDiv.style.display = 'block';
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const betaModal = document.getElementById('betaModal');
-            const crossVerifyModal = document.getElementById('crossVerifyModal');
-            
-            if (event.target === betaModal) {
-                closeBetaModal();
-            } else if (event.target === crossVerifyModal) {
-                closeCrossVerifyModal();
-            }
-        };
-
-        let currentInputType = 'text';
-        let currentAnalysisData = null;
-        let currentTier = 'free';
-
-        function switchInputType(type) {
-            currentInputType = type;
-            
-            document.querySelectorAll('.input-tab').forEach((tab, index) => {
-                tab.classList.remove('active');
-                if ((type === 'text' && index === 0) || (type === 'url' && index === 1)) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            document.querySelectorAll('.input-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            const targetContent = document.getElementById(type + 'Input');
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
-
-            trackNewsEvent('input_type_switched', {
-                type: type
-            });
-        }
-
-        function loadTestData() {
-            const testContent = "Breaking: Infrastructure Bill Passes Senate with Bipartisan Support. The Department of Transportation announced today the allocation of $2.3 billion for highway improvements across 15 states, according to officials who state this initiative will create approximately 45,000 jobs over the next 18 months. The announcement comes following congressional support for the infrastructure bill passed last quarter. Sources close to the administration suggest this represents the largest single infrastructure investment in recent history. Industry experts predict significant economic impact in rural communities, though some critics question the timeline for implementation.";
-            
-            document.getElementById('news-text').value = testContent;
-            switchInputType('text');
-            
-            showNotification('Sample news content loaded successfully!', 'success');
-            trackNewsEvent('test_data_loaded', {
-                content_type: 'news_sample'
-            });
-        }
-
-        // Interactive Evidence Explorer Functions
-        function createInteractiveEvidenceExplorer(analysisData) {
-            const evidenceData = generateEvidenceCards(analysisData);
-            
-            const explorerHTML = `
-                <div class="evidence-explorer">
-                    <div class="evidence-explorer-header">
-                        <div class="evidence-explorer-title">
-                            <i class="fas fa-search-plus"></i>
-                            Interactive Evidence Explorer
-                        </div>
-                        <div class="evidence-counter">
-                            ${evidenceData.length} Evidence Points
-                        </div>
-                    </div>
-                    
-                    <div class="evidence-grid">
-                        ${evidenceData.map((evidence, index) => createEvidenceCard(evidence, index)).join('')}
-                    </div>
-                    
-                    ${createInteractiveBiasSpectrum(analysisData)}
-                    ${createSourceNetwork(analysisData)}
-                </div>
-            `;
-            
-            return explorerHTML;
-        }
-
-        function generateEvidenceCards(data) {
-            const evidence = [];
-            
-            // For cross-verification results
-            if (data.sources && data.consensus_score) {
-                evidence.push({
-                    type: 'Cross-Source Consensus',
-                    icon: 'fas fa-network-wired',
-                    confidence: data.consensus_score >= 80 ? 'high' : data.consensus_score >= 60 ? 'medium' : 'low',
-                    preview: `${data.sources.length} sources analyzed with ${data.consensus_score}% consensus on key facts`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Consensus Analysis:</strong> Compared coverage across major news outlets to identify 
-                            common facts, discrepancies, and bias patterns.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Sources Analyzed:</strong><br>
-                            ${data.sources.map(s => `• ${s.name} (${s.credibility}% credibility, ${s.bias} bias)`).join('<br>')}
-                        </div>
-                    `,
-                    sources: data.sources.map(s => s.name),
-                    methodology: 'Real-time cross-source verification using News API integration'
-                });
-            }
-            
-            // Regular analysis evidence
-            if (data.credibility_score !== undefined) {
-                evidence.push({
-                    type: 'Credibility Assessment',
-                    icon: 'fas fa-shield-alt',
-                    confidence: getConfidenceLevel(data.credibility_score || 65),
-                    preview: `Overall credibility scored ${data.credibility_score || 65}/100 based on multiple verification factors`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Analysis Method:</strong> Multi-factor credibility scoring including source verification, 
-                            content structure analysis, and cross-reference validation.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Contributing Factors:</strong><br>
-                            • Source authority: ${data.source_credibility || 'Medium'}<br>
-                            • Content structure: ${data.content_quality || 'Professional'}<br>
-                            • Fact-check correlation: ${data.fact_check_alignment || 'Verified'}<br>
-                            • Citation quality: ${data.citation_score || 'Good'}
-                        </div>
-                    `,
-                    sources: ['NewsVerify Database', 'Source Authority Index', 'Content Analysis Engine'],
-                    methodology: 'Advanced algorithmic assessment with human-verified training data'
-                });
-            }
-            
-            // Bias Analysis Evidence
-            if (data.political_bias || data.bias_indicators) {
-                const biasData = data.political_bias || data.bias_indicators || {};
-                evidence.push({
-                    type: 'Political Bias Detection',
-                    icon: 'fas fa-balance-scale',
-                    confidence: 'high',
-                    preview: `${biasData.political_bias || biasData.bias_label || 'Center'} political lean detected with ${biasData.objectivity_score || 75}% objectivity`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Bias Analysis:</strong> Language pattern recognition, source selection analysis, 
-                            and narrative framing assessment.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Bias Indicators:</strong><br>
-                            • Language sentiment: ${biasData.sentiment_score || 'Neutral'}<br>
-                            • Source diversity: ${biasData.source_diversity || 'Moderate'}<br>
-                            • Framing analysis: ${biasData.framing_bias || 'Balanced'}<br>
-                            • Keyword weighting: ${biasData.keyword_bias || 'Neutral'}
-                        </div>
-                    `,
-                    sources: ['Political Language Database', 'Bias Pattern Recognition', 'Editorial Analysis Engine'],
-                    methodology: 'Machine learning model trained on 100,000+ manually classified news articles'
-                });
-            }
-            
-            // Key claims evidence (for cross-verification)
-            if (data.key_claims && data.key_claims.length > 0) {
-                evidence.push({
-                    type: 'Claim Verification Status',
-                    icon: 'fas fa-check-circle',
-                    confidence: 'high',
-                    preview: `${data.key_claims.filter(c => c.verification === 'verified').length} of ${data.key_claims.length} key claims verified across sources`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Claim Analysis:</strong> Extracted key factual claims and compared across all sources.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Claims Status:</strong><br>
-                            ${data.key_claims.map(c => `• ${c.claim}: ${c.verification.toUpperCase()} (${c.sources} sources)`).join('<br>')}
-                        </div>
-                    `,
-                    sources: ['Claim Extraction Engine', 'Multi-Source Validator'],
-                    methodology: 'AI-powered claim extraction with cross-source validation'
-                });
-            }
-            
-            return evidence;
-        }
-
-        function createEvidenceCard(evidence, index) {
-            return `
-                <div class="evidence-card" onclick="toggleEvidenceCard(${index})">
-                    <div class="evidence-card-header">
-                        <div class="evidence-type">
-                            <i class="${evidence.icon}"></i>
-                            ${evidence.type}
-                        </div>
-                        <div class="evidence-confidence confidence-${evidence.confidence}">${evidence.confidence.toUpperCase()}</div>
-                        <i class="fas fa-chevron-down expand-indicator"></i>
-                    </div>
-                    
-                    <div class="evidence-preview">${evidence.preview}</div>
-                    
-                    <div class="evidence-details" id="evidence-details-${index}">
-                        ${evidence.details}
-                        
-                        <div class="evidence-sources">
-                            ${evidence.sources.map(source => `<span class="evidence-source">${source}</span>`).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function toggleEvidenceCard(index) {
-            const cards = document.querySelectorAll('.evidence-card');
-            const card = cards[index];
-            const details = document.getElementById(`evidence-details-${index}`);
-            
-            if (!card || !details) return;
-            
-            card.classList.toggle('expanded');
-            details.classList.toggle('visible');
-            
-            trackNewsEvent('evidence_card_toggled', {
-                evidence_type: card.querySelector('.evidence-type').textContent.trim(),
-                action: card.classList.contains('expanded') ? 'expanded' : 'collapsed',
-                card_index: index
-            });
-        }
-
-        function createInteractiveBiasSpectrum(data) {
-            const biasData = data.political_bias || data.bias_indicators || {};
-            const biasScore = biasData.bias_score || biasData.emotional_language || 0;
-            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore / 2)));
-            
-            return `
-                <div class="interactive-bias-spectrum">
-                    <h4 style="margin-bottom: 15px; color: #4a5568;">
-                        <i class="fas fa-balance-scale"></i> Interactive Political Bias Spectrum
-                    </h4>
-                    <div class="bias-spectrum-container">
-                        <div class="bias-spectrum">
-                            <div class="bias-hover-zones">
-                                <div class="bias-zone" data-zone="left" onmouseenter="showBiasTooltip(event, 'left')" onmouseleave="hideBiasTooltip()"></div>
-                                <div class="bias-zone" data-zone="center-left" onmouseenter="showBiasTooltip(event, 'center-left')" onmouseleave="hideBiasTooltip()"></div>
-                                <div class="bias-zone" data-zone="center" onmouseenter="showBiasTooltip(event, 'center')" onmouseleave="hideBiasTooltip()"></div>
-                                <div class="bias-zone" data-zone="center-right" onmouseenter="showBiasTooltip(event, 'center-right')" onmouseleave="hideBiasTooltip()"></div>
-                                <div class="bias-zone" data-zone="right" onmouseenter="showBiasTooltip(event, 'right')" onmouseleave="hideBiasTooltip()"></div>
-                            </div>
-                            
-                            <div class="bias-indicator" style="left: ${biasPosition}%;"></div>
-                            <div class="bias-labels">
-                                <span>LEFT</span>
-                                <span>CENTER</span>
-                                <span>RIGHT</span>
-                            </div>
-                        </div>
-                        
-                        <div class="bias-tooltip" id="biasTooltip"></div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function createSourceNetwork(data) {
-            const sources = data.sources || [
-                { name: 'Primary Source', type: 'primary', description: 'Main content source being analyzed' },
-                { name: 'Fact-Check DB', type: 'secondary', description: 'Cross-reference verification database' },
-                { name: 'Credibility Index', type: 'secondary', description: 'Source reliability assessment' },
-                { name: 'Bias Detection', type: 'secondary', description: 'Political lean analysis engine' }
-            ];
-            
-            return `
-                <div class="source-network">
-                    <h4 style="margin-bottom: 15px; color: #4a5568; text-align: center;">
-                        <i class="fas fa-network-wired"></i> Source Verification Network
-                    </h4>
-                    <div class="network-nodes">
-                        ${sources.map(source => `
-                            <div class="network-node ${source.type || 'secondary'}" 
-                                 onmouseenter="showNetworkTooltip(event, '${source.description || source.name}')"
-                                 onmouseleave="hideNetworkTooltip()">
-                                ${source.name}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function getConfidenceLevel(score) {
-            if (score >= 80) return 'high';
-            if (score >= 60) return 'medium';
-            return 'low';
-        }
-
-        function showBiasTooltip(event, zone) {
-            const tooltip = document.getElementById('biasTooltip');
-            if (!tooltip) return;
-            
-            const descriptions = {
-                'left': 'Left-leaning bias detected - Content may favor progressive viewpoints',
-                'center-left': 'Slight left bias - Mostly balanced with minor progressive lean',
-                'center': 'Neutral bias - Content maintains political balance and objectivity',
-                'center-right': 'Slight right bias - Mostly balanced with minor conservative lean',
-                'right': 'Right-leaning bias detected - Content may favor conservative viewpoints'
-            };
-            
-            tooltip.textContent = descriptions[zone];
-            tooltip.classList.add('visible');
-            
-            trackNewsEvent('bias_spectrum_explored', { zone: zone });
-        }
-
-        function hideBiasTooltip() {
-            const tooltip = document.getElementById('biasTooltip');
-            if (tooltip) {
-                tooltip.classList.remove('visible');
-            }
-        }
-
-        function showNetworkTooltip(event, description) {
-            let tooltip = document.getElementById('networkTooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('div');
-                tooltip.id = 'networkTooltip';
-                tooltip.className = 'enhanced-tooltip';
-                document.body.appendChild(tooltip);
-            }
-            
-            tooltip.innerHTML = `<h4>Verification Node</h4>${description}`;
-            tooltip.style.left = event.pageX + 'px';
-            tooltip.style.top = (event.pageY - 60) + 'px';
-            tooltip.classList.add('visible');
-            
-            trackNewsEvent('source_network_explored', { description: description });
-        }
-
-        function hideNetworkTooltip() {
-            const tooltip = document.getElementById('networkTooltip');
-            if (tooltip) {
-                tooltip.classList.remove('visible');
-            }
-        }
