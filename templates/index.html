@@ -54,6 +54,7 @@
             line-height: 1.6;
             color: #333;
             overflow-x: hidden;
+            padding-top: 60px; /* Account for fixed header */
         }
 
         /* Beta Banner Styles - Adjusted for new header */
@@ -66,7 +67,6 @@
             position: relative;
             overflow: hidden;
             z-index: 999;
-            margin-top: 60px; /* Adjusted to remove gap */
         }
 
         .beta-banner::before {
@@ -144,12 +144,12 @@
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            min-height: 100vh;
+            min-height: calc(100vh - 60px); /* Adjust for header */
             display: flex;
             align-items: center;
             position: relative;
             overflow: hidden;
-            padding-top: 20px;
+            padding: 40px 20px;
         }
 
         .hero::before {
@@ -658,10 +658,20 @@
             font-size: 0.9rem;
         }
 
+        /* Navbar enhancement for scroll effect */
+        .ff-nav {
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .beta-banner {
-                margin-top: 50px; /* Even smaller for mobile */
+            body {
+                padding-top: 60px; /* Maintain header spacing on mobile */
             }
             
             .beta-content {
@@ -680,9 +690,8 @@
             }
 
             .hero {
+                min-height: calc(100vh - 60px);
                 padding: 40px 20px;
-                min-height: 80vh;
-                padding-top: 120px;
             }
 
             .cta-buttons, .final-cta-buttons {
@@ -1014,11 +1023,23 @@
             setupHomepageAnalytics();
         });
 
+        // Navbar scroll effect enhancement
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.ff-nav');
+            if (navbar) {
+                if (window.scrollY > 100) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+        });
+
         // Setup comprehensive homepage analytics
         function setupHomepageAnalytics() {
             // Wait for header to load, then track navigation clicks
             setTimeout(() => {
-                const navLinks = document.querySelectorAll('.nav-links a');
+                const navLinks = document.querySelectorAll('.ff-nav-links a');
                 if (navLinks.length > 0) {
                     navLinks.forEach(link => {
                         link.addEventListener('click', function() {
@@ -1181,7 +1202,7 @@
                     position: relative;
                     animation: slideIn 0.3s ease;
                 ">
-                    <button onclick="this.closest('div').remove(); trackHomepageEvent('beta_modal_closed', {action: 'close_button'});" style="
+                    <button onclick="this.closest('div').parentElement.remove(); trackHomepageEvent('beta_modal_closed', {action: 'close_button'});" style="
                         position: absolute;
                         top: 15px;
                         right: 20px;
