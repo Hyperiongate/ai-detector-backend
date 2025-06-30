@@ -1796,7 +1796,7 @@
         <div class="beta-content">
             <span class="beta-badge">BETA</span>
             <span>🚀 The world's ONLY platform built specifically for news verification - Join our beta!</span>
-            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
+            <button class="beta-join-btn" id="betaJoinBtn">Join Beta</button>
         </div>
     </div>
 
@@ -1972,8 +1972,8 @@
 
             <div class="input-section">
                 <div class="input-tabs">
-                    <button class="input-tab active" onclick="switchInputType('text')">📝 News Text Analysis</button>
-                    <button class="input-tab" onclick="switchInputType('url')">🔗 URL Verification</button>
+                    <button class="input-tab active" id="textInputTab">📝 News Text Analysis</button>
+                    <button class="input-tab" id="urlInputTab">🔗 URL Verification</button>
                 </div>
                 
                 <div class="input-content active" id="textInput">
@@ -1992,19 +1992,19 @@
             </div>
 
             <div class="button-group">
-                <button class="btn btn-primary" onclick="runAnalysis('free')" type="button">
+                <button class="btn btn-primary" id="freeAnalysisBtn" type="button">
                     <i class="fas fa-play"></i> Start Free Analysis
                 </button>
-                <button class="btn btn-primary" onclick="runAnalysis('pro')" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <button class="btn btn-primary" id="proAnalysisBtn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
                     <i class="fas fa-crown"></i> Start Pro Analysis
                 </button>
-                <button class="btn btn-cross-verify" onclick="openCrossVerifyModal()" type="button">
+                <button class="btn btn-cross-verify" id="crossVerifyBtn" type="button">
                     <i class="fas fa-network-wired"></i> Cross-Verify Sources
                 </button>
-                <button class="btn btn-test" onclick="loadTestData()" type="button">
+                <button class="btn btn-test" id="loadTestDataBtn" type="button">
                     <i class="fas fa-flask"></i> Load Sample News
                 </button>
-                <button class="btn btn-secondary" onclick="resetForm()" type="button">
+                <button class="btn btn-secondary" id="resetFormBtn" type="button">
                     <i class="fas fa-redo"></i> Reset
                 </button>
             </div>
@@ -2018,7 +2018,7 @@
     <!-- Beta Modal with Fixed Labels -->
     <div id="betaModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeBetaModal()">&times;</span>
+            <span class="close" id="betaModalClose">&times;</span>
             <div class="modal-header">
                 <h2>🚀 Join Our Beta Program</h2>
                 <p>Get exclusive early access to the world's first news verification platform and help shape the future of media analysis!</p>
@@ -2036,8 +2036,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
-                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
+                <button type="button" class="btn-secondary" id="betaCancelBtn">Cancel</button>
+                <button type="button" class="btn" id="betaSubmitBtn">Join Beta Program</button>
             </div>
         </div>
     </div>
@@ -2045,7 +2045,7 @@
     <!-- Cross-Verification Modal -->
     <div id="crossVerifyModal" class="cross-verify-modal">
         <div class="cross-verify-content">
-            <span class="close" onclick="closeCrossVerifyModal()">&times;</span>
+            <span class="close" id="crossVerifyModalClose">&times;</span>
             <div class="cross-verify-header">
                 <h2><i class="fas fa-network-wired"></i> Cross-Source Verification</h2>
                 <p>Verify news across multiple sources in real-time</p>
@@ -2056,8 +2056,8 @@
                 <p style="color: #6b7280; font-size: 0.9rem;">We'll search and compare coverage from Reuters, CNN, Fox News, BBC, and more trusted sources.</p>
             </div>
             <div class="cross-verify-footer">
-                <button type="button" class="btn-secondary" onclick="closeCrossVerifyModal()">Cancel</button>
-                <button type="button" class="btn btn-cross-verify" onclick="runCrossVerification()">
+                <button type="button" class="btn-secondary" id="crossVerifyCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-cross-verify" id="crossVerifySubmitBtn">
                     <i class="fas fa-search"></i> Start Cross-Verification
                 </button>
             </div>
@@ -2405,6 +2405,36 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded - Initializing news page...');
             
+            // Add event listeners to buttons
+            const freeAnalysisBtn = document.getElementById('freeAnalysisBtn');
+            if (freeAnalysisBtn) {
+                freeAnalysisBtn.addEventListener('click', function() {
+                    runAnalysis('free');
+                });
+            }
+            
+            const proAnalysisBtn = document.getElementById('proAnalysisBtn');
+            if (proAnalysisBtn) {
+                proAnalysisBtn.addEventListener('click', function() {
+                    runAnalysis('pro');
+                });
+            }
+            
+            const crossVerifyBtn = document.getElementById('crossVerifyBtn');
+            if (crossVerifyBtn) {
+                crossVerifyBtn.addEventListener('click', openCrossVerifyModal);
+            }
+            
+            const testDataBtn = document.getElementById('loadTestDataBtn');
+            if (testDataBtn) {
+                testDataBtn.addEventListener('click', loadTestData);
+            }
+            
+            const resetFormBtn = document.getElementById('resetFormBtn');
+            if (resetFormBtn) {
+                resetFormBtn.addEventListener('click', resetForm);
+            }
+            
             // Track page load
             if (typeof trackNewsEvent === 'function') {
                 trackNewsEvent('news_verification_page_loaded', {
@@ -2419,6 +2449,71 @@
             
             // Restore form data
             restoreFormData();
+            
+            // Add input tab listeners
+            const textInputTab = document.getElementById('textInputTab');
+            if (textInputTab) {
+                textInputTab.addEventListener('click', function() {
+                    switchInputType('text');
+                });
+            }
+            
+            const urlInputTab = document.getElementById('urlInputTab');
+            if (urlInputTab) {
+                urlInputTab.addEventListener('click', function() {
+                    switchInputType('url');
+                });
+            }
+            
+            // Add delegated event listener for dynamic evidence cards
+            document.addEventListener('click', function(e) {
+                const evidenceCard = e.target.closest('.evidence-card');
+                if (evidenceCard) {
+                    const index = evidenceCard.getAttribute('data-evidence-index');
+                    if (index !== null) {
+                        toggleEvidenceCard(parseInt(index));
+                    }
+                }
+            });
+            
+            // Add delegated event listeners for bias tooltips
+            document.addEventListener('mouseover', function(e) {
+                const biasZone = e.target.closest('.bias-zone');
+                if (biasZone) {
+                    const label = biasZone.getAttribute('data-bias-label');
+                    const desc = biasZone.getAttribute('data-bias-desc');
+                    if (label && desc) {
+                        showBiasTooltip(e, label, desc);
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseout', function(e) {
+                const biasZone = e.target.closest('.bias-zone');
+                if (biasZone) {
+                    hideBiasTooltip();
+                }
+            });
+            
+            // Add delegated event listeners for network tooltips
+            document.addEventListener('mouseover', function(e) {
+                const networkNode = e.target.closest('.network-node');
+                if (networkNode) {
+                    const name = networkNode.getAttribute('data-source-name');
+                    const credibility = networkNode.getAttribute('data-source-credibility');
+                    const bias = networkNode.getAttribute('data-source-bias');
+                    if (name && credibility) {
+                        showNetworkTooltip(e, name, credibility, bias);
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseout', function(e) {
+                const networkNode = e.target.closest('.network-node');
+                if (networkNode) {
+                    hideNetworkTooltip();
+                }
+            });
             
             // Show ready notification
             setTimeout(() => {
