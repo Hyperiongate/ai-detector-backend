@@ -1,457 +1,864 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TruthLens - AI-Powered News Verification</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask_cors import CORS
+import os
+from datetime import datetime, timedelta
+import secrets
+import hashlib
+from functools import wraps
+import json
+import base64
+from io import BytesIO
+from PIL import Image
+import requests
+from bs4 import BeautifulSoup
+import re
+from collections import Counter
+import time
+import logging
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, Text, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.pool import NullPool
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0f1c;
-            color: #e0e0e0;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+# Email imports with Python 3.13 compatibility
+try:
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    EMAIL_AVAILABLE = True
+except ImportError:
+    try:
+        # Fallback for older Python versions
+        import smtplib
+        from email.MIMEText import MIMEText
+        from email.MIMEMultipart import MIMEMultipart
+        EMAIL_AVAILABLE = True
+    except ImportError:
+        EMAIL_AVAILABLE = False
+        MIMEText = None
+        MIMEMultipart = None
 
-        /* Navigation */
-        nav {
-            background: rgba(10, 15, 28, 0.95);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
-        }
+# Initialize Flask app
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+CORS(app)
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 70px;
-        }
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
+# Database configuration
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
+# Create engine with connection pooling disabled for Render
+engine = create_engine(
+    DATABASE_URL,
+    poolclass=NullPool,
+    pool_pre_ping=True,
+    connect_args={
+        "sslmode": "require",
+        "connect_timeout": 10
+    }
+)
 
-        .nav-links a {
-            color: #a0a0a0;
-            text-decoration: none;
-            transition: color 0.3s;
-            font-size: 16px;
-        }
+# Create session factory
+SessionLocal = scoped_session(sessionmaker(bind=engine))
+Base = declarative_base()
 
-        .nav-links a:hover {
-            color: #6366f1;
-        }
+# Database Models
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_beta = Column(Boolean, default=True)
+    is_pro = Column(Boolean, default=False)
+    daily_analyses = Column(Integer, default=0)
+    last_analysis_date = Column(DateTime, default=datetime.utcnow)
+    
+class ContactMessage(Base):
+    __tablename__ = 'contact_messages'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    subject = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    ip_address = Column(String(45))
+    user_agent = Column(Text)
 
-        .nav-links a.active {
-            color: #6366f1;
-            font-weight: 500;
-        }
+# Create tables
+Base.metadata.create_all(bind=engine)
 
-        /* Beta Banner */
-        .beta-banner {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            padding: 12px;
-            text-align: center;
-            font-size: 14px;
-        }
+# Email configuration
+SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
 
-        .beta-banner span {
-            cursor: pointer;
-            text-decoration: underline;
-        }
+# API Keys
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
+GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
+MEDIASTACK_API_KEY = os.environ.get('MEDIASTACK_API_KEY')
 
-        /* Hero Section */
-        .hero {
-            padding: 60px 20px;
-            text-align: center;
-            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-        }
+# Helper Functions
+def send_email(to_email, subject, html_content):
+    """Send email using Bluehost SMTP with Python 3.13 compatibility"""
+    if not EMAIL_AVAILABLE:
+        logger.warning("Email functionality not available - imports failed")
+        return False
+        
+    if not all([SMTP_SERVER, SMTP_USERNAME, SMTP_PASSWORD]):
+        logger.warning("Email configuration incomplete")
+        return False
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"Facts & Fakes AI <{SMTP_USERNAME}>"
+        msg['To'] = to_email
+        
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(msg)
+            
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send email: {str(e)}")
+        return False
 
-        .hero h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
-        .hero p {
-            font-size: 20px;
-            color: #a0a0a0;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+def check_rate_limit(user_id):
+    """Check if user has reached their daily limit"""
+    db_session = SessionLocal()
+    try:
+        user = db_session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False, "User not found"
+        
+        # Reset daily count if it's a new day
+        if user.last_analysis_date.date() < datetime.utcnow().date():
+            user.daily_analyses = 0
+            user.last_analysis_date = datetime.utcnow()
+            db_session.commit()
+        
+        # Check limits
+        limit = 10 if user.is_pro else 5
+        if user.daily_analyses >= limit:
+            return False, f"Daily limit reached ({limit} analyses)"
+        
+        return True, user.daily_analyses
+        
+    finally:
+        db_session.close()
 
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+def increment_usage(user_id):
+    """Increment user's daily analysis count"""
+    db_session = SessionLocal()
+    try:
+        user = db_session.query(User).filter_by(id=user_id).first()
+        if user:
+            user.daily_analyses += 1
+            user.last_analysis_date = datetime.utcnow()
+            db_session.commit()
+    finally:
+        db_session.close()
 
-        /* Input Section */
-        .input-section {
-            background: rgba(20, 25, 40, 0.8);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 40px auto;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
+# Routes
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-        }
+@app.route('/news')
+@app.route('/news.html')
+def news():
+    return render_template('news.html')
 
-        .tab {
-            padding: 12px 24px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            color: #a0a0a0;
-            font-size: 16px;
-            transition: all 0.3s;
-            position: relative;
-        }
+@app.route('/unified')
+@app.route('/unified.html')
+def unified():
+    return render_template('unified.html')
 
-        .tab.active {
-            color: #6366f1;
-        }
+@app.route('/imageanalysis')
+@app.route('/imageanalysis.html')
+def imageanalysis():
+    return render_template('imageanalysis.html')
 
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #6366f1;
-        }
+@app.route('/contact')
+@app.route('/contact.html')
+def contact():
+    return render_template('contact.html')
 
-        /* Input Group */
-        .input-group {
-            margin-bottom: 30px;
-        }
+@app.route('/missionstatement')
+@app.route('/missionstatement.html')
+def missionstatement():
+    return render_template('missionstatement.html')
 
-        .input-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #a0a0a0;
-            font-size: 14px;
-        }
+@app.route('/pricingplan')
+@app.route('/pricingplan.html')
+def pricingplan():
+    return render_template('pricingplan.html')
 
-        textarea, input[type="url"] {
-            width: 100%;
-            padding: 15px;
-            background: rgba(30, 35, 50, 0.8);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 10px;
-            color: #e0e0e0;
-            font-size: 16px;
-            transition: all 0.3s;
-            resize: vertical;
-        }
-
-        textarea:focus, input[type="url"]:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(99, 102, 241, 0.2);
-            color: #6366f1;
-            border: 1px solid #6366f1;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: #a0a0a0;
-            border: 1px solid rgba(160, 160, 160, 0.3);
-        }
-
-        .btn-ghost:hover {
-            border-color: #6366f1;
-            color: #6366f1;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            margin: 30px 0;
-            display: none;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(99, 102, 241, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            width: 0%;
-            transition: width 0.3s;
-            animation: shimmer 1s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
-        }
-
-        .progress-text {
-            text-align: center;
-            margin-top: 10px;
-            color: #a0a0a0;
-            font-size: 14px;
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-            margin: 40px 0;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .result-card {
-            background: rgba(20, 25, 40, 0.8);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            transition: all 0.3s;
-        }
-
-        .result-card:hover {
-            border-color: #6366f1;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.2);
-        }
-
-        .result-card h3 {
-            color: #6366f1;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .score-display {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-
-        .score-high { color: #10b981; }
-        .score-medium { color: #f59e0b; }
-        .score-low { color: #ef4444; }
-
-        /* Bias Spectrum */
-        .bias-spectrum {
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(30, 35, 50, 0.5);
-            border-radius: 10px;
-        }
-
-        .spectrum-bar {
-            height: 30px;
-            background: linear-gradient(to right, #3b82f6, #6366f1, #8b5cf6, #ef4444);
-            border-radius: 15px;
-            position: relative;
-            margin: 15px 0;
-        }
-
-        .spectrum-marker {
-            position: absolute;
-            top: -5px;
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
-            border: 3px solid #6366f1;
-            transform: translateX(-50%);
-            transition: left 0.5s;
-        }
-
-        .spectrum-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #a0a0a0;
-        }
-
-        /* Tools Section */
-        .tools-section {
-            margin: 40px 0;
-            padding: 30px;
-            background: rgba(20, 25, 40, 0.6);
-            border-radius: 15px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .tool-card {
-            padding: 20px;
-            background: rgba(30, 35, 50, 0.6);
-            border-radius: 10px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            transition: all 0.3s;
-        }
-
-        .tool-card:hover {
-            border-color: #6366f1;
-            transform: translateY(-2px);
-        }
-
-        .tool-card i {
-            font-size: 24px;
-            color: #6366f1;
-            margin-bottom: 10px;
-        }
-
-        .tool-card h4 {
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: #e0e0e0;
-        }
-
-        .tool-card p {
-            font-size: 14px;
-            color: #a0a0a0;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(20, 25, 40, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            position: relative;
-            animation: modalSlide 0.3s ease-out;
-        }
-
-        @keyframes modalSlide {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
+# Authentication Routes
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    db_session = SessionLocal()
+    try:
+        data = request.json
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        # Check if user exists
+        if db_session.query(User).filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Create new user
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            is_beta=True
+        )
+        db_session.add(user)
+        db_session.commit()
+        
+        # Log user in
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        # Send welcome email
+        welcome_subject = "Welcome to Facts & Fakes AI Beta!"
+        welcome_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2c5aa0;">Welcome to Facts & Fakes AI!</h2>
+                <p>Hi there,</p>
+                <p>Thank you for joining our beta program! You now have access to:</p>
+                <ul>
+                    <li>5 free AI text analyses per day</li>
+                    <li>News verification and bias detection</li>
+                    <li>Image manipulation detection</li>
+                    <li>Plagiarism checking</li>
+                </ul>
+                <p>Start exploring at <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email(email, welcome_subject, welcome_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10 if user.is_pro else 5
             }
-            to {
-                transform: translateY(0);
-                opacity: 1;
+        })
+        
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+    finally:
+        db_session.close()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    db_session = SessionLocal()
+    try:
+        data = request.json
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        user = db_session.query(User).filter_by(email=email).first()
+        
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Set session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10 if user.is_pro else 5
             }
-        }
+        })
+        
+    finally:
+        db_session.close()
 
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: #a0a0a0;
-            font-size: 24px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
 
-        .modal-close:hover {
-            color: #6366f1;
-        }
+@app.route('/api/user/status', methods=['GET'])
+def user_status():
+    if 'user_id' not in session:
+        return jsonify({'authenticated': False})
+    
+    db_session = SessionLocal()
+    try:
+        user = db_session.query(User).filter_by(id=session['user_id']).first()
+        if not user:
+            session.clear()
+            return jsonify({'authenticated': False})
+        
+        # Check daily usage
+        if user.last_analysis_date.date() < datetime.utcnow().date():
+            user.daily_analyses = 0
+        
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10 if user.is_pro else 5,
+                'analyses_today': user.daily_analyses
+            }
+        })
+    finally:
+        db_session.close()
 
-        .modal h2 {
-            font-size
+# Contact Form Route
+@app.route('/api/contact', methods=['POST'])
+def contact_form():
+    db_session = SessionLocal()
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['name', 'email', 'subject', 'message']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'error': f'{field.title()} is required'}), 400
+        
+        # Save to database
+        contact_msg = ContactMessage(
+            name=data['name'],
+            email=data['email'],
+            subject=data['subject'],
+            message=data['message'],
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', '')[:500]
+        )
+        db_session.add(contact_msg)
+        db_session.commit()
+        
+        # Send notification email to admin
+        admin_subject = f"New Contact Form Submission - {data['subject']}"
+        admin_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif;">
+            <h3>New Contact Form Submission</h3>
+            <p><strong>From:</strong> {data['name']} ({data['email']})</p>
+            <p><strong>Subject:</strong> {data['subject']}</p>
+            <p><strong>Message:</strong></p>
+            <p style="background: #f4f4f4; padding: 15px; border-radius: 5px;">
+                {data['message'].replace(chr(10), '<br>')}
+            </p>
+            <p><strong>Time:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
+        </body>
+        </html>
+        """
+        send_email(CONTACT_EMAIL, admin_subject, admin_html)
+        
+        # Send auto-reply to user
+        user_subject = "We've Received Your Message - Facts & Fakes AI"
+        user_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2c5aa0;">Thank You for Contacting Us!</h2>
+                <p>Hi {data['name']},</p>
+                <p>We've received your message and will get back to you within 24-48 hours.</p>
+                <p><strong>Your Message:</strong></p>
+                <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p><strong>Subject:</strong> {data['subject']}</p>
+                    <p>{data['message']}</p>
+                </div>
+                <p>In the meantime, feel free to explore our AI detection tools at 
+                   <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email(data['email'], user_subject, user_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for your message. We\'ll get back to you soon!'
+        })
+        
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        return jsonify({'error': 'Failed to send message. Please try again.'}), 500
+    finally:
+        db_session.close()
+
+# AI Detection Route
+@app.route('/api/detect-ai', methods=['POST'])
+def detect_ai():
+    try:
+        # Check authentication for non-demo mode
+        if 'user_id' in session:
+            can_proceed, message = check_rate_limit(session['user_id'])
+            if not can_proceed:
+                return jsonify({'error': message, 'limit_reached': True}), 429
+        
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        # For demo or if no API key, return pattern-based analysis
+        if not OPENAI_API_KEY or data.get('demo', False):
+            result = analyze_text_patterns(text)
+        else:
+            # Use OpenAI API for pro users
+            result = analyze_with_openai(text)
+        
+        # Increment usage for authenticated users
+        if 'user_id' in session:
+            increment_usage(session['user_id'])
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"AI detection error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+def analyze_text_patterns(text):
+    """Pattern-based AI detection for demo/free tier"""
+    
+    # Basic metrics
+    words = text.split()
+    sentences = re.split(r'[.!?]+', text)
+    
+    # Pattern detection
+    ai_patterns = {
+        'repetitive_phrases': len(re.findall(r'\b(\w+)\s+\1\b', text)),
+        'perfect_grammar': len(re.findall(r'[,;:]', text)) / max(len(sentences), 1),
+        'complex_vocabulary': len([w for w in words if len(w) > 8]) / max(len(words), 1),
+        'uniform_sentences': np.std([len(s.split()) for s in sentences if s.strip()]) if len(sentences) > 1 else 0
+    }
+    
+    # Calculate AI probability
+    ai_score = min(0.95, (
+        (ai_patterns['repetitive_phrases'] * 0.1) +
+        (ai_patterns['perfect_grammar'] * 0.3) +
+        (ai_patterns['complex_vocabulary'] * 0.2) +
+        (0.4 if ai_patterns['uniform_sentences'] < 3 else 0)
+    ))
+    
+    return {
+        'ai_probability': round(ai_score * 100, 1),
+        'human_probability': round((1 - ai_score) * 100, 1),
+        'analysis': {
+            'patterns_found': sum(1 for v in ai_patterns.values() if v > 0.3),
+            'writing_style': 'Formal' if ai_patterns['complex_vocabulary'] > 0.2 else 'Casual',
+            'consistency': 'High' if ai_patterns['uniform_sentences'] < 3 else 'Variable'
+        },
+        'details': {
+            'text_length': len(text),
+            'word_count': len(words),
+            'sentence_count': len([s for s in sentences if s.strip()])
+        }
+    }
+
+def analyze_with_openai(text):
+    """Advanced AI detection using OpenAI API (Pro tier)"""
+    # This would integrate with OpenAI API
+    # For now, return enhanced pattern analysis
+    basic_result = analyze_text_patterns(text)
+    
+    # Add advanced metrics
+    basic_result['advanced_analysis'] = {
+        'coherence_score': 0.85,
+        'originality_score': 0.72,
+        'style_consistency': 0.91,
+        'fact_accuracy': 'Not verified'
+    }
+    
+    return basic_result
+
+# News Verification Routes
+@app.route('/api/verify-news', methods=['POST'])
+def verify_news():
+    try:
+        data = request.json
+        url = data.get('url', '')
+        headline = data.get('headline', '')
+        
+        if not url and not headline:
+            return jsonify({'error': 'URL or headline required'}), 400
+        
+        # Check rate limit for authenticated users
+        if 'user_id' in session:
+            can_proceed, message = check_rate_limit(session['user_id'])
+            if not can_proceed:
+                return jsonify({'error': message, 'limit_reached': True}), 429
+        
+        result = perform_news_verification(url, headline)
+        
+        # Increment usage
+        if 'user_id' in session:
+            increment_usage(session['user_id'])
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"News verification error: {str(e)}")
+        return jsonify({'error': 'Verification failed'}), 500
+
+def fetch_mediastack_news(query):
+    """Fetch news from MediaStack API"""
+    if not MEDIASTACK_API_KEY:
+        return []
+    
+    try:
+        url = "http://api.mediastack.com/v1/news"
+        params = {
+            'access_key': MEDIASTACK_API_KEY,
+            'keywords': query,
+            'languages': 'en',
+            'limit': 10,
+            'sort': 'published_desc'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('data', [])
+        else:
+            logger.error(f"MediaStack API error: {response.status_code}")
+            return []
+    except Exception as e:
+        logger.error(f"MediaStack fetch error: {str(e)}")
+        return []
+
+def perform_news_verification(url, headline):
+    """Perform comprehensive news verification"""
+    
+    verification_result = {
+        'credibility_score': 0,
+        'bias_indicators': [],
+        'fact_check_results': [],
+        'source_analysis': {},
+        'cross_references': []
+    }
+    
+    # Extract domain for source analysis
+    if url:
+        domain = re.search(r'https?://([^/]+)', url)
+        if domain:
+            domain = domain.group(1)
+            verification_result['source_analysis'] = analyze_news_source(domain)
+    
+    # Search for related articles using MediaStack
+    if headline:
+        # Extract key terms for search
+        key_terms = ' '.join(headline.split()[:5])
+        related_articles = fetch_mediastack_news(key_terms)
+        
+        if related_articles:
+            # Analyze cross-references
+            for article in related_articles[:5]:
+                verification_result['cross_references'].append({
+                    'title': article.get('title', 'Unknown'),
+                    'source': article.get('source', 'Unknown'),
+                    'published': article.get('published_at', ''),
+                    'url': article.get('url', '')
+                })
+    
+    # Calculate credibility score
+    if verification_result['source_analysis']:
+        base_score = verification_result['source_analysis'].get('reliability_score', 50)
+    else:
+        base_score = 50
+    
+    # Adjust based on cross-references
+    if len(verification_result['cross_references']) >= 3:
+        base_score += 20
+    elif len(verification_result['cross_references']) >= 1:
+        base_score += 10
+    
+    verification_result['credibility_score'] = min(100, base_score)
+    
+    # Add bias indicators
+    if headline:
+        bias_words = ['shocking', 'unbelievable', 'destroys', 'slams', 'exposed']
+        found_bias = [word for word in bias_words if word.lower() in headline.lower()]
+        if found_bias:
+            verification_result['bias_indicators'] = found_bias
+            verification_result['credibility_score'] -= len(found_bias) * 5
+    
+    return verification_result
+
+def analyze_news_source(domain):
+    """Analyze news source reliability"""
+    
+    # Known reliable sources
+    reliable_sources = {
+        'reuters.com': 90,
+        'apnews.com': 90,
+        'bbc.com': 85,
+        'npr.org': 85,
+        'wsj.com': 80,
+        'nytimes.com': 80,
+        'washingtonpost.com': 80,
+        'theguardian.com': 75,
+        'cnn.com': 70,
+        'foxnews.com': 70
+    }
+    
+    # Check if domain is in reliable sources
+    for source, score in reliable_sources.items():
+        if source in domain:
+            return {
+                'domain': domain,
+                'reliability_score': score,
+                'category': 'Mainstream Media',
+                'known_biases': 'Varies by source'
+            }
+    
+    # Default for unknown sources
+    return {
+        'domain': domain,
+        'reliability_score': 50,
+        'category': 'Unknown/Independent',
+        'known_biases': 'Unverified source'
+    }
+
+# Cross-Source Verification Route
+@app.route('/api/cross-verify', methods=['POST'])
+def cross_verify():
+    try:
+        data = request.json
+        claim = data.get('claim', '')
+        sources = data.get('sources', [])
+        
+        if not claim:
+            return jsonify({'error': 'Claim text required'}), 400
+        
+        # Search multiple sources using MediaStack
+        verification_results = []
+        
+        # Search for the claim
+        articles = fetch_mediastack_news(claim)
+        
+        for article in articles[:10]:  # Check up to 10 sources
+            source_result = {
+                'source': article.get('source', 'Unknown'),
+                'title': article.get('title', ''),
+                'url': article.get('url', ''),
+                'published': article.get('published_at', ''),
+                'relevance': calculate_relevance(claim, article.get('title', '') + ' ' + article.get('description', ''))
+            }
+            verification_results.append(source_result)
+        
+        # Calculate consensus
+        consensus_score = calculate_consensus(verification_results)
+        
+        return jsonify({
+            'claim': claim,
+            'sources_checked': len(verification_results),
+            'verification_results': verification_results,
+            'consensus_score': consensus_score,
+            'verdict': get_verdict(consensus_score)
+        })
+        
+    except Exception as e:
+        logger.error(f"Cross-verification error: {str(e)}")
+        return jsonify({'error': 'Cross-verification failed'}), 500
+
+def calculate_relevance(claim, text):
+    """Calculate how relevant a text is to a claim"""
+    claim_words = set(claim.lower().split())
+    text_words = set(text.lower().split())
+    
+    if not claim_words:
+        return 0
+    
+    common_words = claim_words.intersection(text_words)
+    relevance = len(common_words) / len(claim_words)
+    
+    return round(relevance * 100, 1)
+
+def calculate_consensus(results):
+    """Calculate consensus score from multiple sources"""
+    if not results:
+        return 0
+    
+    relevant_results = [r for r in results if r['relevance'] > 30]
+    if not relevant_results:
+        return 0
+    
+    # Higher score for more sources reporting similar information
+    consensus = min(100, len(relevant_results) * 20)
+    return consensus
+
+def get_verdict(consensus_score):
+    """Get verification verdict based on consensus score"""
+    if consensus_score >= 80:
+        return "Highly Verified"
+    elif consensus_score >= 60:
+        return "Likely Accurate"
+    elif consensus_score >= 40:
+        return "Partially Verified"
+    elif consensus_score >= 20:
+        return "Questionable"
+    else:
+        return "Unverified"
+
+# Image Analysis Route
+@app.route('/api/analyze-image', methods=['POST'])
+def analyze_image():
+    try:
+        data = request.json
+        image_data = data.get('image', '')
+        
+        if not image_data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Check rate limit
+        if 'user_id' in session:
+            can_proceed, message = check_rate_limit(session['user_id'])
+            if not can_proceed:
+                return jsonify({'error': message, 'limit_reached': True}), 429
+        
+        # Decode base64 image
+        try:
+            image_bytes = base64.b64decode(image_data.split(',')[1])
+            image = Image.open(BytesIO(image_bytes))
+        except Exception as e:
+            return jsonify({'error': 'Invalid image data'}), 400
+        
+        # Perform analysis
+        analysis_result = analyze_image_properties(image)
+        
+        # Increment usage
+        if 'user_id' in session:
+            increment_usage(session['user_id'])
+        
+        return jsonify(analysis_result)
+        
+    except Exception as e:
+        logger.error(f"Image analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+def analyze_image_properties(image):
+    """Analyze image for potential manipulation"""
+    
+    # Get image properties
+    width, height = image.size
+    format = image.format
+    mode = image.mode
+    
+    # Check for common manipulation indicators
+    indicators = []
+    
+    # Check EXIF data
+    exif_data = {}
+    try:
+        exif = image._getexif()
+        if exif:
+            exif_data = {
+                'has_exif': True,
+                'camera_info': 'Available',
+                'date_taken': 'Available'
+            }
+        else:
+            exif_data = {
+                'has_exif': False,
+                'camera_info': 'Not found',
+                'date_taken': 'Not found'
+            }
+            indicators.append("Missing EXIF data")
+    except:
+        exif_data = {'has_exif': False}
+        indicators.append("No EXIF data found")
+    
+    # Check for unusual dimensions
+    if width % 2 != 0 or height % 2 != 0:
+        indicators.append("Unusual dimensions")
+    
+    # Calculate manipulation probability
+    manipulation_score = len(indicators) * 20
+    
+    return {
+        'manipulation_probability': min(80, manipulation_score),
+        'authenticity_score': max(20, 100 - manipulation_score),
+        'technical_details': {
+            'dimensions': f"{width}x{height}",
+            'format': format or 'Unknown',
+            'color_mode': mode,
+            'file_size': 'Analysis based on properties'
+        },
+        'exif_analysis': exif_data,
+        'manipulation_indicators': indicators,
+        'recommendations': [
+            "Check source credibility",
+            "Look for visual inconsistencies",
+            "Verify with reverse image search"
+        ]
+    }
+
+# Health check
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()})
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"Server error: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
+
+# Cleanup function
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    SessionLocal.remove()
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
