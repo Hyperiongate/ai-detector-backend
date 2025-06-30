@@ -1,5 +1,5 @@
 # Facts & Fakes AI Platform - Complete Backend with Real-Time Source Cross-Verification
-# Enhanced version with all features integrated + ROUTING FIXES + CROSS-VERIFICATION
+# Fixed version - NO ASYNC DEPENDENCIES
 
 import os 
 import re
@@ -7,8 +7,6 @@ import json
 import uuid
 import hashlib
 import logging
-import asyncio
-import aiohttp
 from datetime import datetime, timedelta
 from urllib.parse import urljoin, urlparse
 from functools import wraps
@@ -476,10 +474,10 @@ class SmartContentPreprocessor:
 # Initialize preprocessor
 preprocessor = SmartContentPreprocessor()
 
-# Real-Time Source Cross-Verification Engine
+# Real-Time Source Cross-Verification Engine - SYNCHRONOUS VERSION
 class SourceCrossVerificationEngine:
     """
-    Real-time source cross-verification system that enhances existing news analysis
+    Real-time source cross-verification system - synchronous version for Flask
     """
     
     def __init__(self):
@@ -575,7 +573,7 @@ class SourceCrossVerificationEngine:
     
     def aggregate_multi_source_content(self, query_topic: str, session_id: int, tier: str) -> List[Dict[str, Any]]:
         """
-        Fetch content from multiple news sources simultaneously
+        Fetch content from multiple news sources - synchronous version
         """
         source_limit = 8 if tier == 'pro' else 4
         
@@ -680,7 +678,7 @@ class SourceCrossVerificationEngine:
             # Get source credibility from cache
             credibility_data = self.get_source_credibility(domain)
             
-            # Extract content using smart preprocessing
+            # Extract content using smart preprocessing if needed
             content = report.get('article_content', '')
             if report.get('article_url') and len(content) < 200:
                 # Use existing preprocessor for full content extraction
@@ -2404,10 +2402,11 @@ if __name__ == '__main__':
     logger.info(f"🚀 Starting Facts & Fakes AI server on port {port}")
     logger.info("🔧 Features enabled:")
     logger.info("   ✅ Smart Content Preprocessing")
-    logger.info("   ✅ News Verification & Bias Detection")
+    logger.info("   ✅ News Verification & Bias Detection") 
     logger.info("   ✅ Real-Time Source Cross-Verification")
     logger.info("   ✅ User Authentication & Usage Tracking")
     logger.info("   ✅ Email Integration")
     logger.info("   ✅ Database Connection Pooling")
     logger.info("   ✅ All Routing Fixes Applied")
+    logger.info("   ✅ NO ASYNC DEPENDENCIES")
     app.run(host='0.0.0.0', port=port, debug=False)
