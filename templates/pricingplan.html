@@ -54,53 +54,274 @@
             min-height: 100vh;
             color: #333;
             line-height: 1.6;
+            padding-top: 80px; /* Account for fixed header */
         }
 
-        /* Header */
-        header {
-            background: rgba(255, 255, 255, 0.1);
+        /* Facts & Fakes AI Navigation Header */
+        /* Reset any conflicting styles */
+        .ff-nav * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main navigation bar */
+        .ff-nav {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            position: sticky;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
             top: 0;
-            z-index: 1000;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            height: 60px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        nav {
+        .ff-nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 60px;
         }
 
-        .logo {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .nav-links {
+        /* Logo */
+        .ff-nav-logo {
             display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
+            align-items: center;
+            gap: 10px;
             text-decoration: none;
-            transition: opacity 0.3s;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
         }
 
-        .nav-links a:hover {
-            opacity: 0.8;
+        .ff-nav-logo:hover {
+            transform: scale(1.05);
         }
 
-        .nav-links a.active {
-            opacity: 1;
+        .ff-nav-logo i {
+            font-size: 1.4rem;
+        }
+
+        /* Navigation links */
+        .ff-nav-links {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .ff-nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ff-nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-link.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
             font-weight: 600;
+        }
+
+        .ff-nav-link i {
+            font-size: 0.9rem;
+        }
+
+        /* Auth buttons */
+        .ff-nav-auth {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+        }
+
+        .ff-nav-login, .ff-nav-signup {
+            padding: 8px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav-login {
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .ff-nav-login:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-signup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .ff-nav-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Beta balloon */
+        .ff-beta-balloon {
+            position: absolute;
+            top: -35px;
+            right: 50px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            animation: ff-bounce 2s infinite;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .ff-beta-balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #f7931e;
+        }
+
+        @keyframes ff-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* User menu */
+        .ff-user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .ff-user-menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ff-user-menu-toggle:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .ff-user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .ff-user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Mobile menu button */
+        .ff-mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #4a5568;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .ff-mobile-menu-btn:hover {
+            color: #667eea;
+        }
+
+        /* Mobile responsive for header */
+        @media (max-width: 768px) {
+            .ff-nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                border-top: 1px solid #e2e8f0;
+            }
+            
+            .ff-nav-links.active {
+                display: flex;
+            }
+            
+            .ff-nav-link {
+                width: 100%;
+                padding: 12px 20px;
+            }
+            
+            .ff-mobile-menu-btn {
+                display: block;
+            }
+            
+            .ff-nav-auth {
+                display: none;
+            }
+            
+            .ff-user-menu {
+                display: none !important;
+            }
+            
+            .ff-beta-balloon {
+                display: none;
+            }
+
+            body {
+                padding-top: 60px;
+            }
         }
 
         /* Beta Banner */
@@ -754,16 +975,8 @@
             color: white;
         }
 
-        /* Responsive Design */
+        /* Additional responsive adjustments */
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-
             .comparison-table-section {
                 padding: 1.5rem;
                 overflow-x: auto;
@@ -799,10 +1012,72 @@
             .modal-footer {
                 flex-direction: column;
             }
+
+            .hero-section h1 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Facts & Fakes AI Navigation Header -->
+    <nav class="ff-nav">
+        <div class="ff-nav-container">
+            <a href="/" class="ff-nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Facts & Fakes AI</span>
+            </a>
+            
+            <div class="ff-nav-links" id="ffNavLinks">
+                <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+                <a href="/unified" class="ff-nav-link"><i class="fas fa-search"></i> Content Check</a>
+                <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+                <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+                <a href="/pricingplan" class="ff-nav-link active"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+            
+            <div class="ff-nav-auth" id="ffNavAuth">
+                <a href="/login" class="ff-nav-login">Login</a>
+                <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+                <div class="ff-beta-balloon">
+                    sign up now to start your free trial
+                </div>
+            </div>
+            
+            <div class="ff-user-menu" id="ffUserMenu">
+                <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                    <span id="ffUserEmail">user@example.com</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="ff-user-dropdown" id="ffUserDropdown">
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                    </div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                    </div>
+                    <div style="padding: 10px 0;">
+                        <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                        <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                        <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                        <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
     <!-- Beta Banner -->
     <div class="beta-banner">
         <div class="beta-content">
@@ -811,22 +1086,6 @@
             <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
         </div>
     </div>
-
-    <!-- Header -->
-    <header>
-        <nav>
-            <a href="/" class="logo">Facts & Fakes AI</a>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/news">News Verify</a></li>
-                <li><a href="/unified">Content Check</a></li>
-                <li><a href="/imageanalysis">Image Analysis</a></li>
-                <li><a href="/missionstatement">Mission</a></li>
-                <li><a href="/pricingplan" class="active">Pricing</a></li>
-                <li><a href="/contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -1063,7 +1322,7 @@
                         <li><i class="fas fa-check check-icon"></i> Basic reports</li>
                         <li><i class="fas fa-check check-icon"></i> Community support</li>
                     </ul>
-                    <a href="/signup" class="pricing-btn secondary">Start Free Now</a>
+                    <a href="/login" class="pricing-btn secondary">Start Free Now</a>
                 </div>
 
                 <!-- Professional Plan -->
@@ -1091,7 +1350,7 @@
             <p>Join news professionals, content creators, and researchers who trust our comprehensive platform</p>
             
             <div class="final-cta-buttons">
-                <a href="/signup" class="final-cta-btn primary">
+                <a href="/login" class="final-cta-btn primary">
                     Start Free Today
                 </a>
                 <button class="final-cta-btn secondary" onclick="startProTrial()">
@@ -1127,8 +1386,84 @@
     </div>
 
     <script>
+        // Namespace all functions to avoid conflicts
+        window.ffNav = {
+            checkAuthStatus: async function() {
+                try {
+                    const response = await fetch('/api/user-status');
+                    
+                    // Check if response is actually JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.log('Auth endpoint not available yet - showing login/signup');
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.authenticated) {
+                        document.getElementById('ffNavAuth').style.display = 'none';
+                        document.getElementById('ffUserMenu').style.display = 'block';
+                        
+                        document.getElementById('ffUserEmail').textContent = data.user?.email || 'User';
+                        document.getElementById('ffUserEmailDropdown').textContent = data.user?.email || 'User';
+                        document.getElementById('ffUserPlan').textContent = data.user?.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
+                        
+                        // Usage tracking would go here
+                        document.getElementById('ffUsageProgress').style.width = '20%';
+                        document.getElementById('ffUsageText').textContent = '1 / 5 analyses used';
+                    }
+                } catch (error) {
+                    // Silently fail during development - auth system not ready yet
+                    console.log('Auth system not ready yet - this is normal during initial deployment');
+                }
+            },
+            
+            init: function() {
+                this.checkAuthStatus();
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    const userMenu = document.querySelector('.ff-user-menu');
+                    if (userMenu && !userMenu.contains(event.target)) {
+                        document.getElementById('ffUserDropdown').classList.remove('active');
+                    }
+                });
+                
+                // Add active class to current page
+                const currentPath = window.location.pathname;
+                document.querySelectorAll('.ff-nav-link').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPath || (currentPath.includes('pricing') && href === '/pricingplan')) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        };
+
+        // Global functions for onclick handlers
+        function ffToggleMobileMenu() {
+            const navLinks = document.getElementById('ffNavLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        function ffToggleUserDropdown() {
+            const dropdown = document.getElementById('ffUserDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        async function ffLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
         // Initialize analytics tracking
         document.addEventListener('DOMContentLoaded', function() {
+            window.ffNav.init();
             trackPricingEvent('pricing_page_loaded', {
                 user_agent: navigator.userAgent,
                 screen_resolution: `${screen.width}x${screen.height}`,
@@ -1141,7 +1476,7 @@
         // Setup comprehensive pricing page analytics
         function setupPricingAnalytics() {
             // Track navigation clicks
-            document.querySelectorAll('.nav-links a').forEach(link => {
+            document.querySelectorAll('.ff-nav-link').forEach(link => {
                 link.addEventListener('click', function() {
                     const destination = this.getAttribute('href');
                     trackPricingEvent('navigation_clicked', {
@@ -1233,166 +1568,3 @@
                         const sectionId = section.className.split(' ')[0].replace('-section', '');
                         if (!sectionsViewed.has(sectionId)) {
                             sectionsViewed.add(sectionId);
-                            trackPricingEvent('section_viewed', {
-                                section: sectionId
-                            });
-                        }
-                    }
-                });
-            });
-
-            // Track time on page
-            let pageStartTime = Date.now();
-            let engagementEvents = 0;
-
-            // Count engagement events
-            ['click', 'scroll', 'mousemove'].forEach(eventType => {
-                document.addEventListener(eventType, function() {
-                    engagementEvents++;
-                });
-            });
-
-            window.addEventListener('beforeunload', function() {
-                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-                trackPricingEvent('page_session_end', {
-                    time_on_page: timeOnPage,
-                    max_scroll: maxScroll,
-                    engagement_events: engagementEvents,
-                    sections_viewed: Array.from(sectionsViewed)
-                });
-            });
-        }
-
-        // Beta Modal Functions with analytics
-        function openBetaModal() {
-            trackPricingEvent('beta_modal_opened', {
-                source: 'competitive_pricing_banner'
-            });
-            document.getElementById('betaModal').style.display = 'block';
-        }
-
-        function closeBetaModal() {
-            trackPricingEvent('beta_modal_closed', {
-                action: 'close_button'
-            });
-            document.getElementById('betaModal').style.display = 'none';
-        }
-
-        function submitBetaSignup() {
-            const email = document.getElementById('betaEmail').value;
-            const name = document.getElementById('betaName').value;
-
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-
-            trackPricingEvent('beta_signup_attempted', {
-                email: email,
-                has_name: name.length > 0,
-                source: 'competitive_pricing'
-            });
-
-            // Try to submit to backend, fall back to demo mode
-            fetch('/api/beta-signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, name })
-            })
-            .then(response => response.json())
-            .then(data => {
-                trackPricingEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'competitive_pricing'
-                });
-                alert('🎉 Welcome to the beta program! Check your email for next steps.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            })
-            .catch(error => {
-                // Demo mode fallback
-                console.log('Demo mode: Beta signup for', email);
-                trackPricingEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'competitive_pricing',
-                    demo_mode: true
-                });
-                alert('🎉 Thanks for your interest! Beta program signup recorded.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            });
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('betaModal');
-            if (event.target === modal) {
-                trackPricingEvent('beta_modal_closed', {
-                    action: 'outside_click'
-                });
-                closeBetaModal();
-            }
-        }
-
-        // Pro Trial Function with analytics
-        function startProTrial() {
-            trackPricingEvent('pro_trial_initiated', {
-                source: 'competitive_pricing',
-                button_location: event.target.closest('.pricing-card') ? 'pricing_card' : 'final_cta'
-            });
-
-            alert(`🚀 Starting your 14-day Professional trial...
-
-✓ Complete news verification suite
-✓ Advanced AI detection models
-✓ Deepfake & image analysis
-✓ Priority processing speed  
-✓ Export reports (PDF, CSV)
-✓ API access included
-✓ Priority email support
-
-No credit card required for trial!
-
-Click OK to begin...`);
-            
-            // In a real implementation, this would redirect to sign-up
-            setTimeout(() => {
-                trackPricingEvent('pro_trial_redirect', {
-                    destination: '/signup'
-                });
-                window.location.href = '/signup';
-            }, 2000);
-        }
-
-        // Enhanced hover effects
-        document.querySelectorAll('.pricing-card, .news-feature-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-8px) scale(1.02)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
-
-        // Track beta email field focus
-        document.getElementById('betaEmail').addEventListener('focus', function() {
-            trackPricingEvent('beta_email_focused');
-        });
-
-        // Track competitor column interest
-        document.querySelectorAll('.comparison-table th').forEach((header, index) => {
-            if (index > 1) { // Skip first two columns
-                header.addEventListener('mouseenter', function() {
-                    const competitor = this.textContent.split('\n')[0]; // Get first line only
-                    trackPricingEvent('competitor_column_hovered', {
-                        competitor: competitor
-                    });
-                });
-            }
-        });
-    </script>
-</body>
-</html>
