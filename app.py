@@ -1,5 +1,5 @@
 # Facts & Fakes AI Platform - Complete Backend with Smart Content Preprocessing
-# Enhanced version with all features integrated
+# Enhanced version with all features integrated + ROUTING FIXES
 
 import os 
 import re
@@ -824,7 +824,24 @@ def check_google_fact_check(query):
         logger.error(f"Google Fact Check API error: {e}")
         return None
 
-# Route handlers
+# ========================================
+# REQUEST LOGGING MIDDLEWARE (FIX)
+# ========================================
+@app.before_request
+def log_request_info():
+    """Log all requests for debugging"""
+    logger.info(f"Request: {request.method} {request.path} from {request.remote_addr}")
+
+@app.after_request
+def log_response_info(response):
+    """Log response status"""
+    if response.status_code >= 400:
+        logger.warning(f"Response: {response.status_code} for {request.method} {request.path}")
+    return response
+
+# ========================================
+# MAIN PAGE ROUTES
+# ========================================
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -852,6 +869,98 @@ def missionstatement():
 @app.route('/pricingplan')
 def pricingplan():
     return render_template('pricingplan.html')
+
+# ========================================
+# FIX 1: MISSING LOGIN PAGE ROUTE (CRITICAL)
+# ========================================
+@app.route('/login')
+def login_page():
+    """Serve login page - FIXES 404 errors"""
+    try:
+        return render_template('login.html')
+    except Exception as e:
+        # Fallback if template doesn't exist
+        logger.warning(f"Login template not found: {e}")
+        # Return simple inline login page
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head><title>Login - Facts & Fakes AI</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>Facts & Fakes AI Login</h1>
+            <p>Login page is being set up. Please visit <a href="/unified">our tools</a> instead.</p>
+            <a href="/">← Back to Home</a>
+        </body>
+        </html>
+        """
+
+# ========================================
+# FIX 2: MISSING API ENDPOINT (CRITICAL)
+# ========================================
+@app.route('/api/user/status')  # This was the missing endpoint!
+def api_user_status():
+    """Fixed endpoint that matches frontend requests - FIXES 404 errors"""
+    if 'user_id' in session:
+        return jsonify({
+            'authenticated': True,
+            'status': 'success',
+            'user': {
+                'id': session['user_id'],
+                'email': session['email'],
+                'subscription_tier': session.get('subscription_tier', 'free')
+            }
+        })
+    else:
+        return jsonify({
+            'authenticated': False,
+            'status': 'unauthenticated'
+        })
+
+# Keep existing user-status route for backwards compatibility
+@app.route('/api/user-status')
+def user_status():
+    if 'user_id' in session:
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': session['user_id'],
+                'email': session['email'],
+                'subscription_tier': session.get('subscription_tier', 'free')
+            }
+        })
+    else:
+        return jsonify({'authenticated': False})
+
+# ========================================
+# FIX 3: HTML EXTENSION REDIRECTS (FIXES 404s)
+# ========================================
+@app.route('/imageanalysis.html')
+def imageanalysis_html_redirect():
+    return redirect(url_for('imageanalysis'), code=301)
+
+@app.route('/news.html') 
+def news_html_redirect():
+    return redirect(url_for('news'), code=301)
+
+@app.route('/missionstatement.html')
+def missionstatement_html_redirect():
+    return redirect(url_for('missionstatement'), code=301)
+
+@app.route('/pricingplan.html')
+def pricingplan_html_redirect():
+    return redirect(url_for('pricingplan'), code=301)
+
+@app.route('/unified.html')
+def unified_html_redirect():
+    return redirect(url_for('unified'), code=301)
+
+@app.route('/contact.html')
+def contact_html_redirect():
+    return redirect(url_for('contact'), code=301)
+
+@app.route('/login.html')
+def login_html_redirect():
+    return redirect(url_for('login_page'), code=301)
 
 # Authentication routes
 @app.route('/api/register', methods=['POST'])
@@ -931,20 +1040,6 @@ def login():
 def logout():
     session.clear()
     return jsonify({'message': 'Logout successful'})
-
-@app.route('/api/user-status')
-def user_status():
-    if 'user_id' in session:
-        return jsonify({
-            'authenticated': True,
-            'user': {
-                'id': session['user_id'],
-                'email': session['email'],
-                'subscription_tier': session.get('subscription_tier', 'free')
-            }
-        })
-    else:
-        return jsonify({'authenticated': False})
 
 # Contact form
 @app.route('/api/contact', methods=['POST'])
@@ -1320,15 +1415,80 @@ def health_check():
         }
     })
 
-# Error handlers
+# Alternative health check endpoint
+@app.route('/api/health')
+def api_health_check():
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0',
+        'services': {
+            'database': bool(connection_pool),
+            'email': EMAIL_AVAILABLE,
+            'openai': OPENAI_AVAILABLE,
+            'requests': REQUESTS_AVAILABLE,
+            'preprocessing': BEAUTIFULSOUP_AVAILABLE
+        }
+    })
+
+# ========================================
+# FIX 4: ENHANCED ERROR HANDLERS
+# ========================================
 @app.errorhandler(404)
 def not_found(error):
-    return jsonify({'error': 'Endpoint not found'}), 404
+    # Log 404s for debugging (matching your log format)
+    logger.info(f"404 - {request.method} {request.path} from {request.remote_addr}")
+    
+    # Check if it's an API request
+    if request.path.startswith('/api/'):
+        return jsonify({
+            'error': 'API endpoint not found',
+            'path': request.path,
+            'method': request.method,
+            'suggestion': 'Check the API documentation'
+        }), 404
+    
+    # For regular pages, try to redirect to similar page or home
+    path = request.path.lower()
+    if 'login' in path:
+        return redirect(url_for('login_page'))
+    elif 'news' in path:
+        return redirect(url_for('news'))
+    elif 'contact' in path:
+        return redirect(url_for('contact'))
+    else:
+        # Try to serve 404 template or return inline 404
+        try:
+            return render_template('404.html'), 404
+        except:
+            return """
+            <!DOCTYPE html>
+            <html>
+            <head><title>404 - Page Not Found</title></head>
+            <body style="font-family: Arial; text-align: center; padding: 50px;">
+                <h1>404 - Page Not Found</h1>
+                <p>The page you're looking for doesn't exist.</p>
+                <a href="/">← Back to Home</a> | 
+                <a href="/unified">Try Our Tools</a>
+            </body>
+            </html>
+            """, 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    return jsonify({'error': 'Internal server error'}), 500
+    logger.error(f"500 error: {error}")
+    return jsonify({
+        'error': 'Internal server error',
+        'message': 'Something went wrong on our end'
+    }), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
+    logger.info(f"🚀 Starting Facts & Fakes AI server on port {port}")
+    logger.info("🔧 Routing fixes applied:")
+    logger.info("   ✅ /api/user/status endpoint added")
+    logger.info("   ✅ /login page route added") 
+    logger.info("   ✅ HTML extension redirects added")
+    logger.info("   ✅ Enhanced error handling enabled")
+    logger.info("   ✅ Request logging enabled")
     app.run(host='0.0.0.0', port=port, debug=False)
