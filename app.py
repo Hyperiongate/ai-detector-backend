@@ -20,6 +20,7 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import NullPool
+import statistics
 
 # Email imports with Python 3.13 compatibility
 try:
@@ -54,16 +55,33 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
+# Check if database URL is configured
+if not DATABASE_URL:
+    logger.error("DATABASE_URL environment variable is not set!")
+    # Use a dummy SQLite database for local development
+    DATABASE_URL = "sqlite:///local_dev.db"
+    logger.warning("Using SQLite database for local development")
+
 # Create engine with connection pooling disabled for Render
-engine = create_engine(
-    DATABASE_URL,
-    poolclass=NullPool,
-    pool_pre_ping=True,
-    connect_args={
-        "sslmode": "require",
-        "connect_timeout": 10
-    }
-)
+if DATABASE_URL.startswith('sqlite'):
+    # SQLite configuration (for local dev)
+    engine = create_engine(DATABASE_URL)
+else:
+    # PostgreSQL configuration (for production)
+    # Update the DATABASE_URL to use psycopg instead of psycopg2
+    if 'postgresql://' in DATABASE_URL and '+' not in DATABASE_URL:
+        # Add the psycopg driver to the URL
+        DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg://')
+    
+    engine = create_engine(
+        DATABASE_URL,
+        poolclass=NullPool,
+        pool_pre_ping=True,
+        connect_args={
+            "sslmode": "require",
+            "connect_timeout": 10
+        }
+    )
 
 # Create session factory
 SessionLocal = scoped_session(sessionmaker(bind=engine))
@@ -463,6 +481,13 @@ def detect_ai():
         logger.error(f"AI detection error: {str(e)}")
         return jsonify({'error': 'Analysis failed'}), 500
 
+def calculate_sentence_uniformity(sentences):
+    """Calculate standard deviation of sentence lengths"""
+    sentence_lengths = [len(s.split()) for s in sentences if s.strip()]
+    if len(sentence_lengths) > 1:
+        return statistics.stdev(sentence_lengths)
+    return 0
+
 def analyze_text_patterns(text):
     """Pattern-based AI detection for demo/free tier"""
     
@@ -475,7 +500,7 @@ def analyze_text_patterns(text):
         'repetitive_phrases': len(re.findall(r'\b(\w+)\s+\1\b', text)),
         'perfect_grammar': len(re.findall(r'[,;:]', text)) / max(len(sentences), 1),
         'complex_vocabulary': len([w for w in words if len(w) > 8]) / max(len(words), 1),
-        'uniform_sentences': np.std([len(s.split()) for s in sentences if s.strip()]) if len(sentences) > 1 else 0
+        'uniform_sentences': calculate_sentence_uniformity(sentences)
     }
     
     # Calculate AI probability
