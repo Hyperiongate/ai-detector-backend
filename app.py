@@ -13,13 +13,13 @@ import bcrypt
 from sqlalchemy import func
 import time
 
-# OpenAI import for Phase 2
+# OpenAI import for Phase 2 - Updated for v1.0+ API
 try:
-    import openai
+    from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-    openai = None
+    OpenAI = None
     print("⚠ OpenAI module not available - will use basic analysis")
 
 # Safe email import handling for Python 3.13 compatibility
@@ -176,10 +176,15 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY', '')
 
-# Configure OpenAI if available
+# Configure OpenAI if available - Updated for v1.0+ API
+client = None
 if OPENAI_API_KEY and OPENAI_AVAILABLE:
-    openai.api_key = OPENAI_API_KEY
-    print("✓ OpenAI API configured")
+    try:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        print("✓ OpenAI API configured")
+    except Exception as e:
+        print(f"⚠ OpenAI configuration error: {e}")
+        OPENAI_AVAILABLE = False
 else:
     print("⚠ OpenAI API key not found - will use basic analysis")
 
@@ -644,14 +649,15 @@ def analyze_emotional_language(content):
     return int(emotional_score), loaded_terms
 
 # ============================================================================
-# PHASE 2: OPENAI INTEGRATION FUNCTIONS
+# PHASE 2: OPENAI INTEGRATION FUNCTIONS - UPDATED FOR v1.0+ API
 # ============================================================================
 
 def analyze_with_openai(content, analysis_type='news'):
     """
     Use OpenAI for advanced content analysis with robust error handling
+    Updated for OpenAI v1.0+ API
     """
-    if not OPENAI_API_KEY or not OPENAI_AVAILABLE:
+    if not OPENAI_API_KEY or not OPENAI_AVAILABLE or not client:
         print("OpenAI API not available")
         return None
     
@@ -699,7 +705,7 @@ Be objective and specific in your analysis."""
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are an expert news analyst specializing in bias detection, fact-checking, and credibility assessment."},
@@ -711,7 +717,7 @@ Be objective and specific in your analysis."""
                 )
                 
                 # Parse the response
-                result_text = response.choices[0].message['content']
+                result_text = response.choices[0].message.content
                 
                 # Try to extract JSON from the response
                 # Handle cases where GPT might include markdown formatting
@@ -726,22 +732,17 @@ Be objective and specific in your analysis."""
                 print("✓ OpenAI analysis completed successfully")
                 return analysis_result
                 
-            except openai.error.RateLimitError:
-                print(f"Rate limit hit, retrying in {2 ** attempt} seconds...")
-                time.sleep(2 ** attempt)
-            except openai.error.APIError as e:
-                print(f"OpenAI API error: {e}")
-                if attempt < max_retries - 1:
+            except Exception as e:
+                if "rate_limit" in str(e).lower():
+                    print(f"Rate limit hit, retrying in {2 ** attempt} seconds...")
+                    time.sleep(2 ** attempt)
+                elif attempt < max_retries - 1:
+                    print(f"OpenAI API error (attempt {attempt + 1}): {e}")
                     time.sleep(1)
                     continue
-                break
-            except json.JSONDecodeError as e:
-                print(f"Failed to parse OpenAI response as JSON: {e}")
-                print(f"Raw response: {result_text[:200]}...")
-                return None
-            except Exception as e:
-                print(f"Unexpected error in OpenAI analysis: {e}")
-                return None
+                else:
+                    print(f"OpenAI API error: {e}")
+                    break
                 
         return None
         
@@ -752,8 +753,9 @@ Be objective and specific in your analysis."""
 def extract_claims_with_ai(content):
     """
     Use OpenAI to extract specific factual claims from content
+    Updated for OpenAI v1.0+ API
     """
-    if not OPENAI_API_KEY or not OPENAI_AVAILABLE:
+    if not OPENAI_API_KEY or not OPENAI_AVAILABLE or not client:
         return []
     
     try:
@@ -771,7 +773,7 @@ Return a JSON array of claims, each with:
 
 Focus on concrete, verifiable claims. Limit to the 5 most important claims."""
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a fact-checking expert who identifies specific claims that can be verified."},
@@ -782,7 +784,7 @@ Focus on concrete, verifiable claims. Limit to the 5 most important claims."""
             timeout=20
         )
         
-        result_text = response.choices[0].message['content']
+        result_text = response.choices[0].message.content
         
         # Extract JSON
         if "```json" in result_text:
@@ -960,7 +962,7 @@ def perform_basic_news_analysis(content):
     }
     
     # Try to enhance with AI for basic tier (limited enhancement)
-    if OPENAI_API_KEY and OPENAI_AVAILABLE and len(content) > 100:
+    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(content) > 100:
         print("Attempting basic AI enhancement...")
         enhanced = enhance_with_openai_analysis(basic_results, content, is_pro=False)
         return enhanced
@@ -975,7 +977,7 @@ def perform_advanced_news_analysis(content):
     basic_results = perform_basic_news_analysis(content)
     
     # For pro tier, always attempt full AI analysis
-    if OPENAI_API_KEY and OPENAI_AVAILABLE:
+    if OPENAI_API_KEY and OPENAI_AVAILABLE and client:
         print("Performing advanced AI-powered analysis...")
         
         # Get comprehensive AI analysis
