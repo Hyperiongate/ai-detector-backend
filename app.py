@@ -15,6 +15,7 @@ import re
 from collections import Counter
 import time
 import logging
+import sys
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, Text, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -48,9 +49,19 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 CORS(app)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure comprehensive logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout,
+    force=True  # Force reconfiguration
+)
 logger = logging.getLogger(__name__)
+
+# Log startup
+logger.info("=" * 80)
+logger.info("BACKEND STARTING UP")
+logger.info("=" * 80)
 
 # Database configuration
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -196,6 +207,12 @@ BIAS_INDICATORS = {
     }
 }
 
+# Log bias indicators on startup
+logger.info("BIAS INDICATORS LOADED:")
+logger.info(f"Left keywords: {len(BIAS_INDICATORS['left']['keywords'])} items")
+logger.info(f"Right keywords: {len(BIAS_INDICATORS['right']['keywords'])} items")
+logger.info(f"Loaded terms: {len(BIAS_INDICATORS['loaded']['keywords'])} items")
+
 # Helper Functions
 def send_email(to_email, subject, html_content):
     """Send email using Bluehost SMTP with Python 3.13 compatibility"""
@@ -308,32 +325,67 @@ def extract_key_claims(text):
     return claims[:10]  # Return top 10 claims
 
 def analyze_political_bias(text):
-    """Perform deep political bias analysis"""
+    """Perform deep political bias analysis with extensive logging"""
+    logger.info("=" * 60)
+    logger.info("ANALYZE_POLITICAL_BIAS CALLED")
+    logger.info("=" * 60)
+    
+    # Log input text
+    logger.info(f"Input text length: {len(text)}")
+    logger.info(f"First 200 chars of text: {text[:200]}")
+    
     text_lower = text.lower()
+    logger.info(f"Lowercase text sample: {text_lower[:200]}")
+    
     words = text_lower.split()
+    logger.info(f"Total words in text: {len(words)}")
+    logger.info(f"First 20 words: {words[:20]}")
     
     # Count bias indicators
     left_score = 0
     right_score = 0
     loaded_terms = []
     
+    # Log keyword lists
+    logger.info(f"Checking against {len(BIAS_INDICATORS['left']['keywords'])} LEFT keywords")
+    logger.info(f"LEFT keywords: {BIAS_INDICATORS['left']['keywords'][:5]}...")
+    logger.info(f"Checking against {len(BIAS_INDICATORS['right']['keywords'])} RIGHT keywords")
+    logger.info(f"RIGHT keywords: {BIAS_INDICATORS['right']['keywords'][:5]}...")
+    
     # Check keywords
+    left_found = []
+    right_found = []
+    
     for word in words:
         if word in BIAS_INDICATORS['left']['keywords']:
             left_score += 1
+            left_found.append(word)
+            logger.debug(f"Found LEFT keyword: '{word}'")
+            
         if word in BIAS_INDICATORS['right']['keywords']:
             right_score += 1
+            right_found.append(word)
+            logger.debug(f"Found RIGHT keyword: '{word}'")
+            
         if word in BIAS_INDICATORS['loaded']['keywords']:
             loaded_terms.append(word)
+            logger.debug(f"Found LOADED term: '{word}'")
+    
+    logger.info(f"LEFT keywords found: {left_found} (total: {left_score})")
+    logger.info(f"RIGHT keywords found: {right_found} (total: {right_score})")
+    logger.info(f"LOADED terms found: {loaded_terms[:10]}")
     
     # Check phrases
+    logger.info("Checking phrases...")
     for phrase in BIAS_INDICATORS['left']['phrases']:
         if phrase in text_lower:
             left_score += 2
+            logger.info(f"Found LEFT phrase: '{phrase}'")
     
     for phrase in BIAS_INDICATORS['right']['phrases']:
         if phrase in text_lower:
             right_score += 2
+            logger.info(f"Found RIGHT phrase: '{phrase}'")
     
     # Simple sentiment analysis (without TextBlob)
     positive_words = ['good', 'great', 'excellent', 'positive', 'successful', 'effective', 'beneficial']
@@ -358,6 +410,8 @@ def analyze_political_bias(text):
     total_bias_indicators = left_score + right_score
     bias_score = right_score - left_score  # Negative = left, Positive = right
     
+    logger.info(f"FINAL SCORES - Left: {left_score}, Right: {right_score}, Bias: {bias_score}")
+    
     # Determine bias label
     if abs(bias_score) <= 2:
         bias_label = 'center'
@@ -372,10 +426,12 @@ def analyze_political_bias(text):
     else:
         bias_label = 'center'
     
+    logger.info(f"Bias label determined: {bias_label}")
+    
     # Calculate objectivity
     objectivity_score = max(0, 100 - (total_bias_indicators * 5) - (len(loaded_terms) * 10) - (subjectivity * 50))
     
-    return {
+    result = {
         'bias_score': bias_score,
         'bias_label': bias_label,
         'left_indicators': left_score,
@@ -386,6 +442,11 @@ def analyze_political_bias(text):
         'objectivity_score': round(objectivity_score, 1),
         'bias_confidence': min(95, 70 + (total_bias_indicators * 2))
     }
+    
+    logger.info(f"BIAS ANALYSIS RESULT: {json.dumps(result, indent=2)}")
+    logger.info("=" * 60)
+    
+    return result
 
 def analyze_source_credibility(url):
     """Analyze source credibility with enhanced metrics"""
@@ -993,14 +1054,37 @@ def analyze_with_openai(text):
 # Enhanced News Verification Route
 @app.route('/api/verify-news', methods=['POST'])
 def verify_news():
+    # Force immediate output
+    print("=" * 80, file=sys.stdout, flush=True)
+    print("VERIFY NEWS ENDPOINT HIT", file=sys.stdout, flush=True)
+    print("=" * 80, file=sys.stdout, flush=True)
+    
+    logger.info("=" * 80)
+    logger.info("VERIFY NEWS ENDPOINT CALLED")
+    logger.info("=" * 80)
+    
     try:
         data = request.json
+        logger.info(f"Received request data keys: {list(data.keys())}")
+        
         url = data.get('url', '')
         headline = data.get('headline', '')
+        text = data.get('text', '')  # Also check for 'text' field
         is_pro = data.get('is_pro', False)
         
-        if not url and not headline:
-            return jsonify({'error': 'URL or headline required'}), 400
+        logger.info(f"URL: {url}")
+        logger.info(f"Headline length: {len(headline)}")
+        logger.info(f"Text length: {len(text)}")
+        logger.info(f"Is Pro: {is_pro}")
+        
+        # Use text if provided, otherwise use headline
+        analysis_text = text if text else headline
+        
+        if not url and not analysis_text:
+            logger.warning("No URL or text provided")
+            return jsonify({'error': 'URL or text required'}), 400
+        
+        logger.info(f"Text to analyze (first 300 chars): {analysis_text[:300]}")
         
         # Check rate limit for authenticated users
         if 'user_id' in session:
@@ -1008,20 +1092,26 @@ def verify_news():
             if not can_proceed:
                 return jsonify({'error': message, 'limit_reached': True}), 429
         
-        # Use headline as the main text for analysis
-        text = headline if headline else ''
-        
         # Generate comprehensive analysis
-        result = generate_comprehensive_analysis(text, url, is_pro)
+        logger.info("Starting comprehensive analysis...")
+        result = generate_comprehensive_analysis(analysis_text, url, is_pro)
+        
+        logger.info(f"Analysis complete. Credibility score: {result.get('credibility_score')}")
+        logger.info(f"Political bias result: {result.get('political_bias')}")
         
         # Increment usage
         if 'user_id' in session:
             increment_usage(session['user_id'])
         
+        # Force output again
+        print("ANALYSIS COMPLETE", file=sys.stdout, flush=True)
+        print(f"Bias found: {result.get('political_bias', {}).get('bias_label')}", file=sys.stdout, flush=True)
+        
         return jsonify(result)
         
     except Exception as e:
-        logger.error(f"News verification error: {str(e)}")
+        logger.error(f"News verification error: {str(e)}", exc_info=True)
+        print(f"ERROR: {str(e)}", file=sys.stderr, flush=True)
         return jsonify({'error': 'Verification failed'}), 500
 
 # Cross-Source Verification Route
@@ -1180,5 +1270,7 @@ def shutdown_session(exception=None):
     SessionLocal.remove()
 
 if __name__ == '__main__':
+    logger.info("Starting Flask application...")
     port = int(os.environ.get('PORT', 10000))
+    logger.info(f"Running on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
