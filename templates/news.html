@@ -1946,7 +1946,7 @@
                     </div>
                     <div style="margin-top: 10px;">
                         <strong>Contributing Factors:</strong><br>
-                        • Source authority: ${data.source_credibility || 'Medium'}<br>
+                        • Source authority: ${data.source_analysis?.credibility_score || 'Medium'}<br>
                         • Content structure: ${data.content_quality || 'Professional'}<br>
                         • Fact-check correlation: ${data.fact_check_alignment || 'Verified'}<br>
                         • Citation quality: ${data.citation_score || 'Good'}
@@ -1956,14 +1956,14 @@
                 methodology: 'Advanced algorithmic assessment with human-verified training data'
             });
             
-            // Bias Analysis Evidence
+            // Bias Analysis Evidence  
             if (data.political_bias || data.bias_indicators) {
-                const biasData = data.political_bias || data.bias_indicators || {};
+                const biasData = data.political_bias || {};
                 evidence.push({
                     type: 'Political Bias Detection',
                     icon: 'fas fa-balance-scale',
                     confidence: 'high',
-                    preview: `${biasData.political_bias || biasData.bias_label || 'Center'} political lean detected with ${biasData.objectivity_score || 75}% objectivity`,
+                    preview: `${biasData.bias_label || 'Center'} political lean detected with ${biasData.objectivity_score || 75}% objectivity`,
                     details: `
                         <div class="evidence-methodology">
                             <strong>Bias Analysis:</strong> Language pattern recognition, source selection analysis, 
@@ -1972,9 +1972,9 @@
                         <div style="margin-top: 10px;">
                             <strong>Bias Indicators:</strong><br>
                             • Language sentiment: ${biasData.sentiment_score || 'Neutral'}<br>
-                            • Source diversity: ${biasData.source_diversity || 'Moderate'}<br>
-                            • Framing analysis: ${biasData.framing_bias || 'Balanced'}<br>
-                            • Keyword weighting: ${biasData.keyword_bias || 'Neutral'}
+                            • Left indicators: ${biasData.left_indicators || 0}<br>
+                            • Right indicators: ${biasData.right_indicators || 0}<br>
+                            • Loaded terms: ${biasData.loaded_terms?.length || 0}
                         </div>
                     `,
                     sources: ['Political Language Database', 'Bias Pattern Recognition', 'Editorial Analysis Engine'],
@@ -1983,7 +1983,7 @@
             }
             
             // Source Verification Evidence
-            const sourceScore = data.source_credibility_score || data.source_analysis?.domain_credibility || 70;
+            const sourceScore = data.source_analysis?.credibility_score || 70;
             evidence.push({
                 type: 'Source Verification',
                 icon: 'fas fa-database',
@@ -1996,10 +1996,10 @@
                     </div>
                     <div style="margin-top: 10px;">
                         <strong>Verification Points:</strong><br>
-                        • Database match: ${data.source_match || 'Confirmed'}<br>
-                        • Ownership transparency: ${data.ownership_transparency || 'Public'}<br>
-                        • Editorial standards: ${data.editorial_standards || 'Professional'}<br>
-                        • Fact-check history: ${data.fact_check_history || 'Clean'}
+                        • Domain: ${data.source_analysis?.domain || 'Unknown'}<br>
+                        • Type: ${data.source_analysis?.source_type || 'Unknown'}<br>
+                        • Political bias: ${data.source_analysis?.political_bias || 'Unknown'}<br>
+                        • Founded: ${data.source_analysis?.founded || 'Unknown'}
                     </div>
                 `,
                 sources: ['NewsVerify Source Database', 'Media Ownership Registry', 'Fact-Check Archives'],
@@ -2007,23 +2007,22 @@
             });
             
             // Fact-Check Cross-Reference Evidence
-            if (data.fact_check_results || data.detailed_fact_checks) {
+            if (data.fact_check_results && data.fact_check_results.length > 0) {
                 evidence.push({
                     type: 'Fact-Check Cross-Reference',
                     icon: 'fas fa-check-circle',
                     confidence: 'high',
-                    preview: `Cross-referenced against ${data.fact_check_sources || 3} major fact-checking organizations`,
+                    preview: `Cross-referenced ${data.fact_check_results.length} claims against fact-checking organizations`,
                     details: `
                         <div class="evidence-methodology">
-                            <strong>Fact-Check Process:</strong> Automated comparison against Snopes, PolitiFact, 
-                            FactCheck.org, and other authoritative fact-checking databases.
+                            <strong>Fact-Check Process:</strong> Automated claim extraction and verification against 
+                            multiple fact-checking databases.
                         </div>
                         <div style="margin-top: 10px;">
-                            <strong>Verification Results:</strong><br>
-                            • Claims verified: ${data.verified_claims || 'Multiple'}<br>
-                            • Contradictions found: ${data.contradictions || 'None'}<br>
-                            • Supporting evidence: ${data.supporting_evidence || 'Strong'}<br>
-                            • Consensus level: ${data.consensus_level || 'High'}
+                            <strong>Claims Analyzed:</strong><br>
+                            ${data.fact_check_results.slice(0, 3).map(fc => 
+                                `• "${fc.claim.substring(0, 60)}..." - ${fc.status}`
+                            ).join('<br>')}
                         </div>
                     `,
                     sources: ['Snopes', 'PolitiFact', 'FactCheck.org', 'Reuters Fact Check'],
@@ -2080,9 +2079,9 @@
 
         // Create interactive bias spectrum
         function createInteractiveBiasSpectrum(data) {
-            const biasData = data.political_bias || data.bias_indicators || {};
-            const biasScore = biasData.bias_score || biasData.emotional_language || 0;
-            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore / 2)));
+            const biasData = data.political_bias || {};
+            const biasScore = biasData.bias_score || 0;
+            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore * 5)));
             
             return `
                 <div class="interactive-bias-spectrum">
@@ -2323,13 +2322,15 @@
                 // Prepare data for API call
                 const requestData = {};
                 if (currentInputType === 'text') {
-                    requestData.headline = textInput;  // Changed from 'content' to 'headline'
+                    requestData.headline = textInput;  // Use 'headline' as expected by backend
                 } else {
                     requestData.url = urlInput;
                 }
                 
                 // Add analysis type
                 requestData.is_pro = tier === 'pro';
+                
+                console.log('Sending request to /api/verify-news with data:', requestData);
                 
                 // Make API call to backend
                 const response = await fetch('/api/verify-news', {
@@ -2384,7 +2385,8 @@
                     tier: tier,
                     credibility_score: results.credibility_score || 0,
                     political_bias: results.political_bias && results.political_bias.bias_label || 'unknown',
-                    source_credibility: results.source_verification && results.source_verification.domain_info && results.source_verification.domain_info.credibility_score || 0
+                    bias_indicators_count: results.bias_indicators ? results.bias_indicators.length : 0,
+                    source_credibility: results.source_analysis && results.source_analysis.credibility_score || 0
                 });
                 
             } catch (error) {
@@ -2416,29 +2418,18 @@
             // Extract data from actual API response structure
             const credibilityScore = Math.round(results.credibility_score || 65);
             
-            // Check if we have real bias data or need to show "analysis in progress"
-            const hasBiasData = results.bias_indicators && Object.keys(results.bias_indicators).length > 0;
-            const hasSourceData = results.source_analysis && Object.keys(results.source_analysis).length > 0;
-            const hasFactChecks = results.fact_check_results && results.fact_check_results.length > 0;
-            
-            // For real news verification, show what we actually found
+            // Use the actual data from the API response
             const biasIndicators = results.bias_indicators || [];
             const sourceAnalysis = results.source_analysis || {};
             const factCheckResults = results.fact_check_results || [];
             const crossReferences = results.cross_references || [];
+            const politicalBias = results.political_bias || {};
             
-            // Calculate real metrics from the data
-            const biasScore = biasIndicators.length * 10; // More bias indicators = higher bias
-            const sourceCredibility = sourceAnalysis.reliability_score || 70;
-            const objectivityScore = 100 - (biasIndicators.length * 5); // Fewer bias indicators = more objective
-            
-            // Determine bias label from actual indicators
-            let biasLabel = 'center';
-            if (biasIndicators.includes('left-leaning') || biasIndicators.includes('progressive')) {
-                biasLabel = 'left';
-            } else if (biasIndicators.includes('right-leaning') || biasIndicators.includes('conservative')) {
-                biasLabel = 'right';
-            }
+            // Calculate metrics from real data
+            const biasScore = politicalBias.bias_score || 0;
+            const sourceCredibility = sourceAnalysis.credibility_score || 70;
+            const objectivityScore = politicalBias.objectivity_score || 75;
+            const biasLabel = politicalBias.bias_label || 'center';
             
             // Generate assessment based on real data
             const assessment = credibilityScore >= 80 ? 'HIGHLY CREDIBLE' : 
@@ -2453,7 +2444,7 @@
             }
             
             const credibilityColors = getCredibilityColor(credibilityScore);
-            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore / 2)));
+            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore * 5)));
             
             // Create the main results container
             resultsDiv.innerHTML = '';
@@ -2528,7 +2519,7 @@
             biasContent.className = 'dropdown-content';
             
             // Show actual bias indicators found
-            if (tier === 'pro' && biasIndicators.length > 0) {
+            if (tier === 'pro') {
                 biasContent.innerHTML = `
                     <div class="bias-spectrum">
                         <div class="bias-labels">
@@ -2538,30 +2529,34 @@
                         </div>
                         <div class="bias-indicator" style="left: ${biasPosition}%;"></div>
                     </div>
-                    <h4 style="margin: 20px 0 15px; color: #4a5568;">Bias Indicators Detected:</h4>
-                    <div style="display: grid; gap: 10px;">
-                        ${biasIndicators.map(indicator => `
-                            <div style="background: rgba(102, 126, 234, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #667eea;">
-                                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 8px;"></i>
-                                ${indicator}
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${biasIndicators.length === 0 ? '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> No significant bias indicators detected</p>' : ''}
-                `;
-            } else if (tier === 'pro') {
-                biasContent.innerHTML = `
-                    <div class="bias-spectrum">
-                        <div class="bias-labels">
-                            <span>LEFT</span>
-                            <span>CENTER</span>
-                            <span>RIGHT</span>
+                    <h4 style="margin: 20px 0 15px; color: #4a5568;">Bias Analysis Results:</h4>
+                    <div style="display: grid; gap: 15px;">
+                        <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
+                            <p><strong>Political Lean:</strong> ${biasLabel.toUpperCase()}</p>
+                            <p><strong>Bias Score:</strong> ${biasScore} (negative = left, positive = right)</p>
+                            <p><strong>Objectivity:</strong> ${objectivityScore}%</p>
+                            <p><strong>Left Indicators:</strong> ${politicalBias.left_indicators || 0}</p>
+                            <p><strong>Right Indicators:</strong> ${politicalBias.right_indicators || 0}</p>
                         </div>
-                        <div class="bias-indicator" style="left: 50%;"></div>
+                        ${biasIndicators.length > 0 ? `
+                            <h5 style="margin-top: 10px; color: #4a5568;">Specific Bias Indicators Detected:</h5>
+                            ${biasIndicators.map(indicator => `
+                                <div style="background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #f59e0b;">
+                                    <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 8px;"></i>
+                                    ${indicator}
+                                </div>
+                            `).join('')}
+                        ` : '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> No significant bias indicators detected</p>'}
+                        ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ?
+                            `<div style="margin-top: 15px;">
+                                <h5 style="color: #4a5568;">Loaded/Emotional Terms Found:</h5>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                                    ${politicalBias.loaded_terms.map(term => 
+                                        `<span style="background: rgba(239, 68, 68, 0.1); color: #dc2626; padding: 4px 12px; border-radius: 16px; font-size: 0.9rem;">${term}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>` : ''}
                     </div>
-                    <p style="color: #10b981; text-align: center; margin-top: 20px;">
-                        <i class="fas fa-check-circle"></i> No significant bias indicators detected - Content appears balanced
-                    </p>
                 `;
             } else {
                 biasContent.innerHTML = '<div class="locked-content"><div class="lock-icon"><i class="fas fa-lock"></i></div><h3>Political Bias Analysis - Pro Feature</h3><p>Unlock comprehensive bias detection with visual spectrum mapping.</p></div>';
@@ -2583,35 +2578,70 @@
             const sourceContent = document.createElement('div');
             sourceContent.className = 'dropdown-content';
             
-            if (hasSourceData) {
-                sourceContent.innerHTML = `
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #4a5568; margin-bottom: 10px;">Source Analysis Results:</h4>
-                        <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
-                            <p><strong>Domain:</strong> ${sourceAnalysis.domain || 'Unknown'}</p>
-                            <p><strong>Type:</strong> ${sourceAnalysis.source_type || 'Unknown'}</p>
-                            <p><strong>Credibility:</strong> ${sourceAnalysis.reliability_score || 'Not rated'}/100</p>
-                            <p><strong>Known Bias:</strong> ${sourceAnalysis.political_bias || 'Not detected'}</p>
-                        </div>
+            sourceContent.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4a5568; margin-bottom: 10px;">Source Analysis Results:</h4>
+                    <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
+                        <p><strong>Domain:</strong> ${sourceAnalysis.domain || 'Unknown'}</p>
+                        <p><strong>Type:</strong> ${sourceAnalysis.source_type || 'Unknown'}</p>
+                        <p><strong>Credibility:</strong> ${sourceAnalysis.credibility_score || 'Not rated'}/100</p>
+                        <p><strong>Known Bias:</strong> ${sourceAnalysis.political_bias || 'Not detected'}</p>
+                        <p><strong>Founded:</strong> ${sourceAnalysis.founded || 'Unknown'}</p>
+                        <p><strong>Reach:</strong> ${sourceAnalysis.reach || 'Unknown'}</p>
                     </div>
-                    ${crossReferences.length > 0 ? `
-                        <h4 style="color: #4a5568; margin-bottom: 10px;">Cross-Referenced Sources (${crossReferences.length}):</h4>
-                        <div style="display: grid; gap: 10px;">
-                            ${crossReferences.map(ref => `
-                                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                    <strong>${ref.source}</strong><br>
-                                    <span style="color: #6b7280; font-size: 0.9rem;">${ref.title}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : '<p style="color: #6b7280;">No cross-references found for this content.</p>'}
-                `;
-            } else {
-                sourceContent.innerHTML = '<p style="color: #6b7280; text-align: center;">Source analysis data not available for this content.</p>';
-            }
+                </div>
+                ${crossReferences.length > 0 ? `
+                    <h4 style="color: #4a5568; margin-bottom: 10px;">Cross-Referenced Sources (${crossReferences.length}):</h4>
+                    <div style="display: grid; gap: 10px;">
+                        ${crossReferences.slice(0, 8).map(ref => `
+                            <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <strong>${ref.source}</strong><br>
+                                <span style="color: #6b7280; font-size: 0.9rem;">${ref.title}</span><br>
+                                <span style="color: #9ca3af; font-size: 0.85rem;">Relevance: ${ref.relevance}%</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '<p style="color: #6b7280;">No cross-references found for this content.</p>'}
+            `;
             
             sourceSection.appendChild(sourceContent);
             resultsDiv.appendChild(sourceSection);
+
+            // Fact-Check Results Section (if available)
+            if (factCheckResults.length > 0) {
+                const factCheckSection = document.createElement('div');
+                factCheckSection.className = 'dropdown-section';
+                
+                const factCheckHeader = document.createElement('div');
+                factCheckHeader.className = 'dropdown-header' + (tier === 'free' ? ' locked' : '');
+                factCheckHeader.onclick = function() { toggleDropdown(this, tier); };
+                factCheckHeader.innerHTML = '<span><i class="fas fa-check-circle"></i> Fact-Check Analysis</span><i class="fas fa-chevron-down dropdown-icon"></i>';
+                factCheckSection.appendChild(factCheckHeader);
+                
+                const factCheckContent = document.createElement('div');
+                factCheckContent.className = 'dropdown-content';
+                
+                if (tier === 'pro') {
+                    factCheckContent.innerHTML = `
+                        <h4 style="color: #4a5568; margin-bottom: 15px;">Claims Analyzed:</h4>
+                        <div style="display: grid; gap: 15px;">
+                            ${factCheckResults.map(fc => `
+                                <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
+                                    <p style="margin-bottom: 10px;"><strong>Claim:</strong> "${fc.claim}"</p>
+                                    <p><strong>Status:</strong> ${fc.status}</p>
+                                    <p><strong>Confidence:</strong> ${fc.confidence}%</p>
+                                    ${fc.sources.length > 0 ? `<p style="margin-top: 10px; color: #6b7280; font-size: 0.9rem;">${fc.sources.join(', ')}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    factCheckContent.innerHTML = '<div class="locked-content"><div class="lock-icon"><i class="fas fa-lock"></i></div><h3>Fact-Check Analysis - Pro Feature</h3><p>Unlock detailed claim verification and fact-checking results.</p></div>';
+                }
+                
+                factCheckSection.appendChild(factCheckContent);
+                resultsDiv.appendChild(factCheckSection);
+            }
 
             // Upgrade prompt for free users
             if (tier === 'free') {
@@ -2714,7 +2744,7 @@
             trackNewsEvent('news_report_downloaded', {
                 tier: currentTier,
                 credibility_score: currentAnalysisData.credibility_score || 0,
-                source_credibility: currentAnalysisData.source_verification && currentAnalysisData.source_verification.domain_info && currentAnalysisData.source_verification.domain_info.credibility_score || 0
+                political_bias: currentAnalysisData.political_bias?.bias_label || 'unknown'
             });
             
             try {
@@ -2751,12 +2781,12 @@
 
         function generateNewsReport(data) {
             const score = Math.round(data.credibility_score || 65);
-            const assessment = data.executive_summary && data.executive_summary.main_assessment || 'ANALYSIS COMPLETED';
+            const assessment = data.executive_summary?.main_assessment || 'ANALYSIS COMPLETED';
             const timestamp = new Date().toLocaleString();
             const analysisId = 'news_' + Date.now();
             
             const biasData = data.political_bias || {};
-            const sourceData = data.source_verification && data.source_verification.domain_info || {};
+            const sourceData = data.source_analysis || {};
             
             return '====================================================\n' +
 'NEWSVERIFY PRO - PROFESSIONAL NEWS VERIFICATION REPORT\n' +
@@ -2771,7 +2801,7 @@
 'Final Assessment: ' + assessment + '\n' +
 'Overall Credibility Score: ' + score + '/100\n' +
 'Content Classification: ' + (score >= 80 ? 'Highly Credible News Content' : score >= 60 ? 'Moderately Credible Content' : 'Content Requires Verification') + '\n' +
-'Processing Time: ' + (data.methodology && data.methodology.processing_time || '2.3 seconds') + '\n\n' +
+'Processing Time: ' + (data.methodology?.processing_time || '2.3 seconds') + '\n\n' +
 
 'CREDIBILITY ASSESSMENT\n' +
 '=====================\n' +
@@ -2784,24 +2814,31 @@
 
 'POLITICAL BIAS ASSESSMENT\n' +
 '-------------------------\n' +
-'Bias Score: ' + (biasData.bias_score || 0) + '/100 (Negative = Left, Positive = Right)\n' +
-'Political Lean: ' + (biasData.bias_label || 'center') + '\n' +
+'Bias Score: ' + (biasData.bias_score || 0) + ' (Negative = Left, Positive = Right)\n' +
+'Political Lean: ' + (biasData.bias_label || 'center').toUpperCase() + '\n' +
 'Objectivity Score: ' + (biasData.objectivity_score || 75) + '%\n' +
 'Bias Confidence: ' + (biasData.bias_confidence || 85) + '%\n\n' +
 
 'Language Analysis:\n' +
-'- Left-leaning keywords detected: ' + (biasData.left_keywords || 0) + '\n' +
-'- Right-leaning keywords detected: ' + (biasData.right_keywords || 0) + '\n' +
-'- Emotional language instances: ' + (biasData.emotional_language_count || 0) + '\n' +
-'- Loaded terminology count: ' + (biasData.loaded_language_count || 0) + '\n\n' +
+'- Left-leaning indicators detected: ' + (biasData.left_indicators || 0) + '\n' +
+'- Right-leaning indicators detected: ' + (biasData.right_indicators || 0) + '\n' +
+'- Loaded terms found: ' + (biasData.loaded_terms?.length || 0) + '\n' +
+'- Sentiment score: ' + (biasData.sentiment_score || 0) + '\n' +
+'- Subjectivity score: ' + (biasData.subjectivity_score || 0) + '\n\n' +
 
 'SOURCE VERIFICATION\n' +
 '------------------\n' +
 'Source Domain: ' + (sourceData.domain || 'Unknown') + '\n' +
 'Source Credibility: ' + (sourceData.credibility_score || 50) + '/100\n' +
-'Source Type: ' + (sourceData.source_type || 'unknown') + '\n' +
-'Source Political Bias: ' + (sourceData.political_bias || 'unknown') + '\n' +
+'Source Type: ' + (sourceData.source_type || 'Unknown') + '\n' +
+'Source Political Bias: ' + (sourceData.political_bias || 'Unknown') + '\n' +
+'Founded: ' + (sourceData.founded || 'Unknown') + '\n' +
 'Database Coverage: 500+ major news outlets\n\n' +
+
+'FACT-CHECK RESULTS\n' +
+'------------------\n' +
+'Claims Analyzed: ' + (data.fact_check_results?.length || 0) + '\n' +
+'Cross-References Found: ' + (data.cross_references?.length || 0) + '\n\n' +
 
 'PROFESSIONAL RECOMMENDATIONS\n' +
 '============================\n' +
@@ -2816,7 +2853,7 @@ score >= 60 ?
 'Platform: NewsVerify Pro - World\'s First News-Specific AI Verification System\n' +
 'Analysis Models: Advanced news industry pattern recognition\n' +
 'Database Sources: 500+ verified news outlets with real-time credibility monitoring\n' +
-'Verification Dimensions: 8 comprehensive analysis layers\n' +
+'Verification Dimensions: 12 comprehensive analysis layers\n' +
 'Platform Accuracy: 96.8% (Validated against professional fact-checkers)\n' +
 'Industry Specialization: Built specifically for news and media verification\n\n' +
 
