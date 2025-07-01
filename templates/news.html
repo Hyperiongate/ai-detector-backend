@@ -2359,6 +2359,9 @@
                 clearInterval(progressInterval);
                 clearInterval(apiProgressInterval);
                 
+                // Log the actual API response to see what we're getting
+                console.log('API Response:', results);
+                
                 // Store for download functionality
                 currentAnalysisData = results;
                 
@@ -2406,22 +2409,41 @@
         function showNewsResults(results, tier) {
             const resultsDiv = document.getElementById('results');
             
-            // Extract data with proper fallbacks
+            // Log what we're actually getting from the API
+            console.log('Showing results for tier:', tier);
+            console.log('Results data:', results);
+            
+            // Extract data from actual API response structure
             const credibilityScore = Math.round(results.credibility_score || 65);
-            const assessment = results.executive_summary && results.executive_summary.main_assessment || 'ANALYSIS COMPLETED';
             
-            // Political bias data
-            const biasData = results.political_bias || {};
-            const biasScore = biasData.bias_score || 0;
-            const biasLabel = biasData.bias_label || 'center';
-            const objectivity = biasData.objectivity_score || 75;
+            // Check if we have real bias data or need to show "analysis in progress"
+            const hasBiasData = results.bias_indicators && Object.keys(results.bias_indicators).length > 0;
+            const hasSourceData = results.source_analysis && Object.keys(results.source_analysis).length > 0;
+            const hasFactChecks = results.fact_check_results && results.fact_check_results.length > 0;
             
-            // Source verification data
-            const sourceData = results.source_verification && results.source_verification.domain_info || {};
-            const sourceCredibility = sourceData.credibility_score || 50;
-            const sourceBias = sourceData.political_bias || 'unknown';
-            const sourceType = sourceData.source_type || 'unknown';
-            const sourceDomain = sourceData.domain || 'Unknown Source';
+            // For real news verification, show what we actually found
+            const biasIndicators = results.bias_indicators || [];
+            const sourceAnalysis = results.source_analysis || {};
+            const factCheckResults = results.fact_check_results || [];
+            const crossReferences = results.cross_references || [];
+            
+            // Calculate real metrics from the data
+            const biasScore = biasIndicators.length * 10; // More bias indicators = higher bias
+            const sourceCredibility = sourceAnalysis.reliability_score || 70;
+            const objectivityScore = 100 - (biasIndicators.length * 5); // Fewer bias indicators = more objective
+            
+            // Determine bias label from actual indicators
+            let biasLabel = 'center';
+            if (biasIndicators.includes('left-leaning') || biasIndicators.includes('progressive')) {
+                biasLabel = 'left';
+            } else if (biasIndicators.includes('right-leaning') || biasIndicators.includes('conservative')) {
+                biasLabel = 'right';
+            }
+            
+            // Generate assessment based on real data
+            const assessment = credibilityScore >= 80 ? 'HIGHLY CREDIBLE' : 
+                             credibilityScore >= 60 ? 'MODERATELY CREDIBLE' : 
+                             'REQUIRES VERIFICATION';
             
             // Generate colors based on credibility
             function getCredibilityColor(score) {
@@ -2458,10 +2480,27 @@
             summary.innerHTML = '<div class="score-circle" style="background: conic-gradient(from 0deg, ' + credibilityColors.primary + ' 0deg ' + (credibilityScore * 3.6) + 'deg, #e5e7eb ' + (credibilityScore * 3.6) + 'deg 360deg);"><div class="score-text" style="color: ' + credibilityColors.secondary + ';">' + credibilityScore + '</div></div><div class="summary-content"><h3 style="color: #374151; margin-bottom: 8px; font-size: 1.4rem;">' + credibilityColors.text + ' - Overall Score: ' + credibilityScore + '/100</h3><div class="summary-dialogue">' + generateNewsDialogue(credibilityScore, biasLabel, sourceCredibility) + '</div></div>';
             mainCard.appendChild(summary);
             
-            // Data grid
+            // Data grid with real metrics
             const dataGrid = document.createElement('div');
             dataGrid.className = 'data-grid';
-            dataGrid.innerHTML = '<div class="data-item"><div class="data-value">' + credibilityScore + '/100</div><div class="data-label">Overall Credibility</div></div><div class="data-item"><div class="data-value">' + sourceCredibility + '/100</div><div class="data-label">Source Quality</div></div><div class="data-item"><div class="data-value">' + objectivity + '%</div><div class="data-label">Objectivity</div></div><div class="data-item"><div class="data-value">' + biasLabel.toUpperCase() + '</div><div class="data-label">Political Lean</div></div>';
+            dataGrid.innerHTML = `
+                <div class="data-item">
+                    <div class="data-value">${credibilityScore}/100</div>
+                    <div class="data-label">Overall Credibility</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-value">${sourceCredibility}/100</div>
+                    <div class="data-label">Source Quality</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-value">${biasIndicators.length}</div>
+                    <div class="data-label">Bias Indicators</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-value">${crossReferences.length}</div>
+                    <div class="data-label">Sources Checked</div>
+                </div>
+            `;
             mainCard.appendChild(dataGrid);
             
             // Pro download button
@@ -2488,8 +2527,42 @@
             const biasContent = document.createElement('div');
             biasContent.className = 'dropdown-content';
             
-            if (tier === 'pro') {
-                biasContent.innerHTML = '<div class="bias-spectrum"><div class="bias-labels"><span>LEFT</span><span>CENTER</span><span>RIGHT</span></div><div class="bias-indicator" style="left: ' + biasPosition + '%;"></div></div><div class="data-grid"><div class="data-item"><div class="data-value">' + (biasScore > 0 ? '+' : '') + biasScore + '</div><div class="data-label">Bias Score</div></div><div class="data-item"><div class="data-value">' + biasLabel.toUpperCase() + '</div><div class="data-label">Political Lean</div></div><div class="data-item"><div class="data-value">' + objectivity + '%</div><div class="data-label">Objectivity</div></div><div class="data-item"><div class="data-value">' + (biasData.bias_confidence || 85) + '%</div><div class="data-label">Confidence</div></div></div>';
+            // Show actual bias indicators found
+            if (tier === 'pro' && biasIndicators.length > 0) {
+                biasContent.innerHTML = `
+                    <div class="bias-spectrum">
+                        <div class="bias-labels">
+                            <span>LEFT</span>
+                            <span>CENTER</span>
+                            <span>RIGHT</span>
+                        </div>
+                        <div class="bias-indicator" style="left: ${biasPosition}%;"></div>
+                    </div>
+                    <h4 style="margin: 20px 0 15px; color: #4a5568;">Bias Indicators Detected:</h4>
+                    <div style="display: grid; gap: 10px;">
+                        ${biasIndicators.map(indicator => `
+                            <div style="background: rgba(102, 126, 234, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #667eea;">
+                                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 8px;"></i>
+                                ${indicator}
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${biasIndicators.length === 0 ? '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> No significant bias indicators detected</p>' : ''}
+                `;
+            } else if (tier === 'pro') {
+                biasContent.innerHTML = `
+                    <div class="bias-spectrum">
+                        <div class="bias-labels">
+                            <span>LEFT</span>
+                            <span>CENTER</span>
+                            <span>RIGHT</span>
+                        </div>
+                        <div class="bias-indicator" style="left: 50%;"></div>
+                    </div>
+                    <p style="color: #10b981; text-align: center; margin-top: 20px;">
+                        <i class="fas fa-check-circle"></i> No significant bias indicators detected - Content appears balanced
+                    </p>
+                `;
             } else {
                 biasContent.innerHTML = '<div class="locked-content"><div class="lock-icon"><i class="fas fa-lock"></i></div><h3>Political Bias Analysis - Pro Feature</h3><p>Unlock comprehensive bias detection with visual spectrum mapping.</p></div>';
             }
@@ -2497,7 +2570,7 @@
             biasSection.appendChild(biasContent);
             resultsDiv.appendChild(biasSection);
 
-            // Source Verification Section
+            // Source Verification Section with real data
             const sourceSection = document.createElement('div');
             sourceSection.className = 'dropdown-section';
             
@@ -2509,7 +2582,34 @@
             
             const sourceContent = document.createElement('div');
             sourceContent.className = 'dropdown-content';
-            sourceContent.innerHTML = '<div class="data-grid"><div class="data-item"><div class="data-value">' + sourceCredibility + '/100</div><div class="data-label">Credibility Score</div></div><div class="data-item"><div class="data-value">' + sourceType.toUpperCase() + '</div><div class="data-label">Source Type</div></div><div class="data-item"><div class="data-value">' + sourceBias.toUpperCase() + '</div><div class="data-label">Known Bias</div></div><div class="data-item"><div class="data-value">' + (tier === 'pro' ? '500+' : '100+') + '</div><div class="data-label">Database Coverage</div></div></div>';
+            
+            if (hasSourceData) {
+                sourceContent.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #4a5568; margin-bottom: 10px;">Source Analysis Results:</h4>
+                        <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
+                            <p><strong>Domain:</strong> ${sourceAnalysis.domain || 'Unknown'}</p>
+                            <p><strong>Type:</strong> ${sourceAnalysis.source_type || 'Unknown'}</p>
+                            <p><strong>Credibility:</strong> ${sourceAnalysis.reliability_score || 'Not rated'}/100</p>
+                            <p><strong>Known Bias:</strong> ${sourceAnalysis.political_bias || 'Not detected'}</p>
+                        </div>
+                    </div>
+                    ${crossReferences.length > 0 ? `
+                        <h4 style="color: #4a5568; margin-bottom: 10px;">Cross-Referenced Sources (${crossReferences.length}):</h4>
+                        <div style="display: grid; gap: 10px;">
+                            ${crossReferences.map(ref => `
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <strong>${ref.source}</strong><br>
+                                    <span style="color: #6b7280; font-size: 0.9rem;">${ref.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p style="color: #6b7280;">No cross-references found for this content.</p>'}
+                `;
+            } else {
+                sourceContent.innerHTML = '<p style="color: #6b7280; text-align: center;">Source analysis data not available for this content.</p>';
+            }
+            
             sourceSection.appendChild(sourceContent);
             resultsDiv.appendChild(sourceSection);
 
