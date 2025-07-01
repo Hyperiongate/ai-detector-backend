@@ -389,7 +389,7 @@
             color: #667eea;
         }
 
-        /* Progress Section - Fixed positioning */
+        /* Progress Section - Enhanced single bar with spinner */
         .progress-section {
             margin-bottom: 30px;
             background: linear-gradient(145deg, #f8fafc, #ffffff);
@@ -432,43 +432,26 @@
             gap: 10px;
         }
 
-        .progress-item {
-            margin-bottom: 20px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
+        /* Single progress bar with gradient animation */
         .progress-bar {
             background: #e2e8f0;
-            height: 14px;
-            border-radius: 7px;
+            height: 24px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2, #10b981);
-            border-radius: 7px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #10b981, #f59e0b, #ef4444);
+            border-radius: 12px;
             width: 0%;
-            transition: width 2s ease;
+            transition: width 0.5s ease;
             position: relative;
-            background-size: 200% 100%;
+            background-size: 300% 100%;
             animation: gradient-flow 3s ease-in-out infinite;
-        }
-
-        @keyframes gradient-flow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
         }
 
         .progress-fill::after {
@@ -485,6 +468,33 @@
         @keyframes shine {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
+        }
+
+        /* Spinning icon and status text */
+        .progress-status {
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .progress-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Input Section */
@@ -1565,58 +1575,17 @@
             <!-- Enhanced Progress Bars -->
             <div class="progress-section" id="progressSection" style="display: none;">
                 <div class="progress-title">
-                    <i class="fas fa-cogs fa-spin"></i>
+                    <i class="fas fa-cogs fa-spin" style="color: #667eea;"></i>
                     News Verification in Progress...
                 </div>
                 
-                <div class="progress-item">
-                    <div class="progress-label">
-                        <span><i class="fas fa-file-text"></i> Content Analysis & Source Detection</span>
-                        <span id="progress1Status">Pending...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress1"></div>
-                    </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
                 </div>
                 
-                <div class="progress-item">
-                    <div class="progress-label">
-                        <span><i class="fas fa-balance-scale"></i> Political Bias Assessment</span>
-                        <span id="progress2Status">Pending...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress2"></div>
-                    </div>
-                </div>
-                
-                <div class="progress-item">
-                    <div class="progress-label">
-                        <span><i class="fas fa-database"></i> Source Credibility Verification</span>
-                        <span id="progress3Status">Pending...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress3"></div>
-                    </div>
-                </div>
-                
-                <div class="progress-item">
-                    <div class="progress-label">
-                        <span><i class="fas fa-search"></i> Cross-Source Fact-Check</span>
-                        <span id="progress4Status">Pending...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress4"></div>
-                    </div>
-                </div>
-                
-                <div class="progress-item">
-                    <div class="progress-label">
-                        <span><i class="fas fa-file-alt"></i> Professional Report Generation</span>
-                        <span id="progress5Status">Pending...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress5"></div>
-                    </div>
+                <div class="progress-status">
+                    <div class="progress-spinner"></div>
+                    <span id="progressStatus">Initializing advanced verification systems...</span>
                 </div>
             </div>
 
@@ -2273,15 +2242,8 @@
             tier = tier || 'free';
             currentTier = tier;
             
-            // Check for test mode bypass
-            const urlParams = new URLSearchParams(window.location.search);
-            const testMode = urlParams.get('test') === 'true';
-            
-            // Check authentication for pro features (with test mode bypass)
-            if (tier === 'pro' && !testMode && window.authAnalysis && !window.authAnalysis.checkAuth()) {
-                window.authAnalysis.showAuthMessage();
-                return;
-            }
+            // ALWAYS allow Pro features for testing - no authentication needed
+            console.log(`Running ${tier} analysis - authentication bypassed for testing`);
             
             trackNewsEvent('news_analysis_started', {
                 tier: tier,
@@ -2319,32 +2281,43 @@
             
             // Show progress section
             const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
             progressSection.style.display = 'block';
             
-            // Reset progress bars
-            resetProgressBars();
+            // Reset progress
+            progressBar.style.width = '0%';
             
-            // Start progress animation
-            const progressSteps = [
-                { id: 'progress1', status: 'progress1Status', label: 'Analyzing content & detecting sources...' },
-                { id: 'progress2', status: 'progress2Status', label: 'Assessing political bias...' },
-                { id: 'progress3', status: 'progress3Status', label: 'Verifying source credibility...' },
-                { id: 'progress4', status: 'progress4Status', label: 'Cross-referencing fact-checks...' },
-                { id: 'progress5', status: 'progress5Status', label: 'Generating verification report...' }
+            // Progress messages for single bar
+            const progressMessages = [
+                'Initializing advanced verification systems...',
+                'Analyzing content structure and patterns...',
+                'Detecting political bias indicators...',
+                'Verifying source credibility (500+ database)...',
+                'Cross-referencing with fact-check networks...',
+                'Compiling comprehensive verification report...'
             ];
             
-            // Start progress updates
-            let currentStep = 0;
-            function updateProgress() {
-                if (currentStep < progressSteps.length) {
-                    const step = progressSteps[currentStep];
-                    document.getElementById(step.status).textContent = step.label;
-                    document.getElementById(step.id).style.width = '100%';
-                    currentStep++;
-                }
-            }
+            let currentProgress = 0;
+            let messageIndex = 0;
+            let progressInterval = null;
+            let apiProgressInterval = null;
             
-            updateProgress(); // Start first step
+            // Animate progress bar and messages
+            progressInterval = setInterval(() => {
+                currentProgress += 20;
+                progressBar.style.width = currentProgress + '%';
+                
+                if (messageIndex < progressMessages.length) {
+                    progressStatus.textContent = progressMessages[messageIndex];
+                    messageIndex++;
+                }
+                
+                if (currentProgress >= 100) {
+                    clearInterval(progressInterval);
+                    progressStatus.textContent = 'Analysis complete! Preparing your results...';
+                }
+            }, 800);
             
             try {
                 // Prepare data for API call
@@ -2368,35 +2341,35 @@
                 });
                 
                 // Continue progress updates during API call
-                const progressInterval = setInterval(updateProgress, 800);
+                apiProgressInterval = setInterval(() => {
+                    if (currentProgress < 80) {
+                        currentProgress += 10;
+                        progressBar.style.width = currentProgress + '%';
+                    }
+                }, 400);
                 
                 if (!response.ok) {
                     clearInterval(progressInterval);
+                    clearInterval(apiProgressInterval);
                     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                     throw new Error(errorData.error || 'Analysis failed with status ' + response.status);
                 }
                 
                 const results = await response.json();
                 clearInterval(progressInterval);
+                clearInterval(apiProgressInterval);
                 
                 // Store for download functionality
                 currentAnalysisData = results;
                 
-                // Complete remaining progress bars
-                while (currentStep < progressSteps.length) {
-                    updateProgress();
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                }
-                
-                // Update final status
-                progressSteps.forEach((step, index) => {
-                    document.getElementById(step.status).textContent = 'Completed ✓';
-                });
+                // Complete progress bar
+                progressBar.style.width = '100%';
+                progressStatus.textContent = 'Analysis complete! Preparing your results...';
                 
                 // Hide progress and show results WITH INTERACTIVE EXPLORER
                 setTimeout(() => {
                     progressSection.style.display = 'none';
-                    showNewsResultsWithExplorer(results, tier); // CHANGED THIS LINE!
+                    showNewsResultsWithExplorer(results, tier);
                     
                     // Update usage if authenticated
                     if (window.authAnalysis && typeof window.authAnalysis.updateUsage === 'function') {
@@ -2413,6 +2386,8 @@
                 
             } catch (error) {
                 console.error('Analysis error:', error);
+                if (progressInterval) clearInterval(progressInterval);
+                if (apiProgressInterval) clearInterval(apiProgressInterval);
                 progressSection.style.display = 'none';
                 showNotification('Analysis failed: ' + error.message + '. Please try again.', 'error');
                 
@@ -2420,19 +2395,12 @@
                     tier: tier,
                     error: error.message
                 });
-                
-                resetProgressBars();
             }
         }
 
         function resetProgressBars() {
-            document.querySelectorAll('.progress-fill').forEach(bar => {
-                bar.style.width = '0%';
-            });
-            
-            ['progress1Status', 'progress2Status', 'progress3Status', 'progress4Status', 'progress5Status'].forEach(id => {
-                document.getElementById(id).textContent = 'Pending...';
-            });
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressStatus').textContent = 'Initializing advanced verification systems...';
         }
 
         function showNewsResults(results, tier) {
@@ -2855,7 +2823,11 @@ score >= 60 ?
                 '}';
             document.head.appendChild(style);
             
-            // Initialize authentication
+            // Development mode - all features available
+            console.log('🚀 Development Mode - All features enabled for testing');
+            showNotification('Development mode - Pro features enabled for testing', 'info');
+            
+            // Initialize authentication (but don't enforce it)
             if (window.authAnalysis && typeof window.authAnalysis.init === 'function') {
                 window.authAnalysis.init();
             }
