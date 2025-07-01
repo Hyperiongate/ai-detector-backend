@@ -2021,7 +2021,7 @@
                         <div style="margin-top: 10px;">
                             <strong>Claims Analyzed:</strong><br>
                             ${data.fact_check_results.slice(0, 3).map(fc => 
-                                `• "${fc.claim.substring(0, 60)}..." - ${fc.status}`
+                                `• "${(fc.claim || '').substring(0, 60)}..." - ${fc.status || 'Unknown'}`
                             ).join('<br>')}
                         </div>
                     `,
@@ -2620,9 +2620,9 @@
                     <div style="display: grid; gap: 10px;">
                         ${crossReferences.slice(0, 8).map(ref => `
                             <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                <strong>${ref.source}</strong><br>
-                                <span style="color: #6b7280; font-size: 0.9rem;">${ref.title}</span><br>
-                                <span style="color: #9ca3af; font-size: 0.85rem;">Relevance: ${ref.relevance}%</span>
+                                <strong>${ref.source || 'Unknown Source'}</strong><br>
+                                <span style="color: #6b7280; font-size: 0.9rem;">${ref.title || 'No title'}</span><br>
+                                <span style="color: #9ca3af; font-size: 0.85rem;">Relevance: ${ref.relevance || 0}%</span>
                             </div>
                         `).join('')}
                     </div>
@@ -2652,10 +2652,10 @@
                         <div style="display: grid; gap: 15px;">
                             ${factCheckResults.map(fc => `
                                 <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
-                                    <p style="margin-bottom: 10px;"><strong>Claim:</strong> "${fc.claim}"</p>
-                                    <p><strong>Status:</strong> ${fc.status}</p>
-                                    <p><strong>Confidence:</strong> ${fc.confidence}%</p>
-                                    ${fc.sources.length > 0 ? `<p style="margin-top: 10px; color: #6b7280; font-size: 0.9rem;">${fc.sources.join(', ')}</p>` : ''}
+                                    <p style="margin-bottom: 10px;"><strong>Claim:</strong> "${fc.claim || 'No claim text'}"</p>
+                                    <p><strong>Status:</strong> ${fc.status || 'Unknown'}</p>
+                                    <p><strong>Confidence:</strong> ${fc.confidence || 0}%</p>
+                                    ${fc.sources && fc.sources.length > 0 ? `<p style="margin-top: 10px; color: #6b7280; font-size: 0.9rem;">${fc.sources.join(', ')}</p>` : ''}
                                 </div>
                             `).join('')}
                         </div>
