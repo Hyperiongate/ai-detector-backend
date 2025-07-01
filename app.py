@@ -731,6 +731,50 @@ def analyze_political_bias(text):
         }
     }
 
+def analyze_source_credibility(url):
+    """Analyze source credibility with enhanced metrics"""
+    if not url:
+        return {
+            'domain': 'Unknown',
+            'credibility_score': 50,
+            'source_type': 'Unknown',
+            'political_bias': 'Unknown',
+            'reach': 'Unknown',
+            'founded': 'Unknown'
+        }
+    
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower().replace('www.', '')
+        
+        # Check our database
+        if domain in NEWS_SOURCE_DATABASE:
+            source_info = NEWS_SOURCE_DATABASE[domain].copy()
+            source_info['domain'] = domain
+            source_info['credibility_score'] = source_info.pop('credibility')
+            source_info['political_bias'] = source_info.pop('bias')
+            return source_info
+        
+        # Unknown source - return conservative estimate
+        return {
+            'domain': domain,
+            'credibility_score': 45,
+            'source_type': 'Independent/Unknown',
+            'political_bias': 'Unknown',
+            'reach': 'Unknown',
+            'founded': 'Unknown'
+        }
+        
+    except:
+        return {
+            'domain': 'Invalid URL',
+            'credibility_score': 0,
+            'source_type': 'Invalid',
+            'political_bias': 'Unknown',
+            'reach': 'Unknown',
+            'founded': 'Unknown'
+        }
+
 def extract_key_claims(text):
     """Extract key factual claims from news text"""
     claims = []
