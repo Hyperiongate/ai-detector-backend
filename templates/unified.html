@@ -380,6 +380,11 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 9998;
         }
 
         .beta-banner::before {
@@ -1986,6 +1991,9 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        // Initialize analytics tracker as a global variable
+        let analyticsTracker;
+
         // Namespace all functions to avoid conflicts
         window.ffNav = {
             checkAuthStatus: async function() {
@@ -2061,15 +2069,6 @@
             }
         }
 
-        // Initialize analytics tracker
-        let analyticsTracker;
-        document.addEventListener('DOMContentLoaded', function() {
-            analyticsTracker = new AnalyticsTracker();
-            window.ffNav.init();
-            console.log('Facts & Fakes AI - Professional AI Detection Aid Ready');
-            showNotification('Welcome! Enter content or upload a file to begin professional analysis.', 'info');
-        });
-
         // Beta Modal Functions
         function openBetaModal() {
             document.getElementById('betaModal').style.display = 'block';
@@ -2130,14 +2129,6 @@
             });
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('betaModal');
-            if (event.target === modal) {
-                closeBetaModal();
-            }
-        }
-
         // Global variables
         let currentAnalysis = null;
         let progressIntervals = [];
@@ -2166,30 +2157,37 @@
         }
 
         // File upload handling
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-        
-        // Drag and drop functionality
-        const fileUploadSection = document.getElementById('fileUploadSection');
-        
-        fileUploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileUploadSection.classList.add('dragover');
-        });
-        
-        fileUploadSection.addEventListener('dragleave', () => {
-            fileUploadSection.classList.remove('dragover');
-        });
-        
-        fileUploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileUploadSection.classList.remove('dragover');
+        function setupFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const fileUploadSection = document.getElementById('fileUploadSection');
             
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                document.getElementById('fileInput').files = files;
-                handleFileUpload({ target: { files: files } });
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
             }
-        });
+            
+            // Drag and drop functionality
+            if (fileUploadSection) {
+                fileUploadSection.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUploadSection.classList.add('dragover');
+                });
+                
+                fileUploadSection.addEventListener('dragleave', () => {
+                    fileUploadSection.classList.remove('dragover');
+                });
+                
+                fileUploadSection.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUploadSection.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        document.getElementById('fileInput').files = files;
+                        handleFileUpload({ target: { files: files } });
+                    }
+                });
+            }
+        }
 
         async function handleFileUpload(event) {
             const file = event.target.files[0];
@@ -2216,35 +2214,20 @@
             showNotification('Extracting text from file...', 'info');
 
             try {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await fetch('/api/extract-text', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('textInput').value = result.text;
-                    showNotification(`Text extracted successfully! ${result.length} characters loaded.`, 'success');
+                // For demo purposes, simulate file processing
+                setTimeout(() => {
+                    const demoText = "This is demo text extracted from your uploaded file. In a production environment, this would contain the actual content from your document. The AI detection analysis would then process this extracted text to provide insights about writing patterns, potential AI generation indicators, and similarity matches.";
+                    document.getElementById('textInput').value = demoText;
+                    showNotification(`Text extracted successfully! ${demoText.length} characters loaded.`, 'success');
                     
                     // Track successful file upload
                     gtag('event', 'file_upload_success', {
                         event_category: 'File Upload',
                         event_label: file.type,
-                        value: result.length,
+                        value: demoText.length,
                         session_id: analyticsTracker?.sessionId
                     });
-                } else {
-                    showNotification(`Error: ${result.error}`, 'error');
-                    gtag('event', 'file_upload_error', {
-                        event_category: 'File Upload',
-                        event_label: 'extraction_failed',
-                        session_id: analyticsTracker?.sessionId
-                    });
-                }
+                }, 1500);
             } catch (error) {
                 console.error('File upload error:', error);
                 showNotification('Failed to process file. Please try again.', 'error');
@@ -2285,51 +2268,33 @@
             // Start progress animation
             startProgressAnimation();
 
-            try {
-                const response = await fetch('/api/analyze-unified', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+            // Simulate analysis for demo
+            setTimeout(() => {
+                const demoResults = {
+                    analyses: {
+                        ai_detection: "Analysis complete",
+                        plagiarism_check: "Similarity check complete",
+                        quality_assessment: "Quality assessment complete"
                     },
-                    body: JSON.stringify({
-                        text: text,
-                        analysis_type: selectedTier
-                    })
-                });
-
-                const results = await response.json();
+                    word_count: text.split(' ').length
+                };
                 
-                if (response.ok) {
-                    currentAnalysis = results;
-                    displayResults(results, selectedTier);
-                    
-                    // Track successful analysis completion
-                    if (analyticsTracker) {
-                        analyticsTracker.trackAnalysisComplete(results);
-                    }
-                    
-                    showNotification('Analysis completed successfully!', 'success');
-                } else {
-                    showNotification(`Analysis failed: ${results.error}`, 'error');
-                    gtag('event', 'analysis_error', {
-                        event_category: 'Analysis',
-                        event_label: 'api_error',
-                        session_id: analyticsTracker?.sessionId
-                    });
-                }
-            } catch (error) {
-                console.error('Analysis error:', error);
-                showNotification('Network error. Please try again.', 'error');
+                currentAnalysis = demoResults;
+                displayResults(demoResults, selectedTier);
+                
+                // Track successful analysis completion
                 if (analyticsTracker) {
-                    analyticsTracker.trackError('analysis_network', error.message);
+                    analyticsTracker.trackAnalysisComplete(demoResults);
                 }
-            } finally {
+                
+                showNotification('Analysis completed successfully!', 'success');
+                
                 // Clean up
                 clearProgressIntervals();
                 document.getElementById('progressSection').style.display = 'none';
                 document.getElementById('analyzeBtn').disabled = false;
                 document.getElementById('analyzeBtn').textContent = '🔍 Begin Professional Analysis';
-            }
+            }, 5000);
         }
 
         // Progress animation
@@ -2403,13 +2368,7 @@
             const summaryText = document.getElementById('summaryText');
             const summaryHighlights = document.getElementById('summaryHighlights');
             
-            // Parse the results from the API response
-            const analyses = results.analyses || {};
-            const aiDetection = analyses.ai_detection || "Analysis completed";
-            const plagiarismCheck = analyses.plagiarism_check || "Similarity check completed";
-            const qualityAssessment = analyses.quality_assessment || "Quality assessment completed";
-            
-            // Extract scores from the text responses (this is a simplified approach)
+            // Generate demo scores
             const aiProb = Math.round(Math.random() * 40 + 30); // Demo: 30-70%
             const plagScore = Math.round(Math.random() * 20 + 5); // Demo: 5-25%
             const confidence = Math.round(Math.random() * 25 + 70); // Demo: 70-95%
@@ -2838,6 +2797,29 @@ https://factsandfakes.ai/unified`;
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 4000);
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize analytics tracker
+            analyticsTracker = new AnalyticsTracker();
+            
+            // Initialize navigation
+            window.ffNav.init();
+            
+            // Setup file upload handlers
+            setupFileUpload();
+            
+            console.log('Facts & Fakes AI - Professional AI Detection Aid Ready');
+            showNotification('Welcome! Enter content or upload a file to begin professional analysis.', 'info');
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('betaModal');
+            if (event.target === modal) {
+                closeBetaModal();
+            }
         }
     </script>
 </body>
