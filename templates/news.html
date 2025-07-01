@@ -1032,6 +1032,7 @@
             border: 2px solid rgba(102, 126, 234, 0.1);
         }
 
+        /* Enhanced Animated Score Circle */
         .score-circle {
             width: 100px;
             height: 100px;
@@ -1044,6 +1045,7 @@
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             flex-shrink: 0;
+            background: #e5e7eb;
         }
 
         .score-circle::before {
@@ -1056,9 +1058,39 @@
             z-index: 1;
         }
 
+        /* Animated ring fill */
+        @keyframes ringFill {
+            from { background-position: 0deg; }
+            to { background-position: 360deg; }
+        }
+
+        .score-circle.animating {
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent var(--score-deg),
+                #e5e7eb var(--score-deg),
+                #e5e7eb 360deg
+            );
+            animation: ringFill 2s ease-out;
+        }
+
         .score-text {
             position: relative;
             z-index: 2;
+            opacity: 0;
+            animation: fadeInScale 0.5s ease 1.5s forwards;
+        }
+
+        @keyframes fadeInScale {
+            from { 
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .summary-content {
@@ -1167,7 +1199,7 @@
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
         }
 
-        /* Data Grid */
+        /* Data Grid with Animated Counters */
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1194,6 +1226,15 @@
             font-weight: 700;
             color: #667eea;
             margin-bottom: 8px;
+        }
+
+        .data-value.counting {
+            animation: numberPulse 0.3s ease;
+        }
+
+        @keyframes numberPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         .data-label {
@@ -1232,13 +1273,14 @@
             color: #b45309;
         }
 
-        /* Bias Spectrum */
+        /* Enhanced Bias Spectrum with Pulsing Indicator */
         .bias-spectrum {
             background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%);
             height: 40px;
             border-radius: 20px;
             position: relative;
             margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .bias-indicator {
@@ -1252,6 +1294,22 @@
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 2;
+            transition: all 0.5s ease;
+        }
+
+        .bias-indicator.pulse {
+            animation: biasPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes biasPulse {
+            0%, 100% { 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(102, 126, 234, 0.4);
+                transform: translate(-50%, -50%) scale(1.15);
+            }
         }
 
         .bias-labels {
@@ -2392,7 +2450,7 @@
                             <div class="bias-zone" data-zone="right" onmouseenter="showBiasTooltip(event, 'right')" onmouseleave="hideBiasTooltip()"></div>
                         </div>
                         
-                        <div class="bias-indicator" style="left: ${biasPosition}%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: white; border: 4px solid #374151; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 2;"></div>
+                        <div class="bias-indicator pulse" style="left: ${biasPosition}%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: white; border: 4px solid #374151; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 2;"></div>
                         <div class="bias-labels" style="position: absolute; top: -25px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; font-weight: 600;">
                             <span>LEFT</span>
                             <span>CENTER</span>
@@ -2497,6 +2555,24 @@
             if (tooltip) {
                 tooltip.classList.remove('visible');
             }
+        }
+
+        // Animated counter function
+        function animateCounter(element, start, end, duration) {
+            const range = end - start;
+            const increment = range / (duration / 16); // 60fps
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current);
+                element.classList.add('counting');
+                setTimeout(() => element.classList.remove('counting'), 150);
+            }, 16);
         }
 
         // Enhanced showNewsResults function with Interactive Evidence Explorer
@@ -2960,34 +3036,66 @@
             cardHeader.innerHTML = '<i class="fas fa-newspaper"></i>News Verification Assessment<span style="background: ' + credibilityColors.primary + '; color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.85rem; margin-left: auto;">' + assessment + '</span>';
             mainCard.appendChild(cardHeader);
             
-            // Compact summary
+            // Compact summary with animated score
             const summary = document.createElement('div');
             summary.className = 'compact-summary';
-            summary.innerHTML = '<div class="score-circle" style="background: conic-gradient(from 0deg, ' + credibilityColors.primary + ' 0deg ' + (credibilityScore * 3.6) + 'deg, #e5e7eb ' + (credibilityScore * 3.6) + 'deg 360deg);"><div class="score-text" style="color: ' + credibilityColors.secondary + ';">' + credibilityScore + '</div></div><div class="summary-content"><h3 style="color: #374151; margin-bottom: 8px; font-size: 1.4rem;">' + credibilityColors.text + ' - Overall Score: ' + credibilityScore + '/100</h3><div class="summary-dialogue">' + generateNewsDialogue(credibilityScore, biasLabel, sourceCredibility) + '</div></div>';
+            
+            // Create score circle with custom property for animation
+            const scoreCircleHTML = `
+                <div class="score-circle" style="--score-deg: ${credibilityScore * 3.6}deg;">
+                    <div class="score-text" style="color: ${credibilityColors.secondary};">0</div>
+                </div>
+                <div class="summary-content">
+                    <h3 style="color: #374151; margin-bottom: 8px; font-size: 1.4rem;">${credibilityColors.text} - Overall Score: ${credibilityScore}/100</h3>
+                    <div class="summary-dialogue">${generateNewsDialogue(credibilityScore, biasLabel, sourceCredibility)}</div>
+                </div>
+            `;
+            summary.innerHTML = scoreCircleHTML;
             mainCard.appendChild(summary);
             
-            // Data grid with real metrics
+            // Animate the score circle fill
+            setTimeout(() => {
+                const scoreCircle = mainCard.querySelector('.score-circle');
+                const scoreText = mainCard.querySelector('.score-text');
+                if (scoreCircle) {
+                    scoreCircle.classList.add('animating');
+                    scoreCircle.style.background = `conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg)`;
+                    
+                    // Animate the score number
+                    animateCounter(scoreText, 0, credibilityScore, 1500);
+                }
+            }, 100);
+            
+            // Data grid with animated counters
             const dataGrid = document.createElement('div');
             dataGrid.className = 'data-grid';
             dataGrid.innerHTML = `
                 <div class="data-item">
-                    <div class="data-value">${credibilityScore}/100</div>
+                    <div class="data-value" data-value="${credibilityScore}">0</div>
                     <div class="data-label">Overall Credibility</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-value">${sourceCredibility}/100</div>
+                    <div class="data-value" data-value="${sourceCredibility}">0</div>
                     <div class="data-label">Source Quality</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-value">${Object.keys(biasIndicatorsObj).length}</div>
+                    <div class="data-value" data-value="${Object.keys(biasIndicatorsObj).length}">0</div>
                     <div class="data-label">Bias Metrics</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-value">${crossReferences.length}</div>
+                    <div class="data-value" data-value="${crossReferences.length}">0</div>
                     <div class="data-label">Sources Checked</div>
                 </div>
             `;
             mainCard.appendChild(dataGrid);
+            
+            // Animate data grid counters
+            setTimeout(() => {
+                dataGrid.querySelectorAll('.data-value').forEach(element => {
+                    const targetValue = parseInt(element.getAttribute('data-value'));
+                    animateCounter(element, 0, targetValue, 1000);
+                });
+            }, 500);
             
             // Pro download button
             if (tier === 'pro') {
@@ -3000,7 +3108,7 @@
             
             resultsDiv.appendChild(mainCard);
 
-            // Political Bias Analysis Section
+            // Political Bias Analysis Section with pulsing indicator
             const biasSection = document.createElement('div');
             biasSection.className = 'dropdown-section';
             biasSection.id = 'bias-analysis';
@@ -3025,7 +3133,7 @@
                             <span>CENTER</span>
                             <span>RIGHT</span>
                         </div>
-                        <div class="bias-indicator" style="left: ${biasPosition}%;"></div>
+                        <div class="bias-indicator pulse" style="left: ${biasPosition}%;"></div>
                     </div>
                     <h4 style="margin: 20px 0 15px; color: #4a5568;">Bias Analysis Results:</h4>
                     <div style="display: grid; gap: 15px;">
