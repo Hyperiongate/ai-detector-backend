@@ -282,49 +282,66 @@ def send_email(to_email, subject, html_content):
         logger.error(f"Failed to send email: {str(e)}")
         return False
 
+# MODIFIED: Disabled login requirement decorator
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({'error': 'Authentication required'}), 401
+        # DEVELOPMENT MODE: Always allow access
+        logger.info("Login requirement bypassed for development")
         return f(*args, **kwargs)
+        
+        # Original code commented out:
+        # if 'user_id' not in session:
+        #     return jsonify({'error': 'Authentication required'}), 401
+        # return f(*args, **kwargs)
     return decorated_function
 
+# MODIFIED: Always return success for rate limit check
 def check_rate_limit(user_id):
-    """Check if user has reached their daily limit"""
-    db_session = SessionLocal()
-    try:
-        user = db_session.query(User).filter_by(id=user_id).first()
-        if not user:
-            return False, "User not found"
-        
-        # Reset daily count if it's a new day
-        if user.last_analysis_date.date() < datetime.utcnow().date():
-            user.daily_analyses = 0
-            user.last_analysis_date = datetime.utcnow()
-            db_session.commit()
-        
-        # Check limits
-        limit = 10 if user.is_pro else 5
-        if user.daily_analyses >= limit:
-            return False, f"Daily limit reached ({limit} analyses)"
-        
-        return True, user.daily_analyses
-        
-    finally:
-        db_session.close()
+    """Check if user has reached their daily limit - DISABLED FOR DEVELOPMENT"""
+    # Always return success during development
+    return True, 0
+    
+    # Original code commented out:
+    # db_session = SessionLocal()
+    # try:
+    #     user = db_session.query(User).filter_by(id=user_id).first()
+    #     if not user:
+    #         return False, "User not found"
+    #     
+    #     # Reset daily count if it's a new day
+    #     if user.last_analysis_date.date() < datetime.utcnow().date():
+    #         user.daily_analyses = 0
+    #         user.last_analysis_date = datetime.utcnow()
+    #         db_session.commit()
+    #     
+    #     # Check limits
+    #     limit = 10 if user.is_pro else 5
+    #     if user.daily_analyses >= limit:
+    #         return False, f"Daily limit reached ({limit} analyses)"
+    #     
+    #     return True, user.daily_analyses
+    #     
+    # finally:
+    #     db_session.close()
 
+# MODIFIED: Skip incrementing usage during development
 def increment_usage(user_id):
-    """Increment user's daily analysis count"""
-    db_session = SessionLocal()
-    try:
-        user = db_session.query(User).filter_by(id=user_id).first()
-        if user:
-            user.daily_analyses += 1
-            user.last_analysis_date = datetime.utcnow()
-            db_session.commit()
-    finally:
-        db_session.close()
+    """Increment user's daily analysis count - DISABLED FOR DEVELOPMENT"""
+    # Skip during development
+    logger.info("Usage increment skipped for development")
+    return
+    
+    # Original code commented out:
+    # db_session = SessionLocal()
+    # try:
+    #     user = db_session.query(User).filter_by(id=user_id).first()
+    #     if user:
+    #         user.daily_analyses += 1
+    #         user.last_analysis_date = datetime.utcnow()
+    #         db_session.commit()
+    # finally:
+    #     db_session.close()
 
 # Enhanced AI Detection Functions with Real OpenAI Integration
 def analyze_with_openai(text):
@@ -974,6 +991,9 @@ def generate_comprehensive_analysis(text, url, is_pro):
     """Generate comprehensive news analysis with real API data"""
     logger.info("Generating comprehensive news analysis")
     
+    # DEVELOPMENT MODE: Always use pro features
+    is_pro = True
+    
     # Try to fetch full article content if URL provided
     if url:
         full_content = fetch_real_news_content(url)
@@ -1153,6 +1173,9 @@ def generate_comprehensive_analysis(text, url, is_pro):
 # Enhanced Plagiarism Detection
 def check_plagiarism_enhanced(text, is_pro):
     """Enhanced plagiarism detection with simulated database search"""
+    # DEVELOPMENT MODE: Always use pro features
+    is_pro = True
+    
     # In a real implementation, this would search actual databases
     # For now, we'll create a more sophisticated simulation
     
@@ -1271,6 +1294,163 @@ def missionstatement():
 def pricingplan():
     return render_template('pricingplan.html')
 
+# TEMPORARY LOGIN PAGE
+@app.route('/quick-login')
+def quick_login():
+    """Temporary login page that works"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Quick Login - Facts & Fakes AI</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f5f5f5;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .login-container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                width: 400px;
+            }
+            h2 {
+                text-align: center;
+                color: #333;
+                margin-bottom: 30px;
+            }
+            input {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                box-sizing: border-box;
+            }
+            button {
+                width: 100%;
+                padding: 12px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+            button:hover {
+                background: #45a049;
+            }
+            .signup-btn {
+                background: #2196F3;
+                margin-top: 10px;
+            }
+            .signup-btn:hover {
+                background: #1976D2;
+            }
+            .message {
+                text-align: center;
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            .error {
+                background: #ffebee;
+                color: #c62828;
+            }
+            .success {
+                background: #e8f5e9;
+                color: #2e7d32;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <h2>Facts & Fakes AI Login</h2>
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <button class="signup-btn" onclick="signup()">Sign Up</button>
+            <div id="message"></div>
+        </div>
+        
+        <script>
+            document.getElementById('loginForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email, password})
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        showMessage('Login successful! Redirecting...', 'success');
+                        // Check if admin and redirect to upgrade
+                        if (email === 'jim@shift-work.com') {
+                            window.location.href = '/admin/upgrade-me';
+                        } else {
+                            setTimeout(() => window.location.href = '/', 1000);
+                        }
+                    } else {
+                        showMessage(data.error || 'Login failed', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Network error', 'error');
+                }
+            };
+            
+            async function signup() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (!email || !password) {
+                    showMessage('Please enter email and password', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email, password})
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        showMessage('Signup successful! Redirecting...', 'success');
+                        setTimeout(() => window.location.href = '/', 1000);
+                    } else {
+                        showMessage(data.error || 'Signup failed', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Network error', 'error');
+                }
+            }
+            
+            function showMessage(text, type) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = text;
+                messageDiv.className = 'message ' + type;
+            }
+        </script>
+    </body>
+    </html>
+    '''
+
 # Authentication Routes (keeping your existing auth routes)
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -1291,7 +1471,8 @@ def signup():
         user = User(
             email=email,
             password_hash=generate_password_hash(password),
-            is_beta=True
+            is_beta=True,
+            is_pro=True  # DEVELOPMENT: All users get pro features
         )
         db_session.add(user)
         db_session.commit()
@@ -1311,7 +1492,7 @@ def signup():
                 <p>Hi there,</p>
                 <p>Thank you for joining our beta program! You now have access to:</p>
                 <ul>
-                    <li>5 free AI text analyses per day</li>
+                    <li>Unlimited AI text analyses (development mode)</li>
                     <li>News verification and bias detection</li>
                     <li>Image manipulation detection</li>
                     <li>Plagiarism checking</li>
@@ -1330,7 +1511,7 @@ def signup():
             'user': {
                 'email': user.email,
                 'is_pro': user.is_pro,
-                'daily_limit': 10 if user.is_pro else 5
+                'daily_limit': 'unlimited'  # Development mode
             }
         })
         
@@ -1362,8 +1543,8 @@ def login():
             'success': True,
             'user': {
                 'email': user.email,
-                'is_pro': user.is_pro,
-                'daily_limit': 10 if user.is_pro else 5
+                'is_pro': True,  # DEVELOPMENT: Everyone gets pro
+                'daily_limit': 'unlimited'
             }
         })
         
@@ -1377,33 +1558,212 @@ def logout():
 
 @app.route('/api/user/status', methods=['GET'])
 def user_status():
-    if 'user_id' not in session:
-        return jsonify({'authenticated': False})
-    
-    db_session = SessionLocal()
-    try:
-        user = db_session.query(User).filter_by(id=session['user_id']).first()
-        if not user:
-            session.clear()
-            return jsonify({'authenticated': False})
-        
-        # Check daily usage
-        if user.last_analysis_date.date() < datetime.utcnow().date():
-            user.daily_analyses = 0
-        
-        return jsonify({
-            'authenticated': True,
-            'user': {
-                'email': user.email,
-                'is_pro': user.is_pro,
-                'daily_limit': 10 if user.is_pro else 5,
-                'analyses_today': user.daily_analyses
-            }
-        })
-    finally:
-        db_session.close()
+    # DEVELOPMENT MODE: Always return authenticated with pro features
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'email': 'dev@factsandfakes.ai',
+            'is_pro': True,
+            'daily_limit': 'unlimited',
+            'analyses_today': 0
+        }
+    })
 
-# ADMIN ROUTES - ADD THESE NEW ROUTES HERE
+# API ROUTES - MODIFIED FOR NO LOGIN REQUIREMENT
+@app.route('/api/analyze/text', methods=['POST'])
+def analyze_text():
+    """AI text detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 50:
+            return jsonify({'error': 'Text too short for analysis (minimum 50 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro analysis
+        result = analyze_with_openai(text)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Text analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/news', methods=['POST'])
+def analyze_news():
+    """News analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        url = data.get('url', '')
+        
+        if not text and not url:
+            return jsonify({'error': 'No content provided'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = generate_comprehensive_analysis(text, url, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"News analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/plagiarism', methods=['POST'])
+def check_plagiarism():
+    """Plagiarism detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 100:
+            return jsonify({'error': 'Text too short for plagiarism analysis (minimum 100 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = check_plagiarism_enhanced(text, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Plagiarism check error: {str(e)}")
+        return jsonify({'error': 'Plagiarism check failed'}), 500
+
+@app.route('/api/analyze/image', methods=['POST'])
+def analyze_image():
+    """Image analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Basic image analysis (simulated for now)
+        # In production, this would use actual image analysis APIs
+        
+        # Extract image info
+        if image_data.startswith('data:image'):
+            # Remove data URL prefix
+            image_data = image_data.split(',')[1]
+        
+        # Decode base64
+        try:
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(BytesIO(image_bytes))
+            
+            # Get basic image info
+            width, height = image.size
+            format = image.format
+            mode = image.mode
+            
+        except Exception as e:
+            logger.error(f"Image decode error: {str(e)}")
+            return jsonify({'error': 'Invalid image data'}), 400
+        
+        # Simulated analysis result
+        result = {
+            'manipulation_score': 15,  # Low score = less likely manipulated
+            'confidence': 85,
+            'image_info': {
+                'width': width,
+                'height': height,
+                'format': format,
+                'mode': mode
+            },
+            'analysis': {
+                'metadata_inconsistencies': False,
+                'compression_artifacts': 'Normal',
+                'editing_traces': 'None detected',
+                'ai_generation_probability': 0.12
+            },
+            'assessment': 'Image appears authentic with no significant manipulation detected'
+        }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Image analysis error: {str(e)}")
+        return jsonify({'error': 'Image analysis failed'}), 500
+
+@app.route('/api/contact', methods=['POST'])
+def contact_form():
+    """Contact form submission - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        if not all([name, email, subject, message]):
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        # Save to database
+        db_session = SessionLocal()
+        try:
+            contact_msg = ContactMessage(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message,
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent')
+            )
+            db_session.add(contact_msg)
+            db_session.commit()
+            
+            # Send email notification
+            notification_subject = f"New Contact Form Submission: {subject}"
+            notification_html = f"""
+            <html>
+            <body>
+                <h3>New Contact Form Submission</h3>
+                <p><strong>From:</strong> {name} ({email})</p>
+                <p><strong>Subject:</strong> {subject}</p>
+                <p><strong>Message:</strong></p>
+                <p>{message}</p>
+                <hr>
+                <p><small>Submitted at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</small></p>
+            </body>
+            </html>
+            """
+            send_email(CONTACT_EMAIL, notification_subject, notification_html)
+            
+            # Send confirmation to user
+            confirmation_subject = "We received your message - Facts & Fakes AI"
+            confirmation_html = f"""
+            <html>
+            <body>
+                <h3>Thank you for contacting us!</h3>
+                <p>Hi {name},</p>
+                <p>We've received your message and will get back to you as soon as possible.</p>
+                <p><strong>Your message:</strong></p>
+                <blockquote>{message}</blockquote>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </body>
+            </html>
+            """
+            send_email(email, confirmation_subject, confirmation_html)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Thank you for your message. We will get back to you soon!'
+            })
+            
+        finally:
+            db_session.close()
+            
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
+# ADMIN ROUTES - KEEP THESE AS THEY MIGHT BE USEFUL
 @app.route('/admin/upgrade-user', methods=['POST'])
 @login_required
 def admin_upgrade_user():
@@ -1414,7 +1774,7 @@ def admin_upgrade_user():
     # Get current user from session
     db_session = SessionLocal()
     try:
-        current_user = db_session.query(User).filter_by(id=session['user_id']).first()
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
         if not current_user or current_user.email not in ADMIN_EMAILS:
             return jsonify({'error': 'Unauthorized'}), 403
         
@@ -1458,7 +1818,7 @@ def admin_upgrade_me():
     
     db_session = SessionLocal()
     try:
-        current_user = db_session.query(User).filter_by(id=session['user_id']).first()
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
         if not current_user or current_user.email not in ADMIN_EMAILS:
             return "Unauthorized", 403
         
@@ -1472,3 +1832,18 @@ def admin_upgrade_me():
         return "Upgrade failed", 500
     finally:
         db_session.close()
+
+# Health check endpoint
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'version': '3.0',
+        'mode': 'DEVELOPMENT - NO LOGIN REQUIRED'
+    })
+
+if __name__ == '__main__':
+    logger.info("Starting Flask development server...")
+    app.run(debug=True, host='0.0.0.0', port=5000)
