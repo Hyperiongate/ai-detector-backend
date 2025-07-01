@@ -389,7 +389,7 @@
             color: #667eea;
         }
 
-        /* Progress Section - Enhanced single bar with spinner */
+        /* Enhanced Progress Section with Rainbow Animation */
         .progress-section {
             margin-bottom: 30px;
             background: linear-gradient(145deg, #f8fafc, #ffffff);
@@ -432,26 +432,41 @@
             gap: 10px;
         }
 
-        /* Single progress bar with gradient animation */
+        /* Enhanced colorful progress bar */
         .progress-bar {
             background: #e2e8f0;
-            height: 24px;
-            border-radius: 12px;
+            height: 30px;
+            border-radius: 15px;
             overflow: hidden;
             position: relative;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2, #10b981, #f59e0b, #ef4444);
-            border-radius: 12px;
+            background: linear-gradient(90deg, 
+                #ff6b6b 0%, 
+                #f06595 14%, 
+                #cc5de8 28%, 
+                #845ef7 42%, 
+                #5c7cfa 56%, 
+                #339af0 70%, 
+                #22b8cf 84%, 
+                #20c997 100%);
+            border-radius: 13px;
             width: 0%;
             transition: width 0.5s ease;
             position: relative;
-            background-size: 300% 100%;
-            animation: gradient-flow 3s ease-in-out infinite;
+            background-size: 200% 100%;
+            animation: gradient-shift 3s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .progress-fill::after {
@@ -461,13 +476,29 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.6), 
+                transparent);
             animation: shine 2s infinite;
         }
 
         @keyframes shine {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
+        }
+
+        /* Progress percentage display */
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            z-index: 2;
         }
 
         /* Spinning icon and status text */
@@ -486,8 +517,11 @@
             display: inline-block;
             width: 24px;
             height: 24px;
-            border: 3px solid rgba(102, 126, 234, 0.2);
+            border: 3px solid transparent;
             border-top: 3px solid #667eea;
+            border-right: 3px solid #10b981;
+            border-bottom: 3px solid #764ba2;
+            border-left: 3px solid #f59e0b;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -495,6 +529,120 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Results Overview Section */
+        .results-overview {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-overview-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .result-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .result-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .result-icon.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .result-icon.pro-only {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .result-description {
+            font-size: 0.9rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .result-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .status-badge.pro-only {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .lock-icon {
+            color: #d97706;
+            font-size: 1.1rem;
         }
 
         /* Input Section */
@@ -1580,7 +1728,9 @@
                 </div>
                 
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressBar"></div>
+                    <div class="progress-fill" id="progressBar">
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
                 </div>
                 
                 <div class="progress-status">
@@ -2215,13 +2365,18 @@
             
             const explorerHTML = createInteractiveEvidenceExplorer(results);
             
+            // Create a wrapper div with ID for the explorer
+            const explorerWrapper = document.createElement('div');
+            explorerWrapper.id = 'evidence-explorer';
+            explorerWrapper.innerHTML = explorerHTML;
+            
             // Insert the explorer after the main assessment card
             const mainCard = resultsDiv.querySelector('.result-card.main-assessment');
             if (mainCard) {
-                mainCard.insertAdjacentHTML('afterend', explorerHTML);
+                mainCard.insertAdjacentElement('afterend', explorerWrapper);
             } else {
                 // If no main card found, add at the beginning
-                resultsDiv.insertAdjacentHTML('afterbegin', explorerHTML);
+                resultsDiv.insertAdjacentElement('afterbegin', explorerWrapper);
             }
             
             // Track the enhancement
@@ -2230,6 +2385,34 @@
                     tier: tier,
                     evidence_count: generateEvidenceCards(results).length
                 });
+            }
+        }
+
+        // Scroll to section function
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                // If it's a dropdown section, open it first
+                if (section.classList.contains('dropdown-section')) {
+                    const header = section.querySelector('.dropdown-header');
+                    if (header && !header.classList.contains('open')) {
+                        header.click();
+                    }
+                }
+                
+                // Smooth scroll to section
+                section.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest' 
+                });
+                
+                // Add highlight effect
+                section.style.transition = 'all 0.3s ease';
+                section.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.5)';
+                setTimeout(() => {
+                    section.style.boxShadow = '';
+                }, 1500);
             }
         }
 
@@ -2281,11 +2464,13 @@
             // Show progress section
             const progressSection = document.getElementById('progressSection');
             const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
             const progressStatus = document.getElementById('progressStatus');
             progressSection.style.display = 'block';
             
             // Reset progress
             progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
             
             // Progress messages for single bar
             const progressMessages = [
@@ -2306,6 +2491,7 @@
             progressInterval = setInterval(() => {
                 currentProgress += 20;
                 progressBar.style.width = currentProgress + '%';
+                progressPercentage.textContent = currentProgress + '%';
                 
                 if (messageIndex < progressMessages.length) {
                     progressStatus.textContent = progressMessages[messageIndex];
@@ -2346,6 +2532,7 @@
                     if (currentProgress < 80) {
                         currentProgress += 10;
                         progressBar.style.width = currentProgress + '%';
+                        progressPercentage.textContent = currentProgress + '%';
                     }
                 }, 400);
                 
@@ -2368,6 +2555,7 @@
                 
                 // Complete progress bar
                 progressBar.style.width = '100%';
+                progressPercentage.textContent = '100%';
                 progressStatus.textContent = 'Analysis complete! Preparing your results...';
                 
                 // Hide progress and show results WITH INTERACTIVE EXPLORER
@@ -2405,6 +2593,10 @@
 
         function resetProgressBars() {
             document.getElementById('progressBar').style.width = '0%';
+            const progressPercentage = document.getElementById('progressPercentage');
+            if (progressPercentage) {
+                progressPercentage.textContent = '0%';
+            }
             document.getElementById('progressStatus').textContent = 'Initializing advanced verification systems...';
         }
 
@@ -2471,9 +2663,120 @@
             versionBadge.innerHTML = '<i class="fas fa-' + (tier === 'pro' ? 'crown' : 'shield-alt') + '"></i>' + tier.toUpperCase() + ' NEWS VERIFICATION';
             resultsDiv.appendChild(versionBadge);
 
+            // Create Results Overview Section
+            const resultsOverview = document.createElement('div');
+            resultsOverview.className = 'results-overview';
+            resultsOverview.innerHTML = `
+                <div class="results-overview-title">
+                    <i class="fas fa-list-check"></i>
+                    Your News Verification Results Overview
+                </div>
+                <div class="results-list">
+                    <div class="result-item" onclick="scrollToSection('main-assessment')">
+                        <div class="result-item-content">
+                            <div class="result-icon available">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Overall Credibility Assessment</div>
+                                <div class="result-description">Score: ${credibilityScore}/100 - ${assessment}</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            <span class="status-badge available">Available</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item" onclick="scrollToSection('bias-analysis')">
+                        <div class="result-item-content">
+                            <div class="result-icon ${tier === 'pro' ? 'available' : 'pro-only'}">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Political Bias & Objectivity Analysis</div>
+                                <div class="result-description">Detected: ${biasLabel.toUpperCase()} lean with ${objectivityScore}% objectivity</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            ${tier === 'pro' ? 
+                                '<span class="status-badge available">Available</span>' : 
+                                '<span class="status-badge pro-only"><i class="fas fa-lock"></i> PRO</span>'}
+                        </div>
+                    </div>
+                    
+                    <div class="result-item" onclick="scrollToSection('source-verification')">
+                        <div class="result-item-content">
+                            <div class="result-icon available">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Source Credibility & Trust Analysis</div>
+                                <div class="result-description">Source reliability: ${sourceCredibility}/100 - ${sourceAnalysis.domain || 'Analysis complete'}</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            <span class="status-badge available">Available</span>
+                        </div>
+                    </div>
+                    
+                    ${factCheckResults.length > 0 ? `
+                    <div class="result-item" onclick="scrollToSection('fact-check')">
+                        <div class="result-item-content">
+                            <div class="result-icon ${tier === 'pro' ? 'available' : 'pro-only'}">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Fact-Check Analysis</div>
+                                <div class="result-description">${factCheckResults.length} claims analyzed and verified</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            ${tier === 'pro' ? 
+                                '<span class="status-badge available">Available</span>' : 
+                                '<span class="status-badge pro-only"><i class="fas fa-lock"></i> PRO</span>'}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="result-item" onclick="scrollToSection('evidence-explorer')">
+                        <div class="result-item-content">
+                            <div class="result-icon available">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Interactive Evidence Explorer</div>
+                                <div class="result-description">Deep dive into verification evidence and methodology</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            <span class="status-badge available">Available</span>
+                        </div>
+                    </div>
+                    
+                    ${tier === 'pro' ? `
+                    <div class="result-item" onclick="downloadReport()">
+                        <div class="result-item-content">
+                            <div class="result-icon available">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="result-info">
+                                <div class="result-title">Professional Report Download</div>
+                                <div class="result-description">Export comprehensive PDF report with all findings</div>
+                            </div>
+                        </div>
+                        <div class="result-status">
+                            <span class="status-badge available">Available</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            resultsDiv.appendChild(resultsOverview);
+
             // Create main assessment card
             const mainCard = document.createElement('div');
             mainCard.className = 'result-card main-assessment';
+            mainCard.id = 'main-assessment';
             
             // Card header
             const cardHeader = document.createElement('div');
@@ -2524,6 +2827,7 @@
             // Political Bias Analysis Section
             const biasSection = document.createElement('div');
             biasSection.className = 'dropdown-section';
+            biasSection.id = 'bias-analysis';
             
             const biasHeader = document.createElement('div');
             biasHeader.className = 'dropdown-header' + (tier === 'free' ? ' locked' : '');
@@ -2593,6 +2897,7 @@
             // Source Verification Section with real data
             const sourceSection = document.createElement('div');
             sourceSection.className = 'dropdown-section';
+            sourceSection.id = 'source-verification';
             
             const sourceHeader = document.createElement('div');
             sourceHeader.className = 'dropdown-header';
@@ -2636,6 +2941,7 @@
             if (factCheckResults.length > 0) {
                 const factCheckSection = document.createElement('div');
                 factCheckSection.className = 'dropdown-section';
+                factCheckSection.id = 'fact-check';
                 
                 const factCheckHeader = document.createElement('div');
                 factCheckHeader.className = 'dropdown-header' + (tier === 'free' ? ' locked' : '');
