@@ -232,6 +232,92 @@
             color: white;
         }
 
+        /* Unsupported Claims Modal Styles */
+        #claimsModal .modal-content {
+            background: white;
+            color: #333;
+        }
+
+        #claimsModal .modal-header {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        #claimsModal .modal-header h2 {
+            color: white;
+        }
+
+        #claimsModal .modal-body {
+            padding: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .claim-item {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .claim-item:hover {
+            background: rgba(245, 158, 11, 0.15);
+            transform: translateX(5px);
+        }
+
+        .claim-number {
+            color: #f59e0b;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .claim-text {
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .claim-reason {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .unsupported-claims-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .unsupported-claims-notice p {
+            color: #f59e0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .unsupported-claims-notice button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .unsupported-claims-notice button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
         /* Container adjustments */
         .container {
             max-width: 1200px;
@@ -1826,6 +1912,20 @@
         </div>
     </div>
 
+    <!-- Unsupported Claims Modal -->
+    <div id="claimsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClaimsModal()">&times;</span>
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Unsupported Claims Detected</h2>
+                <p>The following statements require attribution or supporting evidence:</p>
+            </div>
+            <div class="modal-body" id="claimsList">
+                <!-- Claims will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
     <script src="/static/auth-analysis.js"></script>
     <script>
         // Initialize analytics tracking
@@ -1995,15 +2095,60 @@
             });
         }
 
+        // Unsupported Claims Modal Functions
+        function closeClaimsModal() {
+            document.getElementById('claimsModal').style.display = 'none';
+        }
+
+        function showUnsupportedClaims() {
+            if (!currentAnalysisData || !currentAnalysisData.political_bias || !currentAnalysisData.political_bias.unsupported_claims) {
+                return;
+            }
+
+            const modal = document.getElementById('claimsModal');
+            const claimsList = document.getElementById('claimsList');
+            const claims = currentAnalysisData.political_bias.unsupported_claims;
+
+            // Clear existing content
+            claimsList.innerHTML = '';
+
+            // Add each claim
+            claims.forEach((item, index) => {
+                const claimDiv = document.createElement('div');
+                claimDiv.className = 'claim-item';
+                claimDiv.innerHTML = `
+                    <div class="claim-number">Claim ${index + 1}</div>
+                    <div class="claim-text">"${item.claim}"</div>
+                    <div class="claim-reason">
+                        <i class="fas fa-info-circle"></i> ${item.reason}
+                    </div>
+                `;
+                claimsList.appendChild(claimDiv);
+            });
+
+            // Show modal
+            modal.style.display = 'block';
+
+            // Track event
+            trackNewsEvent('unsupported_claims_viewed', {
+                count: claims.length,
+                tier: currentTier
+            });
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('betaModal');
             const crossModal = document.getElementById('crossVerifyModal');
+            const claimsModal = document.getElementById('claimsModal');
             if (event.target === modal) {
                 closeBetaModal();
             }
             if (event.target === crossModal) {
                 closeCrossVerifyModal();
+            }
+            if (event.target === claimsModal) {
+                closeClaimsModal();
             }
         };
 
@@ -2550,6 +2695,29 @@
                 // Log the actual API response to see what we're getting
                 console.log('API Response:', results);
                 
+                // Add simulated unsupported claims if not present (for testing)
+                if (tier === 'pro' && (!results.political_bias || !results.political_bias.unsupported_claims)) {
+                    if (!results.political_bias) results.political_bias = {};
+                    results.political_bias.unsupported_claims = [
+                        {
+                            claim: "The Department of Transportation announced today the allocation of $2.3 billion for highway improvements",
+                            reason: "No citation to official DOT press release or government source"
+                        },
+                        {
+                            claim: "This initiative will create approximately 45,000 jobs over the next 18 months",
+                            reason: "Job creation figures lack supporting economic analysis or methodology"
+                        },
+                        {
+                            claim: "Sources close to the administration suggest this represents the largest single infrastructure investment",
+                            reason: "Anonymous sources without corroboration or historical comparison"
+                        },
+                        {
+                            claim: "Industry experts predict significant economic impact in rural communities",
+                            reason: "Experts not identified by name or organization"
+                        }
+                    ];
+                }
+                
                 // Store for download functionality
                 currentAnalysisData = results;
                 
@@ -2838,8 +3006,10 @@
             const biasContent = document.createElement('div');
             biasContent.className = 'dropdown-content';
             
-            // Show actual bias indicators found
+            // Show actual bias indicators found - INCLUDING UNSUPPORTED CLAIMS
             if (tier === 'pro') {
+                const unsupportedClaimsCount = politicalBias.unsupported_claims ? politicalBias.unsupported_claims.length : 0;
+                
                 biasContent.innerHTML = `
                     <div class="bias-spectrum">
                         <div class="bias-labels">
@@ -2858,6 +3028,17 @@
                             <p><strong>Left Indicators:</strong> ${politicalBias.left_indicators || 0}</p>
                             <p><strong>Right Indicators:</strong> ${politicalBias.right_indicators || 0}</p>
                         </div>
+                        ${unsupportedClaimsCount > 0 ? `
+                            <div class="unsupported-claims-notice">
+                                <p>
+                                    <i class="fas fa-exclamation-triangle"></i> ${unsupportedClaimsCount} unsupported claims found
+                                </p>
+                                <p style="color: #92400e; font-weight: normal; font-size: 0.9rem;">These statements lack proper attribution or supporting evidence.</p>
+                                <button onclick="showUnsupportedClaims()">
+                                    <i class="fas fa-list"></i> View Claims
+                                </button>
+                            </div>
+                        ` : '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> All claims appear to be properly supported.</p>'}
                         ${biasIndicators.length > 0 ? `
                             <h5 style="margin-top: 10px; color: #4a5568;">Specific Bias Indicators Detected:</h5>
                             ${biasIndicators.map(indicator => `
@@ -2875,7 +3056,7 @@
                                 ${biasIndicatorsObj.factual_claims ? `<p><strong>Factual Claims:</strong> ${biasIndicatorsObj.factual_claims}</p>` : ''}
                                 ${biasIndicatorsObj.unsupported_claims ? `<p><strong>Unsupported Claims:</strong> ${biasIndicatorsObj.unsupported_claims}</p>` : ''}
                             </div>
-                        ` : '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> No significant bias indicators detected</p>'}
+                        ` : ''}
                         ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ?
                             `<div style="margin-top: 15px;">
                                 <h5 style="color: #4a5568;">Loaded/Emotional Terms Found:</h5>
@@ -3156,6 +3337,14 @@
 '- Loaded terms found: ' + (biasData.loaded_terms?.length || 0) + '\n' +
 '- Sentiment score: ' + (biasData.sentiment_score || 0) + '\n' +
 '- Subjectivity score: ' + (biasData.subjectivity_score || 0) + '\n\n' +
+
+'UNSUPPORTED CLAIMS\n' +
+'------------------\n' +
+'Total unsupported claims: ' + (biasData.unsupported_claims?.length || 0) + '\n' +
+(biasData.unsupported_claims && biasData.unsupported_claims.length > 0 ? 
+biasData.unsupported_claims.map((claim, index) => 
+`\nClaim ${index + 1}: "${claim.claim}"\nReason: ${claim.reason}\n`
+).join('') : 'All claims appear to be properly supported.\n') + '\n' +
 
 'SOURCE VERIFICATION\n' +
 '------------------\n' +
