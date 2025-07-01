@@ -2261,7 +2261,7 @@
                 // Prepare data for API call
                 const requestData = {};
                 if (currentInputType === 'text') {
-                    requestData.content = textInput;
+                    requestData.headline = textInput;  // Changed from 'content' to 'headline'
                 } else {
                     requestData.url = urlInput;
                 }
@@ -2283,7 +2283,7 @@
                 
                 if (!response.ok) {
                     clearInterval(progressInterval);
-                    const errorData = await response.json();
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
                     throw new Error(errorData.error || 'Analysis failed with status ' + response.status);
                 }
                 
