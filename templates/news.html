@@ -2501,27 +2501,35 @@
 
         // Enhanced showNewsResults function with Interactive Evidence Explorer
         function showNewsResultsWithExplorer(results, tier) {
-            // Call your existing showNewsResults function first
+            // Call existing showNewsResults function
             showNewsResults(results, tier);
             
-            // Then add the Interactive Evidence Explorer
+            // Add the Interactive Evidence Explorer as a dropdown section
             const resultsDiv = document.getElementById('results');
             if (!resultsDiv) return;
             
-            const explorerHTML = createInteractiveEvidenceExplorer(results);
+            // Create Evidence Explorer dropdown section
+            const explorerSection = document.createElement('div');
+            explorerSection.className = 'dropdown-section';
+            explorerSection.id = 'evidence-explorer-section';
             
-            // Create a wrapper div with ID for the explorer
-            const explorerWrapper = document.createElement('div');
-            explorerWrapper.id = 'evidence-explorer';
-            explorerWrapper.innerHTML = explorerHTML;
+            const explorerHeader = document.createElement('div');
+            explorerHeader.className = 'dropdown-header';
+            explorerHeader.onclick = function() { toggleDropdown(this, tier); };
+            explorerHeader.innerHTML = '<span><i class="fas fa-search-plus"></i> Interactive Evidence Explorer</span><i class="fas fa-chevron-down dropdown-icon"></i>';
+            explorerSection.appendChild(explorerHeader);
             
-            // Insert the explorer after the main assessment card
-            const mainCard = resultsDiv.querySelector('.result-card.main-assessment');
-            if (mainCard) {
-                mainCard.insertAdjacentElement('afterend', explorerWrapper);
+            const explorerContent = document.createElement('div');
+            explorerContent.className = 'dropdown-content';
+            explorerContent.innerHTML = createInteractiveEvidenceExplorer(results);
+            explorerSection.appendChild(explorerContent);
+            
+            // Insert after the last dropdown section
+            const dropdowns = resultsDiv.querySelectorAll('.dropdown-section');
+            if (dropdowns.length > 0) {
+                dropdowns[dropdowns.length - 1].insertAdjacentElement('afterend', explorerSection);
             } else {
-                // If no main card found, add at the beginning
-                resultsDiv.insertAdjacentElement('afterbegin', explorerWrapper);
+                resultsDiv.appendChild(explorerSection);
             }
             
             // Track the enhancement
@@ -2741,7 +2749,7 @@
                     tier: tier,
                     credibility_score: results.credibility_score || 0,
                     political_bias: results.political_bias && results.political_bias.bias_label || 'unknown',
-                    bias_indicators_count: results.bias_indicators ? results.bias_indicators.length : 0,
+                    bias_indicators_count: results.bias_indicators ? Object.keys(results.bias_indicators).length : 0,
                     source_credibility: results.source_analysis && results.source_analysis.credibility_score || 0
                 });
                 
@@ -2906,7 +2914,7 @@
                     </div>
                     ` : ''}
                     
-                    <div class="result-item" onclick="scrollToSection('evidence-explorer')">
+                    <div class="result-item" onclick="scrollToSection('evidence-explorer-section')">
                         <div class="result-item-content">
                             <div class="result-icon available">
                                 <i class="fas fa-search-plus"></i>
