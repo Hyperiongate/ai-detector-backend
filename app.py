@@ -421,6 +421,11 @@ def user_status():
         }
     })
 
+@app.route('/api/user-status', methods=['GET'])
+def user_status_alt():
+    # Alternative endpoint for unified.html
+    return user_status()
+
 # ============================================================================
 # NEW UNIFIED ANALYSIS ENDPOINTS FOR UNIFIED.HTML
 # ============================================================================
@@ -2033,6 +2038,11 @@ def beta_signup():
     except Exception as e:
         print(f"Beta signup error: {e}")
         return jsonify({'error': 'Signup failed. Please try again.'}), 500
+
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    """Alternative register endpoint for unified.html"""
+    return beta_signup()
 
 # Error handlers
 @app.errorhandler(404)
