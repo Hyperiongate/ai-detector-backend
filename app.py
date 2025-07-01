@@ -25,6 +25,13 @@ import statistics
 from urllib.parse import urlparse, quote
 import difflib
 import openai
+try:
+    # Try importing new OpenAI client (v1.0+)
+    from openai import OpenAI
+    OPENAI_V1 = True
+except ImportError:
+    # Fall back to legacy import
+    OPENAI_V1 = False
 
 # Email imports with Python 3.13 compatibility
 try:
@@ -144,9 +151,18 @@ MEDIASTACK_API_KEY = os.environ.get('MEDIASTACK_API_KEY')
 
 # Configure OpenAI if available
 if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
-    logger.info("OpenAI API configured successfully")
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        OPENAI_CLIENT = client
+        logger.info("OpenAI API configured successfully (v1.0+)")
+    except ImportError:
+        # Fallback for older version
+        openai.api_key = OPENAI_API_KEY
+        OPENAI_CLIENT = None
+        logger.info("OpenAI API configured (legacy version)")
 else:
+    OPENAI_CLIENT = None
     logger.warning("OpenAI API key not found - using pattern analysis fallback")
 
 # Enhanced News Source Database (keeping your extensive list)
@@ -339,17 +355,30 @@ def analyze_with_openai(text):
         Text to analyze: {text[:2000]}
         """
         
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an expert AI text detection system. Always respond with valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.1
-        )
-        
-        result = json.loads(response.choices[0].message.content.strip())
+        if OPENAI_CLIENT:
+            # New OpenAI v1.0+ syntax
+            response = OPENAI_CLIENT.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert AI text detection system. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            result = json.loads(response.choices[0].message.content.strip())
+        else:
+            # Legacy OpenAI syntax
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert AI text detection system. Always respond with valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            result = json.loads(response.choices[0].message.content.strip())
         
         # Add additional analysis
         result['analysis'] = {
@@ -604,6 +633,20 @@ def google_fact_check_api(query):
     except Exception as e:
         logger.error(f"Google Fact Check API error: {str(e)}")
         return []
+
+def calculate_relevance(text1, text2):
+    """Calculate relevance between two texts"""
+    words1 = set(text1.lower().split())
+    words2 = set(text2.lower().split())
+    
+    if not words1 or not words2:
+        return 0
+    
+    intersection = words1.intersection(words2)
+    union = words1.union(words2)
+    
+    jaccard = len(intersection) / len(union) if union else 0
+    return round(jaccard * 100, 1)
 
 def search_cross_references_enhanced(headline, limit=10):
     """Enhanced cross-reference search using multiple real APIs"""
@@ -897,17 +940,30 @@ def generate_comprehensive_analysis(text, url, is_pro):
             }}
             """
             
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a news credibility expert. Respond with valid JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=500,
-                temperature=0.1
-            )
-            
-            ai_analysis = json.loads(response.choices[0].message.content.strip())
+            if OPENAI_CLIENT:
+                # New OpenAI v1.0+ syntax
+                response = OPENAI_CLIENT.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a news credibility expert. Respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=500,
+                    temperature=0.1
+                )
+                ai_analysis = json.loads(response.choices[0].message.content.strip())
+            else:
+                # Legacy OpenAI syntax
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a news credibility expert. Respond with valid JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=500,
+                    temperature=0.1
+                )
+                ai_analysis = json.loads(response.choices[0].message.content.strip())
             logger.info("OpenAI news analysis completed")
         except Exception as e:
             logger.error(f"OpenAI news analysis failed: {str(e)}")
