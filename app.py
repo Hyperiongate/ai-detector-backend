@@ -186,24 +186,28 @@ NEWS_SOURCE_DATABASE = {
 # Bias indicator keywords and phrases
 BIAS_INDICATORS = {
     'left': {
-        'keywords': ['progressive', 'social justice', 'inequality', 'systemic', 'privilege', 'marginalized', 
+        'keywords': ['progressive', 'inequality', 'systemic', 'privilege', 'marginalized', 
                     'inclusive', 'equity', 'discrimination', 'oppression', 'activism', 'grassroots',
-                    'climate crisis', 'corporate greed', 'wealth gap', 'living wage'],
-        'phrases': ['fight for', 'stand with', 'demand action', 'held accountable', 'speaking truth to power'],
+                    'liberal', 'social', 'justice'],  # Split multi-word terms
+        'phrases': ['fight for', 'stand with', 'demand action', 'held accountable', 'speaking truth to power',
+                   'social justice', 'climate crisis', 'corporate greed', 'wealth gap', 'living wage'],  # Moved multi-word terms here
         'sources': ['activists say', 'advocates argue', 'progressives believe', 'critics of capitalism']
     },
     'right': {
-        'keywords': ['traditional', 'freedom', 'liberty', 'patriot', 'constitution', 'free market',
-                    'family values', 'law and order', 'personal responsibility', 'limited government',
-                    'border security', 'job creators', 'deregulation', 'religious freedom'],
-        'phrases': ['radical left', 'socialist agenda', 'defend our', 'protect our values', 'government overreach'],
+        'keywords': ['traditional', 'freedom', 'liberty', 'patriot', 'constitution', 'conservative',
+                    'family', 'values', 'law', 'order', 'personal', 'responsibility', 'limited', 'government',
+                    'border', 'security', 'job', 'creators', 'deregulation', 'religious'],  # Split multi-word terms
+        'phrases': ['radical left', 'socialist agenda', 'defend our', 'protect our values', 'government overreach',
+                   'free market', 'family values', 'law and order', 'personal responsibility', 'limited government',
+                   'border security', 'job creators', 'religious freedom'],  # Moved multi-word terms here
         'sources': ['conservatives say', 'business leaders argue', 'traditionalists believe', 'free market advocates']
     },
     'loaded': {
         'keywords': ['slams', 'destroys', 'obliterates', 'shocking', 'bombshell', 'explosive',
-                    'devastating', 'crushing', 'humiliating', 'scandal', 'exposed', 'caught red-handed',
-                    'under fire', 'backlash', 'outrage', 'fury', 'chaos', 'disaster'],
-        'qualifiers': ['allegedly', 'supposedly', 'so-called', 'purported', 'claimed']
+                    'devastating', 'crushing', 'humiliating', 'scandal', 'exposed', 'caught',
+                    'under', 'fire', 'backlash', 'outrage', 'fury', 'chaos', 'disaster'],
+        'qualifiers': ['allegedly', 'supposedly', 'so-called', 'purported', 'claimed'],
+        'phrases': ['caught red-handed', 'under fire']  # Multi-word loaded terms
     }
 }
 
@@ -352,24 +356,41 @@ def analyze_political_bias(text):
     logger.info(f"Checking against {len(BIAS_INDICATORS['right']['keywords'])} RIGHT keywords")
     logger.info(f"RIGHT keywords: {BIAS_INDICATORS['right']['keywords'][:5]}...")
     
-    # Check keywords
+    # Check keywords - both single words and multi-word phrases
     left_found = []
     right_found = []
     
+    # Check single-word keywords
     for word in words:
-        if word in BIAS_INDICATORS['left']['keywords']:
+        # Remove punctuation from word for better matching
+        clean_word = word.strip('.,!?;:')
+        
+        if clean_word in BIAS_INDICATORS['left']['keywords']:
             left_score += 1
-            left_found.append(word)
-            logger.debug(f"Found LEFT keyword: '{word}'")
+            left_found.append(clean_word)
+            logger.debug(f"Found LEFT keyword: '{clean_word}'")
             
-        if word in BIAS_INDICATORS['right']['keywords']:
+        if clean_word in BIAS_INDICATORS['right']['keywords']:
             right_score += 1
-            right_found.append(word)
-            logger.debug(f"Found RIGHT keyword: '{word}'")
+            right_found.append(clean_word)
+            logger.debug(f"Found RIGHT keyword: '{clean_word}'")
             
-        if word in BIAS_INDICATORS['loaded']['keywords']:
-            loaded_terms.append(word)
-            logger.debug(f"Found LOADED term: '{word}'")
+        if clean_word in BIAS_INDICATORS['loaded']['keywords']:
+            loaded_terms.append(clean_word)
+            logger.debug(f"Found LOADED term: '{clean_word}'")
+    
+    # Check multi-word keywords in the full text
+    for keyword in BIAS_INDICATORS['left']['keywords']:
+        if ' ' in keyword and keyword in text_lower:
+            left_score += 1
+            left_found.append(keyword)
+            logger.debug(f"Found LEFT multi-word keyword: '{keyword}'")
+            
+    for keyword in BIAS_INDICATORS['right']['keywords']:
+        if ' ' in keyword and keyword in text_lower:
+            right_score += 1
+            right_found.append(keyword)
+            logger.debug(f"Found RIGHT multi-word keyword: '{keyword}'")
     
     logger.info(f"LEFT keywords found: {left_found} (total: {left_score})")
     logger.info(f"RIGHT keywords found: {right_found} (total: {right_score})")
