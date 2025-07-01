@@ -3074,27 +3074,35 @@
             
             // Animate the score circle when dropdown is opened
             const mainDropdownHeader = mainSection.querySelector('.dropdown-header');
-            mainDropdownHeader.addEventListener('click', function() {
-                if (!this.classList.contains('open')) {
-                    setTimeout(() => {
-                        const scoreCircle = mainContent.querySelector('.score-circle');
-                        const scoreText = mainContent.querySelector('.score-text');
-                        if (scoreCircle) {
-                            scoreCircle.classList.add('animating');
-                            scoreCircle.style.background = `conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg)`;
-                            
-                            // Animate the score number
-                            animateCounter(scoreText, 0, credibilityScore, 1500);
-                        }
+            const setupAnimations = function() {
+                setTimeout(() => {
+                    const scoreCircle = mainContent.querySelector('.score-circle');
+                    const scoreText = mainContent.querySelector('.score-text');
+                    if (scoreCircle && !scoreCircle.classList.contains('animating')) {
+                        scoreCircle.classList.add('animating');
+                        scoreCircle.style.background = `conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg)`;
                         
-                        // Animate data grid counters
-                        mainContent.querySelectorAll('.data-value').forEach(element => {
-                            const targetValue = parseInt(element.getAttribute('data-value'));
-                            animateCounter(element, 0, targetValue, 1000);
-                        });
-                    }, 100);
-                }
-            });
+                        // Animate the score number
+                        animateCounter(scoreText, 0, credibilityScore, 1500);
+                    }
+                    
+                    // Animate data grid counters
+                    mainContent.querySelectorAll('.data-value').forEach(element => {
+                        const targetValue = parseInt(element.getAttribute('data-value'));
+                        animateCounter(element, 0, targetValue, 1000);
+                    });
+                }, 100);
+            };
+            
+            // Set up proper click handler
+            if (mainDropdownHeader) {
+                mainDropdownHeader.removeEventListener('click', setupAnimations); // Remove any existing listener
+                mainDropdownHeader.addEventListener('click', function() {
+                    if (this.classList.contains('open')) {
+                        setupAnimations();
+                    }
+                });
+            }
 
             // Political Bias Analysis Section with pulsing indicator
             const biasSection = document.createElement('div');
