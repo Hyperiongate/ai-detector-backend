@@ -2242,7 +2242,7 @@
             currentTier = tier;
             
             // ALWAYS allow Pro features for testing - no authentication needed
-            console.log(`Running ${tier} analysis - authentication bypassed for testing`);
+            console.log(`🚀 Running ${tier} analysis - authentication bypassed for testing`);
             
             trackNewsEvent('news_analysis_started', {
                 tier: tier,
@@ -2319,21 +2319,21 @@
             }, 800);
             
             try {
-                // Prepare data for API call
+                // Prepare data for API call - FIXED TO USE 'content' FIELD
                 const requestData = {};
                 if (currentInputType === 'text') {
-                    requestData.headline = textInput;  // Use 'headline' as expected by backend
+                    requestData.content = textInput;  // Changed from 'headline' to 'content'
                 } else {
-                    requestData.url = urlInput;
+                    requestData.content = urlInput;   // Send URL as content too
                 }
                 
                 // Add analysis type
                 requestData.is_pro = tier === 'pro';
                 
-                console.log('Sending request to /api/verify-news with data:', requestData);
+                console.log('Sending request to /api/analyze-news with data:', requestData);
                 
-                // Make API call to backend
-                const response = await fetch('/api/verify-news', {
+                // Make API call to backend - FIXED ENDPOINT
+                const response = await fetch('/api/analyze-news', {  // Changed from /api/verify-news
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
