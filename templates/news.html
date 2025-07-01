@@ -2419,7 +2419,23 @@
             const credibilityScore = Math.round(results.credibility_score || 65);
             
             // Use the actual data from the API response
-            const biasIndicators = results.bias_indicators || [];
+            const biasIndicatorsObj = results.bias_indicators || {};
+            const biasIndicators = []; // Convert object to array for display
+            
+            // Convert the bias indicators object to an array of strings
+            if (biasIndicatorsObj.political_bias) {
+                biasIndicators.push(`Political bias detected: ${biasIndicatorsObj.political_bias}`);
+            }
+            if (biasIndicatorsObj.emotional_language && biasIndicatorsObj.emotional_language > 10) {
+                biasIndicators.push(`High emotional language score: ${biasIndicatorsObj.emotional_language}%`);
+            }
+            if (biasIndicatorsObj.factual_claims && biasIndicatorsObj.factual_claims > 0) {
+                biasIndicators.push(`${biasIndicatorsObj.factual_claims} factual claims identified`);
+            }
+            if (biasIndicatorsObj.unsupported_claims && biasIndicatorsObj.unsupported_claims > 0) {
+                biasIndicators.push(`${biasIndicatorsObj.unsupported_claims} unsupported claims found`);
+            }
+            
             const sourceAnalysis = results.source_analysis || {};
             const factCheckResults = results.fact_check_results || [];
             const crossReferences = results.cross_references || [];
@@ -2484,8 +2500,8 @@
                     <div class="data-label">Source Quality</div>
                 </div>
                 <div class="data-item">
-                    <div class="data-value">${biasIndicators.length}</div>
-                    <div class="data-label">Bias Indicators</div>
+                    <div class="data-value">${Object.keys(biasIndicatorsObj).length}</div>
+                    <div class="data-label">Bias Metrics</div>
                 </div>
                 <div class="data-item">
                     <div class="data-value">${crossReferences.length}</div>
@@ -2546,6 +2562,15 @@
                                     ${indicator}
                                 </div>
                             `).join('')}
+                        ` : ''}
+                        ${Object.keys(biasIndicatorsObj).length > 0 ? `
+                            <h5 style="margin-top: 15px; color: #4a5568;">Detailed Bias Metrics:</h5>
+                            <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px; margin-top: 10px;">
+                                ${biasIndicatorsObj.political_bias ? `<p><strong>Political Bias:</strong> ${biasIndicatorsObj.political_bias}</p>` : ''}
+                                ${biasIndicatorsObj.emotional_language ? `<p><strong>Emotional Language:</strong> ${biasIndicatorsObj.emotional_language}%</p>` : ''}
+                                ${biasIndicatorsObj.factual_claims ? `<p><strong>Factual Claims:</strong> ${biasIndicatorsObj.factual_claims}</p>` : ''}
+                                ${biasIndicatorsObj.unsupported_claims ? `<p><strong>Unsupported Claims:</strong> ${biasIndicatorsObj.unsupported_claims}</p>` : ''}
+                            </div>
                         ` : '<p style="color: #10b981; text-align: center; margin-top: 20px;"><i class="fas fa-check-circle"></i> No significant bias indicators detected</p>'}
                         ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ?
                             `<div style="margin-top: 15px;">
