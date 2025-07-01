@@ -522,39 +522,77 @@ def fetch_real_news_content(url):
         return None
 
 def search_news_api(query, limit=10):
-    """Search for news using News API"""
+    """Search for news using News API with better error handling"""
     if not NEWS_API_KEY:
         logger.warning("News API key not available")
         return []
     
     try:
+        # Clean up the query - take first 100 chars and remove special characters
+        clean_query = re.sub(r'[^\w\s]', '', query[:100]).strip()
+        if not clean_query:
+            clean_query = "news"
+        
+        # Try multiple search strategies
+        articles_found = []
+        
+        # Strategy 1: Search everything endpoint
         url = "https://newsapi.org/v2/everything"
         params = {
             'apiKey': NEWS_API_KEY,
-            'q': query,
+            'q': clean_query,
             'sortBy': 'relevancy',
             'pageSize': limit,
-            'language': 'en'
+            'language': 'en',
+            'from': (datetime.utcnow() - timedelta(days=7)).strftime('%Y-%m-%d')  # Last 7 days
         }
         
+        logger.info(f"NewsAPI search with query: {clean_query}")
         response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
         
-        data = response.json()
-        articles = data.get('articles', [])
+        if response.status_code == 200:
+            data = response.json()
+            articles = data.get('articles', [])
+            logger.info(f"NewsAPI returned {len(articles)} articles")
+            
+            for article in articles:
+                articles_found.append({
+                    'source': article.get('source', {}).get('name', 'Unknown'),
+                    'title': article.get('title', 'No title'),
+                    'url': article.get('url', '#'),
+                    'published': article.get('publishedAt', 'Unknown date'),
+                    'description': article.get('description', ''),
+                    'relevance': 85
+                })
+        else:
+            logger.error(f"NewsAPI error: {response.status_code} - {response.text}")
         
-        results = []
-        for article in articles:
-            results.append({
-                'source': article.get('source', {}).get('name', 'Unknown'),
-                'title': article.get('title', 'No title'),
-                'url': article.get('url', '#'),
-                'published': article.get('publishedAt', 'Unknown date'),
-                'description': article.get('description', ''),
-                'relevance': 85  # News API doesn't provide relevance scores
-            })
+        # Strategy 2: If no results, try top headlines
+        if not articles_found:
+            logger.info("Trying NewsAPI top headlines as fallback")
+            url = "https://newsapi.org/v2/top-headlines"
+            params = {
+                'apiKey': NEWS_API_KEY,
+                'country': 'us',
+                'pageSize': limit
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                articles = data.get('articles', [])
+                
+                for article in articles:
+                    articles_found.append({
+                        'source': article.get('source', {}).get('name', 'Unknown'),
+                        'title': article.get('title', 'No title'),
+                        'url': article.get('url', '#'),
+                        'published': article.get('publishedAt', 'Unknown date'),
+                        'description': article.get('description', ''),
+                        'relevance': 70  # Lower relevance for general headlines
+                    })
         
-        return results
+        return articles_found[:limit]
         
     except Exception as e:
         logger.error(f"News API error: {str(e)}")
@@ -652,30 +690,63 @@ def search_cross_references_enhanced(headline, limit=10):
     """Enhanced cross-reference search using multiple real APIs"""
     cross_refs = []
     
+    # Extract key terms from headline for better search
+    # Remove common words and keep important terms
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'as', 'is', 'was', 'are', 'were'}
+    words = headline.lower().split()
+    key_terms = [w for w in words if w not in stop_words and len(w) > 3]
+    search_query = ' '.join(key_terms[:5])  # Use top 5 key terms
+    
+    logger.info(f"Cross-reference search for: {search_query}")
+    
     # Try News API first
-    news_results = search_news_api(headline, limit)
-    cross_refs.extend(news_results)
+    news_results = search_news_api(search_query, limit)
+    if news_results:
+        logger.info(f"Found {len(news_results)} results from NewsAPI")
+        cross_refs.extend(news_results)
+    else:
+        logger.warning("No results from NewsAPI")
     
     # Try MediaStack as backup
-    if len(cross_refs) < limit:
-        mediastack_results = search_mediastack_api(headline, limit - len(cross_refs))
-        cross_refs.extend(mediastack_results)
+    if len(cross_refs) < limit and MEDIASTACK_API_KEY:
+        logger.info("Trying MediaStack API")
+        mediastack_results = search_mediastack_api(search_query, limit - len(cross_refs))
+        if mediastack_results:
+            logger.info(f"Found {len(mediastack_results)} results from MediaStack")
+            cross_refs.extend(mediastack_results)
     
     # Add fact checks if available
-    fact_checks = google_fact_check_api(headline)
-    for fact_check in fact_checks[:3]:  # Add top 3 fact checks
+    if GOOGLE_FACT_CHECK_API_KEY:
+        logger.info("Checking Google Fact Check API")
+        fact_checks = google_fact_check_api(search_query)
+        for fact_check in fact_checks[:3]:
+            cross_refs.append({
+                'source': f"Fact Check: {fact_check['reviewer']}",
+                'title': fact_check['claim'],
+                'url': fact_check['url'],
+                'published': 'Fact Check',
+                'relevance': 95,
+                'rating': fact_check['rating']
+            })
+            logger.info(f"Added fact check from {fact_check['reviewer']}")
+    
+    # If still no results, add a message
+    if not cross_refs:
+        logger.warning("No cross-references found from any API")
+        # Don't return empty - this breaks the UI
         cross_refs.append({
-            'source': f"Fact Check: {fact_check['reviewer']}",
-            'title': fact_check['claim'],
-            'url': fact_check['url'],
-            'published': 'Fact Check',
-            'relevance': 95,
-            'rating': fact_check['rating']
+            'source': 'Search Status',
+            'title': 'No matching articles found in news databases',
+            'url': '#',
+            'published': datetime.utcnow().isoformat(),
+            'relevance': 0,
+            'description': 'Try searching with different keywords or check if the APIs are properly configured'
         })
     
     # Sort by relevance
     cross_refs.sort(key=lambda x: x.get('relevance', 0), reverse=True)
     
+    logger.info(f"Returning {len(cross_refs)} total cross-references")
     return cross_refs[:limit]
 
 def analyze_political_bias(text):
@@ -776,14 +847,16 @@ def analyze_political_bias(text):
 
 def analyze_source_credibility(url):
     """Analyze source credibility with enhanced metrics"""
-    if not url:
+    # If no URL provided or it's actually article text, return conservative estimate
+    if not url or len(url) > 200 or ' ' in url:
+        logger.info("No valid URL provided for source analysis")
         return {
-            'domain': 'Unknown',
+            'domain': 'Direct Text Input',
             'credibility_score': 50,
-            'source_type': 'Unknown',
+            'source_type': 'User Submission',
             'political_bias': 'Unknown',
             'reach': 'Unknown',
-            'founded': 'Unknown'
+            'founded': 'N/A'
         }
     
     try:
@@ -796,9 +869,11 @@ def analyze_source_credibility(url):
             source_info['domain'] = domain
             source_info['credibility_score'] = source_info.pop('credibility')
             source_info['political_bias'] = source_info.pop('bias')
+            logger.info(f"Found source {domain} in database")
             return source_info
         
         # Unknown source - return conservative estimate
+        logger.info(f"Unknown source: {domain}")
         return {
             'domain': domain,
             'credibility_score': 45,
@@ -808,7 +883,8 @@ def analyze_source_credibility(url):
             'founded': 'Unknown'
         }
         
-    except:
+    except Exception as e:
+        logger.error(f"Error analyzing source: {str(e)}")
         return {
             'domain': 'Invalid URL',
             'credibility_score': 0,
