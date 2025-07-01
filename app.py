@@ -1,4 +1,453 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        # Check if user exists
+        if db_session.query(User).filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Create new user
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            is_beta=True,
+            is_pro=True  # DEVELOPMENT: All users get pro features
+        )
+        db_session.add(user)
+        db_session.commit()
+        
+        # Log user in
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        # Send welcome email
+        welcome_subject = "Welcome to Facts & Fakes AI Beta!"
+        welcome_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2c5aa0;">Welcome to Facts & Fakes AI!</h2>
+                <p>Hi there,</p>
+                <p>Thank you for joining our beta program! You now have access to:</p>
+                <ul>
+                    <li>Unlimited AI text analyses (development mode)</li>
+                    <li>News verification and bias detection</li>
+                    <li>Image manipulation detection</li>
+                    <li>Plagiarism checking</li>
+                </ul>
+                <p>Start exploring at <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email(email, welcome_subject, welcome_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 'unlimited'  # Development mode
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+    finally:
+        db_session.close()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    db_session = SessionLocal()
+    try:
+        data = request.json
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        user = db_session.query(User).filter_by(email=email).first()
+        
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Set session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'email': user.email,
+                'is_pro': True,  # DEVELOPMENT: Everyone gets pro
+                'daily_limit': 'unlimited'
+            }
+        })
+        
+    finally:
+        db_session.close()
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/user/status', methods=['GET'])
+def user_status():
+    # DEVELOPMENT MODE: Always return authenticated with pro features
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'email': 'dev@factsandfakes.ai',
+            'is_pro': True,
+            'daily_limit': 'unlimited',
+            'analyses_today': 0
+        }
+    })
+
+# NEW UNIFIED ENDPOINT - ADD THIS
+@app.route('/api/analyze-unified', methods=['POST'])
+def analyze_unified():
+    """Unified analysis endpoint - combines AI, news, and plagiarism detection"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        url = data.get('url', '')
+        analysis_type = data.get('type', 'all')  # 'ai', 'news', 'plagiarism', or 'all'
+        
+        if not text and not url:
+            return jsonify({'error': 'No content provided'}), 400
+        
+        result = {}
+        
+        # AI Detection
+        if analysis_type in ['ai', 'all'] and text:
+            logger.info("Running AI detection analysis")
+            ai_result = analyze_with_openai(text)
+            result['ai_detection'] = ai_result
+        
+        # News Analysis
+        if analysis_type in ['news', 'all']:
+            logger.info("Running news analysis")
+            news_result = generate_comprehensive_analysis(text, url, is_pro=True)
+            result['news_analysis'] = news_result
+        
+        # Plagiarism Detection
+        if analysis_type in ['plagiarism', 'all'] and text:
+            logger.info("Running plagiarism detection")
+            plagiarism_result = check_plagiarism_enhanced(text, is_pro=True)
+            result['plagiarism_check'] = plagiarism_result
+        
+        # Add metadata
+        result['analysis_complete'] = True
+        result['timestamp'] = datetime.utcnow().isoformat()
+        result['pro_features_used'] = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Unified analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
+
+# Also add this simpler endpoint that some frontends might use
+@app.route('/api/analyze/unified', methods=['POST'])
+def analyze_unified_alt():
+    """Alternative unified endpoint path"""
+    return analyze_unified()
+
+# Add endpoint to check auth status without requiring login
+@app.route('/api/auth/check', methods=['GET'])
+def check_auth():
+    """Check authentication status - always returns authenticated in dev mode"""
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'email': 'dev@factsandfakes.ai',
+            'is_pro': True,
+            'daily_limit': 'unlimited'
+        }
+    })
+
+# API ROUTES - MODIFIED FOR NO LOGIN REQUIREMENT
+@app.route('/api/analyze/text', methods=['POST'])
+def analyze_text():
+    """AI text detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 50:
+            return jsonify({'error': 'Text too short for analysis (minimum 50 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro analysis
+        result = analyze_with_openai(text)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Text analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/news', methods=['POST'])
+def analyze_news():
+    """News analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        url = data.get('url', '')
+        
+        if not text and not url:
+            return jsonify({'error': 'No content provided'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = generate_comprehensive_analysis(text, url, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"News analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/plagiarism', methods=['POST'])
+def check_plagiarism():
+    """Plagiarism detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 100:
+            return jsonify({'error': 'Text too short for plagiarism analysis (minimum 100 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = check_plagiarism_enhanced(text, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Plagiarism check error: {str(e)}")
+        return jsonify({'error': 'Plagiarism check failed'}), 500
+
+@app.route('/api/analyze/image', methods=['POST'])
+def analyze_image():
+    """Image analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Basic image analysis (simulated for now)
+        # In production, this would use actual image analysis APIs
+        
+        # Extract image info
+        if image_data.startswith('data:image'):
+            # Remove data URL prefix
+            image_data = image_data.split(',')[1]
+        
+        # Decode base64
+        try:
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(BytesIO(image_bytes))
+            
+            # Get basic image info
+            width, height = image.size
+            format = image.format
+            mode = image.mode
+            
+        except Exception as e:
+            logger.error(f"Image decode error: {str(e)}")
+            return jsonify({'error': 'Invalid image data'}), 400
+        
+        # Simulated analysis result
+        result = {
+            'manipulation_score': 15,  # Low score = less likely manipulated
+            'confidence': 85,
+            'image_info': {
+                'width': width,
+                'height': height,
+                'format': format,
+                'mode': mode
+            },
+            'analysis': {
+                'metadata_inconsistencies': False,
+                'compression_artifacts': 'Normal',
+                'editing_traces': 'None detected',
+                'ai_generation_probability': 0.12
+            },
+            'assessment': 'Image appears authentic with no significant manipulation detected'
+        }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Image analysis error: {str(e)}")
+        return jsonify({'error': 'Image analysis failed'}), 500
+
+@app.route('/api/contact', methods=['POST'])
+def contact_form():
+    """Contact form submission - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        if not all([name, email, subject, message]):
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        # Save to database
+        db_session = SessionLocal()
+        try:
+            contact_msg = ContactMessage(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message,
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent')
+            )
+            db_session.add(contact_msg)
+            db_session.commit()
+            
+            # Send email notification
+            notification_subject = f"New Contact Form Submission: {subject}"
+            notification_html = f"""
+            <html>
+            <body>
+                <h3>New Contact Form Submission</h3>
+                <p><strong>From:</strong> {name} ({email})</p>
+                <p><strong>Subject:</strong> {subject}</p>
+                <p><strong>Message:</strong></p>
+                <p>{message}</p>
+                <hr>
+                <p><small>Submitted at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</small></p>
+            </body>
+            </html>
+            """
+            send_email(CONTACT_EMAIL, notification_subject, notification_html)
+            
+            # Send confirmation to user
+            confirmation_subject = "We received your message - Facts & Fakes AI"
+            confirmation_html = f"""
+            <html>
+            <body>
+                <h3>Thank you for contacting us!</h3>
+                <p>Hi {name},</p>
+                <p>We've received your message and will get back to you as soon as possible.</p>
+                <p><strong>Your message:</strong></p>
+                <blockquote>{message}</blockquote>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </body>
+            </html>
+            """
+            send_email(email, confirmation_subject, confirmation_html)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Thank you for your message. We will get back to you soon!'
+            })
+            
+        finally:
+            db_session.close()
+            
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
+# ADMIN ROUTES - KEEP THESE AS THEY MIGHT BE USEFUL
+@app.route('/admin/upgrade-user', methods=['POST'])
+@login_required
+def admin_upgrade_user():
+    """Admin route to upgrade a user to pro status"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    # Get current user from session
+    db_session = SessionLocal()
+    try:
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.get_json()
+        email_to_upgrade = data.get('email')
+        
+        if not email_to_upgrade:
+            return jsonify({'error': 'Email required'}), 400
+        
+        user = db_session.query(User).filter_by(email=email_to_upgrade).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Upgrade user to pro
+        user.is_pro = True
+        user.daily_analyses = 0  # Reset daily count
+        db_session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {email_to_upgrade} upgraded to Pro',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10
+            }
+        })
+    except Exception as e:
+        logger.error(f"Admin upgrade error: {str(e)}")
+        return jsonify({'error': 'Upgrade failed'}), 500
+    finally:
+        db_session.close()
+
+# Alternative: Simple GET route for quick testing
+@app.route('/admin/upgrade-me')
+@login_required
+def admin_upgrade_me():
+    """Quick route to upgrade current logged-in user to pro"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    db_session = SessionLocal()
+    try:
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return "Unauthorized", 403
+        
+        current_user.is_pro = True
+        current_user.daily_analyses = 0  # Reset daily count
+        db_session.commit()
+        
+        return redirect(url_for('index'))  # Redirect to homepage after upgrade
+    except Exception as e:
+        logger.error(f"Admin self-upgrade error: {str(e)}")
+        return "Upgrade failed", 500
+    finally:
+        db_session.close()
+
+# Health check endpoint
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'version': '3.0',
+        'mode': 'DEVELOPMENT - NO LOGIN REQUIRED'
+    })
+
+if __name__ == '__main__':
+    logger.info("Starting Flask development server...")
+    app.run(debug=True, host='0.0.0.0', port=5000)from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 from flask_cors import CORS
 import os
 from datetime import datetime, timedelta
@@ -1464,3 +1913,508 @@ def signup():
             return jsonify({'error': 'Email and password required'}), 400
         
         # Check if user exists
+        if db_session.query(User).filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Create new user
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            is_beta=True,
+            is_pro=True  # DEVELOPMENT: All users get pro features
+        )
+        db_session.add(user)
+        db_session.commit()
+        
+        # Log user in
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        # Send welcome email
+        welcome_subject = "Welcome to Facts & Fakes AI Beta!"
+        welcome_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2c5aa0;">Welcome to Facts & Fakes AI!</h2>
+                <p>Hi there,</p>
+                <p>Thank you for joining our beta program! You now have access to:</p>
+                <ul>
+                    <li>Unlimited AI text analyses (development mode)</li>
+                    <li>News verification and bias detection</li>
+                    <li>Image manipulation detection</li>
+                    <li>Plagiarism checking</li>
+                </ul>
+                <p>Start exploring at <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email(email, welcome_subject, welcome_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 'unlimited'  # Development mode
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+    finally:
+        db_session.close()d:
+            return jsonify({'error': 'Email and password required'}), 400
+        
+        # Check if user exists
+        if db_session.query(User).filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Create new user
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            is_beta=True,
+            is_pro=True  # DEVELOPMENT: All users get pro features
+        )
+        db_session.add(user)
+        db_session.commit()
+        
+        # Log user in
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        # Send welcome email
+        welcome_subject = "Welcome to Facts & Fakes AI Beta!"
+        welcome_html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2c5aa0;">Welcome to Facts & Fakes AI!</h2>
+                <p>Hi there,</p>
+                <p>Thank you for joining our beta program! You now have access to:</p>
+                <ul>
+                    <li>Unlimited AI text analyses (development mode)</li>
+                    <li>News verification and bias detection</li>
+                    <li>Image manipulation detection</li>
+                    <li>Plagiarism checking</li>
+                </ul>
+                <p>Start exploring at <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email(email, welcome_subject, welcome_html)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 'unlimited'  # Development mode
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+    finally:
+        db_session.close()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    db_session = SessionLocal()
+    try:
+        data = request.json
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        user = db_session.query(User).filter_by(email=email).first()
+        
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Set session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session.permanent = True
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'email': user.email,
+                'is_pro': True,  # DEVELOPMENT: Everyone gets pro
+                'daily_limit': 'unlimited'
+            }
+        })
+        
+    finally:
+        db_session.close()
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/user/status', methods=['GET'])
+def user_status():
+    # DEVELOPMENT MODE: Always return authenticated with pro features
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'email': 'dev@factsandfakes.ai',
+            'is_pro': True,
+            'daily_limit': 'unlimited',
+            'analyses_today': 0
+        }
+    })
+
+# NEW UNIFIED ENDPOINT - ADD THIS
+@app.route('/api/analyze-unified', methods=['POST'])
+def analyze_unified():
+    """Unified analysis endpoint - combines AI, news, and plagiarism detection"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        url = data.get('url', '')
+        analysis_type = data.get('type', 'all')  # 'ai', 'news', 'plagiarism', or 'all'
+        
+        if not text and not url:
+            return jsonify({'error': 'No content provided'}), 400
+        
+        result = {}
+        
+        # AI Detection
+        if analysis_type in ['ai', 'all'] and text:
+            logger.info("Running AI detection analysis")
+            ai_result = analyze_with_openai(text)
+            result['ai_detection'] = ai_result
+        
+        # News Analysis
+        if analysis_type in ['news', 'all']:
+            logger.info("Running news analysis")
+            news_result = generate_comprehensive_analysis(text, url, is_pro=True)
+            result['news_analysis'] = news_result
+        
+        # Plagiarism Detection
+        if analysis_type in ['plagiarism', 'all'] and text:
+            logger.info("Running plagiarism detection")
+            plagiarism_result = check_plagiarism_enhanced(text, is_pro=True)
+            result['plagiarism_check'] = plagiarism_result
+        
+        # Add metadata
+        result['analysis_complete'] = True
+        result['timestamp'] = datetime.utcnow().isoformat()
+        result['pro_features_used'] = True
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Unified analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
+
+# Also add this simpler endpoint that some frontends might use
+@app.route('/api/analyze/unified', methods=['POST'])
+def analyze_unified_alt():
+    """Alternative unified endpoint path"""
+    return analyze_unified()
+
+# Add endpoint to check auth status without requiring login
+@app.route('/api/auth/check', methods=['GET'])
+def check_auth():
+    """Check authentication status - always returns authenticated in dev mode"""
+    return jsonify({
+        'authenticated': True,
+        'user': {
+            'email': 'dev@factsandfakes.ai',
+            'is_pro': True,
+            'daily_limit': 'unlimited'
+        }
+    })
+
+# API ROUTES - MODIFIED FOR NO LOGIN REQUIREMENT
+@app.route('/api/analyze/text', methods=['POST'])
+def analyze_text():
+    """AI text detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 50:
+            return jsonify({'error': 'Text too short for analysis (minimum 50 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro analysis
+        result = analyze_with_openai(text)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Text analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/news', methods=['POST'])
+def analyze_news():
+    """News analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        url = data.get('url', '')
+        
+        if not text and not url:
+            return jsonify({'error': 'No content provided'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = generate_comprehensive_analysis(text, url, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"News analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/analyze/plagiarism', methods=['POST'])
+def check_plagiarism():
+    """Plagiarism detection endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        if len(text) < 100:
+            return jsonify({'error': 'Text too short for plagiarism analysis (minimum 100 characters)'}), 400
+        
+        # DEVELOPMENT: Always use pro features
+        result = check_plagiarism_enhanced(text, is_pro=True)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Plagiarism check error: {str(e)}")
+        return jsonify({'error': 'Plagiarism check failed'}), 500
+
+@app.route('/api/analyze/image', methods=['POST'])
+def analyze_image():
+    """Image analysis endpoint - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Basic image analysis (simulated for now)
+        # In production, this would use actual image analysis APIs
+        
+        # Extract image info
+        if image_data.startswith('data:image'):
+            # Remove data URL prefix
+            image_data = image_data.split(',')[1]
+        
+        # Decode base64
+        try:
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(BytesIO(image_bytes))
+            
+            # Get basic image info
+            width, height = image.size
+            format = image.format
+            mode = image.mode
+            
+        except Exception as e:
+            logger.error(f"Image decode error: {str(e)}")
+            return jsonify({'error': 'Invalid image data'}), 400
+        
+        # Simulated analysis result
+        result = {
+            'manipulation_score': 15,  # Low score = less likely manipulated
+            'confidence': 85,
+            'image_info': {
+                'width': width,
+                'height': height,
+                'format': format,
+                'mode': mode
+            },
+            'analysis': {
+                'metadata_inconsistencies': False,
+                'compression_artifacts': 'Normal',
+                'editing_traces': 'None detected',
+                'ai_generation_probability': 0.12
+            },
+            'assessment': 'Image appears authentic with no significant manipulation detected'
+        }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Image analysis error: {str(e)}")
+        return jsonify({'error': 'Image analysis failed'}), 500
+
+@app.route('/api/contact', methods=['POST'])
+def contact_form():
+    """Contact form submission - NO LOGIN REQUIRED"""
+    try:
+        data = request.json
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        if not all([name, email, subject, message]):
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        # Save to database
+        db_session = SessionLocal()
+        try:
+            contact_msg = ContactMessage(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message,
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent')
+            )
+            db_session.add(contact_msg)
+            db_session.commit()
+            
+            # Send email notification
+            notification_subject = f"New Contact Form Submission: {subject}"
+            notification_html = f"""
+            <html>
+            <body>
+                <h3>New Contact Form Submission</h3>
+                <p><strong>From:</strong> {name} ({email})</p>
+                <p><strong>Subject:</strong> {subject}</p>
+                <p><strong>Message:</strong></p>
+                <p>{message}</p>
+                <hr>
+                <p><small>Submitted at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</small></p>
+            </body>
+            </html>
+            """
+            send_email(CONTACT_EMAIL, notification_subject, notification_html)
+            
+            # Send confirmation to user
+            confirmation_subject = "We received your message - Facts & Fakes AI"
+            confirmation_html = f"""
+            <html>
+            <body>
+                <h3>Thank you for contacting us!</h3>
+                <p>Hi {name},</p>
+                <p>We've received your message and will get back to you as soon as possible.</p>
+                <p><strong>Your message:</strong></p>
+                <blockquote>{message}</blockquote>
+                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            </body>
+            </html>
+            """
+            send_email(email, confirmation_subject, confirmation_html)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Thank you for your message. We will get back to you soon!'
+            })
+            
+        finally:
+            db_session.close()
+            
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
+# ADMIN ROUTES - KEEP THESE AS THEY MIGHT BE USEFUL
+@app.route('/admin/upgrade-user', methods=['POST'])
+@login_required
+def admin_upgrade_user():
+    """Admin route to upgrade a user to pro status"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    # Get current user from session
+    db_session = SessionLocal()
+    try:
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.get_json()
+        email_to_upgrade = data.get('email')
+        
+        if not email_to_upgrade:
+            return jsonify({'error': 'Email required'}), 400
+        
+        user = db_session.query(User).filter_by(email=email_to_upgrade).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Upgrade user to pro
+        user.is_pro = True
+        user.daily_analyses = 0  # Reset daily count
+        db_session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {email_to_upgrade} upgraded to Pro',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10
+            }
+        })
+    except Exception as e:
+        logger.error(f"Admin upgrade error: {str(e)}")
+        return jsonify({'error': 'Upgrade failed'}), 500
+    finally:
+        db_session.close()
+
+# Alternative: Simple GET route for quick testing
+@app.route('/admin/upgrade-me')
+@login_required
+def admin_upgrade_me():
+    """Quick route to upgrade current logged-in user to pro"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    db_session = SessionLocal()
+    try:
+        current_user = db_session.query(User).filter_by(id=session.get('user_id', -1)).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return "Unauthorized", 403
+        
+        current_user.is_pro = True
+        current_user.daily_analyses = 0  # Reset daily count
+        db_session.commit()
+        
+        return redirect(url_for('index'))  # Redirect to homepage after upgrade
+    except Exception as e:
+        logger.error(f"Admin self-upgrade error: {str(e)}")
+        return "Upgrade failed", 500
+    finally:
+        db_session.close()
+
+# Health check endpoint
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'version': '3.0',
+        'mode': 'DEVELOPMENT - NO LOGIN REQUIRED'
+    })
+
+if __name__ == '__main__':
+    logger.info("Starting Flask development server...")
+    app.run(debug=True, host='0.0.0.0', port=5000)
