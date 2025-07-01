@@ -648,6 +648,61 @@ def analyze_emotional_language(content):
     
     return int(emotional_score), loaded_terms
 
+def identify_unsupported_claims(content):
+    """
+    Identify specific unsupported claims in the content
+    Returns a list of claims that lack proper attribution or evidence
+    """
+    unsupported_claims = []
+    
+    # Split content into sentences
+    sentences = [s.strip() for s in re.split(r'[.!?]+', content) if s.strip()]
+    
+    # Patterns that indicate attribution/support
+    attribution_patterns = [
+        'according to', 'said', 'stated', 'announced', 'reported',
+        'study shows', 'research indicates', 'data shows', 'survey found',
+        'confirmed', 'verified', 'documented', 'published', 'revealed'
+    ]
+    
+    # Patterns that indicate claims needing support
+    claim_indicators = [
+        r'\b\d+(?:\.\d+)?%',  # Percentages
+        r'\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b',  # Large numbers
+        'will', 'would', 'could', 'should',  # Predictions
+        'always', 'never', 'every', 'all', 'none',  # Absolutes
+        'caused', 'leads to', 'results in',  # Causation
+        'proves', 'shows that', 'demonstrates',  # Strong assertions
+        'majority', 'most', 'few', 'many'  # Quantifiers
+    ]
+    
+    for sentence in sentences:
+        sentence_lower = sentence.lower()
+        
+        # Check if sentence contains claim indicators
+        has_claim = False
+        for pattern in claim_indicators:
+            if isinstance(pattern, str):
+                if pattern in sentence_lower:
+                    has_claim = True
+                    break
+            else:  # regex pattern
+                if re.search(pattern, sentence):
+                    has_claim = True
+                    break
+        
+        # Check if sentence has attribution
+        has_attribution = any(attr in sentence_lower for attr in attribution_patterns)
+        
+        # If it has a claim but no attribution, it's unsupported
+        if has_claim and not has_attribution:
+            # Clean up the sentence
+            clean_sentence = sentence.strip()
+            if clean_sentence and len(clean_sentence) > 10:  # Avoid very short fragments
+                unsupported_claims.append(clean_sentence)
+    
+    return unsupported_claims
+
 # ============================================================================
 # PHASE 2: OPENAI INTEGRATION FUNCTIONS - UPDATED FOR v1.0+ API WITH BETTER JSON HANDLING
 # ============================================================================
@@ -839,12 +894,16 @@ Focus on concrete, verifiable claims. Limit to the 5 most important claims. Retu
 def enhance_with_openai_analysis(basic_results, content, is_pro=False):
     """
     Enhance basic analysis results with OpenAI insights
+    Now preserves the unsupported_claims_list
     """
     ai_analysis = analyze_with_openai(content, 'news')
     
     if not ai_analysis:
         print("OpenAI analysis failed, using enhanced basic analysis")
         return basic_results
+    
+    # Preserve the unsupported claims list from basic analysis
+    unsupported_claims_list = basic_results.get('unsupported_claims_list', [])
     
     # Merge AI insights with basic results
     try:
@@ -892,6 +951,14 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
             basic_results['bias_indicators']['factual_claims'] = ai_facts.get('count', 
                 basic_results['bias_indicators']['factual_claims'])
             
+            # If AI found unsupported statements, add them to our list
+            if ai_facts.get('unsupported_statements'):
+                ai_unsupported = ai_facts['unsupported_statements']
+                # Combine with our detected unsupported claims
+                combined_unsupported = list(set(unsupported_claims_list + ai_unsupported))[:15]
+                basic_results['unsupported_claims_list'] = combined_unsupported
+                basic_results['bias_indicators']['unsupported_claims'] = len(combined_unsupported)
+            
             # For pro tier, add verifiable claims
             if is_pro and ai_facts.get('verifiable_claims'):
                 claims = ai_facts['verifiable_claims'][:5]  # Limit to 5
@@ -926,17 +993,21 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
         return basic_results
 
 # ============================================================================
-# UPDATED ANALYSIS FUNCTIONS WITH PHASE 2 INTEGRATION
+# UPDATED ANALYSIS FUNCTIONS WITH PHASE 2 INTEGRATION AND UNSUPPORTED CLAIMS
 # ============================================================================
 
 def perform_basic_news_analysis(content):
     """
     Perform basic news analysis - Phase 2 version with optional AI enhancement
+    Now includes specific unsupported claims listing
     """
     # First, get basic analysis from Phase 1
     credibility_score = calculate_basic_credibility(content)
     bias_analysis = detect_simple_bias(content)
     emotional_score, loaded_terms = analyze_emotional_language(content)
+    
+    # Identify specific unsupported claims
+    unsupported_claims_list = identify_unsupported_claims(content)
     
     # Count sentences as factual claims (simple heuristic)
     sentence_count = len([s for s in content.split('.') if s.strip()])
@@ -959,7 +1030,7 @@ def perform_basic_news_analysis(content):
             'political_bias': bias_analysis['bias_label'],
             'emotional_language': emotional_score,
             'factual_claims': sentence_count,
-            'unsupported_claims': max(0, sentence_count // 4)
+            'unsupported_claims': len(unsupported_claims_list)  # Now using actual count
         },
         'political_bias': {
             'bias_score': bias_analysis['bias_score'],
@@ -985,6 +1056,8 @@ def perform_basic_news_analysis(content):
                 'relevance': 85
             }
         ],
+        # NEW: Add the actual unsupported claims list
+        'unsupported_claims_list': unsupported_claims_list[:10],  # Limit to 10 for display
         'methodology': {
             'analysis_type': 'basic',
             'confidence_level': 75,
@@ -993,7 +1066,8 @@ def perform_basic_news_analysis(content):
                 'text_structure',
                 'keyword_analysis', 
                 'emotional_language',
-                'basic_credibility_indicators'
+                'basic_credibility_indicators',
+                'unsupported_claims_detection'  # NEW
             ]
         }
     }
@@ -1075,7 +1149,8 @@ def perform_advanced_news_analysis(content):
                 'source_verification',
                 'journalism_quality_metrics',
                 'statistical_analysis',
-                'contextual_understanding'
+                'contextual_understanding',
+                'unsupported_claims_detection'
             ]
         })
         
@@ -1087,7 +1162,7 @@ def perform_advanced_news_analysis(content):
         return basic_results
 
 # ============================================================================
-# END OF PHASE 1 & 2 NEWS ANALYSIS
+# END OF PHASE 1 & 2 NEWS ANALYSIS WITH UNSUPPORTED CLAIMS
 # ============================================================================
 
 def perform_basic_text_analysis(text):
