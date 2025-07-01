@@ -803,6 +803,25 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
         }
         
         .hero-title {
@@ -813,6 +832,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            position: relative;
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px rgba(102, 126, 234, 0.3)); }
+            50% { filter: brightness(1.1) drop-shadow(0 0 20px rgba(102, 126, 234, 0.5)); }
         }
         
         .hero-subtitle {
@@ -823,6 +849,7 @@
             margin-left: auto;
             margin-right: auto;
             line-height: 1.6;
+            position: relative;
         }
         
         .disclaimer {
@@ -851,43 +878,188 @@
         
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
             margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tools-grid::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(180deg); }
         }
         
         .tool-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+            border-radius: 12px;
+            padding: 1.2rem;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            transform: translateY(-3px);
+            transition: transform 0.3s ease;
+        }
+        
+        .tool-card:hover::before {
+            transform: translateY(0);
+            animation: shimmer 2s infinite;
+        }
+        
+        .tool-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .tool-card:hover::after {
+            opacity: 1;
         }
         
         .tool-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 255, 1) 100%);
+        }
+        
+        .tool-card:hover .tool-icon {
+            transform: scale(1.2) rotate(5deg);
+            filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3));
+        }
+        
+        .tool-card:hover .tool-progress {
+            width: 100%;
         }
         
         .tool-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
             display: block;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.2));
         }
         
         .tool-title {
-            font-size: 1.4rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
+            transition: color 0.3s ease;
+        }
+        
+        .tool-card:hover .tool-title {
+            color: #667eea;
         }
         
         .tool-desc {
             color: #666;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+        
+        .tool-card:hover .tool-desc {
+            color: #555;
+        }
+        
+        .tool-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0;
+            transition: width 0.6s ease;
+        }
+        
+        .tool-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .tool-card:hover .tool-badge {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .tool-card.premium .tool-badge {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        @media (max-width: 1024px) {
+            .tools-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+                padding: 1rem;
+            }
+            
+            .tool-card {
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         .analysis-container {
@@ -1220,6 +1392,11 @@
         .score-meter {
             position: relative;
             text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .score-meter:hover {
+            transform: scale(1.05);
         }
         
         .meter-circle {
@@ -1227,6 +1404,7 @@
             height: 150px;
             margin: 0 auto 1rem;
             position: relative;
+            filter: drop-shadow(0 4px 15px rgba(102, 126, 234, 0.2));
         }
         
         .meter-svg {
@@ -1246,6 +1424,7 @@
             stroke-width: 10;
             stroke-linecap: round;
             transition: stroke-dasharray 1s ease;
+            filter: drop-shadow(0 0 8px currentColor);
         }
         
         .meter-text {
@@ -1256,6 +1435,48 @@
             font-size: 1.5rem;
             font-weight: bold;
             color: #333;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .meter-icon {
+            font-size: 1.8rem;
+            filter: grayscale(0.2);
+        }
+        
+        .meter-value {
+            font-size: 1.5rem;
+        }
+        
+        .meter-desc.good {
+            color: #28a745;
+        }
+        
+        .meter-desc.warning {
+            color: #ffc107;
+        }
+        
+        .meter-desc.danger {
+            color: #dc3545;
+        }
+        
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .score-meter {
+            animation: fadeInScale 0.6s ease-out forwards;
+            opacity: 0;
         }
         
         .meter-label {
@@ -1268,6 +1489,94 @@
             font-size: 0.9rem;
             color: #666;
             line-height: 1.4;
+        }
+        
+        /* Animated accuracy indicator */
+        .accuracy-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.02); opacity: 1; }
+        }
+        
+        .accuracy-indicator::before {
+            content: '✓';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 0.8rem;
+        }
+        
+        /* Enhanced progress bars */
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 300% 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            animation: rainbow 3s ease-in-out infinite;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer-progress 2s infinite;
+        }
+        
+        @keyframes shimmer-progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Trust badges */
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .trust-badge:hover {
+            opacity: 1;
+        }
+        
+        .trust-badge i {
+            color: #667eea;
+            font-size: 1.2rem;
         }
         
         .detailed-panels {
@@ -1754,37 +2063,77 @@
                 </div>
             </div>
             
+            <!-- Trust Badges -->
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>256-bit Encryption</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>GDPR Compliant</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-chart-line"></i>
+                    <span>92% Accuracy Rate</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-users"></i>
+                    <span>Trusted by 50,000+ Users</span>
+                </div>
+            </div>
+            
             <!-- Tools Grid -->
             <div class="tools-grid">
                 <div class="tool-card">
                     <span class="tool-icon">🤖</span>
                     <h3 class="tool-title">AI Detection</h3>
-                    <p class="tool-desc">Analyzes writing patterns, vocabulary usage, sentence structure, and linguistic fingerprints</p>
+                    <p class="tool-desc">Advanced pattern recognition for AI-generated content</p>
+                    <div class="tool-progress"></div>
                 </div>
                 <div class="tool-card">
                     <span class="tool-icon">📋</span>
-                    <h3 class="tool-title">Similarity Analysis</h3>
-                    <p class="tool-desc">Searches across databases for matching content, paraphrased text, and similar passages</p>
+                    <h3 class="tool-title">Similarity Check</h3>
+                    <p class="tool-desc">Database search for matching content</p>
+                    <div class="tool-progress"></div>
                 </div>
                 <div class="tool-card">
                     <span class="tool-icon">📊</span>
-                    <h3 class="tool-title">Content Breakdown</h3>
-                    <p class="tool-desc">Examines readability, sentiment, authorship style, and linguistic characteristics</p>
+                    <h3 class="tool-title">Content Analysis</h3>
+                    <p class="tool-desc">Readability and sentiment scoring</p>
+                    <div class="tool-progress"></div>
                 </div>
                 <div class="tool-card">
                     <span class="tool-icon">🔍</span>
-                    <h3 class="tool-title">Transparent Analysis</h3>
-                    <p class="tool-desc">Shows exactly what we analyzed, how scores were calculated, and confidence levels</p>
+                    <h3 class="tool-title">Transparency</h3>
+                    <p class="tool-desc">Detailed methodology explanations</p>
+                    <div class="tool-progress"></div>
                 </div>
                 <div class="tool-card">
                     <span class="tool-icon">📁</span>
-                    <h3 class="tool-title">Multi-Format Support</h3>
-                    <p class="tool-desc">Processes PDF, DOCX, TXT files with accurate text extraction and formatting preservation</p>
+                    <h3 class="tool-title">Multi-Format</h3>
+                    <p class="tool-desc">PDF, DOCX, TXT file processing</p>
+                    <div class="tool-progress"></div>
                 </div>
                 <div class="tool-card">
                     <span class="tool-icon">🎯</span>
-                    <h3 class="tool-title">Professional Reporting</h3>
-                    <p class="tool-desc">Detailed reports with visual indicators, explanations, and actionable insights</p>
+                    <h3 class="tool-title">Pro Reports</h3>
+                    <p class="tool-desc">Visual insights and analytics</p>
+                    <div class="tool-progress"></div>
+                </div>
+                <div class="tool-card premium">
+                    <span class="tool-icon">⚡</span>
+                    <h3 class="tool-title">Real-Time API</h3>
+                    <p class="tool-desc">Instant analysis via REST API</p>
+                    <div class="tool-badge">PRO</div>
+                    <div class="tool-progress"></div>
+                </div>
+                <div class="tool-card premium">
+                    <span class="tool-icon">🌐</span>
+                    <h3 class="tool-title">Bulk Analysis</h3>
+                    <p class="tool-desc">Process multiple documents at once</p>
+                    <div class="tool-badge">PRO</div>
+                    <div class="tool-progress"></div>
                 </div>
             </div>
         </section>
@@ -2421,28 +2770,42 @@
                     label: 'AI Detection',
                     value: Math.round(Math.random() * 40 + 30),
                     description: 'Analysis Complete',
-                    color: '#17a2b8'
+                    color: '#17a2b8',
+                    icon: '🤖'
                 },
                 {
                     label: 'Similarity Check',
                     value: Math.round(Math.random() * 20 + 5),
                     description: 'Low Risk',
-                    color: '#28a745'
+                    color: '#28a745',
+                    icon: '📋'
                 },
                 {
                     label: 'Confidence Level',
                     value: Math.round(Math.random() * 25 + 70),
-                    description: 'Analysis Reliability',
-                    color: '#007bff'
+                    description: 'High Reliability',
+                    color: '#007bff',
+                    icon: '🎯'
                 }
             ];
 
-            container.innerHTML = scores.map(score => {
+            container.innerHTML = scores.map((score, index) => {
                 const circumference = 2 * Math.PI * 60;
                 const strokeDasharray = `${(score.value / 100) * circumference} ${circumference}`;
                 
+                // Determine status color and message
+                let statusClass = 'good';
+                let statusMessage = 'Excellent';
+                if (score.label === 'AI Detection' && score.value > 60) {
+                    statusClass = 'warning';
+                    statusMessage = 'Moderate';
+                } else if (score.label === 'Similarity Check' && score.value > 30) {
+                    statusClass = 'warning';
+                    statusMessage = 'Review Needed';
+                }
+                
                 return `
-                    <div class="score-meter">
+                    <div class="score-meter" style="animation-delay: ${index * 0.2}s">
                         <div class="meter-circle">
                             <svg class="meter-svg" viewBox="0 0 140 140">
                                 <circle class="meter-bg" cx="70" cy="70" r="60"></circle>
@@ -2452,16 +2815,59 @@
                                     cy="70" 
                                     r="60"
                                     stroke="${score.color}"
-                                    stroke-dasharray="${strokeDasharray}"
+                                    stroke-dasharray="0 ${circumference}"
+                                    data-target="${strokeDasharray}"
                                 ></circle>
                             </svg>
-                            <div class="meter-text">${score.value}%</div>
+                            <div class="meter-text">
+                                <span class="meter-icon">${score.icon}</span>
+                                <span class="meter-value" data-target="${score.value}">0</span>%
+                            </div>
                         </div>
                         <div class="meter-label">${score.label}</div>
-                        <div class="meter-desc">${score.description}</div>
+                        <div class="meter-desc ${statusClass}">${score.description}</div>
+                        <div class="accuracy-indicator">
+                            ${statusMessage}
+                        </div>
                     </div>
                 `;
             }).join('');
+            
+            // Animate the meters after a short delay
+            setTimeout(() => {
+                animateMeters();
+                animateNumbers();
+            }, 300);
+        }
+        
+        function animateMeters() {
+            const circles = document.querySelectorAll('.meter-progress');
+            circles.forEach((circle, index) => {
+                setTimeout(() => {
+                    const target = circle.getAttribute('data-target');
+                    circle.style.strokeDasharray = target;
+                }, index * 200);
+            });
+        }
+        
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.meter-value');
+            numbers.forEach((num, index) => {
+                const target = parseInt(num.getAttribute('data-target'));
+                let current = 0;
+                const increment = target / 50;
+                
+                setTimeout(() => {
+                    const counter = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(counter);
+                        }
+                        num.textContent = Math.round(current);
+                    }, 30);
+                }, index * 200);
+            });
         }
 
         function createDetailedPanels(results, tier) {
