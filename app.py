@@ -649,13 +649,13 @@ def analyze_emotional_language(content):
     return int(emotional_score), loaded_terms
 
 # ============================================================================
-# PHASE 2: OPENAI INTEGRATION FUNCTIONS - UPDATED FOR v1.0+ API
+# PHASE 2: OPENAI INTEGRATION FUNCTIONS - UPDATED FOR v1.0+ API WITH BETTER JSON HANDLING
 # ============================================================================
 
 def analyze_with_openai(content, analysis_type='news'):
     """
     Use OpenAI for advanced content analysis with robust error handling
-    Updated for OpenAI v1.0+ API
+    Updated for OpenAI v1.0+ API with better JSON parsing
     """
     if not OPENAI_API_KEY or not OPENAI_AVAILABLE or not client:
         print("OpenAI API not available")
@@ -699,7 +699,7 @@ Provide a detailed analysis in JSON format with these exact fields:
     }}
 }}
 
-Be objective and specific in your analysis."""
+Be objective and specific in your analysis. Return ONLY valid JSON, no additional text."""
 
         # Make API call with retry logic
         max_retries = 3
@@ -708,7 +708,7 @@ Be objective and specific in your analysis."""
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are an expert news analyst specializing in bias detection, fact-checking, and credibility assessment."},
+                        {"role": "system", "content": "You are an expert news analyst. Always return valid JSON only, no markdown or extra text."},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.3,  # Lower temperature for more consistent analysis
@@ -717,20 +717,51 @@ Be objective and specific in your analysis."""
                 )
                 
                 # Parse the response
-                result_text = response.choices[0].message.content
+                result_text = response.choices[0].message.content.strip()
+                
+                # Debug logging
+                print(f"OpenAI raw response length: {len(result_text)}")
                 
                 # Try to extract JSON from the response
-                # Handle cases where GPT might include markdown formatting
+                # Remove any markdown formatting
                 if "```json" in result_text:
-                    result_text = result_text.split("```json")[1].split("```")[0]
+                    result_text = result_text.split("```json")[1].split("```")[0].strip()
                 elif "```" in result_text:
-                    result_text = result_text.split("```")[1].split("```")[0]
+                    result_text = result_text.split("```")[1].split("```")[0].strip()
                 
-                # Parse JSON
-                analysis_result = json.loads(result_text.strip())
+                # Remove any text before the first { or after the last }
+                first_brace = result_text.find('{')
+                last_brace = result_text.rfind('}')
+                if first_brace != -1 and last_brace != -1:
+                    result_text = result_text[first_brace:last_brace + 1]
                 
-                print("✓ OpenAI analysis completed successfully")
-                return analysis_result
+                # Try to parse JSON
+                try:
+                    analysis_result = json.loads(result_text)
+                    print("✓ OpenAI analysis completed successfully")
+                    return analysis_result
+                except json.JSONDecodeError as je:
+                    print(f"JSON parse error: {je}")
+                    print(f"Failed JSON (first 200 chars): {result_text[:200]}")
+                    
+                    # Try to fix common JSON issues
+                    # Replace single quotes with double quotes
+                    result_text = result_text.replace("'", '"')
+                    # Remove trailing commas
+                    result_text = re.sub(r',\s*}', '}', result_text)
+                    result_text = re.sub(r',\s*]', ']', result_text)
+                    
+                    try:
+                        analysis_result = json.loads(result_text)
+                        print("✓ OpenAI analysis completed with JSON fixes")
+                        return analysis_result
+                    except:
+                        if attempt < max_retries - 1:
+                            print(f"Retrying due to JSON error...")
+                            continue
+                        else:
+                            print("Failed to parse OpenAI response as JSON after fixes")
+                            return None
                 
             except Exception as e:
                 if "rate_limit" in str(e).lower():
@@ -771,12 +802,12 @@ Return a JSON array of claims, each with:
     "checkable": true/false
 }}
 
-Focus on concrete, verifiable claims. Limit to the 5 most important claims."""
+Focus on concrete, verifiable claims. Limit to the 5 most important claims. Return ONLY valid JSON."""
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a fact-checking expert who identifies specific claims that can be verified."},
+                {"role": "system", "content": "You are a fact-checking expert who identifies specific claims that can be verified. Return only valid JSON."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
@@ -784,15 +815,21 @@ Focus on concrete, verifiable claims. Limit to the 5 most important claims."""
             timeout=20
         )
         
-        result_text = response.choices[0].message.content
+        result_text = response.choices[0].message.content.strip()
         
         # Extract JSON
         if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0]
+            result_text = result_text.split("```json")[1].split("```")[0].strip()
         elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0]
+            result_text = result_text.split("```")[1].split("```")[0].strip()
         
-        claims = json.loads(result_text.strip())
+        # Remove any text before [ or after ]
+        first_bracket = result_text.find('[')
+        last_bracket = result_text.rfind(']')
+        if first_bracket != -1 and last_bracket != -1:
+            result_text = result_text[first_bracket:last_bracket + 1]
+        
+        claims = json.loads(result_text)
         return claims if isinstance(claims, list) else []
         
     except Exception as e:
