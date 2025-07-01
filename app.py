@@ -1403,637 +1403,72 @@ def user_status():
     finally:
         db_session.close()
 
-# Contact Form Route (keeping your existing implementation)
-@app.route('/api/contact', methods=['POST'])
-def contact_form():
+# ADMIN ROUTES - ADD THESE NEW ROUTES HERE
+@app.route('/admin/upgrade-user', methods=['POST'])
+@login_required
+def admin_upgrade_user():
+    """Admin route to upgrade a user to pro status"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    # Get current user from session
     db_session = SessionLocal()
     try:
-        data = request.json
+        current_user = db_session.query(User).filter_by(id=session['user_id']).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return jsonify({'error': 'Unauthorized'}), 403
         
-        # Validate required fields
-        required_fields = ['name', 'email', 'subject', 'message']
-        for field in required_fields:
-            if not data.get(field):
-                return jsonify({'error': f'{field.title()} is required'}), 400
+        data = request.get_json()
+        email_to_upgrade = data.get('email')
         
-        # Save to database
-        contact_msg = ContactMessage(
-            name=data['name'],
-            email=data['email'],
-            subject=data['subject'],
-            message=data['message'],
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent', '')[:500]
-        )
-        db_session.add(contact_msg)
+        if not email_to_upgrade:
+            return jsonify({'error': 'Email required'}), 400
+        
+        user = db_session.query(User).filter_by(email=email_to_upgrade).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Upgrade user to pro
+        user.is_pro = True
+        user.daily_analyses = 0  # Reset daily count
         db_session.commit()
-        
-        # Send notification email to admin
-        admin_subject = f"New Contact Form Submission - {data['subject']}"
-        admin_html = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif;">
-            <h3>New Contact Form Submission</h3>
-            <p><strong>From:</strong> {data['name']} ({data['email']})</p>
-            <p><strong>Subject:</strong> {data['subject']}</p>
-            <p><strong>Message:</strong></p>
-            <p style="background: #f4f4f4; padding: 15px; border-radius: 5px;">
-                {data['message'].replace(chr(10), '<br>')}
-            </p>
-            <p><strong>Time:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-        </body>
-        </html>
-        """
-        send_email(CONTACT_EMAIL, admin_subject, admin_html)
-        
-        # Send auto-reply to user
-        user_subject = "We've Received Your Message - Facts & Fakes AI"
-        user_html = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c5aa0;">Thank You for Contacting Us!</h2>
-                <p>Hi {data['name']},</p>
-                <p>We've received your message and will get back to you within 24-48 hours.</p>
-                <p><strong>Your Message:</strong></p>
-                <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <p><strong>Subject:</strong> {data['subject']}</p>
-                    <p>{data['message']}</p>
-                </div>
-                <p>In the meantime, feel free to explore our AI detection tools at 
-                   <a href="https://factsandfakes.ai">factsandfakes.ai</a></p>
-                <p>Best regards,<br>The Facts & Fakes AI Team</p>
-            </div>
-        </body>
-        </html>
-        """
-        send_email(data['email'], user_subject, user_html)
         
         return jsonify({
             'success': True,
-            'message': 'Thank you for your message. We\'ll get back to you soon!'
+            'message': f'User {email_to_upgrade} upgraded to Pro',
+            'user': {
+                'email': user.email,
+                'is_pro': user.is_pro,
+                'daily_limit': 10
+            }
         })
-        
     except Exception as e:
-        logger.error(f"Contact form error: {str(e)}")
-        return jsonify({'error': 'Failed to send message. Please try again.'}), 500
+        logger.error(f"Admin upgrade error: {str(e)}")
+        return jsonify({'error': 'Upgrade failed'}), 500
     finally:
         db_session.close()
 
-# Enhanced AI Detection Route with Real API Integration
-@app.route('/api/detect-ai', methods=['POST'])
-def detect_ai():
+# Alternative: Simple GET route for quick testing
+@app.route('/admin/upgrade-me')
+@login_required
+def admin_upgrade_me():
+    """Quick route to upgrade current logged-in user to pro"""
+    # Update this list with your actual email address
+    ADMIN_EMAILS = ['jim@shift-work.com']  # Replace with your actual email
+    
+    db_session = SessionLocal()
     try:
-        # Check authentication for non-demo mode
-        if 'user_id' in session:
-            can_proceed, message = check_rate_limit(session['user_id'])
-            if not can_proceed:
-                return jsonify({'error': message, 'limit_reached': True}), 429
+        current_user = db_session.query(User).filter_by(id=session['user_id']).first()
+        if not current_user or current_user.email not in ADMIN_EMAILS:
+            return "Unauthorized", 403
         
-        data = request.json
-        text = data.get('text', '')
+        current_user.is_pro = True
+        current_user.daily_analyses = 0  # Reset daily count
+        db_session.commit()
         
-        if not text:
-            return jsonify({'error': 'No text provided'}), 400
-        
-        # Determine if user is pro
-        is_pro = False
-        if 'user_id' in session:
-            db_session = SessionLocal()
-            try:
-                user = db_session.query(User).filter_by(id=session['user_id']).first()
-                is_pro = user.is_pro if user else False
-            finally:
-                db_session.close()
-        
-        # Use real API integration
-        result = analyze_with_openai(text) if (is_pro or not data.get('demo', False)) else analyze_text_patterns(text)
-        
-        # Add plagiarism detection
-        plagiarism_results = check_plagiarism_enhanced(text, is_pro)
-        result['plagiarism_detection'] = plagiarism_results
-        
-        # Generate overall assessment
-        ai_prob = result.get('ai_probability', 0)
-        plag_score = plagiarism_results.get('similarity_score', 0)
-        
-        if plag_score > 0.7:
-            overall_assessment = f"High plagiarism risk detected ({plag_score*100:.0f}%). AI probability: {ai_prob*100:.0f}%"
-        elif ai_prob > 0.7:
-            overall_assessment = f"High AI generation probability ({ai_prob*100:.0f}%). Minimal plagiarism detected."
-        elif ai_prob > 0.4 or plag_score > 0.3:
-            overall_assessment = f"Mixed signals - AI: {ai_prob*100:.0f}%, Plagiarism: {plag_score*100:.0f}%"
-        else:
-            overall_assessment = f"Content appears authentic with low AI probability ({ai_prob*100:.0f}%)"
-        
-        result['overall_assessment'] = overall_assessment
-        
-        # Increment usage for authenticated users
-        if 'user_id' in session:
-            increment_usage(session['user_id'])
-        
-        logger.info(f"AI detection completed. AI prob: {ai_prob}, Plagiarism: {plag_score}")
-        
-        return jsonify(result)
-        
+        return redirect(url_for('index'))  # Redirect to homepage after upgrade
     except Exception as e:
-        logger.error(f"AI detection error: {str(e)}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-# Enhanced News Verification Route with Real API Integration
-@app.route('/api/verify-news', methods=['POST'])
-def verify_news():
-    logger.info("News verification endpoint called")
-    
-    try:
-        data = request.json
-        url = data.get('url', '')
-        headline = data.get('headline', '')
-        text = data.get('text', '')
-        is_pro = data.get('is_pro', False)
-        
-        # Use text if provided, otherwise use headline
-        analysis_text = text if text else headline
-        
-        if not url and not analysis_text:
-            return jsonify({'error': 'URL or text required'}), 400
-        
-        # Check rate limit for authenticated users
-        if 'user_id' in session:
-            can_proceed, message = check_rate_limit(session['user_id'])
-            if not can_proceed:
-                return jsonify({'error': message, 'limit_reached': True}), 429
-        
-        # Generate comprehensive analysis with real API data
-        result = generate_comprehensive_analysis(analysis_text, url, is_pro)
-        
-        # Increment usage
-        if 'user_id' in session:
-            increment_usage(session['user_id'])
-        
-        logger.info(f"News analysis complete. Credibility score: {result.get('credibility_score')}")
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"News verification error: {str(e)}", exc_info=True)
-        return jsonify({'error': 'Verification failed'}), 500
-
-# Cross-Source Verification Route
-@app.route('/api/cross-verify', methods=['POST'])
-def cross_verify():
-    try:
-        data = request.json
-        claim = data.get('claim', '')
-        sources = data.get('sources', [])
-        
-        if not claim:
-            return jsonify({'error': 'Claim text required'}), 400
-        
-        # Search for cross-references using real APIs
-        cross_refs = search_cross_references_enhanced(claim, limit=15)
-        
-        # Check with Google Fact Check API
-        fact_checks = google_fact_check_api(claim)
-        
-        # Calculate consensus based on found references
-        consensus_score = min(100, len(cross_refs) * 10 + len(fact_checks) * 20)
-        
-        return jsonify({
-            'claim': claim,
-            'sources_checked': len(cross_refs) + len(fact_checks),
-            'verification_results': cross_refs,
-            'fact_checks': fact_checks,
-            'consensus_score': consensus_score,
-            'verdict': get_verdict(consensus_score),
-            'apis_used': ['NewsAPI', 'MediaStack', 'Google Fact Check'] if GOOGLE_FACT_CHECK_API_KEY else ['NewsAPI', 'MediaStack']
-        })
-        
-    except Exception as e:
-        logger.error(f"Cross-verification error: {str(e)}")
-        return jsonify({'error': 'Cross-verification failed'}), 500
-
-def get_verdict(consensus_score):
-    """Get verification verdict based on consensus score"""
-    if consensus_score >= 80:
-        return "Highly Verified"
-    elif consensus_score >= 60:
-        return "Likely Accurate"
-    elif consensus_score >= 40:
-        return "Partially Verified"
-    elif consensus_score >= 20:
-        return "Questionable"
-    else:
-        return "Unverified"
-
-# Enhanced Image Analysis Route
-@app.route('/api/analyze-image', methods=['POST'])
-def analyze_image():
-    try:
-        data = request.json
-        image_data = data.get('image', '')
-        
-        if not image_data:
-            return jsonify({'error': 'No image provided'}), 400
-        
-        # Check rate limit
-        if 'user_id' in session:
-            can_proceed, message = check_rate_limit(session['user_id'])
-            if not can_proceed:
-                return jsonify({'error': message, 'limit_reached': True}), 429
-        
-        # Decode base64 image
-        try:
-            image_bytes = base64.b64decode(image_data.split(',')[1])
-            image = Image.open(BytesIO(image_bytes))
-        except Exception as e:
-            return jsonify({'error': 'Invalid image data'}), 400
-        
-        # Determine if user is pro
-        is_pro = False
-        if 'user_id' in session:
-            db_session = SessionLocal()
-            try:
-                user = db_session.query(User).filter_by(id=session['user_id']).first()
-                is_pro = user.is_pro if user else False
-            finally:
-                db_session.close()
-        
-        # Perform enhanced analysis
-        analysis_result = analyze_image_enhanced(image, is_pro)
-        
-        # Increment usage
-        if 'user_id' in session:
-            increment_usage(session['user_id'])
-        
-        return jsonify(analysis_result)
-        
-    except Exception as e:
-        logger.error(f"Image analysis error: {str(e)}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-def analyze_image_enhanced(image, is_pro):
-    """Enhanced image analysis with more sophisticated checks"""
-    
-    # Get image properties
-    width, height = image.size
-    format = image.format
-    mode = image.mode
-    
-    # Calculate more sophisticated metrics
-    indicators = []
-    technical_anomalies = []
-    
-    # Check EXIF data
-    exif_data = {}
-    try:
-        exif = image._getexif()
-        if exif:
-            exif_data = {
-                'has_exif': True,
-                'camera_info': 'Available',
-                'date_taken': 'Available',
-                'software': 'Detected' if 34 in exif else 'Not found'
-            }
-            # Check for editing software
-            if 34 in exif and any(editor in str(exif[34]).lower() for editor in ['photoshop', 'gimp', 'edited']):
-                indicators.append("Editing software detected in metadata")
-                technical_anomalies.append("Image processing software signature found")
-        else:
-            exif_data = {
-                'has_exif': False,
-                'camera_info': 'Not found',
-                'date_taken': 'Not found'
-            }
-            indicators.append("Missing EXIF data (possible manipulation)")
-    except:
-        exif_data = {'has_exif': False}
-        indicators.append("No EXIF data found")
-    
-    # Analyze image statistics
-    if hasattr(image, 'getextrema'):
-        extrema = image.getextrema()
-        # Check for unusual color distributions
-        if mode == 'RGB' and extrema:
-            for i, (min_val, max_val) in enumerate(extrema):
-                if max_val - min_val < 50:
-                    technical_anomalies.append(f"Unusual color range in channel {i}")
-    
-    # Check compression artifacts
-    if format == 'JPEG':
-        # JPEG images should have certain characteristics
-        if width % 8 != 0 or height % 8 != 0:
-            technical_anomalies.append("Non-standard JPEG dimensions")
-    
-    # Resolution analysis
-    total_pixels = width * height
-    if total_pixels > 50000000:  # > 50 megapixels
-        indicators.append("Unusually high resolution")
-    elif total_pixels < 100000:  # < 0.1 megapixels
-        indicators.append("Suspiciously low resolution")
-    
-    # Aspect ratio analysis
-    aspect_ratio = width / height if height > 0 else 0
-    common_ratios = [16/9, 4/3, 3/2, 1/1, 9/16, 3/4, 2/3]
-    if not any(abs(aspect_ratio - ratio) < 0.1 for ratio in common_ratios):
-        technical_anomalies.append("Unusual aspect ratio")
-    
-    # Calculate manipulation probability with more sophisticated scoring
-    base_score = 0
-    
-    # EXIF scoring
-    if not exif_data.get('has_exif'):
-        base_score += 20
-    if 'software' in str(exif_data.get('software', '')).lower():
-        base_score += 15
-    
-    # Technical anomaly scoring
-    base_score += len(technical_anomalies) * 10
-    
-    # Indicator scoring
-    base_score += len(indicators) * 15
-    
-    manipulation_score = min(95, base_score)
-    
-    # Generate detailed analysis
-    result = {
-        'manipulation_probability': manipulation_score,
-        'authenticity_score': max(5, 100 - manipulation_score),
-        'technical_details': {
-            'dimensions': f"{width}x{height}",
-            'format': format or 'Unknown',
-            'color_mode': mode,
-            'file_size': 'Analysis based on properties',
-            'aspect_ratio': f"{aspect_ratio:.2f}",
-            'total_pixels': f"{total_pixels:,}"
-        },
-        'exif_analysis': exif_data,
-        'manipulation_indicators': indicators,
-        'technical_anomalies': technical_anomalies,
-        'analysis_timestamp': datetime.utcnow().isoformat()
-    }
-    
-    # Add pro features
-    if is_pro:
-        result['advanced_analysis'] = {
-            'pixel_analysis': {
-                'uniformity_check': 'Standard' if len(technical_anomalies) == 0 else 'Anomalies detected',
-                'compression_artifacts': 'Normal' if format == 'JPEG' else 'N/A',
-                'edge_consistency': 'Requires manual inspection'
-            },
-            'ai_generation_check': {
-                'gan_artifacts': 'Not detected' if manipulation_score < 50 else 'Possible AI generation',
-                'pattern_regularity': 'Natural' if len(technical_anomalies) < 2 else 'Suspicious patterns',
-                'facial_consistency': 'Requires specialized analysis'
-            },
-            'forensic_indicators': {
-                'clone_detection': 'No obvious cloning',
-                'lighting_consistency': 'Requires manual inspection',
-                'shadow_analysis': 'Requires manual inspection'
-            }
-        }
-        
-        result['recommendations'] = [
-            "Perform reverse image search for source verification",
-            "Check for visual inconsistencies in shadows and reflections",
-            "Verify with multiple forensic tools for comprehensive analysis",
-            "Compare with known authentic images from the same source"
-        ]
-    else:
-        result['recommendations'] = [
-            "Check source credibility",
-            "Look for visual inconsistencies",
-            "Verify with reverse image search"
-        ]
-    
-    # Generate verdict
-    if manipulation_score > 70:
-        result['verdict'] = "High likelihood of manipulation"
-    elif manipulation_score > 40:
-        result['verdict'] = "Moderate manipulation risk - further analysis recommended"
-    elif manipulation_score > 20:
-        result['verdict'] = "Low manipulation risk - some anomalies detected"
-    else:
-        result['verdict'] = "Image appears authentic"
-    
-    return result
-
-# Unified content check endpoint (for compatibility with backup code)
-@app.route('/api/unified_content_check', methods=['POST'])
-@app.route('/unified_content_check', methods=['POST'])
-def unified_content_check():
-    """Unified endpoint for AI detection and plagiarism checking"""
-    try:
-        data = request.json
-        text = data.get('text', '')
-        analysis_type = data.get('analysis_type', 'free')
-        
-        if not text:
-            return jsonify({'error': 'No text provided'}), 400
-        
-        if len(text) < 50:
-            return jsonify({'error': 'Text must be at least 50 characters long'}), 400
-        
-        # Check authentication and rate limits
-        is_pro = analysis_type == 'pro'
-        if 'user_id' in session:
-            can_proceed, message = check_rate_limit(session['user_id'])
-            if not can_proceed:
-                return jsonify({'error': message, 'limit_reached': True}), 429
-            
-            # Check if user is actually pro
-            db_session = SessionLocal()
-            try:
-                user = db_session.query(User).filter_by(id=session['user_id']).first()
-                is_pro = user.is_pro if user else False
-            finally:
-                db_session.close()
-        
-        # Perform AI detection with real API
-        ai_results = analyze_with_openai(text) if is_pro else analyze_text_patterns(text)
-        
-        # Perform plagiarism detection
-        plagiarism_results = check_plagiarism_enhanced(text, is_pro)
-        
-        # Generate overall assessment
-        ai_prob = ai_results.get('ai_probability', 0)
-        plag_score = plagiarism_results.get('similarity_score', 0)
-        
-        if plag_score > 0.7:
-            overall_assessment = f"High plagiarism risk detected ({plag_score*100:.0f}%). AI probability: {ai_prob*100:.0f}%"
-        elif ai_prob > 0.7:
-            overall_assessment = f"High AI generation probability ({ai_prob*100:.0f}%). Minimal plagiarism detected."
-        elif ai_prob > 0.4 or plag_score > 0.3:
-            overall_assessment = f"Mixed signals - AI: {ai_prob*100:.0f}%, Plagiarism: {plag_score*100:.0f}%"
-        else:
-            overall_assessment = f"Content appears authentic with low AI probability ({ai_prob*100:.0f}%)"
-        
-        # Build response
-        response = {
-            'status': 'success',
-            'timestamp': datetime.utcnow().isoformat(),
-            'analysis_type': 'pro' if is_pro else 'free',
-            'text_length': len(text),
-            'ai_detection': ai_results,
-            'plagiarism_detection': plagiarism_results,
-            'overall_assessment': overall_assessment,
-            'methodology': {
-                'ai_models_used': 'GPT-4 Analysis' if is_pro and OPENAI_API_KEY else 'Advanced Pattern Analysis',
-                'plagiarism_databases': plagiarism_results.get('databases_searched', 'Multiple databases'),
-                'processing_time': f"{time.time():.1f} seconds",
-                'analysis_depth': 'comprehensive' if is_pro else 'standard'
-            }
-        }
-        
-        # Increment usage
-        if 'user_id' in session:
-            increment_usage(session['user_id'])
-        
-        return jsonify(response)
-        
-    except Exception as e:
-        logger.error(f"Unified content check error: {str(e)}")
-        return jsonify({
-            'error': 'Analysis failed',
-            'details': str(e),
-            'status': 'error',
-            'timestamp': datetime.utcnow().isoformat()
-        }), 500
-
-# Analyze news endpoint (for compatibility)
-@app.route('/api/analyze-news', methods=['POST'])
-@app.route('/analyze_news', methods=['POST'])
-def analyze_news():
-    """Alternative news analysis endpoint for compatibility"""
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'})
-    
-    try:
-        data = request.json
-        text = data.get('text', '')
-        
-        if not text:
-            return jsonify({'error': 'No text provided'}), 400
-        
-        # Use the comprehensive analysis
-        is_pro = data.get('tier') == 'pro' or data.get('analysis_type') == 'pro'
-        
-        # Generate comprehensive analysis
-        result = generate_comprehensive_analysis(text, '', is_pro)
-        
-        # Format response for compatibility
-        response = {
-            'status': 'success',
-            'timestamp': datetime.utcnow().isoformat(),
-            'analysis_id': f"news_analysis_{int(time.time())}",
-            'text_length': len(text),
-            'analysis_stages': {
-                'ai_analysis': 'completed',
-                'political_bias': 'completed',
-                'source_verification': 'completed',
-                'credibility_scoring': 'completed'
-            },
-            'ai_analysis': {
-                'credibility_score': result['credibility_score'],
-                'confidence_level': result['political_bias']['bias_confidence'],
-                'writing_quality': result['political_bias']['objectivity_score'],
-                'factual_claims': [claim['text'] for claim in extract_key_claims(text)[:3]],
-                'credibility_indicators': result['bias_indicators'][:3],
-                'red_flags': result['bias_indicators'][3:6] if len(result['bias_indicators']) > 3 else [],
-                'emotional_language': 100 - result['political_bias']['objectivity_score'],
-                'sensationalism_score': len(result['political_bias']['loaded_terms']) * 10
-            },
-            'political_bias': result['political_bias'],
-            'source_verification': {
-                'sources_found': 1,
-                'sources': [result['source_analysis']],
-                'average_credibility': result['source_analysis']['credibility_score']
-            },
-            'fact_check_results': {
-                'fact_checks_found': len(result['fact_check_results']),
-                'claims': result['fact_check_results']
-            },
-            'scoring': {
-                'overall_credibility': result['credibility_score'],
-                'credibility_grade': get_credibility_grade(result['credibility_score']),
-                'bias_score': result['political_bias']['bias_score'],
-                'source_credibility': result['source_analysis']['credibility_score']
-            },
-            'executive_summary': result.get('executive_summary', {
-                'main_assessment': 'MODERATE CREDIBILITY' if result['credibility_score'] >= 50 else 'LOW CREDIBILITY',
-                'summary_text': f"Analysis completed with {result['credibility_score']:.0f}/100 credibility score."
-            })
-        }
-        
-        return jsonify(response)
-        
-    except Exception as e:
-        logger.error(f"News analysis error: {str(e)}")
-        return jsonify({
-            'error': 'News analysis failed',
-            'details': str(e),
-            'status': 'error',
-            'timestamp': datetime.utcnow().isoformat()
-        }), 500
-
-def get_credibility_grade(score):
-    """Convert credibility score to grade"""
-    if score >= 90: return 'A+'
-    elif score >= 85: return 'A'
-    elif score >= 80: return 'A-'
-    elif score >= 75: return 'B+'
-    elif score >= 70: return 'B'
-    elif score >= 65: return 'B-'
-    elif score >= 60: return 'C+'
-    elif score >= 55: return 'C'
-    elif score >= 50: return 'C-'
-    elif score >= 40: return 'D'
-    else: return 'F'
-
-# Health check with enhanced status
-@app.route('/health')
-@app.route('/api/health')
-def health():
-    """Enhanced health check endpoint"""
-    api_status = {
-        'openai': 'connected' if OPENAI_API_KEY else 'not_configured',
-        'news_api': 'connected' if NEWS_API_KEY else 'not_configured',
-        'google_fact_check': 'connected' if GOOGLE_FACT_CHECK_API_KEY else 'not_configured',
-        'mediastack': 'connected' if MEDIASTACK_API_KEY else 'not_configured'
-    }
-    
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'version': '3.0',
-        'apis': api_status,
-        'database': 'connected',
-        'email': 'available' if EMAIL_AVAILABLE else 'unavailable'
-    })
-
-# Error handlers
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({'error': 'Not found'}), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    logger.error(f"Server error: {str(e)}")
-    return jsonify({'error': 'Internal server error'}), 500
-
-# Cleanup function
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    SessionLocal.remove()
-
-if __name__ == '__main__':
-    logger.info("Starting Flask application with real API integrations...")
-    logger.info(f"APIs configured:")
-    logger.info(f"- OpenAI: {'✓' if OPENAI_API_KEY else '✗'}")
-    logger.info(f"- NewsAPI: {'✓' if NEWS_API_KEY else '✗'}")
-    logger.info(f"- Google Fact Check: {'✓' if GOOGLE_FACT_CHECK_API_KEY else '✗'}")
-    logger.info(f"- MediaStack: {'✓' if MEDIASTACK_API_KEY else '✗'}")
-    
-    port = int(os.environ.get('PORT', 10000))
-    logger.info(f"Running on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
+        logger.error(f"Admin self-upgrade error: {str(e)}")
+        return "Upgrade failed", 500
+    finally:
+        db_session.close()
