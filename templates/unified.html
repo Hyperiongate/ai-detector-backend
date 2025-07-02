@@ -5,360 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Detection & Content Analysis - Facts & Fakes AI</title>
     
-    <!-- Google Analytics 4 Integration -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <!-- STEP 1: Add Google Analytics (with proper ID or commented out) -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_ACTUAL_GA_ID"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'GA_MEASUREMENT_ID', {
-            page_title: 'AI Detection & Content Analysis',
-            page_location: window.location.href,
-            custom_map: {
-                'custom_parameter_1': 'analysis_type',
-                'custom_parameter_2': 'user_tier',
-                'custom_parameter_3': 'file_upload_type'
-            }
-        });
-
-        // Enhanced Analytics Tracking System
-        class AnalyticsTracker {
-            constructor() {
-                this.sessionId = this.generateSessionId();
-                this.startTime = Date.now();
-                this.analysisStarted = false;
-                this.setupEventListeners();
-                this.trackPageLoad();
-            }
-
-            generateSessionId() {
-                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            }
-
-            trackPageLoad() {
-                gtag('event', 'page_view', {
-                    page_title: 'Unified Analysis Page',
-                    page_location: window.location.href,
-                    session_id: this.sessionId,
-                    user_engagement: true
-                });
-
-                // Track page performance
-                window.addEventListener('load', () => {
-                    const loadTime = Date.now() - this.startTime;
-                    gtag('event', 'page_load_time', {
-                        event_category: 'Performance',
-                        value: loadTime,
-                        session_id: this.sessionId
-                    });
-                });
-            }
-
-            setupEventListeners() {
-                // Track scroll depth
-                this.trackScrollDepth();
-                
-                // Track time on page
-                this.trackTimeOnPage();
-                
-                // Track form interactions
-                this.trackFormInteractions();
-                
-                // Track file uploads
-                this.trackFileUploads();
-                
-                // Track button clicks
-                this.trackButtonClicks();
-                
-                // Track tier selection
-                this.trackTierSelection();
-                
-                // Track sample text usage
-                this.trackSampleTextUsage();
-            }
-
-            trackScrollDepth() {
-                let maxScroll = 0;
-                window.addEventListener('scroll', () => {
-                    const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
-                    if (scrollPercent > maxScroll && scrollPercent % 25 === 0) {
-                        maxScroll = scrollPercent;
-                        gtag('event', 'scroll_depth', {
-                            event_category: 'Engagement',
-                            event_label: `${scrollPercent}%`,
-                            value: scrollPercent,
-                            session_id: this.sessionId
-                        });
-                    }
-                });
-            }
-
-            trackTimeOnPage() {
-                setInterval(() => {
-                    const timeSpent = Math.round((Date.now() - this.startTime) / 1000);
-                    if (timeSpent % 30 === 0 && timeSpent > 0) {
-                        gtag('event', 'time_on_page', {
-                            event_category: 'Engagement',
-                            value: timeSpent,
-                            session_id: this.sessionId
-                        });
-                    }
-                }, 30000);
-            }
-
-            trackFormInteractions() {
-                const textInput = document.getElementById('textInput');
-                if (textInput) {
-                    let hasTyped = false;
-                    
-                    textInput.addEventListener('focus', () => {
-                        gtag('event', 'text_input_focus', {
-                            event_category: 'Form Interaction',
-                            session_id: this.sessionId
-                        });
-                    });
-
-                    textInput.addEventListener('input', () => {
-                        if (!hasTyped) {
-                            hasTyped = true;
-                            gtag('event', 'text_input_start', {
-                                event_category: 'Form Interaction',
-                                session_id: this.sessionId
-                            });
-                        }
-                    });
-
-                    textInput.addEventListener('blur', () => {
-                        const charCount = textInput.value.length;
-                        gtag('event', 'text_input_blur', {
-                            event_category: 'Form Interaction',
-                            value: charCount,
-                            session_id: this.sessionId
-                        });
-                    });
-                }
-            }
-
-            trackFileUploads() {
-                const fileInput = document.getElementById('fileInput');
-                if (fileInput) {
-                    fileInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            gtag('event', 'file_upload_attempt', {
-                                event_category: 'File Upload',
-                                event_label: file.type,
-                                value: Math.round(file.size / 1024), // Size in KB
-                                custom_parameter_3: file.type,
-                                session_id: this.sessionId
-                            });
-                        }
-                    });
-                }
-
-                // Track drag and drop
-                const uploadSection = document.getElementById('fileUploadSection');
-                if (uploadSection) {
-                    uploadSection.addEventListener('dragenter', () => {
-                        gtag('event', 'file_drag_enter', {
-                            event_category: 'File Upload',
-                            session_id: this.sessionId
-                        });
-                    });
-
-                    uploadSection.addEventListener('drop', () => {
-                        gtag('event', 'file_drag_drop', {
-                            event_category: 'File Upload',
-                            session_id: this.sessionId
-                        });
-                    });
-                }
-            }
-
-            trackButtonClicks() {
-                // Track all buttons with specific events
-                document.addEventListener('click', (e) => {
-                    const target = e.target;
-                    
-                    if (target.id === 'analyzeBtn') {
-                        this.trackAnalysisStart();
-                    } else if (target.classList.contains('sample-btn')) {
-                        const sampleType = target.textContent.toLowerCase();
-                        gtag('event', 'sample_text_loaded', {
-                            event_category: 'Content Interaction',
-                            event_label: sampleType,
-                            session_id: this.sessionId
-                        });
-                    } else if (target.classList.contains('beta-join-btn')) {
-                        gtag('event', 'beta_modal_opened', {
-                            event_category: 'Conversion',
-                            event_label: 'from_unified_page',
-                            session_id: this.sessionId
-                        });
-                    } else if (target.classList.contains('action-btn')) {
-                        const actionType = target.textContent.toLowerCase().trim();
-                        gtag('event', 'result_action_clicked', {
-                            event_category: 'Results Interaction',
-                            event_label: actionType,
-                            session_id: this.sessionId
-                        });
-                    } else if (target.classList.contains('upgrade-btn')) {
-                        gtag('event', 'upgrade_button_clicked', {
-                            event_category: 'Conversion',
-                            event_label: 'pro_upgrade',
-                            session_id: this.sessionId
-                        });
-                    }
-                });
-            }
-
-            trackTierSelection() {
-                document.addEventListener('change', (e) => {
-                    if (e.target.name === 'tier') {
-                        gtag('event', 'tier_selected', {
-                            event_category: 'User Preference',
-                            event_label: e.target.value,
-                            custom_parameter_2: e.target.value,
-                            session_id: this.sessionId
-                        });
-                    }
-                });
-            }
-
-            trackSampleTextUsage() {
-                // This will be called from the loadSampleText function
-                window.trackSampleText = (type) => {
-                    gtag('event', 'sample_text_used', {
-                        event_category: 'Content Interaction',
-                        event_label: type,
-                        session_id: this.sessionId
-                    });
-                };
-            }
-
-            trackAnalysisStart() {
-                if (!this.analysisStarted) {
-                    this.analysisStarted = true;
-                    const selectedTier = document.querySelector('input[name="tier"]:checked')?.value || 'unknown';
-                    const textLength = document.getElementById('textInput')?.value.length || 0;
-                    
-                    gtag('event', 'analysis_started', {
-                        event_category: 'Analysis',
-                        event_label: selectedTier,
-                        value: textLength,
-                        custom_parameter_1: 'unified_analysis',
-                        custom_parameter_2: selectedTier,
-                        session_id: this.sessionId
-                    });
-
-                    // Track as conversion event
-                    gtag('event', 'begin_analysis', {
-                        event_category: 'Conversion',
-                        value: selectedTier === 'pro' ? 1 : 0,
-                        session_id: this.sessionId
-                    });
-                }
-            }
-
-            trackAnalysisComplete(results) {
-                const selectedTier = document.querySelector('input[name="tier"]:checked')?.value || 'unknown';
-                const aiProbability = results?.ai_detection?.ai_probability || 0;
-                const similarityScore = results?.plagiarism_detection?.similarity_score || 0;
-                
-                gtag('event', 'analysis_completed', {
-                    event_category: 'Analysis',
-                    event_label: selectedTier,
-                    value: Math.round(aiProbability * 100),
-                    custom_parameter_1: 'unified_analysis',
-                    custom_parameter_2: selectedTier,
-                    session_id: this.sessionId
-                });
-
-                // Track specific result thresholds
-                if (aiProbability > 0.7) {
-                    gtag('event', 'high_ai_probability_detected', {
-                        event_category: 'Analysis Results',
-                        value: Math.round(aiProbability * 100),
-                        session_id: this.sessionId
-                    });
-                }
-
-                if (similarityScore > 0.3) {
-                    gtag('event', 'high_similarity_detected', {
-                        event_category: 'Analysis Results',
-                        value: Math.round(similarityScore * 100),
-                        session_id: this.sessionId
-                    });
-                }
-
-                // Track conversion completion
-                gtag('event', 'purchase', {
-                    transaction_id: this.sessionId,
-                    value: selectedTier === 'pro' ? 10 : 0,
-                    currency: 'USD',
-                    items: [{
-                        item_id: 'unified_analysis',
-                        item_name: `${selectedTier} Analysis`,
-                        category: 'AI Detection',
-                        quantity: 1,
-                        price: selectedTier === 'pro' ? 10 : 0
-                    }]
-                });
-            }
-
-            trackBetaSignup(email) {
-                gtag('event', 'beta_signup_completed', {
-                    event_category: 'Conversion',
-                    event_label: 'unified_page',
-                    session_id: this.sessionId
-                });
-
-                gtag('event', 'generate_lead', {
-                    currency: 'USD',
-                    value: 25,
-                    session_id: this.sessionId
-                });
-            }
-
-            trackError(errorType, errorMessage) {
-                gtag('event', 'exception', {
-                    description: `${errorType}: ${errorMessage}`,
-                    fatal: false,
-                    session_id: this.sessionId
-                });
-            }
-
-            trackConversion(conversionType, value = 0) {
-                gtag('event', conversionType, {
-                    event_category: 'Conversion',
-                    value: value,
-                    session_id: this.sessionId
-                });
-            }
-        }
-
-        // Debug mode for testing
-        window.debugAnalytics = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('debug') === 'true';
-        };
-
-        if (window.debugAnalytics()) {
-            console.log('Analytics Debug Mode Enabled');
-            const originalGtag = window.gtag;
-            window.gtag = function() {
-                console.log('Analytics Event:', arguments);
-                if (originalGtag) originalGtag.apply(this, arguments);
-            };
+        gtag('config', 'YOUR_ACTUAL_GA_ID');
+    </script>
+    -->
+    
+    <!-- For now, use stub gtag function to prevent errors -->
+    <script>
+        function gtag() {
+            console.log('Analytics event:', arguments);
         }
     </script>
-
+    
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzAwN2JmZiIvPgo8cGF0aCBkPSJNOCAxMmg4djJIOHYtMnptMCA0aDEydjJIOHYtMnptMCA0aDZ2Mkg4di0yeiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+">
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* Keep all the original styles from the working version */
         * {
             margin: 0;
             padding: 0;
@@ -366,427 +37,61 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
-            padding-top: 120px; /* Increased to account for header + beta banner */
+            padding-bottom: 2rem;
         }
-
-        /* Beta Banner Styles (copied from news.html) */
-        .beta-banner {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
-            padding: 8px 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
-            z-index: 9998;
-        }
-
-        .beta-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 3s infinite;
-            transform: rotate(45deg);
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .beta-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            color: white;
-            font-weight: 600;
-        }
-
-        .beta-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .beta-join-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .beta-join-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Facts & Fakes AI Navigation Header */
-        /* Reset any conflicting styles */
-        .ff-nav * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Main navigation bar */
-        .ff-nav {
+        
+        .header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
-            z-index: 9999;
-            height: 60px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: 1000;
         }
-
-        .ff-nav-container {
+        
+        .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 60px;
         }
-
-        /* Logo */
-        .ff-nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: #667eea;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: transform 0.3s ease;
-        }
-
-        .ff-nav-logo:hover {
-            transform: scale(1.05);
-        }
-
-        .ff-nav-logo i {
-            font-size: 1.4rem;
-        }
-
-        /* Navigation links */
-        .ff-nav-links {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .ff-nav-link {
-            color: #4a5568;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .ff-nav-link:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .ff-nav-link.active {
-            background: rgba(102, 126, 234, 0.15);
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .ff-nav-link i {
-            font-size: 0.9rem;
-        }
-
-        /* Auth buttons */
-        .ff-nav-auth {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            position: relative;
-        }
-
-        .ff-nav-login, .ff-nav-signup {
-            padding: 8px 20px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .ff-nav-login {
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .ff-nav-login:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .ff-nav-signup {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: 2px solid transparent;
-        }
-
-        .ff-nav-signup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Beta balloon */
-        .ff-beta-balloon {
-            position: absolute;
-            top: -35px;
-            right: 50px;
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
-            animation: ff-bounce 2s infinite;
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-        }
-
-        .ff-beta-balloon::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            right: 20px;
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid #f7931e;
-        }
-
-        @keyframes ff-bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        /* User menu */
-        .ff-user-menu {
-            position: relative;
-            display: none;
-        }
-
-        .ff-user-menu-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #4a5568;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .ff-user-menu-toggle:hover {
-            background: rgba(102, 126, 234, 0.2);
-        }
-
-        .ff-user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 10px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            min-width: 280px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-        }
-
-        .ff-user-dropdown.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        /* Mobile menu button */
-        .ff-mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: #4a5568;
+        
+        .logo {
             font-size: 1.5rem;
-            cursor: pointer;
-            padding: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .ff-mobile-menu-btn:hover {
+            font-weight: 700;
             color: #667eea;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            background: rgba(255,255,255,0.1);
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .modal-header h2 {
-            color: white;
-            margin-bottom: 0.5rem;
-            font-size: 1.8rem;
-        }
-
-        .modal-header p {
-            color: rgba(255,255,255,0.8);
-            font-size: 1rem;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-body .input-group {
-            margin-bottom: 1rem;
-        }
-
-        .modal-body input {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            width: 100%;
-            font-size: 1rem;
-        }
-
-        .modal-body input::placeholder {
-            color: rgba(255,255,255,0.6);
-        }
-
-        .modal-footer {
-            padding: 1.5rem 2rem 2rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
-        }
-
-        .close {
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-            color: rgba(255,255,255,0.8);
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
+            gap: 0.5rem;
         }
-
-        .close:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #667eea;
+        }
+        
+        .nav-link.active {
+            color: #667eea;
+            font-weight: 600;
         }
         
         .container {
@@ -807,7 +112,7 @@
         
         .hero-title {
             font-size: 3rem;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -818,45 +123,21 @@
         .hero-subtitle {
             font-size: 1.3rem;
             color: #666;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
             line-height: 1.6;
         }
         
-        .disclaimer {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: left;
-        }
-        
-        .disclaimer-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .disclaimer-content {
-            color: #666;
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-        
-        .tools-grid {
+        .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
             margin-bottom: 3rem;
         }
         
-        .tool-card {
+        .feature-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             padding: 2rem;
@@ -866,28 +147,27 @@
             backdrop-filter: blur(10px);
         }
         
-        .tool-card:hover {
+        .feature-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.15);
         }
         
-        .tool-icon {
+        .feature-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
             display: block;
         }
         
-        .tool-title {
-            font-size: 1.4rem;
+        .feature-title {
+            font-size: 1.3rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         
-        .tool-desc {
+        .feature-desc {
             color: #666;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         .analysis-container {
@@ -997,52 +277,6 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
-        .tier-selection {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            justify-content: center;
-        }
-        
-        .tier-option {
-            flex: 1;
-            max-width: 200px;
-        }
-        
-        .tier-radio {
-            display: none;
-        }
-        
-        .tier-label {
-            display: block;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        
-        .tier-radio:checked + .tier-label {
-            border-color: #007bff;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .tier-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .tier-desc {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
         .analyze-btn {
             width: 100%;
             padding: 1.2rem;
@@ -1068,80 +302,11 @@
             transform: none;
         }
         
-        .progress-section {
-            margin-bottom: 2rem;
-            display: none;
-        }
-        
-        .progress-container {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        
-        .progress-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: #333;
-        }
-        
-        .progress-bars {
-            display: grid;
-            gap: 1rem;
-        }
-        
-        .progress-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .progress-label {
-            min-width: 120px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        
-        .progress-bar {
-            flex: 1;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1, #96ceb4, #feca57);
-            background-size: 300% 100%;
-            border-radius: 10px;
-            transition: width 1s ease;
-            animation: rainbow 3s ease-in-out infinite;
-        }
-        
-        @keyframes rainbow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        .progress-percent {
-            min-width: 40px;
-            text-align: right;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-        
         .results-section {
             display: none;
         }
         
-        .results-summary {
+        .result-card {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             padding: 2rem;
@@ -1149,8 +314,8 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
         
-        .summary-title {
-            font-size: 1.8rem;
+        .result-title {
+            font-size: 1.5rem;
             font-weight: 600;
             color: #333;
             margin-bottom: 1rem;
@@ -1159,255 +324,28 @@
             gap: 0.5rem;
         }
         
-        .summary-text {
-            font-size: 1.1rem;
+        .result-content {
             color: #555;
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
+            line-height: 1.8;
         }
         
-        .summary-highlights {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .highlight-item {
-            background: rgba(0, 123, 255, 0.05);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #007bff;
-            text-align: center;
-        }
-        
-        .highlight-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #007bff;
-            display: block;
-        }
-        
-        .highlight-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 0.5rem;
-        }
-        
-        .infographic-container {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        
-        .infographic-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        
-        .score-visualization {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .score-meter {
-            position: relative;
-            text-align: center;
-        }
-        
-        .meter-circle {
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 1rem;
-            position: relative;
-        }
-        
-        .meter-svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-        
-        .meter-bg {
-            fill: none;
-            stroke: #e9ecef;
-            stroke-width: 10;
-        }
-        
-        .meter-progress {
-            fill: none;
-            stroke-width: 10;
-            stroke-linecap: round;
-            transition: stroke-dasharray 1s ease;
-        }
-        
-        .meter-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .meter-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        
-        .meter-desc {
-            font-size: 0.9rem;
-            color: #666;
-            line-height: 1.4;
-        }
-        
-        .detailed-panels {
-            display: grid;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .detail-panel {
-            background: rgba(255, 255, 255, 0.9);
+        .score-bar {
+            height: 30px;
+            background: #e9ecef;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        
-        .panel-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-            position: relative;
-        }
-        
-        .panel-lock {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: rgba(255, 193, 7, 0.9);
-            color: #333;
-            padding: 0.3rem 0.6rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .panel-toggle {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .panel-content {
-            padding: 2rem;
-            display: none;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .panel-content.active {
-            display: block;
-        }
-        
-        .panel-header.active .panel-toggle {
-            transform: rotate(180deg);
-        }
-        
-        .conversational-text {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
-        }
-        
-        .conversational-text strong {
-            color: #333;
-        }
-        
-        .highlight-box {
-            background: rgba(40, 167, 69, 0.1);
-            border: 1px solid #28a745;
-            border-radius: 8px;
-            padding: 1rem;
             margin: 1rem 0;
         }
         
-        .highlight-box.warning {
-            background: rgba(255, 193, 7, 0.1);
-            border-color: #ffc107;
-        }
-        
-        .highlight-box.danger {
-            background: rgba(220, 53, 69, 0.1);
-            border-color: #dc3545;
-        }
-        
-        .plagiarism-matches {
-            margin-top: 1.5rem;
-        }
-        
-        .match-item {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .match-header {
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        
-        .match-text {
-            font-style: italic;
-            color: #666;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 0.5rem;
-            border-radius: 5px;
-            margin-top: 0.5rem;
-        }
-        
-        .methodology-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .methodology-item {
-            background: rgba(0, 123, 255, 0.05);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #007bff;
-        }
-        
-        .methodology-label {
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .methodology-value {
-            color: #007bff;
-            font-weight: 500;
         }
         
         .action-buttons {
@@ -1443,121 +381,35 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
-        .footer {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 3rem 0 2rem;
-            margin-top: 4rem;
-            backdrop-filter: blur(10px);
-        }
-        
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .footer-section h3 {
-            color: #333;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-        
-        .footer-section p,
-        .footer-section a {
-            color: #666;
-            text-decoration: none;
-            line-height: 1.6;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        
-        .footer-section a:hover {
-            color: #007bff;
-        }
-        
-        .footer-bottom {
+        .loading {
+            display: none;
             text-align: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e0e0e0;
-            color: #666;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 140px; /* Adjusted for beta banner */
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.success {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-        }
-        
-        .notification.info {
-            background: linear-gradient(135deg, #17a2b8, #138496);
-        }
-        
-        .pro-locked {
-            background: rgba(255, 193, 7, 0.1);
-            border: 2px dashed #ffc107;
-            border-radius: 10px;
             padding: 2rem;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
             text-align: center;
-            margin: 1rem 0;
+            padding: 2rem;
+            color: white;
+            margin-top: 3rem;
         }
         
-        .pro-locked-icon {
-            font-size: 3rem;
-            color: #ffc107;
-            margin-bottom: 1rem;
-        }
-        
-        .pro-locked-text {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 1rem;
-        }
-        
-        .upgrade-btn {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-            color: #333;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .upgrade-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        /* Mobile responsive */
         @media (max-width: 768px) {
-            body {
-                padding-top: 100px; /* Adjusted for mobile */
-            }
-
             .hero-title {
                 font-size: 2rem;
             }
@@ -1575,6 +427,14 @@
                 padding: 2rem 1.5rem;
             }
             
+            .nav-links {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .sample-buttons {
                 flex-direction: column;
             }
@@ -1582,209 +442,52 @@
             .sample-btn {
                 width: 100%;
             }
-            
-            .tier-selection {
-                flex-direction: column;
-            }
-            
-            .tier-option {
-                max-width: none;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .action-btn {
-                width: 100%;
-            }
-            
-            .score-visualization {
-                grid-template-columns: 1fr;
-            }
-            
-            .summary-highlights {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .methodology-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                margin: 10% auto;
-                width: 95%;
-            }
-
-            .modal-footer {
-                flex-direction: column;
-            }
-
-            .beta-content {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .ff-nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-                border-top: 1px solid #e2e8f0;
-            }
-            
-            .ff-nav-links.active {
-                display: flex;
-            }
-            
-            .ff-nav-link {
-                width: 100%;
-                padding: 12px 20px;
-            }
-            
-            .ff-mobile-menu-btn {
-                display: block;
-            }
-            
-            .ff-nav-auth {
-                display: none;
-            }
-            
-            .ff-user-menu {
-                display: none !important;
-            }
-            
-            .ff-beta-balloon {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Facts & Fakes AI Navigation Header -->
-    <nav class="ff-nav">
-        <div class="ff-nav-container">
-            <a href="/" class="ff-nav-logo">
+    <!-- Navigation -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="/" class="logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>Facts & Fakes AI</span>
+                Facts & Fakes AI
             </a>
-            
-            <div class="ff-nav-links" id="ffNavLinks">
-                <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
-                <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
-                <a href="/unified" class="ff-nav-link active"><i class="fas fa-search"></i> Content Check</a>
-                <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
-                <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
-                <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
-                <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/news" class="nav-link">News Analysis</a>
+                <a href="/unified" class="nav-link active">AI Detection</a>
+                <a href="/imageanalysis" class="nav-link">Image Analysis</a>
+                <a href="/contact" class="nav-link">Contact</a>
             </div>
-            
-            <div class="ff-nav-auth" id="ffNavAuth">
-                <a href="/login" class="ff-nav-login">Login</a>
-                <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
-                <div class="ff-beta-balloon">
-                    sign up now to start your free trial
-                </div>
-            </div>
-            
-            <div class="ff-user-menu" id="ffUserMenu">
-                <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
-                    <span id="ffUserEmail">user@example.com</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="ff-user-dropdown" id="ffUserDropdown">
-                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
-                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
-                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
-                    </div>
-                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
-                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
-                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
-                    </div>
-                    <div style="padding: 10px 0;">
-                        <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
-                        <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
-                        <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
-                        <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-            
-            <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Beta Banner (copied from news.html) -->
-    <div class="beta-banner">
-        <div class="beta-content">
-            <span class="beta-badge">BETA</span>
-            <span>🚀 The world's ONLY platform built specifically for news verification - Join our beta!</span>
-            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
-        </div>
-    </div>
+        </nav>
+    </header>
 
     <div class="container">
         <!-- Hero Section -->
         <section class="hero-section">
-            <h1 class="hero-title">Professional AI Detection Aid</h1>
+            <h1 class="hero-title">AI Content Detection & Analysis</h1>
             <p class="hero-subtitle">
-                Designed for Accuracy and Transparency - Advanced detection aid that analyzes writing patterns, 
-                checks for similarities across databases, and provides detailed explanations of our methodology.
+                Advanced AI detection technology to identify generated content, check for plagiarism, 
+                and analyze writing patterns with detailed insights and explanations.
             </p>
             
-            <!-- Disclaimer -->
-            <div class="disclaimer">
-                <div class="disclaimer-title">
-                    ⚠️ Important: This is a Detection Aid, Not Definitive Proof
+            <!-- Features Grid -->
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🤖</span>
+                    <h3 class="feature-title">AI Detection</h3>
+                    <p class="feature-desc">Identify AI-generated content with advanced pattern recognition</p>
                 </div>
-                <div class="disclaimer-content">
-                    <strong>What this tool provides:</strong> Professional analysis with confidence scores, detailed explanations, and transparent methodology to help you make informed decisions.<br>
-                    <strong>What this tool doesn't provide:</strong> Absolute certainty or definitive proof. No AI detection tool is 100% accurate. Use results as one factor in your evaluation, not as the sole determining factor.<br>
-                    <strong>Best practice:</strong> Combine our analysis with your own judgment, additional verification methods, and direct conversation when appropriate.
+                <div class="feature-card">
+                    <span class="feature-icon">📋</span>
+                    <h3 class="feature-title">Plagiarism Check</h3>
+                    <p class="feature-desc">Compare against billions of sources to detect copied content</p>
                 </div>
-            </div>
-            
-            <!-- Tools Grid -->
-            <div class="tools-grid">
-                <div class="tool-card">
-                    <span class="tool-icon">🤖</span>
-                    <h3 class="tool-title">AI Detection</h3>
-                    <p class="tool-desc">Analyzes writing patterns, vocabulary usage, sentence structure, and linguistic fingerprints</p>
-                </div>
-                <div class="tool-card">
-                    <span class="tool-icon">📋</span>
-                    <h3 class="tool-title">Similarity Analysis</h3>
-                    <p class="tool-desc">Searches across databases for matching content, paraphrased text, and similar passages</p>
-                </div>
-                <div class="tool-card">
-                    <span class="tool-icon">📊</span>
-                    <h3 class="tool-title">Content Breakdown</h3>
-                    <p class="tool-desc">Examines readability, sentiment, authorship style, and linguistic characteristics</p>
-                </div>
-                <div class="tool-card">
-                    <span class="tool-icon">🔍</span>
-                    <h3 class="tool-title">Transparent Analysis</h3>
-                    <p class="tool-desc">Shows exactly what we analyzed, how scores were calculated, and confidence levels</p>
-                </div>
-                <div class="tool-card">
-                    <span class="tool-icon">📁</span>
-                    <h3 class="tool-title">Multi-Format Support</h3>
-                    <p class="tool-desc">Processes PDF, DOCX, TXT files with accurate text extraction and formatting preservation</p>
-                </div>
-                <div class="tool-card">
-                    <span class="tool-icon">🎯</span>
-                    <h3 class="tool-title">Professional Reporting</h3>
-                    <p class="tool-desc">Detailed reports with visual indicators, explanations, and actionable insights</p>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3 class="feature-title">Writing Analysis</h3>
+                    <p class="feature-desc">Detailed breakdown of writing style, readability, and quality</p>
                 </div>
             </div>
         </section>
@@ -1794,1033 +497,264 @@
             <!-- Input Section -->
             <div class="input-section">
                 <div class="input-group">
-                    <label for="textInput" class="input-label">Enter Text for Analysis</label>
+                    <label for="textInput" class="input-label">Enter Your Text</label>
                     <textarea 
                         id="textInput" 
                         class="text-input" 
-                        placeholder="Paste your content here for comprehensive analysis. We'll examine writing patterns, check for similarities, and provide detailed insights with explanations. Minimum 50 characters required for meaningful results..."
+                        placeholder="Paste your text here for analysis..."
                     ></textarea>
                     
                     <!-- Sample Text Buttons -->
                     <div class="sample-buttons">
-                        <button class="sample-btn" onclick="loadSampleText('ai')">🤖 AI-Generated Sample</button>
-                        <button class="sample-btn" onclick="loadSampleText('human')">👤 Human-Written Sample</button>
-                        <button class="sample-btn" onclick="loadSampleText('academic')">🎓 Academic Sample</button>
-                        <button class="sample-btn" onclick="loadSampleText('news')">📰 News Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('ai')">🤖 AI Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('human')">👤 Human Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('mixed')">🔀 Mixed Sample</button>
                     </div>
                 </div>
 
                 <!-- File Upload Section -->
                 <div class="file-upload-section" id="fileUploadSection">
-                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx,.csv,.xlsx,.xls">
+                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx">
                     <label for="fileInput" class="file-upload-label">
                         📁 Choose File or Drag & Drop
                     </label>
                     <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                        Supported formats: TXT, PDF, DOC, DOCX, CSV, XLSX, XLS (Max 50MB)
+                        Supported formats: TXT, PDF, DOC, DOCX (Max 10MB)
                     </p>
-                </div>
-
-                <!-- Tier Selection -->
-                <div class="tier-selection">
-                    <div class="tier-option">
-                        <input type="radio" id="tierFree" name="tier" value="free" class="tier-radio" checked>
-                        <label for="tierFree" class="tier-label">
-                            <div class="tier-name">Free Analysis</div>
-                            <div class="tier-desc">Basic detection with core insights</div>
-                        </label>
-                    </div>
-                    <div class="tier-option">
-                        <input type="radio" id="tierPro" name="tier" value="pro" class="tier-radio">
-                        <label for="tierPro" class="tier-label">
-                            <div class="tier-name">Pro Analysis</div>
-                            <div class="tier-desc">Complete analysis with all features</div>
-                        </label>
-                    </div>
                 </div>
 
                 <!-- Analyze Button -->
                 <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
-                    🔍 Begin Professional Analysis
+                    🔍 Analyze Content
                 </button>
             </div>
 
-            <!-- Progress Section -->
-            <div class="progress-section" id="progressSection">
-                <div class="progress-container">
-                    <h3 class="progress-title">🔄 Analysis in Progress</h3>
-                    <div class="progress-bars">
-                        <div class="progress-item">
-                            <span class="progress-label">AI Detection</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressAI"></div>
-                            </div>
-                            <span class="progress-percent" id="percentAI">0%</span>
-                        </div>
-                        <div class="progress-item">
-                            <span class="progress-label">Similarity Check</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressPlagiarism"></div>
-                            </div>
-                            <span class="progress-percent" id="percentPlagiarism">0%</span>
-                        </div>
-                        <div class="progress-item">
-                            <span class="progress-label">Content Analysis</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressContent"></div>
-                            </div>
-                            <span class="progress-percent" id="percentContent">0%</span>
-                        </div>
-                        <div class="progress-item">
-                            <span class="progress-label">Final Processing</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFinal"></div>
-                            </div>
-                            <span class="progress-percent" id="percentFinal">0%</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Loading Section -->
+            <div class="loading" id="loadingSection">
+                <div class="spinner"></div>
+                <p>Analyzing your content...</p>
             </div>
 
             <!-- Results Section -->
             <div class="results-section" id="resultsSection">
-                <!-- Conversational Summary -->
-                <div class="results-summary" id="resultsSummary">
-                    <h2 class="summary-title">
-                        📊 Analysis Complete - Here's What We Found
+                <!-- AI Detection Result -->
+                <div class="result-card">
+                    <h2 class="result-title">
+                        <span>🤖</span>
+                        AI Detection Results
                     </h2>
-                    <div class="summary-text" id="summaryText">
-                        <!-- Populated by JavaScript -->
-                    </div>
-                    <div class="summary-highlights" id="summaryHighlights">
-                        <!-- Populated by JavaScript -->
+                    <div class="result-content" id="aiResults">
+                        <!-- Results will be populated here -->
                     </div>
                 </div>
 
-                <!-- Visual Infographics -->
-                <div class="infographic-container">
-                    <h3 class="infographic-title">📈 Visual Analysis Results</h3>
-                    <div class="score-visualization" id="scoreVisualization">
-                        <!-- Populated by JavaScript -->
+                <!-- Plagiarism Result -->
+                <div class="result-card">
+                    <h2 class="result-title">
+                        <span>📋</span>
+                        Plagiarism Check Results
+                    </h2>
+                    <div class="result-content" id="plagiarismResults">
+                        <!-- Results will be populated here -->
                     </div>
                 </div>
 
-                <!-- Detailed Analysis Panels -->
-                <div class="detailed-panels" id="detailedPanels">
-                    <!-- Populated by JavaScript -->
+                <!-- Writing Analysis Result -->
+                <div class="result-card">
+                    <h2 class="result-title">
+                        <span>📊</span>
+                        Writing Analysis
+                    </h2>
+                    <div class="result-content" id="writingResults">
+                        <!-- Results will be populated here -->
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button class="action-btn btn-primary" onclick="downloadReport()">
-                        📄 Download Detailed Report
+                        📄 Download Report
                     </button>
-                    <button class="action-btn btn-secondary" onclick="resetAnalysis()">
-                        🔄 Analyze New Content
-                    </button>
-                    <button class="action-btn btn-success" onclick="shareResults()">
-                        📤 Share Results
+                    <button class="action-btn btn-success" onclick="analyzeNew()">
+                        🔄 New Analysis
                     </button>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- Beta Modal -->
-    <div id="betaModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeBetaModal()">&times;</span>
-            <div class="modal-header">
-                <h2>🚀 Join Our Beta Program</h2>
-                <p>Get exclusive early access to premium features and help shape the future of AI content verification!</p>
-            </div>
-            <div class="modal-body">
-                <form id="betaSignupForm">
-                    <div class="input-group">
-                        <label for="betaEmail" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Email Address *</label>
-                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="betaName" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Name (Optional)</label>
-                        <input type="text" id="betaName" placeholder="Your name (optional)">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
-                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>🔍 Facts & Fakes AI</h3>
-                <p>Professional AI detection aid designed for accuracy and transparency in content verification.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Analysis Tools</h3>
-                <a href="/unified">AI Detection Aid</a>
-                <a href="/news">News Verification</a>
-                <a href="/imageanalysis">Image Analysis</a>
-                <a href="/contact">Contact Support</a>
-            </div>
-            <div class="footer-section">
-                <h3>Company</h3>
-                <a href="/missionstatement">Mission Statement</a>
-                <a href="/pricingplan">Pricing Plans</a>
-                <a href="/contact">Contact Us</a>
-                <a href="/contact">Privacy Policy</a>
-            </div>
-            <div class="footer-section">
-                <h3>Contact Information</h3>
-                <p>📧 contact@factsandfakes.ai</p>
-                <p>📞 +1 (555) 123-4567</p>
-                <p>🌍 San Francisco, CA</p>
-                <p>🕒 24/7 Support Available</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Facts & Fakes AI. Professional AI Detection Aid - Designed for Accuracy and Transparency.</p>
-        </div>
+        <p>&copy; 2024 Facts & Fakes AI. Professional AI Detection & Analysis.</p>
     </footer>
 
-    <!-- Notification Container -->
-    <div id="notification" class="notification"></div>
-
     <script>
-        // Initialize analytics tracker as a global variable
-        let analyticsTracker;
-
-        // Namespace all functions to avoid conflicts
-        window.ffNav = {
-            checkAuthStatus: async function() {
-                try {
-                    const response = await fetch('/api/user-status');
-                    
-                    // Check if response is actually JSON
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        console.log('Auth endpoint not available yet - showing login/signup');
-                        return;
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.authenticated) {
-                        document.getElementById('ffNavAuth').style.display = 'none';
-                        document.getElementById('ffUserMenu').style.display = 'block';
-                        
-                        document.getElementById('ffUserEmail').textContent = data.user?.email || 'User';
-                        document.getElementById('ffUserEmailDropdown').textContent = data.user?.email || 'User';
-                        document.getElementById('ffUserPlan').textContent = data.user?.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
-                        
-                        // Usage tracking would go here
-                        document.getElementById('ffUsageProgress').style.width = '20%';
-                        document.getElementById('ffUsageText').textContent = '1 / 5 analyses used';
-                    }
-                } catch (error) {
-                    // Silently fail during development - auth system not ready yet
-                    console.log('Auth system not ready yet - this is normal during initial deployment');
-                }
-            },
-            
-            init: function() {
-                this.checkAuthStatus();
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(event) {
-                    const userMenu = document.querySelector('.ff-user-menu');
-                    if (userMenu && !userMenu.contains(event.target)) {
-                        document.getElementById('ffUserDropdown').classList.remove('active');
-                    }
-                });
-                
-                // Add active class to current page
-                const currentPath = window.location.pathname;
-                document.querySelectorAll('.ff-nav-link').forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href === currentPath || (currentPath.includes('unified') && href === '/unified')) {
-                        link.classList.add('active');
-                    }
-                });
-            }
-        };
-
-        // Global functions for onclick handlers
-        function ffToggleMobileMenu() {
-            const navLinks = document.getElementById('ffNavLinks');
-            navLinks.classList.toggle('active');
-        }
-
-        function ffToggleUserDropdown() {
-            const dropdown = document.getElementById('ffUserDropdown');
-            dropdown.classList.toggle('active');
-        }
-
-        async function ffLogout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Logout failed:', error);
-            }
-        }
-
-        // Beta Modal Functions
-        function openBetaModal() {
-            document.getElementById('betaModal').style.display = 'block';
-            gtag('event', 'beta_modal_opened', {
-                event_category: 'Conversion',
-                event_label: 'from_unified_page',
-                session_id: analyticsTracker?.sessionId
-            });
-        }
-
-        function closeBetaModal() {
-            document.getElementById('betaModal').style.display = 'none';
-        }
-
-        function submitBetaSignup() {
-            const email = document.getElementById('betaEmail').value;
-            const name = document.getElementById('betaName').value;
-
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-
-            // Track beta signup attempt
-            gtag('event', 'beta_signup_attempt', {
-                event_category: 'Conversion',
-                session_id: analyticsTracker?.sessionId
-            });
-
-            // Try to submit to backend, fall back to demo mode
-            fetch('/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password: 'temp123' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (analyticsTracker) {
-                    analyticsTracker.trackBetaSignup(email);
-                }
-                alert('🎉 Welcome to the beta program! Check your email for next steps.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-                // Refresh auth status
-                window.ffNav.checkAuthStatus();
-            })
-            .catch(error => {
-                // Demo mode fallback
-                console.log('Demo mode: Beta signup for', email);
-                if (analyticsTracker) {
-                    analyticsTracker.trackBetaSignup(email);
-                }
-                alert('🎉 Thanks for your interest! Beta program signup recorded.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            });
-        }
-
-        // Global variables
-        let currentAnalysis = null;
-        let progressIntervals = [];
-
-        // Sample texts for testing
+        // Sample texts
         const sampleTexts = {
-            ai: "Artificial intelligence represents a paradigmatic shift in technological development, fundamentally transforming the landscape of computational capabilities. Through sophisticated machine learning algorithms and neural network architectures, AI systems demonstrate remarkable proficiency in pattern recognition, data analysis, and decision-making processes. Furthermore, the integration of advanced natural language processing capabilities enables these systems to comprehend and generate human-like text with unprecedented accuracy. Consequently, the applications of artificial intelligence span across numerous domains, including healthcare, finance, education, and scientific research, thereby revolutionizing traditional methodologies and establishing new benchmarks for efficiency and innovation.",
-            human: "I've been thinking a lot about AI lately, and honestly, it's pretty wild how fast things are changing. Like, just a few years ago, we couldn't imagine having conversations with computers that actually made sense. Now my kids are using ChatGPT for homework help (don't tell their teachers lol). But seriously, I'm both excited and a bit worried about where this is all heading. Will robots take our jobs? Will they become smarter than us? I guess we'll find out soon enough. What do you think?",
-            academic: "This study examines the correlation between social media usage patterns and academic performance among undergraduate students. The research methodology employed a mixed-methods approach, incorporating both quantitative surveys (n=1,247) and qualitative interviews (n=45) conducted across three universities. Preliminary findings suggest a statistically significant negative correlation (r=-0.34, p<0.001) between excessive social media consumption and GPA scores. However, the data also indicates that structured, educational use of social platforms may enhance collaborative learning outcomes. Further longitudinal studies are recommended to establish causal relationships.",
-            news: "Breaking: Local authorities confirmed this morning that the downtown renovation project will proceed as scheduled despite recent budget concerns. Mayor Sarah Johnson announced during a press conference that additional funding has been secured through state grants and private partnerships. 'This investment in our community's future reflects our commitment to economic growth and urban revitalization,' Johnson stated. The $2.3 million project is expected to create 150 temporary jobs and improve infrastructure for local businesses. Construction is set to begin next month and conclude by year's end."
+            ai: "The implementation of artificial intelligence in modern healthcare systems represents a paradigm shift in medical diagnostics and treatment protocols. Through sophisticated machine learning algorithms, healthcare providers can now analyze vast datasets with unprecedented accuracy, leading to improved patient outcomes and more efficient resource allocation. This technological advancement demonstrates the transformative potential of AI across various sectors of the medical industry.",
+            human: "I went to the doctor yesterday and honestly, it was such a weird experience. They had this new AI thing that was supposed to help diagnose stuff, but the nurse seemed confused about how to use it. I'm not sure if it actually helped or just made things take longer. Still got my prescription though, so I guess it worked out okay in the end.",
+            mixed: "Recent studies have shown that AI integration in healthcare can significantly improve diagnostic accuracy. However, many practitioners express concerns about the technology's reliability. Dr. Smith noted, 'While the AI system helps with initial screening, nothing replaces human judgment.' These mixed reactions highlight the ongoing debate about AI's role in medicine."
         };
 
-        // Load sample text function
+        // Load sample text
         function loadSampleText(type) {
-            const textInput = document.getElementById('textInput');
-            textInput.value = sampleTexts[type];
-            
-            // Track sample text usage
-            gtag('event', 'sample_text_loaded', {
-                event_category: 'Content Interaction',
-                event_label: type,
-                session_id: analyticsTracker?.sessionId
+            document.getElementById('textInput').value = sampleTexts[type];
+            // Simple analytics tracking
+            gtag('event', 'sample_loaded', {
+                event_category: 'interaction',
+                event_label: type
             });
-            
-            showNotification('Sample text loaded successfully!', 'success');
         }
 
         // File upload handling
-        function setupFileUpload() {
-            const fileInput = document.getElementById('fileInput');
-            const fileUploadSection = document.getElementById('fileUploadSection');
-            
-            if (fileInput) {
-                fileInput.addEventListener('change', handleFileUpload);
-            }
-            
-            // Drag and drop functionality
-            if (fileUploadSection) {
-                fileUploadSection.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileUploadSection.classList.add('dragover');
-                });
-                
-                fileUploadSection.addEventListener('dragleave', () => {
-                    fileUploadSection.classList.remove('dragover');
-                });
-                
-                fileUploadSection.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileUploadSection.classList.remove('dragover');
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        document.getElementById('fileInput').files = files;
-                        handleFileUpload({ target: { files: files } });
-                    }
-                });
-            }
-        }
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
 
-        async function handleFileUpload(event) {
+        // Drag and drop
+        const uploadSection = document.getElementById('fileUploadSection');
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload({ target: { files: files } });
+            }
+        });
+
+        function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Track file upload attempt
-            gtag('event', 'file_upload_attempt', {
-                event_category: 'File Upload',
-                event_label: file.type,
-                value: Math.round(file.size / 1024), // Size in KB
-                session_id: analyticsTracker?.sessionId
-            });
-
-            if (file.size > 50 * 1024 * 1024) {
-                showNotification('File too large. Maximum size is 50MB.', 'error');
-                gtag('event', 'file_upload_error', {
-                    event_category: 'File Upload',
-                    event_label: 'file_too_large',
-                    session_id: analyticsTracker?.sessionId
-                });
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File too large. Maximum size is 10MB.');
                 return;
             }
 
-            showNotification('Extracting text from file...', 'info');
-
-            try {
-                // For demo purposes, simulate file processing
-                setTimeout(() => {
-                    const demoText = "This is demo text extracted from your uploaded file. In a production environment, this would contain the actual content from your document. The AI detection analysis would then process this extracted text to provide insights about writing patterns, potential AI generation indicators, and similarity matches.";
-                    document.getElementById('textInput').value = demoText;
-                    showNotification(`Text extracted successfully! ${demoText.length} characters loaded.`, 'success');
-                    
-                    // Track successful file upload
-                    gtag('event', 'file_upload_success', {
-                        event_category: 'File Upload',
-                        event_label: file.type,
-                        value: demoText.length,
-                        session_id: analyticsTracker?.sessionId
-                    });
-                }, 1500);
-            } catch (error) {
-                console.error('File upload error:', error);
-                showNotification('Failed to process file. Please try again.', 'error');
-                if (analyticsTracker) {
-                    analyticsTracker.trackError('file_upload', error.message);
-                }
-            }
+            // For demo, just show file info
+            alert(`File "${file.name}" selected. In production, this would extract text for analysis.`);
         }
 
-        // Start analysis function
+        // Start analysis
         async function startAnalysis() {
-            const textInput = document.getElementById('textInput');
-            const text = textInput.value.trim();
+            const text = document.getElementById('textInput').value.trim();
             
-            if (text.length < 50) {
-                showNotification('Please enter at least 50 characters for meaningful analysis.', 'error');
-                gtag('event', 'analysis_error', {
-                    event_category: 'Analysis',
-                    event_label: 'insufficient_text',
-                    session_id: analyticsTracker?.sessionId
-                });
+            if (!text) {
+                alert('Please enter some text to analyze.');
                 return;
             }
 
-            const selectedTier = document.querySelector('input[name="tier"]:checked').value;
-            
-            // Track analysis start
-            if (analyticsTracker) {
-                analyticsTracker.trackAnalysisStart();
+            if (text.length < 50) {
+                alert('Please enter at least 50 characters for meaningful analysis.');
+                return;
             }
-            
-            // Show progress section
-            document.getElementById('progressSection').style.display = 'block';
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('analyzeBtn').disabled = true;
-            document.getElementById('analyzeBtn').textContent = '🔄 Analyzing...';
 
-            // Start progress animation
-            startProgressAnimation();
-
-            // Simulate analysis for demo
-            setTimeout(() => {
-                const demoResults = {
-                    analyses: {
-                        ai_detection: "Analysis complete",
-                        plagiarism_check: "Similarity check complete",
-                        quality_assessment: "Quality assessment complete"
+            try {
+                // Call the API
+                const response = await fetch('/api/analyze-unified', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    word_count: text.split(' ').length
-                };
-                
-                currentAnalysis = demoResults;
-                displayResults(demoResults, selectedTier);
-                
-                // Track successful analysis completion
-                if (analyticsTracker) {
-                    analyticsTracker.trackAnalysisComplete(demoResults);
+                    body: JSON.stringify({
+                        content: text,
+                        text: text,  // Support both field names
+                        type: 'all'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
                 }
-                
-                showNotification('Analysis completed successfully!', 'success');
-                
-                // Clean up
-                clearProgressIntervals();
-                document.getElementById('progressSection').style.display = 'none';
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Analysis failed. Please try again.');
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('analyzeBtn').textContent = '🔍 Begin Professional Analysis';
-            }, 5000);
-        }
-
-        // Progress animation
-        function startProgressAnimation() {
-            const progressSteps = [
-                { id: 'progressAI', percent: 'percentAI', duration: 2000 },
-                { id: 'progressPlagiarism', percent: 'percentPlagiarism', duration: 3000 },
-                { id: 'progressContent', percent: 'percentContent', duration: 2500 },
-                { id: 'progressFinal', percent: 'percentFinal', duration: 1500 }
-            ];
-
-            progressSteps.forEach((step, index) => {
-                setTimeout(() => {
-                    animateProgress(step.id, step.percent, step.duration);
-                }, index * 500);
-            });
-        }
-
-        function animateProgress(progressId, percentId, duration) {
-            const progressBar = document.getElementById(progressId);
-            const percentElement = document.getElementById(percentId);
-            let progress = 0;
-            const increment = 100 / (duration / 50);
-
-            const interval = setInterval(() => {
-                progress += increment + (Math.random() * 0.5);
-                progress = Math.min(progress, 100);
-                
-                progressBar.style.width = `${progress}%`;
-                percentElement.textContent = `${Math.round(progress)}%`;
-
-                if (progress >= 100) {
-                    clearInterval(interval);
-                }
-            }, 50);
-
-            progressIntervals.push(interval);
-        }
-
-        function clearProgressIntervals() {
-            progressIntervals.forEach(interval => clearInterval(interval));
-            progressIntervals = [];
-        }
-
-        // Display results function
-        function displayResults(results, tier) {
-            const resultsSection = document.getElementById('resultsSection');
-
-            // Create conversational summary
-            createConversationalSummary(results, tier);
-
-            // Create visual infographics
-            createScoreVisualization(results);
-
-            // Create detailed panels
-            createDetailedPanels(results, tier);
-
-            // Show results
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-
-            // Track results view
-            gtag('event', 'results_viewed', {
-                event_category: 'Analysis',
-                event_label: tier,
-                session_id: analyticsTracker?.sessionId
-            });
-        }
-
-        function createConversationalSummary(results, tier) {
-            const summaryText = document.getElementById('summaryText');
-            const summaryHighlights = document.getElementById('summaryHighlights');
-            
-            // Generate demo scores
-            const aiProb = Math.round(Math.random() * 40 + 30); // Demo: 30-70%
-            const plagScore = Math.round(Math.random() * 20 + 5); // Demo: 5-25%
-            const confidence = Math.round(Math.random() * 25 + 70); // Demo: 70-95%
-            const wordCount = results.word_count || 0;
-
-            let summaryContent = "";
-            let overallAssessment = "";
-
-            // Generate conversational explanation based on demo scores
-            if (plagScore > 20) {
-                summaryContent = `<strong>Moderate Similarity Found:</strong> Our analysis detected ${plagScore}% similarity with existing content. The AI detection scored ${aiProb}% likelihood of artificial generation. <strong>What this means:</strong> The content shows some patterns that match published material, which should be verified for proper attribution.`;
-                overallAssessment = "Verify Source Attribution";
-            } else if (aiProb > 60) {
-                summaryContent = `<strong>Moderate AI Indicators:</strong> Our analysis indicates a ${aiProb}% likelihood this content was generated by artificial intelligence. We examined writing patterns, vocabulary usage, and linguistic markers. Similarity to existing content was low at ${plagScore}%. <strong>What this means:</strong> The writing shows some AI characteristics but also contains human-like elements.`;
-                overallAssessment = "Mixed Indicators - Further Review Suggested";
-            } else {
-                summaryContent = `<strong>Content Appears Authentic:</strong> Our analysis shows a moderate AI probability of ${aiProb}% and low similarity (${plagScore}%) to existing content. The writing patterns and linguistic characteristics suggest human authorship with good confidence levels. <strong>What this means:</strong> The content displays strong indicators of original human writing.`;
-                overallAssessment = "Likely Original Human Content";
             }
-
-            summaryText.innerHTML = summaryContent;
-
-            // Create highlights
-            summaryHighlights.innerHTML = `
-                <div class="highlight-item">
-                    <span class="highlight-value">${aiProb}%</span>
-                    <div class="highlight-label">AI Probability</div>
-                </div>
-                <div class="highlight-item">
-                    <span class="highlight-value">${plagScore}%</span>
-                    <div class="highlight-label">Similarity Score</div>
-                </div>
-                <div class="highlight-item">
-                    <span class="highlight-value">${confidence}%</span>
-                    <div class="highlight-label">Confidence Level</div>
-                </div>
-                <div class="highlight-item">
-                    <span class="highlight-value">${overallAssessment}</span>
-                    <div class="highlight-label">Overall Assessment</div>
-                </div>
-            `;
         }
 
-        function createScoreVisualization(results) {
-            const container = document.getElementById('scoreVisualization');
-            
-            // Demo scores for visualization
-            const scores = [
-                {
-                    label: 'AI Detection',
-                    value: Math.round(Math.random() * 40 + 30),
-                    description: 'Analysis Complete',
-                    color: '#17a2b8'
-                },
-                {
-                    label: 'Similarity Check',
-                    value: Math.round(Math.random() * 20 + 5),
-                    description: 'Low Risk',
-                    color: '#28a745'
-                },
-                {
-                    label: 'Confidence Level',
-                    value: Math.round(Math.random() * 25 + 70),
-                    description: 'Analysis Reliability',
-                    color: '#007bff'
-                }
-            ];
-
-            container.innerHTML = scores.map(score => {
-                const circumference = 2 * Math.PI * 60;
-                const strokeDasharray = `${(score.value / 100) * circumference} ${circumference}`;
-                
-                return `
-                    <div class="score-meter">
-                        <div class="meter-circle">
-                            <svg class="meter-svg" viewBox="0 0 140 140">
-                                <circle class="meter-bg" cx="70" cy="70" r="60"></circle>
-                                <circle 
-                                    class="meter-progress" 
-                                    cx="70" 
-                                    cy="70" 
-                                    r="60"
-                                    stroke="${score.color}"
-                                    stroke-dasharray="${strokeDasharray}"
-                                ></circle>
-                            </svg>
-                            <div class="meter-text">${score.value}%</div>
+        // Display results
+        function displayResults(data) {
+            // AI Detection Results
+            if (data.ai_analysis) {
+                const aiResults = `
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${data.ai_analysis.ai_probability}%">
+                            AI Probability: ${data.ai_analysis.ai_probability}%
                         </div>
-                        <div class="meter-label">${score.label}</div>
-                        <div class="meter-desc">${score.description}</div>
                     </div>
+                    <p><strong>Human Probability:</strong> ${data.ai_analysis.human_probability}%</p>
+                    <p><strong>Confidence:</strong> High</p>
+                    <h4>Key Indicators:</h4>
+                    <ul>
+                        <li>Vocabulary Diversity: ${data.ai_analysis.indicators.vocabulary_diversity}%</li>
+                        <li>Sentence Complexity: ${data.ai_analysis.indicators.sentence_complexity}%</li>
+                        <li>Coherence Score: ${data.ai_analysis.indicators.coherence_score}%</li>
+                    </ul>
                 `;
-            }).join('');
-        }
-
-        function createDetailedPanels(results, tier) {
-            const container = document.getElementById('detailedPanels');
-            
-            const panels = [
-                {
-                    title: '🤖 AI Detection Analysis',
-                    locked: false,
-                    content: createAIDetectionContent(results.analyses?.ai_detection || {})
-                },
-                {
-                    title: '📋 Similarity Analysis Results',
-                    locked: false,
-                    content: createSimilarityContent(results.analyses?.plagiarism_check || {}, tier)
-                },
-                {
-                    title: '📊 Advanced Content Analysis',
-                    locked: tier === 'free',
-                    content: createAdvancedAnalysisContent(results, tier)
-                },
-                {
-                    title: '⚙️ Analysis Methodology & Scoring',
-                    locked: false,
-                    content: createMethodologyContent({}, results)
-                }
-            ];
-
-            container.innerHTML = panels.map((panel, index) => `
-                <div class="detail-panel">
-                    <div class="panel-header" onclick="togglePanel(${index})">
-                        <span>${panel.title}</span>
-                        ${panel.locked ? '<div class="panel-lock">🔒 PRO</div>' : ''}
-                        <span class="panel-toggle">▼</span>
-                    </div>
-                    <div class="panel-content" id="panel-${index}">
-                        ${panel.content}
-                    </div>
-                </div>
-            `).join('');
-
-            // Show first panel by default
-            document.getElementById('panel-0').classList.add('active');
-            document.querySelector('.panel-header').classList.add('active');
-        }
-
-        function createAIDetectionContent(aiData) {
-            return `
-                <div class="conversational-text">
-                    <strong>What we analyzed:</strong> We examined your text using advanced pattern recognition to identify characteristics typical of AI-generated content. Our analysis looked at vocabulary complexity, sentence structure consistency, transition patterns, and linguistic markers.
-                </div>
-                
-                <div class="highlight-box">
-                    <strong>Key Finding:</strong> Analysis detected mixed patterns in writing style, vocabulary usage, and sentence construction. The content shows both human and AI characteristics.
-                </div>
-                
-                <div class="methodology-grid">
-                    <div class="methodology-item">
-                        <div class="methodology-label">AI Probability Score</div>
-                        <div class="methodology-value">${Math.round(Math.random() * 40 + 30)}%</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Classification</div>
-                        <div class="methodology-value">Mixed Indicators</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Confidence Level</div>
-                        <div class="methodology-value">${Math.round(Math.random() * 25 + 70)}%</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Analysis Method</div>
-                        <div class="methodology-value">Advanced Pattern Recognition</div>
-                    </div>
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>How we calculated this score:</strong> We analyzed linguistic patterns, vocabulary sophistication, sentence structure consistency, and compared against known AI writing characteristics. The confidence level indicates how certain we are about this assessment.
-                </div>
-            `;
-        }
-
-        function createSimilarityContent(plagData, tier) {
-            let content = `
-                <div class="conversational-text">
-                    <strong>What we searched:</strong> We compared your text against our database of 50+ databases to find similar content, exact matches, and paraphrased material.
-                </div>
-                
-                <div class="methodology-grid">
-                    <div class="methodology-item">
-                        <div class="methodology-label">Similarity Score</div>
-                        <div class="methodology-value">${Math.round(Math.random() * 20 + 5)}%</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Matches Found</div>
-                        <div class="methodology-value">0</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Databases Searched</div>
-                        <div class="methodology-value">50+ sources</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Assessment</div>
-                        <div class="methodology-value">Low Risk</div>
-                    </div>
-                </div>
-                
-                <div class="highlight-box">
-                    <strong>✅ No significant matches found</strong> - Your content appears to be original with no substantial similarities to existing published material in our database.
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>What this means:</strong> Our analysis completed successfully with comprehensive database verification and found no concerning similarities.
-                </div>
-            `;
-
-            return content;
-        }
-
-        function createAdvancedAnalysisContent(results, tier) {
-            if (tier === 'free') {
-                return `
-                    <div class="pro-locked">
-                        <div class="pro-locked-icon">🔒</div>
-                        <div class="pro-locked-text">Advanced Content Analysis - Pro Feature</div>
-                        <p style="margin-bottom: 1rem; color: #666;">Unlock detailed analysis including:</p>
-                        <ul style="text-align: left; margin: 1rem 0; color: #666;">
-                            <li><strong>Sentiment Analysis:</strong> Emotional tone and objectivity scoring</li>
-                            <li><strong>Readability Assessment:</strong> Grade level and complexity analysis</li>
-                            <li><strong>Authorship Profiling:</strong> Writing style and experience indicators</li>
-                            <li><strong>Linguistic Fingerprinting:</strong> Unique writing pattern identification</li>
-                            <li><strong>Trend Analysis:</strong> Content relevance and engagement potential</li>
-                        </ul>
-                        <button class="upgrade-btn" onclick="upgradeToPro()">Upgrade to Pro</button>
-                    </div>
-                `;
+                document.getElementById('aiResults').innerHTML = aiResults;
             }
 
-            return `
-                <div class="conversational-text">
-                    <strong>Deep content analysis:</strong> We examined the emotional tone, reading difficulty, writing style, and linguistic patterns to build a comprehensive profile of this content.
-                </div>
-                
-                <div class="methodology-grid">
-                    <div class="methodology-item">
-                        <div class="methodology-label">Sentiment Score</div>
-                        <div class="methodology-value">65/100 (Neutral-Positive)</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Reading Level</div>
-                        <div class="methodology-value">College Level</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Writing Profile</div>
-                        <div class="methodology-value">Experienced Writer</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Complexity Score</div>
-                        <div class="methodology-value">75/100</div>
-                    </div>
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>What this tells us:</strong> The sentiment analysis reveals neutral-positive emotional tone. The readability suggests college-level complexity. The writing style indicates experienced content creation characteristics.
-                </div>
-            `;
+            // Plagiarism Results
+            if (data.ai_analysis && data.ai_analysis.plagiarism_check) {
+                const plagResults = `
+                    <p><strong>Originality Score:</strong> ${data.ai_analysis.plagiarism_check.originality_score}%</p>
+                    <p><strong>Matched Sources:</strong> ${data.ai_analysis.plagiarism_check.matched_sources}</p>
+                    <p><strong>Status:</strong> ${data.ai_analysis.plagiarism_check.originality_score > 90 ? 'Original Content' : 'Some Matches Found'}</p>
+                `;
+                document.getElementById('plagiarismResults').innerHTML = plagResults;
+            }
+
+            // Writing Analysis Results
+            if (data.ai_analysis && data.ai_analysis.statistics) {
+                const writingResults = `
+                    <p><strong>Word Count:</strong> ${data.ai_analysis.statistics.word_count}</p>
+                    <p><strong>Character Count:</strong> ${data.ai_analysis.statistics.character_count}</p>
+                    <p><strong>Average Word Length:</strong> ${data.ai_analysis.statistics.average_word_length}</p>
+                    <p><strong>Reading Level:</strong> ${data.ai_analysis.statistics.reading_level}</p>
+                `;
+                document.getElementById('writingResults').innerHTML = writingResults;
+            }
+
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function createMethodologyContent(methodology, results) {
-            return `
-                <div class="conversational-text">
-                    <strong>How we analyzed your content:</strong> Our analysis combines multiple detection methods to provide the most accurate assessment possible. Here's exactly what we did and how we calculated each score.
-                </div>
-                
-                <div class="methodology-grid">
-                    <div class="methodology-item">
-                        <div class="methodology-label">AI Detection Method</div>
-                        <div class="methodology-value">Advanced Pattern Analysis</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Processing Time</div>
-                        <div class="methodology-value">4.2 seconds</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Analysis Depth</div>
-                        <div class="methodology-value">Comprehensive</div>
-                    </div>
-                    <div class="methodology-item">
-                        <div class="methodology-label">Database Coverage</div>
-                        <div class="methodology-value">50+ sources</div>
-                    </div>
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>AI Detection Scoring:</strong> We analyzed linguistic patterns, vocabulary complexity, sentence structure, and transition usage. The AI probability score reflects how closely the writing matches known AI-generated content patterns.
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>Similarity Detection:</strong> We searched across academic databases, web content, and published materials to find matching or similar passages. The similarity score represents the percentage of content that matches existing sources.
-                </div>
-                
-                <div class="conversational-text">
-                    <strong>Confidence Calculation:</strong> Our confidence level indicates how certain we are about the results. Higher confidence means the patterns were clear and consistent. Lower confidence suggests mixed or ambiguous indicators.
-                </div>
-                
-                <div class="highlight-box">
-                    <strong>Important Note:</strong> These scores are analytical aids, not definitive judgments. We recommend using these results as one factor in your overall assessment, combined with your own expertise and additional verification methods.
-                </div>
-            `;
-        }
-
-        // Panel toggle function
-        function togglePanel(index) {
-            const panel = document.getElementById(`panel-${index}`);
-            const header = panel.previousElementSibling;
-            
-            panel.classList.toggle('active');
-            header.classList.toggle('active');
-
-            // Track panel interaction
-            gtag('event', 'panel_toggled', {
-                event_category: 'Results Interaction',
-                event_label: `panel_${index}`,
-                session_id: analyticsTracker?.sessionId
-            });
-        }
-
-        // Action functions
+        // Download report
         function downloadReport() {
-            if (!currentAnalysis) {
-                showNotification('No analysis results to download.', 'error');
-                return;
-            }
-
-            const reportData = {
-                timestamp: new Date().toISOString(),
-                analysis: currentAnalysis,
-                text_length: document.getElementById('textInput').value.length,
-                summary: document.getElementById('summaryText').innerHTML
-            };
-
-            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ai-analysis-report-${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            // Track download
-            gtag('event', 'report_downloaded', {
-                event_category: 'Results Interaction',
-                session_id: analyticsTracker?.sessionId
-            });
-
-            showNotification('Detailed report downloaded successfully!', 'success');
+            alert('Report download feature coming soon!');
         }
 
-        function resetAnalysis() {
+        // New analysis
+        function analyzeNew() {
             document.getElementById('textInput').value = '';
-            document.getElementById('fileInput').value = '';
-            document.getElementById('progressSection').style.display = 'none';
             document.getElementById('resultsSection').style.display = 'none';
-            document.querySelector('input[name="tier"][value="free"]').checked = true;
-            currentAnalysis = null;
-
-            // Track reset
-            gtag('event', 'analysis_reset', {
-                event_category: 'User Interaction',
-                session_id: analyticsTracker?.sessionId
-            });
-
-            showNotification('Ready for new analysis.', 'info');
+            window.scrollTo(0, 0);
         }
 
-        function shareResults() {
-            if (!currentAnalysis) {
-                showNotification('No analysis results to share.', 'error');
-                return;
-            }
-
-            const shareText = `Professional AI Detection Analysis Results:
-
-🤖 AI Probability: Mixed Indicators
-📋 Similarity Score: Low Risk  
-🎯 Confidence Level: High
-📊 Assessment: Professional analysis completed
-
-Analyzed with Facts & Fakes AI - Professional AI Detection Aid
-https://factsandfakes.ai/unified`;
-
-            // Track share attempt
-            gtag('event', 'results_shared', {
-                event_category: 'Results Interaction',
-                session_id: analyticsTracker?.sessionId
-            });
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'AI Detection Analysis Results',
-                    text: shareText
-                });
-            } else {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    showNotification('Results copied to clipboard!', 'success');
-                }).catch(() => {
-                    showNotification('Unable to copy to clipboard.', 'error');
-                });
-            }
-        }
-
-        function upgradeToPro() {
-            document.querySelector('input[name="tier"][value="pro"]').checked = true;
-            
-            // Track pro upgrade interest
-            gtag('event', 'pro_tier_selected', {
-                event_category: 'Conversion',
-                event_label: 'upgrade_prompt',
-                session_id: analyticsTracker?.sessionId
-            });
-
-            showNotification('Pro tier selected! Re-run analysis for complete results with detailed insights.', 'info');
-        }
-
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4000);
-        }
-
-        // Initialize everything when DOM is loaded
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize analytics tracker
-            analyticsTracker = new AnalyticsTracker();
-            
-            // Initialize navigation
-            window.ffNav.init();
-            
-            // Setup file upload handlers
-            setupFileUpload();
-            
-            console.log('Facts & Fakes AI - Professional AI Detection Aid Ready');
-            showNotification('Welcome! Enter content or upload a file to begin professional analysis.', 'info');
+            console.log('Unified Analysis Page Ready');
         });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('betaModal');
-            if (event.target === modal) {
-                closeBetaModal();
-            }
-        }
     </script>
 </body>
 </html>
