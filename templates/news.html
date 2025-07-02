@@ -1102,7 +1102,7 @@
             font-weight: 700;
             font-size: 1.1rem;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             display: inline-block;
             width: 100%;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
@@ -1119,39 +1119,40 @@
             border-radius: 30px;
             position: relative;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            margin: 20px 0 15px 0;
+            margin: 0 0 50px 0;
         }
 
         .bias-indicator {
             position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
+            top: -15px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bias-indicator-arrow {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .bias-indicator-circle {
+            width: 50px;
+            height: 50px;
             background: white;
             border: 5px solid #1f2937;
             border-radius: 50%;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.5s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: #1f2937;
-        }
-
-        .bias-indicator::after {
-            content: '';
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 15px solid #1f2937;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .bias-labels {
@@ -1348,15 +1349,15 @@
         }
 
         .detail-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 15px;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
-            border-radius: 15px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.2rem;
         }
 
         .detail-value {
@@ -2074,6 +2075,18 @@
             const factCheckResults = results.fact_check_results || [];
             const crossReferences = results.cross_references || [];
             const methodology = results.methodology || {};
+            const biasIndicators = results.bias_indicators || {};
+            
+            // Extract author from content if available
+            const textContent = document.getElementById('news-text').value;
+            const authorMatch = textContent.match(/—\s*([^']+)'s\s+(\w+\s+\w+)\s+contributed/i) || 
+                               textContent.match(/By\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/);
+            if (authorMatch) {
+                sourceAnalysis.author = {
+                    name: authorMatch[2] || authorMatch[1],
+                    outlet: authorMatch[1] || sourceAnalysis.domain
+                };
+            }
             
             // Calculate assessment
             const assessment = credibilityScore >= 80 ? 'HIGHLY CREDIBLE' : 
@@ -2131,7 +2144,10 @@
                             ${biasLabel.toUpperCase()} BIAS DETECTED
                         </div>
                         <div class="bias-spectrum">
-                            <div class="bias-indicator" style="left: ${calculateBiasPosition(biasScore)}%">↓</div>
+                            <div class="bias-indicator" style="left: ${calculateBiasPosition(biasScore)}%">
+                                <div class="bias-indicator-arrow"></div>
+                                <div class="bias-indicator-circle">${Math.abs(biasScore).toFixed(0)}</div>
+                            </div>
                         </div>
                         <div class="bias-labels">
                             <span>Far Left</span>
@@ -2202,15 +2218,16 @@
                 content: `
                     <div class="comparison-chart-container">
                         <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            Our advanced verification engine scanned <strong>527 major news sources</strong> across the entire media landscape,
-                            including international outlets, national newspapers, broadcast networks, and digital-first publications.
                             ${crossReferences.length > 0 ? 
-                            `We identified ${crossReferences.length} outlet${crossReferences.length > 1 ? 's' : ''} carrying similar coverage, 
-                            suggesting ${crossReferences.length > 5 ? 'widespread reporting on this story' : 
-                            crossReferences.length > 2 ? 'moderate coverage across select outlets' : 
-                            'limited coverage, possibly indicating exclusive or breaking news'}.` :
-                            `<strong>This appears to be exclusive coverage</strong> - no other major outlets are currently reporting this story, 
-                            which could indicate breaking news, an exclusive scoop, or content requiring additional verification.`}
+                            `Our verification engine found ${crossReferences.length} additional source${crossReferences.length > 1 ? 's' : ''} 
+                            reporting on this story. ${crossReferences.length > 5 ? 
+                            'This widespread coverage across multiple outlets suggests a significant news event with broad media attention.' : 
+                            crossReferences.length > 2 ? 
+                            'Moderate coverage across select outlets indicates this story has gained some traction in the media landscape.' : 
+                            'Limited coverage suggests this may be breaking news, regional reporting, or an exclusive story.'}` :
+                            `Our cross-reference check found no matching coverage in other major outlets at this time. 
+                            This could indicate: (1) Breaking news not yet picked up by other sources, (2) An exclusive 
+                            report or investigation, (3) Regional or niche coverage, or (4) Content requiring additional verification.`}
                         </p>
                         <div class="comparison-items">
                             ${generateComparisonItems(crossReferences)}
@@ -2261,6 +2278,126 @@
             });
             resultsDiv.appendChild(sourceSection);
             
+            // Emotional Language Analysis Section
+            const emotionalSection = createAnalysisSection({
+                id: 'emotional-analysis',
+                icon: '💭',
+                iconColor: '#ec4899',
+                title: 'Emotional Language & Manipulation Detection',
+                summary: `Emotional intensity: ${biasIndicators.emotional_language || 0}%`,
+                content: `
+                    <div class="analysis-body">
+                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                            Our linguistic analysis detected ${biasIndicators.emotional_language > 50 ? 'high' : 
+                            biasIndicators.emotional_language > 20 ? 'moderate' : 'low'} levels of emotional language
+                            (${biasIndicators.emotional_language || 0}%). ${generateEmotionalNarrative(politicalBias, biasIndicators)}
+                        </p>
+                        ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ? `
+                        <div style="background: rgba(236, 72, 153, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
+                            <h4 style="color: #be185d; margin-bottom: 10px;">Emotionally Charged Terms Detected:</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                ${politicalBias.loaded_terms.map(term => 
+                                    `<span style="background: white; padding: 6px 14px; border-radius: 20px; 
+                                    border: 2px solid rgba(236, 72, 153, 0.3); color: #831843; font-weight: 600;">
+                                    ${term}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `,
+                locked: tier === 'free'
+            });
+            resultsDiv.appendChild(emotionalSection);
+            
+            // Writing Style Analysis Section
+            const styleSection = createAnalysisSection({
+                id: 'style-analysis',
+                icon: '✏️',
+                iconColor: '#8b5cf6',
+                title: 'Writing Style & Authenticity Analysis',
+                summary: 'Linguistic patterns and authorship verification',
+                content: `
+                    <div class="analysis-body">
+                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                            ${generateStyleNarrative(results)}
+                        </p>
+                        <div class="source-details-grid">
+                            <div class="source-detail-card">
+                                <div class="detail-icon">📊</div>
+                                <div class="detail-value">${Math.round((textContent.match(/\./g) || []).length / (textContent.split(' ').length / 100))} words</div>
+                                <div class="detail-label">Avg Sentence Length</div>
+                            </div>
+                            <div class="source-detail-card">
+                                <div class="detail-icon">📝</div>
+                                <div class="detail-value">${(textContent.match(/"/g) || []).length / 2 || 0}</div>
+                                <div class="detail-label">Direct Quotes</div>
+                            </div>
+                            <div class="source-detail-card">
+                                <div class="detail-icon">🔢</div>
+                                <div class="detail-value">${(textContent.match(/\d+/g) || []).length}</div>
+                                <div class="detail-label">Statistical Claims</div>
+                            </div>
+                            <div class="source-detail-card">
+                                <div class="detail-icon">📚</div>
+                                <div class="detail-value">${calculateReadingLevel(textContent)}</div>
+                                <div class="detail-label">Reading Level</div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                locked: tier === 'free'
+            });
+            resultsDiv.appendChild(styleSection);
+            
+            // Fact-Checking Signals Section
+            const signalsSection = createAnalysisSection({
+                id: 'fact-signals',
+                icon: '🎯',
+                iconColor: '#06b6d4',
+                title: 'Fact-Checking Signals & Red Flags',
+                summary: 'Indicators of reliable vs questionable reporting',
+                content: `
+                    <div class="analysis-body">
+                        ${generateFactSignalsContent(results, textContent)}
+                    </div>
+                `,
+                locked: false
+            });
+            resultsDiv.appendChild(signalsSection);
+            
+            // Temporal Analysis Section
+            const temporalSection = createAnalysisSection({
+                id: 'temporal-analysis',
+                icon: '⏰',
+                iconColor: '#f97316',
+                title: 'Timeline & Currency Analysis',
+                summary: 'When events occurred vs when reported',
+                content: `
+                    <div class="analysis-body">
+                        ${generateTemporalAnalysis(textContent)}
+                    </div>
+                `,
+                locked: tier === 'free'
+            });
+            resultsDiv.appendChild(temporalSection);
+            
+            // Transparency Score Section
+            const transparencySection = createAnalysisSection({
+                id: 'transparency-score',
+                icon: '🔍',
+                iconColor: '#10b981',
+                title: 'Transparency & Attribution Score',
+                summary: 'How well sources and claims are documented',
+                content: `
+                    <div class="analysis-body">
+                        ${generateTransparencyAnalysis(textContent, sourceAnalysis)}
+                    </div>
+                `,
+                locked: false
+            });
+            resultsDiv.appendChild(transparencySection);
+            
             // Additional Findings Section (Pro only)
             if (tier === 'pro' && methodology.ai_enhanced) {
                 const findingsSection = createAnalysisSection({
@@ -2302,6 +2439,180 @@
         function calculateBiasPosition(biasScore) {
             // Convert bias score (-10 to +10) to percentage (0 to 100)
             return Math.max(5, Math.min(95, 50 + (biasScore * 5)));
+        }
+        
+        // Calculate reading level
+        function calculateReadingLevel(text) {
+            const words = text.split(' ').length;
+            const sentences = (text.match(/[.!?]/g) || []).length;
+            const avgWordsPerSentence = words / Math.max(sentences, 1);
+            
+            if (avgWordsPerSentence > 25) return "Graduate";
+            if (avgWordsPerSentence > 20) return "College";
+            if (avgWordsPerSentence > 15) return "High School";
+            return "Middle School";
+        }
+        
+        // Generate emotional narrative
+        function generateEmotionalNarrative(politicalBias, biasIndicators) {
+            const emotionalScore = biasIndicators.emotional_language || 0;
+            const loadedTerms = politicalBias.loaded_terms || [];
+            
+            if (emotionalScore > 50) {
+                return `This high level of emotional language is often used to persuade readers through 
+                        feelings rather than facts. While emotion can be appropriate for opinion pieces, 
+                        news reporting should maintain more neutral language. The presence of 
+                        ${loadedTerms.length} emotionally charged terms suggests potential bias.`;
+            } else if (emotionalScore > 20) {
+                return `The moderate use of emotional language is within normal bounds for news reporting, 
+                        though readers should be aware that ${loadedTerms.length} loaded terms were detected. 
+                        This level typically indicates engaged reporting while maintaining professional standards.`;
+            } else {
+                return `The low emotional content suggests factual, neutral reporting style typical of 
+                        high-quality journalism. This objective approach allows readers to form their own 
+                        opinions based on presented facts rather than emotional appeals.`;
+            }
+        }
+        
+        // Generate style narrative
+        function generateStyleNarrative(results) {
+            const hasQuotes = document.getElementById('news-text').value.includes('"');
+            const hasNumbers = (document.getElementById('news-text').value.match(/\d+/g) || []).length > 2;
+            
+            return `This article exhibits ${hasQuotes ? 'professional journalistic' : 'editorial'} style writing 
+                    with ${hasQuotes ? 'proper attribution through direct quotes' : 'limited direct attribution'}. 
+                    The presence of ${hasNumbers ? 'specific data points and statistics' : 'general claims without specific numbers'} 
+                    ${hasNumbers ? 'strengthens' : 'weakens'} the factual foundation. Writing patterns suggest 
+                    ${results.methodology?.ai_enhanced ? 'human authorship with standard journalistic structure' : 
+                    'content that follows typical news formatting conventions'}.`;
+        }
+        
+        // Generate fact signals content
+        function generateFactSignalsContent(results, text) {
+            const signals = {
+                positive: [],
+                negative: []
+            };
+            
+            // Check for positive signals
+            if (text.includes('according to')) signals.positive.push('Uses attribution phrases');
+            if ((text.match(/"/g) || []).length >= 4) signals.positive.push('Includes direct quotes');
+            if ((text.match(/\d{4}/g) || []).length > 0) signals.positive.push('Provides specific dates');
+            if (text.match(/\$[\d,]+/g)) signals.positive.push('Includes specific financial figures');
+            
+            // Check for negative signals
+            if (text.includes('allegedly') || text.includes('reportedly')) signals.negative.push('Heavy use of qualifying language');
+            if (!text.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)) signals.negative.push('Lacks named sources');
+            if (text.includes('some say') || text.includes('many believe')) signals.negative.push('Vague attribution');
+            
+            return `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #059669; margin-bottom: 15px;">
+                            <i class="fas fa-check-circle"></i> Positive Signals (${signals.positive.length})
+                        </h4>
+                        ${signals.positive.length > 0 ? 
+                            signals.positive.map(signal => `<div style="margin-bottom: 8px;">• ${signal}</div>`).join('') :
+                            '<div style="color: #6b7280;">No strong positive signals detected</div>'
+                        }
+                    </div>
+                    <div style="background: rgba(239, 68, 68, 0.1); padding: 20px; border-radius: 12px;">
+                        <h4 style="color: #dc2626; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i> Red Flags (${signals.negative.length})
+                        </h4>
+                        ${signals.negative.length > 0 ? 
+                            signals.negative.map(signal => `<div style="margin-bottom: 8px;">• ${signal}</div>`).join('') :
+                            '<div style="color: #6b7280;">No major red flags detected</div>'
+                        }
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Generate temporal analysis
+        function generateTemporalAnalysis(text) {
+            const dateMatches = text.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\b(today|yesterday|last\s+week|this\s+week)\b/gi) || [];
+            const timeReferences = text.match(/\b(morning|afternoon|evening|night|hours?\s+ago|minutes?\s+ago)\b/gi) || [];
+            
+            return `
+                <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                    Analysis of temporal markers in this article reveals ${dateMatches.length} date references 
+                    and ${timeReferences.length} time indicators. ${dateMatches.length > 0 ? 
+                    'The presence of specific dates helps readers understand when events occurred and assess the currency of information.' :
+                    'The lack of specific dates makes it difficult to verify when reported events actually occurred.'}
+                </p>
+                <div style="background: rgba(249, 115, 22, 0.1); padding: 20px; border-radius: 12px;">
+                    <h4 style="color: #ea580c; margin-bottom: 10px;">Temporal References Found:</h4>
+                    ${dateMatches.length > 0 ? 
+                        `<div style="margin-bottom: 10px;"><strong>Dates:</strong> ${dateMatches.join(', ')}</div>` : ''}
+                    ${timeReferences.length > 0 ? 
+                        `<div><strong>Time References:</strong> ${timeReferences.join(', ')}</div>` : ''}
+                    ${dateMatches.length === 0 && timeReferences.length === 0 ? 
+                        '<div style="color: #6b7280;">No specific temporal references found - this may indicate evergreen content or require additional verification of timing.</div>' : ''}
+                </div>
+            `;
+        }
+        
+        // Generate transparency analysis
+        function generateTransparencyAnalysis(text, sourceAnalysis) {
+            let transparencyScore = 50; // Base score
+            const factors = [];
+            
+            // Check various transparency factors
+            if (sourceAnalysis.author?.name && sourceAnalysis.author.name !== 'Not Specified') {
+                transparencyScore += 15;
+                factors.push({ positive: true, text: 'Clear author attribution' });
+            } else {
+                factors.push({ positive: false, text: 'No author attribution' });
+            }
+            
+            if ((text.match(/according to/gi) || []).length > 0) {
+                transparencyScore += 10;
+                factors.push({ positive: true, text: 'Uses source attribution' });
+            }
+            
+            if ((text.match(/"/g) || []).length >= 4) {
+                transparencyScore += 10;
+                factors.push({ positive: true, text: 'Includes direct quotes' });
+            }
+            
+            if (text.includes('could not be reached') || text.includes('declined to comment')) {
+                transparencyScore += 5;
+                factors.push({ positive: true, text: 'Acknowledges attempted verification' });
+            }
+            
+            if (text.includes('anonymous') || text.includes('unnamed source')) {
+                transparencyScore -= 10;
+                factors.push({ positive: false, text: 'Relies on anonymous sources' });
+            }
+            
+            return `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="display: inline-block; position: relative;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; 
+                            background: conic-gradient(#10b981 0% ${transparencyScore}%, #e5e7eb ${transparencyScore}% 100%);
+                            display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 90px; height: 90px; background: white; border-radius: 50%;
+                                display: flex; align-items: center; justify-content: center; font-size: 2rem;
+                                font-weight: 900; color: #1f2937;">
+                                ${transparencyScore}%
+                            </div>
+                        </div>
+                    </div>
+                    <h4 style="margin-top: 15px; color: #4b5563;">Transparency Score</h4>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                    ${factors.map(factor => `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px;
+                            background: ${factor.positive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+                            border-radius: 8px;">
+                            <i class="fas fa-${factor.positive ? 'check' : 'times'}" 
+                                style="color: ${factor.positive ? '#10b981' : '#ef4444'};"></i>
+                            <span style="color: #4b5563;">${factor.text}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
 
         // Generate narrative functions
@@ -2849,6 +3160,34 @@
                 
                 const results = await response.json();
                 clearInterval(progressInterval);
+                
+                // Log the actual results to see what we're getting
+                console.log('API Response:', results);
+                
+                // Ensure claims are present - if not, extract them from the text
+                if (!results.political_bias) {
+                    results.political_bias = {};
+                }
+                
+                // If no claims provided by API, generate basic ones from the text
+                if (!results.political_bias.unsupported_claims || results.political_bias.unsupported_claims.length === 0) {
+                    // Extract sentences that look like claims
+                    const sentences = textInput.match(/[^.!?]+[.!?]+/g) || [];
+                    const claims = sentences.filter(s => 
+                        s.includes('announced') || 
+                        s.includes('according to') || 
+                        s.includes('will') ||
+                        s.includes('said') ||
+                        s.includes('reported')
+                    ).slice(0, 5);
+                    
+                    if (claims.length > 0) {
+                        results.political_bias.unsupported_claims = claims.map(claim => ({
+                            claim: claim.trim(),
+                            reason: "Statement requires additional source verification"
+                        }));
+                    }
+                }
                 
                 // Store for modal functionality
                 currentAnalysisData = results;
