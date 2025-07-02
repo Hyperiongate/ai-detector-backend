@@ -1571,200 +1571,242 @@
             resultsDiv.innerHTML = '';
             resultsDiv.style.display = 'block';
             
-            // Version badge
-            const versionBadge = document.createElement('div');
-            versionBadge.className = 'version-badge ' + tier;
-            versionBadge.innerHTML = '<i class="fas fa-' + (tier === 'pro' ? 'crown' : 'shield-alt') + '"></i>' + tier.toUpperCase() + ' AI DETECTION';
-            resultsDiv.appendChild(versionBadge);
-            
-            // Main results card
-            const mainCard = document.createElement('div');
-            mainCard.className = 'result-card';
-            
             const aiAnalysis = results.ai_analysis || {};
             const aiProb = aiAnalysis.ai_probability || 0;
             const humanProb = aiAnalysis.human_probability || 100 - aiProb;
+            const plagiarismCheck = aiAnalysis.plagiarism_check || {};
+            const originalityScore = plagiarismCheck.originality_score || 100;
             
-            mainCard.innerHTML = `
-                <div class="result-header">
-                    <i class="fas fa-robot"></i>
-                    AI Detection Results
+            // Create main results container
+            const resultsContainer = document.createElement('div');
+            resultsContainer.style.cssText = 'display: grid; gap: 25px;';
+            
+            // AI Detection Card
+            const aiCard = document.createElement('div');
+            aiCard.className = 'result-card';
+            aiCard.style.cssText = 'background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%); position: relative; overflow: visible;';
+            
+            // Determine AI status and styling
+            let aiStatus, aiColor, aiIcon, aiMessage;
+            if (aiProb > 70) {
+                aiStatus = 'AI DETECTED';
+                aiColor = '#ef4444';
+                aiIcon = 'fa-robot';
+                aiMessage = "Hold up! This looks like it was written by AI. The patterns are pretty clear - structured sentences, perfect grammar, and that telltale AI style.";
+            } else if (aiProb > 40) {
+                aiStatus = 'MIXED CONTENT';
+                aiColor = '#f59e0b';
+                aiIcon = 'fa-user-robot';
+                aiMessage = "Interesting... This seems to be a mix of human and AI writing. Maybe AI-assisted or edited? It's got characteristics of both.";
+            } else {
+                aiStatus = 'HUMAN WRITTEN';
+                aiColor = '#10b981';
+                aiIcon = 'fa-user-check';
+                aiMessage = "Looking good! This appears to be genuinely human-written. Natural flow, personal voice, and authentic style detected.";
+            }
+            
+            aiCard.innerHTML = `
+                <div style="position: absolute; top: -15px; left: 30px; background: ${aiColor}; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <i class="fas ${aiIcon}"></i> ${aiStatus}
                 </div>
-                <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 30px;">
-                    <div class="score-circle" style="background: conic-gradient(from 0deg, #667eea 0deg ${aiProb * 3.6}deg, #e5e7eb ${aiProb * 3.6}deg 360deg);">
-                        <div class="score-text" style="color: #667eea;">${aiProb}%</div>
+                
+                <div style="padding: 40px 30px 30px;">
+                    <h3 style="font-size: 1.8rem; margin-bottom: 25px; color: #1f2937; display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-brain" style="color: ${aiColor};"></i>
+                        Is This AI Generated?
+                    </h3>
+                    
+                    <!-- Visual Infographic -->
+                    <div style="display: flex; gap: 40px; align-items: center; margin-bottom: 30px;">
+                        <div style="position: relative; width: 180px; height: 180px;">
+                            <svg width="180" height="180" style="transform: rotate(-90deg);">
+                                <circle cx="90" cy="90" r="80" stroke="#e5e7eb" stroke-width="20" fill="none"></circle>
+                                <circle cx="90" cy="90" r="80" stroke="${aiColor}" stroke-width="20" fill="none"
+                                        stroke-dasharray="${aiProb * 5.03} 503"
+                                        stroke-linecap="round"></circle>
+                            </svg>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <div style="font-size: 2.5rem; font-weight: bold; color: ${aiColor};">${aiProb}%</div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">AI Probability</div>
+                            </div>
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <p style="font-size: 1.1rem; line-height: 1.8; color: #4b5563; margin-bottom: 20px;">
+                                ${aiMessage}
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #f3f4f6; padding: 15px; border-radius: 10px;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: ${aiColor};">${humanProb}%</div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">Human-like</div>
+                                </div>
+                                <div style="background: #f3f4f6; padding: 15px; border-radius: 10px;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #667eea;">${aiAnalysis.indicators?.vocabulary_diversity || 0}%</div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">Vocabulary Mix</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="flex: 1;">
-                        <h3 style="color: #374151; margin-bottom: 8px;">AI Probability: ${aiProb}%</h3>
-                        <p style="color: #6b7280;">Human Probability: ${humanProb}%</p>
-                        <p style="color: #6b7280; margin-top: 10px;">
-                            ${aiProb > 70 ? 'This content shows strong indicators of AI generation.' : 
-                              aiProb > 40 ? 'This content shows mixed characteristics of human and AI writing.' :
-                              'This content appears to be primarily human-written.'}
+                    
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="color: #374151; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-microscope" style="color: #667eea;"></i> How We Checked
+                        </h4>
+                        <p style="color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
+                            We ran a basic AI detection scan using pattern recognition and linguistic analysis. This free version checks for common AI writing patterns and vocabulary usage.
                         </p>
                     </div>
-                </div>
-                
-                <div class="data-grid">
-                    <div class="data-item">
-                        <div class="data-value">${aiAnalysis.indicators?.vocabulary_diversity || 0}%</div>
-                        <div class="data-label">Vocabulary Diversity</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${aiAnalysis.indicators?.sentence_complexity || 0}%</div>
-                        <div class="data-label">Sentence Complexity</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${aiAnalysis.indicators?.coherence_score || 0}%</div>
-                        <div class="data-label">Coherence Score</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value">${aiAnalysis.indicators?.repetitive_patterns || 0}%</div>
-                        <div class="data-label">Pattern Repetition</div>
-                    </div>
+                    
+                    ${tier === 'free' ? `
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 12px; text-align: center;">
+                            <p style="color: white; font-weight: 600; margin-bottom: 10px;">
+                                <i class="fas fa-lock"></i> Want the Complete Analysis?
+                            </p>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin-bottom: 15px;">
+                                Get detailed AI model detection, writing pattern analysis, and specific recommendations with Pro
+                            </p>
+                            <button onclick="window.location.href='/pricingplan'" style="background: white; color: #667eea; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                Upgrade to Pro <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             `;
-            resultsDiv.appendChild(mainCard);
             
-            // Plagiarism results with detailed matches
-            if (aiAnalysis.plagiarism_check) {
-                const plagiarismCard = document.createElement('div');
-                plagiarismCard.className = 'dropdown-section';
-                
-                const plagHeader = document.createElement('div');
-                plagHeader.className = 'dropdown-header';
-                plagHeader.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fas fa-copy"></i>
-                        <span>Plagiarism & Similarity Analysis</span>
-                        <span style="background: ${aiAnalysis.plagiarism_check.originality_score >= 90 ? '#10b981' : aiAnalysis.plagiarism_check.originality_score >= 70 ? '#f59e0b' : '#ef4444'}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.85rem;">
-                            ${aiAnalysis.plagiarism_check.originality_score}% Original
-                        </span>
-                    </div>
-                    <button class="btn-toggle" onclick="toggleDropdown(this.parentElement)">
-                        <span class="toggle-text">See Results</span>
-                    </button>
-                `;
-                plagHeader.onclick = function() { toggleDropdown(this); };
-                plagiarismCard.appendChild(plagHeader);
-                
-                const plagContent = document.createElement('div');
-                plagContent.className = 'dropdown-content';
-                
-                // Add visual similarity chart
-                plagContent.innerHTML = `
-                    <div style="text-align: center; margin: 20px 0;">
-                        <canvas id="plagiarismChart" width="300" height="200"></canvas>
-                    </div>
-                    
-                    <div class="data-grid" style="margin-bottom: 20px;">
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.plagiarism_check.originality_score}%</div>
-                            <div class="data-label">Original Content</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.plagiarism_check.matched_sources}</div>
-                            <div class="data-label">Sources Checked</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.plagiarism_check.highest_match}%</div>
-                            <div class="data-label">Highest Match</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-value">${tier === 'pro' ? '100M+' : '10M+'}</div>
-                            <div class="data-label">Database Size</div>
-                        </div>
-                    </div>
-                    
-                    ${aiAnalysis.plagiarism_check.plagiarized_lines && aiAnalysis.plagiarism_check.plagiarized_lines.length > 0 ? `
-                        <h4 style="color: #4a5568; margin: 20px 0 15px;">Similarity Matches Found:</h4>
-                        <div style="display: grid; gap: 15px;">
-                            ${aiAnalysis.plagiarism_check.plagiarized_lines.map((line, idx) => `
-                                <div style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                        <strong>Match ${idx + 1}</strong>
-                                        <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
-                                            ${line.similarity}% Similar
-                                        </span>
-                                    </div>
-                                    <p style="font-style: italic; color: #6b7280; margin-bottom: 8px;">"${line.text}"</p>
-                                    <p style="font-size: 0.9rem; color: #4a5568;"><strong>Source:</strong> ${line.source}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : `
-                        <div style="text-align: center; padding: 40px; background: rgba(16, 185, 129, 0.05); border-radius: 12px;">
-                            <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 15px;"></i>
-                            <h3 style="color: #059669; margin-bottom: 10px;">No Significant Matches Found</h3>
-                            <p style="color: #6b7280;">Your content appears to be original with no substantial similarities.</p>
-                        </div>
-                    `}
-                `;
-                
-                plagiarismCard.appendChild(plagContent);
-                resultsDiv.appendChild(plagiarismCard);
-                
-                // Create plagiarism chart after DOM update
-                setTimeout(() => {
-                    const canvas = document.getElementById('plagiarismChart');
-                    if (canvas && typeof Chart !== 'undefined') {
-                        new Chart(canvas, {
-                            type: 'doughnut',
-                            data: {
-                                labels: ['Original Content', 'Matched Content'],
-                                datasets: [{
-                                    data: [
-                                        aiAnalysis.plagiarism_check.originality_score,
-                                        100 - aiAnalysis.plagiarism_check.originality_score
-                                    ],
-                                    backgroundColor: ['#10b981', '#f59e0b'],
-                                    borderWidth: 0
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { position: 'bottom' }
-                                }
-                            }
-                        });
-                    }
-                }, 100);
+            // Plagiarism Card
+            const plagiarismCard = document.createElement('div');
+            plagiarismCard.className = 'result-card';
+            plagiarismCard.style.cssText = 'background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%); position: relative; overflow: visible;';
+            
+            // Determine plagiarism status
+            let plagStatus, plagColor, plagIcon, plagMessage;
+            if (originalityScore >= 90) {
+                plagStatus = 'ORIGINAL CONTENT';
+                plagColor = '#10b981';
+                plagIcon = 'fa-certificate';
+                plagMessage = "Great news! Your content appears to be original. We didn't find any significant matches in our database.";
+            } else if (originalityScore >= 70) {
+                plagStatus = 'MOSTLY ORIGINAL';
+                plagColor = '#f59e0b';
+                plagIcon = 'fa-exclamation-triangle';
+                plagMessage = "Pretty good! Most of your content is original, but we found some similarities that might need attention.";
+            } else {
+                plagStatus = 'SIMILARITIES FOUND';
+                plagColor = '#ef4444';
+                plagIcon = 'fa-copy';
+                plagMessage = "Uh oh... We found several matches in our database. This content has significant similarities to existing sources.";
             }
             
-            // Writing statistics
-            if (aiAnalysis.statistics) {
+            plagiarismCard.innerHTML = `
+                <div style="position: absolute; top: -15px; right: 30px; background: ${plagColor}; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <i class="fas ${plagIcon}"></i> ${plagStatus}
+                </div>
+                
+                <div style="padding: 40px 30px 30px;">
+                    <h3 style="font-size: 1.8rem; margin-bottom: 25px; color: #1f2937; display: flex; align-items: center; gap: 15px;">
+                        <i class="fas fa-search-plus" style="color: ${plagColor};"></i>
+                        Is This Plagiarized?
+                    </h3>
+                    
+                    <!-- Visual Infographic -->
+                    <div style="display: flex; gap: 40px; align-items: center; margin-bottom: 30px;">
+                        <div style="position: relative; width: 180px; height: 180px;">
+                            <svg width="180" height="180">
+                                <defs>
+                                    <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+                                        <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" style="stroke:#f59e0b; stroke-width:0.5"/>
+                                    </pattern>
+                                </defs>
+                                <circle cx="90" cy="90" r="80" fill="#10b981"/>
+                                <circle cx="90" cy="90" r="80" fill="url(#diagonalHatch)" 
+                                        stroke="none"
+                                        mask="url(#plagMask)"/>
+                                <mask id="plagMask">
+                                    <rect width="180" height="180" fill="white"/>
+                                    <path d="M 90 90 L 90 10 A 80 80 0 0 1 ${90 + 80 * Math.cos((originalityScore * 3.6 - 90) * Math.PI / 180)} ${90 + 80 * Math.sin((originalityScore * 3.6 - 90) * Math.PI / 180)} z" fill="black"/>
+                                </mask>
+                            </svg>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <div style="font-size: 2.5rem; font-weight: bold; color: ${plagColor};">${originalityScore}%</div>
+                                <div style="font-size: 0.9rem; color: #6b7280;">Original</div>
+                            </div>
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <p style="font-size: 1.1rem; line-height: 1.8; color: #4b5563; margin-bottom: 20px;">
+                                ${plagMessage}
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="background: #f3f4f6; padding: 15px; border-radius: 10px;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #667eea;">${plagiarismCheck.matched_sources || 0}</div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">Sources Checked</div>
+                                </div>
+                                <div style="background: #f3f4f6; padding: 15px; border-radius: 10px;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">${plagiarismCheck.highest_match || 0}%</div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">Highest Match</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="color: #374151; margin-bottom: 10px; font-size: 1rem;">
+                            <i class="fas fa-database" style="color: #667eea;"></i> How We Checked
+                        </h4>
+                        <p style="color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
+                            We compared your text against our basic database of web content and academic sources. This free scan covers common plagiarism patterns and publicly available content.
+                        </p>
+                    </div>
+                    
+                    ${tier === 'free' ? `
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 12px; text-align: center;">
+                            <p style="color: white; font-weight: 600; margin-bottom: 10px;">
+                                <i class="fas fa-lock"></i> Want Line-by-Line Results?
+                            </p>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; margin-bottom: 15px;">
+                                See exact matches, source citations, and similarity percentages for every flagged section with Pro
+                            </p>
+                            <button onclick="window.location.href='/pricingplan'" style="background: white; color: #667eea; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                Upgrade to Pro <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            resultsContainer.appendChild(aiCard);
+            resultsContainer.appendChild(plagiarismCard);
+            
+            // Add quick stats if pro
+            if (tier === 'pro' && aiAnalysis.statistics) {
                 const statsCard = document.createElement('div');
                 statsCard.className = 'result-card';
+                statsCard.style.cssText = 'padding: 25px; background: #f9fafb;';
                 statsCard.innerHTML = `
-                    <div class="result-header">
-                        <i class="fas fa-chart-bar"></i>
-                        Writing Statistics
-                    </div>
-                    <div class="data-grid">
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.statistics.word_count}</div>
-                            <div class="data-label">Words</div>
+                    <h4 style="color: #374151; margin-bottom: 15px; font-size: 1.2rem;">
+                        <i class="fas fa-chart-bar" style="color: #667eea;"></i> Quick Stats
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #667eea;">${aiAnalysis.statistics.word_count}</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Words</div>
                         </div>
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.statistics.character_count}</div>
-                            <div class="data-label">Characters</div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #667eea;">${aiAnalysis.statistics.sentence_count || 0}</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Sentences</div>
                         </div>
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.statistics.sentence_count || 0}</div>
-                            <div class="data-label">Sentences</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-value">${aiAnalysis.statistics.average_word_length}</div>
-                            <div class="data-label">Avg Word Length</div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #667eea;">${aiAnalysis.statistics.reading_level}</div>
+                            <div style="font-size: 0.8rem; color: #6b7280;">Reading Level</div>
                         </div>
                     </div>
-                    <p style="margin-top: 20px;"><strong>Reading Level:</strong> ${aiAnalysis.statistics.reading_level}</p>
                 `;
-                resultsDiv.appendChild(statsCard);
+                resultsContainer.appendChild(statsCard);
             }
             
+            resultsDiv.appendChild(resultsContainer);
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
