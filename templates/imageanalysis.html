@@ -1422,6 +1422,143 @@
             `;
         }
 
+        function generateInsightsContent(authenticityScore, aiProbability, tier) {
+            return `
+                <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1)); padding: 25px; border-radius: 15px; border: 2px solid rgba(245, 158, 11, 0.2);">
+                    <h3 style="color: #d97706; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-brain"></i> AI-Powered Analysis Summary
+                    </h3>
+                    <div style="color: #4b5563; line-height: 1.8;">
+                        ${authenticityScore >= 80 ? `
+                            <p><strong>✅ High Confidence in Authenticity</strong></p>
+                            <p>Our advanced AI models have analyzed this image across multiple dimensions and found strong indicators of authenticity. The low AI generation probability (${aiProbability}%) combined with natural image characteristics suggest this is a genuine photograph.</p>
+                            <ul style="margin: 15px 0; padding-left: 20px;">
+                                <li>Natural noise patterns consistent with camera sensors</li>
+                                <li>No AI model signatures detected</li>
+                                <li>Compression artifacts match single-source origin</li>
+                                <li>No evidence of manipulation or splicing</li>
+                            </ul>
+                            <p><strong>Recommendation:</strong> This image can be used with confidence. However, always verify the source and context when using any image for important purposes.</p>
+                        ` : authenticityScore >= 60 ? `
+                            <p><strong>⚠️ Mixed Signals Detected</strong></p>
+                            <p>Our analysis reveals conflicting indicators that prevent a definitive conclusion. The moderate AI probability (${aiProbability}%) suggests possible artificial elements or heavy post-processing.</p>
+                            <ul style="margin: 15px 0; padding-left: 20px;">
+                                <li>Some patterns consistent with AI generation</li>
+                                <li>Possible post-processing or filters applied</li>
+                                <li>Metadata inconsistencies detected</li>
+                                <li>Compression patterns suggest multiple saves</li>
+                            </ul>
+                            <p><strong>Recommendation:</strong> Exercise caution with this image. Verify through additional sources and consider the context of use. For critical applications, seek additional verification.</p>
+                        ` : `
+                            <p><strong>🚨 High Probability of Manipulation</strong></p>
+                            <p>Multiple indicators suggest this image has been artificially generated or heavily manipulated. The high AI probability (${aiProbability}%) across multiple detection models raises significant concerns.</p>
+                            <ul style="margin: 15px 0; padding-left: 20px;">
+                                <li>Strong AI generation signatures detected</li>
+                                <li>Unnatural patterns in pixel analysis</li>
+                                <li>Missing or stripped metadata</li>
+                                <li>Evidence of digital manipulation</li>
+                            </ul>
+                            <p><strong>Recommendation:</strong> Do not use this image for any purpose requiring authenticity. If you must use it, clearly label it as potentially artificial or manipulated.</p>
+                        `}
+                    </div>
+                    ${tier === 'pro' ? `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(245, 158, 11, 0.2);">
+                            <h4 style="color: #d97706; margin-bottom: 10px;">Pro Analysis Features Used:</h4>
+                            <ul style="color: #4b5563; list-style: none; padding: 0;">
+                                <li>✓ 12 AI detection models (vs 5 in free)</li>
+                                <li>✓ Deepfake detection algorithms</li>
+                                <li>✓ Advanced manipulation detection</li>
+                                <li>✓ Detailed forensic analysis</li>
+                                <li>✓ Source attribution checking</li>
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Create analysis section helper
+        function createAnalysisSection(config) {
+            const section = document.createElement('div');
+            section.className = 'analysis-section';
+            section.id = config.id;
+            
+            const header = document.createElement('div');
+            header.className = `analysis-header ${config.locked ? 'locked' : ''}`;
+            header.onclick = () => toggleAnalysisSection(config.id);
+            
+            header.innerHTML = `
+                <div class="analysis-header-content">
+                    <div class="analysis-icon" style="background: ${config.locked ? '#e5e7eb' : `linear-gradient(135deg, ${config.iconColor}20, ${config.iconColor}30)`};">
+                        ${config.icon}
+                    </div>
+                    <div class="analysis-title-group">
+                        <h3 class="analysis-title">${config.title}</h3>
+                        <p class="analysis-summary">${config.summary}</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-down expand-icon"></i>
+                ${config.locked ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;">PRO ONLY</span>' : ''}
+            `;
+            
+            const content = document.createElement('div');
+            content.className = 'analysis-content';
+            
+            const body = document.createElement('div');
+            body.className = 'analysis-body';
+            body.innerHTML = config.content;
+            
+            content.appendChild(body);
+            section.appendChild(header);
+            section.appendChild(content);
+            
+            return section;
+        }
+
+        // Toggle analysis section
+        function toggleAnalysisSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = section.querySelector('.analysis-header');
+            const content = section.querySelector('.analysis-content');
+            
+            if (header.classList.contains('locked') && currentTier === 'free') {
+                showNotification('Upgrade to Pro to access this analysis', 'info');
+                return;
+            }
+            
+            const isExpanded = section.classList.contains('expanded');
+            
+            if (isExpanded) {
+                section.classList.remove('expanded');
+                header.classList.remove('expanded');
+                content.classList.remove('expanded');
+            } else {
+                section.classList.add('expanded');
+                header.classList.add('expanded');
+                content.classList.add('expanded');
+            }
+            
+            trackImageAnalysisEvent('analysis_section_toggled', {
+                section: sectionId,
+                action: isExpanded ? 'collapsed' : 'expanded'
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            trackImageAnalysisEvent('image_analysis_page_loaded', {
+                referrer: document.referrer
+            });
+        });
+    </script>
+</body>
+</html>pricingplan'" style="margin-top: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer;">
+                        Upgrade to Pro
+                    </button>
+                </div>
+            `;
+        }
+
         function generatePixelForensicsContent() {
             return `
                 <div class="pixel-visualization">
