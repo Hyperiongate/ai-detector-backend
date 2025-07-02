@@ -954,6 +954,22 @@
                     </button>
                 </div>
 
+                <!-- Camera Section -->
+                <div class="camera-section" id="cameraSection" style="display: none;">
+                    <div class="camera-container" style="position: relative; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 1rem;">
+                        <video id="cameraVideo" style="width: 100%; max-height: 400px; object-fit: cover;" autoplay playsinline></video>
+                        <canvas id="cameraCanvas" style="display: none;"></canvas>
+                    </div>
+                    <div class="camera-controls" style="display: flex; justify-content: center; gap: 1rem;">
+                        <button class="camera-button capture" onclick="capturePhoto()" style="padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                            <i class="fas fa-camera"></i> Capture Photo
+                        </button>
+                        <button class="camera-button stop" onclick="stopCamera()" style="padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; background: #ef4444; color: white;">
+                            <i class="fas fa-stop"></i> Stop Camera
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Image Preview -->
                 <div class="image-preview" id="imagePreview">
                     <div class="preview-container">
@@ -989,6 +1005,7 @@
         let currentImage = null;
         let currentTier = 'free';
         let analysisData = null;
+        let cameraStream = null;
 
         // Show notification helper
         function showNotification(message, type = 'info') {
@@ -1005,6 +1022,103 @@
                     document.body.removeChild(notification);
                 }, 300);
             }, 3000);
+        }
+
+        // Camera functionality
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment' // Use back camera on mobile
+                } 
+            })
+            .then(stream => {
+                cameraStream = stream;
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                showNotification('Camera started successfully', 'success');
+            })
+            .catch(err => {
+                console.error('Camera access denied:', err);
+                showNotification('Camera access denied. Please allow camera permissions.', 'error');
+                // Switch back to upload method
+                document.querySelector('.upload-method[data-method="upload"]').click();
+            });
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = null;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+            
+            // Set canvas size to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            context.drawImage(video, 0, 0);
+            
+            // Convert canvas to blob
+            canvas.toBlob(blob => {
+                // Create a File object from the blob
+                const file = new File([blob], `camera_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                
+                // Display the captured image
+                displayImage(file);
+                
+                // Stop camera and switch to upload view
+                stopCamera();
+                document.getElementById('cameraSection').style.display = 'none';
+                document.querySelector('.upload-method[data-method="upload"]').click();
+                
+                showNotification('Photo captured successfully!', 'success');
+            }, 'image/jpeg', 0.9);
+        }
+
+        // URL loading functionality
+        function loadFromURL() {
+            const urlInput = document.querySelector('.url-input');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showNotification('Please enter a valid URL', 'error');
+                return;
+            }
+            
+            // Show loading state
+            showNotification('Loading image from URL...', 'info');
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // Enable CORS
+            
+            img.onload = function() {
+                // Create canvas to convert image to blob
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'url_image.jpg', { type: 'image/jpeg' });
+                    displayImage(file);
+                    showNotification('Image loaded successfully!', 'success');
+                }, 'image/jpeg');
+            };
+            
+            img.onerror = function() {
+                showNotification('Failed to load image. Check the URL or CORS restrictions.', 'error');
+            };
+            
+            img.src = url;
         }
 
         // File upload handling
@@ -1071,6 +1185,13 @@
                 // Hide all upload sections
                 document.querySelector('.image-upload-area').style.display = uploadMethod === 'upload' ? 'block' : 'none';
                 document.getElementById('urlInputSection').style.display = uploadMethod === 'url' ? 'block' : 'none';
+                document.getElementById('cameraSection').style.display = uploadMethod === 'camera' ? 'block' : 'none';
+                
+                if (uploadMethod === 'camera') {
+                    startCamera();
+                } else {
+                    stopCamera();
+                }
             });
         });
 
