@@ -969,9 +969,36 @@
             color: white;
         }
 
-        .lock-icon {
-            color: #d97706;
-            font-size: 1.1rem;
+        /* Enhanced result item styles for inline expansion */
+        .result-item-expandable {
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .result-item-expandable.expanded {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .inline-result-content {
+            padding: 25px;
+            background: rgba(249, 250, 251, 0.5);
+            border-top: 2px solid rgba(102, 126, 234, 0.1);
+            animation: slideDown 0.3s ease;
+        }
+
+        .result-item.locked {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .result-item.locked:hover {
+            transform: none;
+            border-color: #e2e8f0;
         }
 
         /* Input Section */
@@ -1136,9 +1163,15 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         /* Version Badge */
@@ -2739,18 +2772,74 @@
         // Initialize tooltips
         let currentTooltip = null;
 
-        // Show notification function
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.display = 'block';
-            document.body.appendChild(notification);
+        // Toggle inline result content
+        function toggleInlineResult(element) {
+            const container = element.closest('.result-item-expandable');
+            const content = container.querySelector('.inline-result-content');
+            const chevron = element.querySelector('.fa-chevron-down');
+            const isExpanded = container.classList.contains('expanded');
             
-            setTimeout(() => {
-                notification.style.display = 'none';
-                document.body.removeChild(notification);
-            }, 3000);
+            if (isExpanded) {
+                container.classList.remove('expanded');
+                content.style.display = 'none';
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            } else {
+                // Close other expanded items in the same container
+                const parent = container.parentElement;
+                parent.querySelectorAll('.result-item-expandable').forEach(item => {
+                    item.classList.remove('expanded');
+                    const itemContent = item.querySelector('.inline-result-content');
+                    if (itemContent) itemContent.style.display = 'none';
+                    const itemChevron = item.querySelector('.fa-chevron-down');
+                    if (itemChevron) itemChevron.style.transform = 'rotate(0deg)';
+                });
+                
+                container.classList.add('expanded');
+                content.style.display = 'block';
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                
+                // Animate elements inside
+                setTimeout(() => {
+                    // Animate score circles
+                    const scoreCircle = content.querySelector('.score-circle');
+                    if (scoreCircle && !scoreCircle.classList.contains('animating')) {
+                        const scoreText = scoreCircle.querySelector('.score-text');
+                        const targetScore = parseInt(scoreText.textContent);
+                        scoreCircle.classList.add('animating');
+                        
+                        // Set the background based on the score
+                        const credibilityScore = targetScore;
+                        const credibilityColors = getCredibilityColor(credibilityScore);
+                        scoreCircle.style.background = `conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg)`;
+                    }
+                    
+                    // Animate confidence meters
+                    content.querySelectorAll('.confidence-meter-fill').forEach(element => {
+                        const width = element.style.width;
+                        element.style.width = '0%';
+                        setTimeout(() => {
+                            element.style.width = width;
+                        }, 100);
+                    });
+                    
+                    // Setup interactive bias spectrum if present
+                    if (content.querySelector('.bias-spectrum')) {
+                        setupInteractiveBiasSpectrum();
+                    }
+                }, 100);
+            }
+            
+            trackNewsEvent('inline_result_toggled', {
+                section: container.querySelector('.result-title').textContent,
+                action: isExpanded ? 'closed' : 'opened'
+            });
+        }
+
+        // Helper function to get credibility color
+        function getCredibilityColor(score) {
+            if (score >= 80) return { primary: '#10b981', secondary: '#059669', text: 'Highly Credible' };
+            if (score >= 60) return { primary: '#f59e0b', secondary: '#d97706', text: 'Moderately Credible' };
+            return { primary: '#ef4444', secondary: '#dc2626', text: 'Low Credibility' };
         }
 
         // Enhanced dropdown toggle with close functionality
@@ -3936,407 +4025,7 @@ with multiple trusted sources.
             overviewSection.appendChild(overviewContent);
             resultsDiv.appendChild(overviewSection);
 
-            // Create main assessment section as a dropdown
-            const mainSection = document.createElement('div');
-            mainSection.className = 'dropdown-section';
-            mainSection.id = 'main-assessment';
-            
-            const mainHeader = document.createElement('div');
-            mainHeader.className = 'dropdown-header';
-            mainHeader.onclick = function() { toggleDropdown(this, tier); };
-            mainHeader.innerHTML = `
-                <span><i class="fas fa-newspaper"></i> News Verification Assessment</span>
-                <div class="dropdown-controls">
-                    <span class="section-summary">${assessment} - Score: ${credibilityScore}/100</span>
-                    <span style="background: ${credibilityColors.primary}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.85rem; margin-left: 10px;">${assessment}</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </div>
-            `;
-            mainSection.appendChild(mainHeader);
-            
-            const mainContent = document.createElement('div');
-            mainContent.className = 'dropdown-content';
-            
-            // Create the content inside the dropdown
-            const mainContentHTML = `
-                <div class="compact-summary">
-                    <div class="score-circle" style="--score-deg: ${credibilityScore * 3.6}deg;">
-                        <div class="score-text" style="color: ${credibilityColors.secondary};">0</div>
-                    </div>
-                    <div class="summary-content">
-                        <h3 style="color: #374151; margin-bottom: 8px; font-size: 1.4rem;">
-                            ${credibilityColors.text} - Overall Score: ${credibilityScore}/100
-                            <span class="info-tooltip" data-tooltip="Credibility score is calculated based on source reliability, claim verification, and bias indicators">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                        </h3>
-                        <div class="summary-dialogue">${generateNewsDialogue(credibilityScore, biasLabel, sourceCredibility)}</div>
-                    </div>
-                </div>
-                
-                <div class="data-grid">
-                    <div class="data-item">
-                        <div class="data-value" data-value="${credibilityScore}">0</div>
-                        <div class="data-label">Overall Credibility</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value" data-value="${sourceCredibility}">0</div>
-                        <div class="data-label">Source Quality</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value" data-value="${Object.keys(biasIndicatorsObj).length}">0</div>
-                        <div class="data-label">Bias Metrics</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-value" data-value="${crossReferences.length}">0</div>
-                        <div class="data-label">Sources Checked</div>
-                    </div>
-                </div>
-                
-                <!-- Confidence Meters -->
-                <div style="margin-top: 25px;">
-                    <h4 style="color: #4a5568; margin-bottom: 15px;">Analysis Confidence Levels:</h4>
-                    <div class="confidence-meter confidence-high">
-                        <div class="confidence-meter-label">Source Verification</div>
-                        <div class="confidence-meter-bar">
-                            <div class="confidence-meter-fill" style="width: ${Math.min(95, sourceCredibility + 10)}%;"></div>
-                        </div>
-                        <div class="confidence-meter-value">${Math.min(95, sourceCredibility + 10)}%</div>
-                    </div>
-                    <div class="confidence-meter confidence-${objectivityScore >= 70 ? 'high' : objectivityScore >= 50 ? 'medium' : 'low'}">
-                        <div class="confidence-meter-label">Objectivity Analysis</div>
-                        <div class="confidence-meter-bar">
-                            <div class="confidence-meter-fill" style="width: ${objectivityScore}%;"></div>
-                        </div>
-                        <div class="confidence-meter-value">${objectivityScore}%</div>
-                    </div>
-                    <div class="confidence-meter confidence-medium">
-                        <div class="confidence-meter-label">Fact Verification</div>
-                        <div class="confidence-meter-bar">
-                            <div class="confidence-meter-fill" style="width: 75%;"></div>
-                        </div>
-                        <div class="confidence-meter-value">75%</div>
-                    </div>
-                </div>
-                
-                ${tier === 'pro' ? `
-                    <div style="margin-top: 20px; display: flex; gap: 10px;">
-                        <button class="btn btn-compare" onclick="addToComparison()">
-                            <i class="fas fa-plus"></i> Add to Comparison
-                        </button>
-                        <button class="download-report" onclick="downloadReport()">
-                            <i class="fas fa-download"></i> Download Professional Report
-                        </button>
-                    </div>
-                ` : ''}
-            `;
-            
-            mainContent.innerHTML = mainContentHTML;
-            mainSection.appendChild(mainContent);
-            resultsDiv.appendChild(mainSection);
-            
-            // Animate the score circle when dropdown is opened
-            const mainDropdownHeader = mainSection.querySelector('.dropdown-header');
-            const setupAnimations = function() {
-                setTimeout(() => {
-                    const scoreCircle = mainContent.querySelector('.score-circle');
-                    const scoreText = mainContent.querySelector('.score-text');
-                    if (scoreCircle && !scoreCircle.classList.contains('animating')) {
-                        scoreCircle.classList.add('animating');
-                        scoreCircle.style.background = `conic-gradient(from 0deg, ${credibilityColors.primary} 0deg ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg 360deg)`;
-                        
-                        // Animate the score number
-                        animateCounter(scoreText, 0, credibilityScore, 1500);
-                    }
-                    
-                    // Animate data grid counters
-                    mainContent.querySelectorAll('.data-value').forEach(element => {
-                        const targetValue = parseInt(element.getAttribute('data-value'));
-                        animateCounter(element, 0, targetValue, 1000);
-                    });
-                    
-                    // Animate confidence meters
-                    mainContent.querySelectorAll('.confidence-meter-fill').forEach(element => {
-                        const width = element.style.width;
-                        element.style.width = '0%';
-                        setTimeout(() => {
-                            element.style.width = width;
-                        }, 100);
-                    });
-                }, 100);
-            };
-            
-            // Set up proper click handler
-            if (mainDropdownHeader) {
-                mainDropdownHeader.removeEventListener('click', setupAnimations); // Remove any existing listener
-                mainDropdownHeader.addEventListener('click', function() {
-                    if (this.classList.contains('open')) {
-                        setupAnimations();
-                    }
-                });
-            }
-
-            // Political Bias Analysis Section with interactive spectrum
-            const biasSection = document.createElement('div');
-            biasSection.className = 'dropdown-section';
-            biasSection.id = 'bias-analysis';
-            
-            const biasHeader = document.createElement('div');
-            biasHeader.className = 'dropdown-header' + (tier === 'free' ? ' locked' : '');
-            biasHeader.onclick = function() { toggleDropdown(this, tier); };
-            biasHeader.innerHTML = `
-                <span><i class="fas fa-balance-scale"></i> Political Bias & Objectivity Analysis</span>
-                <div class="dropdown-controls">
-                    <span class="section-summary">${biasLabel.toUpperCase()} • ${objectivityScore}% Objective</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </div>
-            `;
-            biasSection.appendChild(biasHeader);
-            
-            const biasContent = document.createElement('div');
-            biasContent.className = 'dropdown-content';
-            
-            // Show actual bias indicators found
-            if (tier === 'pro') {
-                const unsupportedClaimsCount = politicalBias.unsupported_claims ? politicalBias.unsupported_claims.length : 0;
-                const substantiatedClaimsCount = politicalBias.substantiated_claims ? politicalBias.substantiated_claims.length : 0;
-                
-                biasContent.innerHTML = `
-                    <div style="background: #f0f4f8; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h4 style="color: #4a5568; margin-bottom: 10px;">
-                            <i class="fas fa-info-circle"></i> How to Read These Results
-                            <span class="info-tooltip" data-tooltip="Our bias detection uses natural language processing to identify political indicators">
-                                <i class="fas fa-question-circle" style="font-size: 0.9rem; margin-left: 5px;"></i>
-                            </span>
-                        </h4>
-                        <p style="color: #6b7280; line-height: 1.6;">The bias spectrum shows where this article falls politically. Center is neutral journalism. The further left or right, the stronger the political lean. Look for loaded language, unsubstantiated claims, and one-sided sources as bias indicators.</p>
-                    </div>
-                    
-                    <div class="interactive-bias-spectrum">
-                        <div class="bias-spectrum">
-                            <div class="bias-labels">
-                                <span>LEFT</span>
-                                <span>CENTER</span>
-                                <span>RIGHT</span>
-                            </div>
-                            <div class="bias-indicator pulse" style="left: ${biasPosition}%;"></div>
-                            <div class="bias-tooltip"></div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="margin: 20px 0 15px; color: #4a5568;">Political Bias Metrics:</h4>
-                    <div style="display: grid; gap: 15px;">
-                        <div style="background: rgba(102, 126, 234, 0.05); padding: 15px; border-radius: 8px;">
-                            <p><strong>Political Lean:</strong> ${biasLabel.toUpperCase()}</p>
-                            <p><strong>Bias Score:</strong> ${biasScore} (negative = left, positive = right)</p>
-                            <p><strong>Objectivity:</strong> ${objectivityScore}%</p>
-                            <p><strong>Left Indicators:</strong> ${politicalBias.left_indicators || 0}</p>
-                            <p><strong>Right Indicators:</strong> ${politicalBias.right_indicators || 0}</p>
-                        </div>
-                        
-                        <h4 style="margin-top: 20px; color: #4a5568;">Claim Verification Analysis:</h4>
-                        
-                        ${unsupportedClaimsCount > 0 ? `
-                            <div class="unsupported-claims-notice">
-                                <p>
-                                    <i class="fas fa-exclamation-triangle"></i> ${unsupportedClaimsCount} Unsupported Claims Found
-                                </p>
-                                <p style="color: #92400e; font-weight: normal; font-size: 0.9rem;">These statements lack proper attribution or supporting evidence.</p>
-                                <button onclick="showAllClaims('unsupported')">
-                                    <i class="fas fa-list"></i> View All Unsupported Claims
-                                </button>
-                            </div>
-                        ` : ''}
-                        
-                        ${substantiatedClaimsCount > 0 ? `
-                            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px;">
-                                <p style="color: #059669; font-weight: bold; margin-bottom: 10px;">
-                                    <i class="fas fa-check-circle"></i> ${substantiatedClaimsCount} Well-Supported Claims Found
-                                </p>
-                                <p style="color: #047857; font-weight: normal; font-size: 0.9rem;">These statements are properly sourced and verified.</p>
-                                <button style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; margin-top: 10px;" onclick="showAllClaims('substantiated')">
-                                    <i class="fas fa-list"></i> View Supported Claims
-                                </button>
-                            </div>
-                        ` : ''}
-                        
-                        ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ? `
-                            <div style="margin-top: 15px;">
-                                <h5 style="color: #4a5568; margin-bottom: 10px;">Loaded Language Detected:</h5>
-                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                    ${politicalBias.loaded_terms.map(term => 
-                                        `<span style="background: rgba(245, 158, 11, 0.1); color: #d97706; padding: 4px 12px; border-radius: 16px; font-size: 0.9rem;">${term}</span>`
-                                    ).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                    
-                    <!-- Interactive Evidence Explorer -->
-                    <div class="evidence-explorer">
-                        <div class="evidence-explorer-header">
-                            <div class="evidence-explorer-title">
-                                <i class="fas fa-microscope"></i> Evidence Analysis
-                            </div>
-                            <div class="evidence-counter">${biasIndicators.length} indicators found</div>
-                        </div>
-                        <div class="evidence-grid">
-                            ${biasIndicators.map((indicator, index) => `
-                                <div class="evidence-card" onclick="toggleEvidence(this)">
-                                    <div class="evidence-card-header">
-                                        <div class="evidence-type">
-                                            <i class="fas fa-flag"></i> ${indicator.split(':')[0]}
-                                        </div>
-                                        <i class="fas fa-chevron-down expand-indicator"></i>
-                                    </div>
-                                    <div class="evidence-preview">${indicator}</div>
-                                    <div class="evidence-details">
-                                        <div class="evidence-methodology">
-                                            <strong>Detection Method:</strong> Advanced NLP analysis using pattern recognition and contextual understanding.
-                                        </div>
-                                        <div class="evidence-sources">
-                                            <span class="evidence-source">AI Analysis</span>
-                                            <span class="evidence-source">Pattern Matching</span>
-                                            <span class="evidence-source">Context Evaluation</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-                
-                // Set up interactive bias spectrum after content is added
-                setTimeout(() => {
-                    setupInteractiveBiasSpectrum();
-                }, 100);
-            } else {
-                // Free tier - show locked content
-                biasContent.innerHTML = `
-                    <div class="locked-content">
-                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                        <h3>Unlock Political Bias Analysis</h3>
-                        <p>Get detailed political bias metrics, objectivity scores, and claim verification with Pro.</p>
-                    </div>
-                    <div class="upgrade-prompt">
-                        <h3>Upgrade to Pro for Complete Analysis</h3>
-                        <div class="features-grid">
-                            <div>✓ Political bias spectrum</div>
-                            <div>✓ Objectivity scoring</div>
-                            <div>✓ Claim verification</div>
-                            <div>✓ Loaded language detection</div>
-                        </div>
-                        <button onclick="window.location.href='/pricingplan'">Upgrade Now</button>
-                    </div>
-                `;
-            }
-            
-            biasSection.appendChild(biasContent);
-            resultsDiv.appendChild(biasSection);
-
-            // Source Verification Section with network visualization
-            const sourceSection = document.createElement('div');
-            sourceSection.className = 'dropdown-section';
-            sourceSection.id = 'source-verification';
-            
-            const sourceHeader = document.createElement('div');
-            sourceHeader.className = 'dropdown-header';
-            sourceHeader.onclick = function() { toggleDropdown(this, tier); };
-            sourceHeader.innerHTML = `
-                <span><i class="fas fa-shield-alt"></i> Source Credibility & Trust Analysis</span>
-                <div class="dropdown-controls">
-                    <span class="section-summary">Score: ${sourceCredibility}/100</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </div>
-            `;
-            sourceSection.appendChild(sourceHeader);
-            
-            const sourceContent = document.createElement('div');
-            sourceContent.className = 'dropdown-content';
-            sourceContent.innerHTML = `
-                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 12px;">
-                    <h4 style="color: #4a5568; margin-bottom: 20px;">Source Verification Results:</h4>
-                    <div style="display: grid; gap: 15px;">
-                        <div><strong>Domain:</strong> ${sourceAnalysis.domain || 'Unknown'}</div>
-                        <div><strong>Credibility Score:</strong> ${sourceCredibility}/100</div>
-                        <div><strong>Source Type:</strong> ${sourceAnalysis.source_type || 'Unknown'}</div>
-                        <div><strong>Political Bias:</strong> ${sourceAnalysis.political_bias || 'Unknown'}</div>
-                        <div><strong>Founded:</strong> ${sourceAnalysis.founded || 'Unknown'}</div>
-                    </div>
-                    
-                    ${tier === 'pro' ? `
-                        <div class="source-network">
-                            <h4 style="color: #4a5568; margin-bottom: 15px;">Source Network Analysis:</h4>
-                            <div class="network-nodes">
-                                <div class="network-node primary">
-                                    <i class="fas fa-newspaper"></i><br>
-                                    Primary Source
-                                </div>
-                                ${crossReferences.slice(0, 3).map(ref => `
-                                    <div class="network-node">
-                                        <i class="fas fa-link"></i><br>
-                                        ${ref.source}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(102, 126, 234, 0.2);">
-                            <h4 style="color: #4a5568; margin-bottom: 15px;">Cross-Reference Verification:</h4>
-                            ${crossReferences.map(ref => `
-                                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                                    <strong>${ref.source}</strong>: ${ref.title} (Relevance: ${ref.relevance}%)
-                                </div>
-                            `).join('')}
-                            <button onclick="openCrossVerifyModal()" style="background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;">
-                                <i class="fas fa-search"></i> Cross-Verify with More Sources
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-            sourceSection.appendChild(sourceContent);
-            resultsDiv.appendChild(sourceSection);
-
-            // If pro tier and there are fact-check results, add fact-check section
-            if (tier === 'pro' && factCheckResults.length > 0) {
-                const factCheckSection = document.createElement('div');
-                factCheckSection.className = 'dropdown-section';
-                factCheckSection.id = 'fact-check';
-                
-                const factCheckHeader = document.createElement('div');
-                factCheckHeader.className = 'dropdown-header';
-                factCheckHeader.onclick = function() { toggleDropdown(this, tier); };
-                factCheckHeader.innerHTML = `
-                    <span><i class="fas fa-check-circle"></i> Fact-Check Analysis</span>
-                    <div class="dropdown-controls">
-                        <span class="section-summary">${factCheckResults.length} claims analyzed</span>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                `;
-                factCheckSection.appendChild(factCheckHeader);
-                
-                const factCheckContent = document.createElement('div');
-                factCheckContent.className = 'dropdown-content';
-                factCheckContent.innerHTML = `
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="color: #4a5568; margin-bottom: 15px;">Claims Analyzed:</h4>
-                        ${factCheckResults.map((fc, index) => `
-                            <div style="background: ${fc.status === 'Verified' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(245, 158, 11, 0.05)'}; 
-                                        border-left: 4px solid ${fc.status === 'Verified' ? '#10b981' : '#f59e0b'}; 
-                                        padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                                <h5 style="color: #4a5568; margin-bottom: 10px;">Claim ${index + 1}:</h5>
-                                <p style="font-style: italic; margin-bottom: 10px;">"${fc.claim}"</p>
-                                <p><strong>Status:</strong> ${fc.status}</p>
-                                <p><strong>Confidence:</strong> ${fc.confidence}%</p>
-                                <p><strong>Sources:</strong> ${fc.sources.join(', ')}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                factCheckSection.appendChild(factCheckContent);
-                resultsDiv.appendChild(factCheckSection);
-            }
+            // Don't create the standalone sections anymore - everything is in the overview box
             
             // Show history button
             const historyBtn = document.createElement('button');
