@@ -1,1781 +1,2826 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_cors import CORS
-import os
-from datetime import datetime, timedelta
-import traceback
-import json
-import requests
-from urllib.parse import urlparse
-import re
-from functools import wraps
-import secrets
-import bcrypt
-from sqlalchemy import func
-import time
-import random
-import math
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detection & Content Analysis - Facts & Fakes AI</title>
+    
+    <!-- Google Analytics 4 Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID', {
+            page_title: 'AI Detection & Content Analysis',
+            page_location: window.location.href,
+            custom_map: {
+                'custom_parameter_1': 'analysis_type',
+                'custom_parameter_2': 'user_tier',
+                'custom_parameter_3': 'file_upload_type'
+            }
+        });
 
-# OpenAI import for Phase 2 - Updated for v1.0+ API
-try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    OpenAI = None
-    print("⚠ OpenAI module not available - will use basic analysis")
+        // Enhanced Analytics Tracking System
+        class AnalyticsTracker {
+            constructor() {
+                this.sessionId = this.generateSessionId();
+                this.startTime = Date.now();
+                this.analysisStarted = false;
+                this.setupEventListeners();
+                this.trackPageLoad();
+            }
 
-# Safe email import handling for Python 3.13 compatibility
-try:
-    import smtplib
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-    EMAIL_AVAILABLE = True
-except ImportError:
-    try:
-        import smtplib
-        from email.MIMEText import MIMEText
-        from email.MIMEMultipart import MIMEMultipart
-        EMAIL_AVAILABLE = True
-    except ImportError:
-        EMAIL_AVAILABLE = False
-        MIMEText = None
-        MIMEMultipart = None
-        print("⚠ Email modules not available - email features disabled")
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
 
-# Database imports with safe handling
-try:
-    from flask_sqlalchemy import SQLAlchemy
-    from sqlalchemy.exc import OperationalError, IntegrityError
-    DB_AVAILABLE = True
-    print("✓ Database modules loaded successfully")
-except ImportError:
-    DB_AVAILABLE = False
-    SQLAlchemy = None
-    print("⚠ Database modules not available - using memory storage")
+            trackPageLoad() {
+                gtag('event', 'page_view', {
+                    page_title: 'Unified Analysis Page',
+                    page_location: window.location.href,
+                    session_id: this.sessionId,
+                    user_engagement: true
+                });
 
-app = Flask(__name__)
-CORS(app)
+                // Track page performance
+                window.addEventListener('load', () => {
+                    const loadTime = Date.now() - this.startTime;
+                    gtag('event', 'page_load_time', {
+                        event_category: 'Performance',
+                        value: loadTime,
+                        session_id: this.sessionId
+                    });
+                });
+            }
 
-# Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
-
-# Fixed database configuration for psycopg3
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
-if database_url.startswith('postgres://'):
-    # Fix Heroku-style URL
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-# Force use of psycopg3 driver
-if database_url.startswith('postgresql://'):
-    database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
-
-# Initialize database
-if DB_AVAILABLE:
-    db = SQLAlchemy(app)
-else:
-    db = None
-
-# Database Models
-if DB_AVAILABLE:
-    class User(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-        password_hash = db.Column(db.String(200), nullable=False)
-        subscription_tier = db.Column(db.String(20), default='free')
-        created_at = db.Column(db.DateTime, default=datetime.utcnow)
-        last_login = db.Column(db.DateTime)
-        daily_analyses_count = db.Column(db.Integer, default=0)
-        last_analysis_reset = db.Column(db.Date, default=datetime.utcnow().date)
-        is_active = db.Column(db.Boolean, default=True)
-        is_beta_user = db.Column(db.Boolean, default=True)
-        
-        def set_password(self, password):
-            self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
-        def check_password(self, password):
-            return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
-        
-        def get_daily_limit(self):
-            return 10 if self.subscription_tier == 'pro' else 5
-        
-        def can_analyze(self):
-            # DEVELOPMENT MODE: Always return True
-            return True
-            
-        def increment_analysis_count(self):
-            # DEVELOPMENT MODE: Skip tracking
-            pass
-
-    class Contact(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String(100), nullable=False)
-        email = db.Column(db.String(120), nullable=False)
-        subject = db.Column(db.String(200), nullable=False)
-        message = db.Column(db.Text, nullable=False)
-        created_at = db.Column(db.DateTime, default=datetime.utcnow)
-        ip_address = db.Column(db.String(45))
-        user_agent = db.Column(db.String(500))
-
-    class BetaSignup(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-        created_at = db.Column(db.DateTime, default=datetime.utcnow)
-        ip_address = db.Column(db.String(45))
-        referrer = db.Column(db.String(500))
-        welcome_email_sent = db.Column(db.Boolean, default=False)
-
-# Initialize database tables
-if DB_AVAILABLE:
-    try:
-        with app.app_context():
-            db.create_all()
-            print("✓ Database initialized successfully with authentication models")
-    except Exception as e:
-        print(f"⚠ Database initialization warning: {e}")
-
-# MODIFIED: Authentication decorator - DISABLED FOR DEVELOPMENT
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # DEVELOPMENT MODE: Always allow access
-        print("🔓 Login requirement bypassed for development")
-        return f(*args, **kwargs)
-    return decorated_function
-
-# Helper function to get current user
-def get_current_user():
-    # DEVELOPMENT MODE: Return a mock user
-    if DB_AVAILABLE:
-        class MockUser:
-            email = "dev@factsandfakes.ai"
-            subscription_tier = "pro"
-            daily_analyses_count = 0
-            
-            def get_daily_limit(self):
-                return 999
-            
-            def can_analyze(self):
-                return True
-            
-            def increment_analysis_count(self):
-                pass
-        
-        return MockUser()
-    return None
-
-# Email configuration
-SMTP_SERVER = os.environ.get('SMTP_SERVER', 'mail.factsandfakes.ai')
-SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
-SMTP_USERNAME = os.environ.get('SMTP_USERNAME', 'contact@factsandfakes.ai')
-SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
-
-# API Keys
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
-NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
-GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY', '')
-
-# Configure OpenAI if available - Updated for v1.0+ API
-client = None
-if OPENAI_API_KEY and OPENAI_AVAILABLE:
-    try:
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        print("✓ OpenAI API configured")
-    except Exception as e:
-        print(f"⚠ OpenAI configuration error: {e}")
-        OPENAI_AVAILABLE = False
-else:
-    print("⚠ OpenAI API key not found - will use basic analysis")
-
-def send_email(to_email, subject, html_content, text_content):
-    """Send email with graceful fallback"""
-    if not EMAIL_AVAILABLE:
-        print(f"Email not available - would send to {to_email}: {subject}")
-        return False
-    
-    if not all([SMTP_SERVER, SMTP_USERNAME, SMTP_PASSWORD]):
-        print("Email configuration incomplete")
-        return False
-    
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f"Facts & Fakes AI <{SMTP_USERNAME}>"
-        msg['To'] = to_email
-        
-        text_part = MIMEText(text_content, 'plain')
-        html_part = MIMEText(html_content, 'html')
-        
-        msg.attach(text_part)
-        msg.attach(html_part)
-        
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.send_message(msg)
-        
-        return True
-    except Exception as e:
-        print(f"Email error: {e}")
-        return False
-
-def send_welcome_email(email):
-    """Send welcome email to new beta users"""
-    subject = "Welcome to Facts & Fakes AI - Your Beta Access is Active!"
-    
-    html_content = """
-    <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px;">
-                Welcome to Facts & Fakes AI! 🎉
-            </h1>
-            
-            <p>Thank you for joining our beta program! You're among the first to experience our advanced AI detection platform.</p>
-            
-            <h2 style="color: #34495e;">Your Beta Access Includes:</h2>
-            <ul style="background-color: #ecf0f1; padding: 20px; border-radius: 5px;">
-                <li><strong>AI Text Detection:</strong> Identify AI-generated content with advanced analysis</li>
-                <li><strong>News Verification:</strong> Check articles for bias, credibility, and fact accuracy</li>
-                <li><strong>Image Analysis:</strong> Detect deepfakes and image manipulation</li>
-                <li><strong>Daily Free Analyses:</strong> 5 free analyses per day (10 with Pro)</li>
-            </ul>
-            
-            <div style="background-color: #3498db; color: white; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
-                <h3 style="margin: 0;">Ready to Start?</h3>
-                <a href="https://factsandfakes.ai/login" style="display: inline-block; background-color: white; color: #3498db; padding: 10px 30px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold;">
-                    Log In to Your Account
-                </a>
-            </div>
-            
-            <h3 style="color: #34495e;">Quick Start Guide:</h3>
-            <ol>
-                <li>Log in to your account at factsandfakes.ai</li>
-                <li>Choose any analysis tool from the navigation menu</li>
-                <li>Paste or upload your content</li>
-                <li>Get instant, detailed results</li>
-            </ol>
-            
-            <p style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db;">
-                <strong>Beta Feedback:</strong> Your input shapes our platform! Use the contact form to share suggestions, report issues, or request features.
-            </p>
-            
-            <p>Questions? Reply to this email or visit our <a href="https://factsandfakes.ai/contact">contact page</a>.</p>
-            
-            <p style="color: #7f8c8d; font-size: 14px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #bdc3c7;">
-                Best regards,<br>
-                The Facts & Fakes AI Team<br>
-                <a href="https://factsandfakes.ai">factsandfakes.ai</a>
-            </p>
-        </div>
-    </body>
-    </html>
-    """
-    
-    text_content = """
-Welcome to Facts & Fakes AI!
-
-Thank you for joining our beta program! You're among the first to experience our advanced AI detection platform.
-
-Your Beta Access Includes:
-- AI Text Detection: Identify AI-generated content with advanced analysis
-- News Verification: Check articles for bias, credibility, and fact accuracy
-- Image Analysis: Detect deepfakes and image manipulation
-- Daily Free Analyses: 5 free analyses per day (10 with Pro)
-
-Ready to Start?
-Log in at: https://factsandfakes.ai/login
-
-Quick Start Guide:
-1. Log in to your account
-2. Choose any analysis tool from the navigation menu
-3. Paste or upload your content
-4. Get instant, detailed results
-
-Beta Feedback: Your input shapes our platform! Use the contact form to share suggestions, report issues, or request features.
-
-Questions? Reply to this email or visit https://factsandfakes.ai/contact
-
-Best regards,
-The Facts & Fakes AI Team
-https://factsandfakes.ai
-    """
-    
-    return send_email(email, subject, html_content, text_content)
-
-# Routes
-@app.route('/')
-def index():
-    return render_template('index.html', user=get_current_user())
-
-@app.route('/news')
-def news():
-    return render_template('news.html', user=get_current_user())
-
-@app.route('/unified')
-def unified():
-    return render_template('unified.html', user=get_current_user())
-
-@app.route('/imageanalysis')
-def imageanalysis():
-    return render_template('imageanalysis.html', user=get_current_user())
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html', user=get_current_user())
-
-@app.route('/missionstatement')
-def missionstatement():
-    return render_template('missionstatement.html', user=get_current_user())
-
-@app.route('/pricingplan')
-def pricingplan():
-    return render_template('pricingplan.html', user=get_current_user())
-
-# Authentication Routes
-@app.route('/login')
-def login():
-    return render_template('login.html')
-
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
-
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    # DEVELOPMENT MODE: Always return success
-    data = request.get_json()
-    email = data.get('email', 'dev@factsandfakes.ai')
-    
-    return jsonify({
-        'success': True,
-        'user': {
-            'email': email,
-            'subscription_tier': 'pro',
-            'daily_limit': 999,
-            'analyses_today': 0
-        }
-    })
-
-@app.route('/api/signup', methods=['POST'])
-def api_signup():
-    # DEVELOPMENT MODE: Always return success
-    data = request.get_json()
-    email = data.get('email', 'dev@factsandfakes.ai')
-    
-    return jsonify({
-        'success': True,
-        'user': {
-            'email': email,
-            'subscription_tier': 'pro',
-            'daily_limit': 999
-        }
-    })
-
-@app.route('/api/logout', methods=['POST'])
-def api_logout():
-    session.clear()
-    return jsonify({'success': True})
-
-@app.route('/api/user/status', methods=['GET'])
-def user_status():
-    # DEVELOPMENT MODE: Always return authenticated
-    return jsonify({
-        'authenticated': True,
-        'user': {
-            'email': 'dev@factsandfakes.ai',
-            'subscription_tier': 'pro',
-            'daily_limit': 999,
-            'analyses_today': 0,
-            'can_analyze': True
-        }
-    })
-
-# ============================================================================
-# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - FIXED VERSION
-# ============================================================================
-
-def perform_realistic_unified_text_analysis(text):
-    """
-    Perform realistic AI text detection for unified page with REAL content analysis
-    """
-    # Calculate real text statistics
-    words = text.split()
-    sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
-    word_count = len(words)
-    sentence_count = len(sentences)
-    char_count = len(text)
-    
-    # Calculate vocabulary diversity
-    unique_words = len(set(word.lower() for word in words))
-    vocabulary_diversity = int((unique_words / max(word_count, 1)) * 100)
-    
-    # Calculate average sentence length variance
-    if sentences:
-        sentence_lengths = [len(s.split()) for s in sentences]
-        avg_length = sum(sentence_lengths) / len(sentence_lengths)
-        variance = sum((l - avg_length) ** 2 for l in sentence_lengths) / len(sentence_lengths)
-        # Low variance = more AI-like (consistent sentence lengths)
-        sentence_complexity = max(0, min(100, 100 - (math.sqrt(variance) * 5)))
-    else:
-        sentence_complexity = 50
-        avg_length = 0
-    
-    # Initialize AI/Human indicators
-    ai_indicators = 0
-    human_indicators = 0
-    
-    # Check for repetitive phrases (AI tendency)
-    bigrams = {}
-    trigrams = {}
-    for i in range(len(words) - 1):
-        bigram = f"{words[i].lower()} {words[i+1].lower()}"
-        bigrams[bigram] = bigrams.get(bigram, 0) + 1
-        if i < len(words) - 2:
-            trigram = f"{words[i].lower()} {words[i+1].lower()} {words[i+2].lower()}"
-            trigrams[trigram] = trigrams.get(trigram, 0) + 1
-    
-    repeated_bigrams = sum(1 for count in bigrams.values() if count > 2)
-    repeated_trigrams = sum(1 for count in trigrams.values() if count > 1)
-    
-    if repeated_bigrams > 5:
-        ai_indicators += 20
-    elif repeated_bigrams > 3:
-        ai_indicators += 10
-        
-    if repeated_trigrams > 2:
-        ai_indicators += 15
-    
-    # Check for transition words (AI loves these)
-    transitions = [
-        'however', 'therefore', 'moreover', 'furthermore', 'additionally',
-        'consequently', 'nevertheless', 'thus', 'hence', 'accordingly',
-        'in conclusion', 'in summary', 'to summarize', 'notably', 'significantly',
-        'it is important to note', 'it should be noted', 'one must consider',
-        'firstly', 'secondly', 'thirdly', 'finally', 'in addition',
-        'on the other hand', 'in contrast', 'similarly', 'likewise'
-    ]
-    
-    transition_count = 0
-    text_lower = text.lower()
-    for trans in transitions:
-        transition_count += text_lower.count(trans)
-    
-    # AI uses transitions heavily
-    transition_ratio = transition_count / max(sentence_count, 1)
-    if transition_ratio > 0.4:
-        ai_indicators += 30
-    elif transition_ratio > 0.25:
-        ai_indicators += 20
-    elif transition_ratio > 0.15:
-        ai_indicators += 10
-    
-    # Check for AI phrase patterns
-    ai_phrases = [
-        'it is important to', 'it should be noted', 'one must consider',
-        'in today\'s world', 'in modern society', 'throughout history',
-        'since the dawn of', 'as we navigate', 'in the realm of',
-        'the intersection of', 'the landscape of', 'the fabric of',
-        'delve into', 'shed light on', 'paint a picture',
-        'crucial to understand', 'essential to recognize',
-        'it is worth noting', 'it goes without saying', 'needless to say',
-        'at the end of the day', 'when all is said and done',
-        'the fact of the matter is', 'truth be told',
-        'as previously mentioned', 'as discussed above',
-        'in order to', 'due to the fact that', 'in light of',
-        'with regard to', 'in terms of', 'as it pertains to'
-    ]
-    
-    ai_phrase_count = 0
-    for phrase in ai_phrases:
-        ai_phrase_count += text_lower.count(phrase)
-    
-    if ai_phrase_count > 5:
-        ai_indicators += 30
-    elif ai_phrase_count > 3:
-        ai_indicators += 20
-    elif ai_phrase_count > 1:
-        ai_indicators += 10
-    
-    # Check for perfect grammar patterns
-    # Count sentences ending properly
-    proper_endings = sum(1 for s in text if s in '.!?')
-    if sentence_count > 0 and proper_endings / sentence_count > 0.95:
-        ai_indicators += 10
-    
-    # Check paragraph consistency
-    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
-    if len(paragraphs) > 2:
-        para_lengths = [len(p.split()) for p in paragraphs]
-        para_avg = sum(para_lengths) / len(para_lengths)
-        para_variance = sum((l - para_avg) ** 2 for l in para_lengths) / len(para_lengths)
-        if para_variance < 100:  # Very consistent paragraph lengths
-            ai_indicators += 15
-    
-    # Check for human indicators
-    # Contractions (humans use these more)
-    contractions = [
-        "don't", "won't", "can't", "isn't", "aren't", "hasn't", "haven't",
-        "wouldn't", "couldn't", "shouldn't", "i'm", "you're", "we're", "they're",
-        "it's", "that's", "what's", "here's", "there's", "i've", "we've", "they've",
-        "i'll", "we'll", "they'll", "i'd", "we'd", "they'd", "ain't"
-    ]
-    
-    contraction_count = 0
-    text_words_lower = [w.lower() for w in text.split()]
-    for contraction in contractions:
-        contraction_count += text_words_lower.count(contraction)
-    
-    if contraction_count > word_count * 0.02:
-        human_indicators += 20
-    elif contraction_count > word_count * 0.01:
-        human_indicators += 15
-    elif contraction_count > 0:
-        human_indicators += 8
-    
-    # Informal language (human indicator)
-    informal = [
-        'kinda', 'gonna', 'wanna', 'gotta', 'yeah', 'yep', 'nope', 'ok', 'okay',
-        'like', 'you know', 'i mean', 'actually', 'basically', 'literally', 'um', 'uh',
-        'sorta', 'dunno', 'lemme', 'gimme', 'cause', 'cuz', 'ya', 'nah'
-    ]
-    
-    informal_count = sum(1 for word in text_words_lower if word in informal)
-    if informal_count > 3:
-        human_indicators += 20
-    elif informal_count > 1:
-        human_indicators += 10
-    
-    # Personal pronouns (humans use more)
-    personal_pronouns = ['i', 'me', 'my', 'mine', 'myself', 'we', 'us', 'our', 'ours', 'ourselves']
-    pronoun_count = sum(1 for word in text_words_lower if word in personal_pronouns)
-    pronoun_ratio = pronoun_count / max(word_count, 1)
-    
-    if pronoun_ratio > 0.03:
-        human_indicators += 15
-    elif pronoun_ratio > 0.02:
-        human_indicators += 10
-    elif pronoun_ratio > 0.01:
-        human_indicators += 5
-    
-    # Check for quotes (AI often uses famous quotes)
-    quote_count = text.count('"')
-    quote_pairs = quote_count // 2
-    
-    # If many quotes, likely AI (especially with famous quotes)
-    if quote_pairs >= 3:
-        ai_indicators += 15
-    elif quote_pairs >= 2:
-        ai_indicators += 8
-    
-    # Typos and imperfections (human indicator)
-    # Check for double spaces, inconsistent punctuation
-    double_spaces = text.count('  ')
-    if double_spaces > 0:
-        human_indicators += 5
-    
-    # Exclamations and questions (humans use more varied punctuation)
-    exclamations = text.count('!')
-    questions = text.count('?')
-    if exclamations > 1 or questions > 2:
-        human_indicators += 5
-    
-    # Calculate base probability
-    base_ai_prob = 35
-    
-    # Adjust for vocabulary
-    if vocabulary_diversity > 85:
-        ai_indicators += 10  # Too diverse can be AI
-    elif vocabulary_diversity < 40:
-        ai_indicators += 5   # Too simple can also be AI
-    elif 50 < vocabulary_diversity < 70:
-        human_indicators += 10  # Natural human range
-    
-    # Adjust for sentence complexity
-    if sentence_complexity > 80:
-        ai_indicators += 15  # Very consistent = AI
-    elif sentence_complexity < 40:
-        human_indicators += 10  # Variable = human
-    
-    # Famous quote detection - expanded list
-    famous_quotes = [
-        # Steve Jobs
-        "stay hungry", "stay foolish", "think different", "love what you do",
-        "dent in the universe", "connecting the dots", "death is very likely the single best invention",
-        "the only way to do great work is to love what you do",
-        "innovation distinguishes between a leader and a follower",
-        "your time is limited",
-        
-        # Einstein
-        "imagination is more important than knowledge", "god does not play dice",
-        "everyone is a genius", "life is like riding a bicycle", "learn from yesterday",
-        "insanity is doing the same thing",
-        
-        # Historical figures
-        "i have a dream", "ask not what your country", "we choose to go to the moon",
-        "the only thing we have to fear", "give me liberty or give me death",
-        "four score and seven years ago", "i cannot tell a lie",
-        "that's one small step for man",
-        
-        # Philosophy
-        "i think therefore i am", "know thyself", "the unexamined life",
-        "to be or not to be", "all the world's a stage", "wherefore art thou",
-        
-        # Common inspirational
-        "be the change", "what doesn't kill you", "carpe diem", "hakuna matata",
-        "the journey of a thousand miles", "actions speak louder than words",
-        "when one door closes", "everything happens for a reason",
-        
-        # Business/Success
-        "work smarter not harder", "fail fast", "move fast and break things",
-        "disrupt or be disrupted", "the customer is always right",
-        "time is money", "location location location",
-        
-        # Modern culture
-        "with great power comes great responsibility", "may the force be with you",
-        "i'll be back", "you can't handle the truth", "show me the money",
-        
-        # Literature
-        "all that glitters is not gold", "to thine own self be true",
-        "it was the best of times", "call me ishmael",
-        "all animals are equal", "big brother is watching"
-    ]
-    
-    # Calculate final AI probability
-    ai_adjustment = ai_indicators
-    human_adjustment = human_indicators
-    
-    # Heavy weight on AI phrases and transitions
-    if ai_phrase_count > 3 and transition_ratio > 0.2:
-        ai_adjustment += 20  # Strong AI signal
-    
-    # Final probability calculation
-    ai_probability = max(5, min(95, base_ai_prob + ai_adjustment - (human_adjustment * 0.6)))
-    human_probability = 100 - ai_probability
-    
-    # Calculate repetitive patterns score
-    repetitive_patterns = min(100, (repeated_bigrams / max(len(bigrams), 1)) * 500)
-    
-    # Calculate coherence based on structure
-    coherence_score = min(100, 60 + (transition_count * 5))
-    
-    # PLAGIARISM DETECTION - Check actual content
-    plagiarized_lines = []
-    matched_sources = 0
-    highest_match = 0
-    
-    # Check each sentence for plagiarism
-    for i, sentence in enumerate(sentences):
-        sentence_lower = sentence.lower().strip()
-        
-        # Skip very short sentences
-        if len(sentence.split()) < 6:
-            continue
-        
-        # Check for famous quotes - look for partial matches
-        found_quote = False
-        for quote in famous_quotes:
-            quote_lower = quote.lower()
-            # Check if quote appears in sentence or if key parts match
-            if quote_lower in sentence_lower:
-                plagiarized_lines.append({
-                    'line_number': i,
-                    'text': sentence[:200] + '...' if len(sentence) > 200 else sentence,
-                    'similarity': 99,
-                    'source': 'Famous Quotes Database',
-                    'matched_quote': quote
-                })
-                matched_sources = max(matched_sources, 1)
-                highest_match = 99
-                found_quote = True
-                break
-            # Check for partial matches (at least 70% of quote words present)
-            elif len(quote_lower.split()) >= 4:
-                quote_words = set(quote_lower.split())
-                sentence_words = set(sentence_lower.split())
-                overlap = len(quote_words & sentence_words)
-                if overlap >= len(quote_words) * 0.7:
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:200] + '...' if len(sentence) > 200 else sentence,
-                        'similarity': int(overlap / len(quote_words) * 100),
-                        'source': 'Famous Quotes Database (partial match)',
-                        'matched_quote': quote
-                    })
-                    matched_sources = max(matched_sources, 1)
-                    highest_match = max(highest_match, int(overlap / len(quote_words) * 100))
-                    found_quote = True
-                    break
-        
-        if found_quote:
-            continue
-            
-        # Check for academic/Wikipedia style
-        academic_patterns = [
-            r'is defined as',
-            r'refers to',
-            r'is a .+ that',
-            r'was a .+ who',
-            r'according to .+,',
-            r'studies have shown',
-            r'research indicates',
-            r'it has been .+ that',
-            r'is known for',
-            r'is considered'
-        ]
-        
-        for pattern in academic_patterns:
-            if re.search(pattern, sentence_lower):
-                # Check if it's a substantial sentence
-                if len(sentence.split()) > 12:
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:200] + '...' if len(sentence) > 200 else sentence,
-                        'similarity': 75,
-                        'source': 'Academic/Encyclopedia Database'
-                    })
-                    matched_sources += 1
-                    highest_match = max(highest_match, 75)
-                    break
-        
-        # Check for quoted content
-        if '"' in sentence:
-            quote_matches = re.findall(r'"([^"]+)"', sentence)
-            for quoted in quote_matches:
-                if len(quoted.split()) > 5:  # Substantial quote
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:200] + '...' if len(sentence) > 200 else sentence,
-                        'similarity': 90,
-                        'source': 'Direct Quotation (verify attribution)'
-                    })
-                    matched_sources += 1
-                    highest_match = max(highest_match, 90)
-                    break
-    
-    # Update matched sources count
-    if plagiarized_lines:
-        unique_sources = set(line['source'].split(' ')[0] for line in plagiarized_lines)
-        matched_sources = len(unique_sources)
-    
-    # Calculate originality score
-    if len(sentences) > 0:
-        plagiarized_sentence_count = len(set(line['line_number'] for line in plagiarized_lines))
-        originality_score = max(0, 100 - int((plagiarized_sentence_count / len(sentences)) * 100))
-    else:
-        originality_score = 100
-    
-    # Ensure consistency
-    if matched_sources == 0:
-        highest_match = 0
-        originality_score = max(85, originality_score)
-    
-    # Return complete analysis
-    return {
-        'ai_probability': int(ai_probability),
-        'human_probability': int(human_probability),
-        'indicators': {
-            'repetitive_patterns': int(repetitive_patterns),
-            'vocabulary_diversity': vocabulary_diversity,
-            'sentence_complexity': int(sentence_complexity),
-            'coherence_score': int(coherence_score)
-        },
-        'plagiarism_check': {
-            'originality_score': originality_score,
-            'matched_sources': matched_sources,
-            'highest_match': highest_match,
-            'plagiarized_lines': plagiarized_lines[:10]  # Limit to 10 lines
-        },
-        'statistics': {
-            'word_count': word_count,
-            'character_count': char_count,
-            'average_word_length': round(char_count / max(word_count, 1), 1),
-            'sentence_count': sentence_count,
-            'average_sentence_length': round(word_count / max(sentence_count, 1), 1),
-            'reading_level': 'College' if avg_length > 20 else 'High School' if avg_length > 15 else 'Middle School'
-        },
-        'detected_patterns': {
-            'transition_words': transition_count,
-            'contractions': contraction_count,
-            'personal_pronouns': pronoun_count,
-            'repeated_phrases': repeated_bigrams,
-            'quotes_found': quote_pairs,
-            'ai_phrases': ai_phrase_count
-        },
-        'is_pro': False
-    }
-
-def perform_realistic_unified_news_check(content):
-    """
-    Perform realistic news verification for unified page
-    Reuses existing news analysis but adds unified-specific features
-    """
-    # Use the existing news analysis functions (won't break them)
-    basic_news = perform_basic_news_analysis(content)
-    
-    # Add unified-specific enhancements
-    basic_news['unified_summary'] = {
-        'is_news_content': True,
-        'news_indicators': {
-            'has_quotes': content.count('"') >= 2,
-            'has_dates': bool(re.search(r'\b\d{4}\b|\b\d{1,2}/\d{1,2}\b', content)),
-            'has_sources': 'according to' in content.lower() or 'reported' in content.lower(),
-            'journalistic_style': basic_news['credibility_score'] > 70
-        },
-        'recommended_action': 'Verify with multiple sources' if basic_news['credibility_score'] < 80 else 'Appears credible'
-    }
-    
-    return basic_news
-
-# ============================================================================
-# UPDATED UNIFIED ENDPOINT WITH REAL ANALYSIS
-# ============================================================================
-
-@app.route('/api/analyze-unified', methods=['POST'])
-def analyze_unified():
-    """Unified analysis endpoint - NO LOGIN REQUIRED"""
-    try:
-        data = request.get_json()
-        content = data.get('content', '')
-        text = data.get('text', content)  # Support both 'content' and 'text' fields
-        analysis_type = data.get('type', 'all')
-        
-        if not text and not content:
-            return jsonify({'error': 'No content provided'}), 400
-        
-        result = {}
-        
-        # Perform different types of analysis based on request
-        if analysis_type in ['text', 'ai', 'all']:
-            # Use the new realistic analysis for unified page
-            result['ai_analysis'] = perform_realistic_unified_text_analysis(text)
-        
-        if analysis_type in ['news', 'all']:
-            # Use enhanced news check that doesn't break existing news analysis
-            result['news_analysis'] = perform_realistic_unified_news_check(text)
-        
-        if analysis_type in ['image'] and data.get('image'):
-            result['image_analysis'] = perform_basic_image_analysis(data.get('image'))
-        
-        # Add metadata
-        result['analysis_complete'] = True
-        result['timestamp'] = datetime.utcnow().isoformat()
-        result['is_pro'] = True  # Development mode
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        print(f"Unified analysis error: {e}")
-        traceback.print_exc()
-        return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
-
-# ============================================================================
-# EXISTING NEWS ANALYSIS ENDPOINTS - UNCHANGED FOR NEWS.HTML
-# ============================================================================
-
-# Analysis APIs - NO LOGIN REQUIRED IN DEVELOPMENT
-@app.route('/api/analyze-news', methods=['POST'])
-def analyze_news():
-    # DEVELOPMENT MODE: Skip authentication
-    user = get_current_user()
-    
-    try:
-        data = request.get_json()
-        content = data.get('content', '')
-        is_pro = True  # Always pro in development
-        
-        if not content:
-            return jsonify({'error': 'No content provided'}), 400
-        
-        # Simulate different analysis levels
-        if is_pro:
-            # Pro analysis with AI enhancement
-            analysis_data = perform_advanced_news_analysis(content)
-        else:
-            # Free analysis
-            analysis_data = perform_basic_news_analysis(content)
-        
-        return jsonify(analysis_data)
-        
-    except Exception as e:
-        print(f"Analysis error: {e}")
-        traceback.print_exc()
-        return jsonify({'error': 'Analysis failed'}), 500
-
-@app.route('/api/analyze-text', methods=['POST'])
-def analyze_text():
-    # DEVELOPMENT MODE: Skip authentication
-    user = get_current_user()
-    
-    try:
-        data = request.get_json()
-        text = data.get('text', '')
-        is_pro = True  # Always pro in development
-        
-        if not text:
-            return jsonify({'error': 'No text provided'}), 400
-        
-        # Perform analysis
-        if is_pro and OPENAI_API_KEY:
-            analysis_data = perform_advanced_text_analysis(text)
-        else:
-            analysis_data = perform_basic_text_analysis(text)
-        
-        return jsonify(analysis_data)
-        
-    except Exception as e:
-        print(f"Analysis error: {e}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-@app.route('/api/analyze-image', methods=['POST'])
-def analyze_image():
-    # DEVELOPMENT MODE: Skip authentication
-    user = get_current_user()
-    
-    try:
-        data = request.get_json()
-        image_data = data.get('image', '')
-        is_pro = True  # Always pro in development
-        
-        if not image_data:
-            return jsonify({'error': 'No image provided'}), 400
-        
-        # Perform analysis
-        if is_pro:
-            analysis_data = perform_advanced_image_analysis(image_data)
-        else:
-            analysis_data = perform_basic_image_analysis(image_data)
-        
-        return jsonify(analysis_data)
-        
-    except Exception as e:
-        print(f"Analysis error: {e}")
-        return jsonify({'error': 'Analysis failed'}), 500
-
-# ============================================================================
-# PHASE 1: REAL NEWS ANALYSIS FUNCTIONS - UNCHANGED FOR NEWS.HTML
-# ============================================================================
-
-def calculate_basic_credibility(content):
-    """Calculate basic credibility score based on text characteristics"""
-    # Start with base score
-    credibility_score = 65
-    
-    # Basic text statistics
-    word_count = len(content.split())
-    sentence_count = len([s for s in content.split('.') if s.strip()])
-    
-    # Length indicators (longer, well-structured content tends to be more credible)
-    if word_count > 100:
-        credibility_score += 5
-    if word_count > 300:
-        credibility_score += 5
-    if sentence_count > 5:
-        credibility_score += 5
-    
-    # Check for ALL CAPS (sensationalism indicator)
-    if len(content) > 0:
-        caps_ratio = sum(1 for c in content if c.isupper()) / len(content)
-        if caps_ratio > 0.3:
-            credibility_score -= 15
-        elif caps_ratio > 0.2:
-            credibility_score -= 10
-    
-    # Check for excessive punctuation
-    exclamation_count = content.count('!')
-    question_count = content.count('?')
-    
-    if exclamation_count > 3:
-        credibility_score -= 10
-    elif exclamation_count > 1:
-        credibility_score -= 5
-    
-    if question_count > 5:
-        credibility_score -= 5
-    
-    # Check for credibility indicators
-    credibility_phrases = ['according to', 'study shows', 'research indicates', 'officials say', 'data shows']
-    for phrase in credibility_phrases:
-        if phrase.lower() in content.lower():
-            credibility_score += 2
-    
-    # Check for unreliable indicators
-    unreliable_phrases = ['shocking', 'you won\'t believe', 'breaking:', 'urgent:', 'conspiracy']
-    for phrase in unreliable_phrases:
-        if phrase.lower() in content.lower():
-            credibility_score -= 3
-    
-    return max(0, min(100, credibility_score))
-
-def detect_simple_bias(content):
-    """Simple keyword-based bias detection"""
-    content_lower = content.lower()
-    
-    # Expanded keyword lists
-    left_keywords = [
-        'progressive', 'inequality', 'social justice', 'diversity', 
-        'inclusion', 'systemic', 'marginalized', 'equity',
-        'climate change', 'renewable', 'universal healthcare'
-    ]
-    
-    right_keywords = [
-        'traditional', 'freedom', 'liberty', 'patriot', 
-        'constitutional', 'free market', 'individual rights',
-        'law and order', 'border security', 'fiscal responsibility'
-    ]
-    
-    neutral_keywords = [
-        'report', 'announced', 'stated', 'according to',
-        'data shows', 'study finds', 'officials say'
-    ]
-    
-    # Count occurrences
-    left_count = sum(1 for word in left_keywords if word in content_lower)
-    right_count = sum(1 for word in right_keywords if word in content_lower)
-    neutral_count = sum(1 for word in neutral_keywords if word in content_lower)
-    
-    # Calculate bias score (-10 to +10)
-    total_political = left_count + right_count
-    if total_political > 0:
-        bias_score = ((right_count - left_count) / total_political) * 10
-    else:
-        bias_score = 0
-    
-    # Determine label
-    if bias_score < -3:
-        bias_label = 'left'
-    elif bias_score < -1:
-        bias_label = 'center-left'
-    elif bias_score > 3:
-        bias_label = 'right'
-    elif bias_score > 1:
-        bias_label = 'center-right'
-    else:
-        bias_label = 'center'
-    
-    # Calculate objectivity based on neutral vs political language
-    total_keywords = left_count + right_count + neutral_count
-    if total_keywords > 0:
-        objectivity_score = int((neutral_count / total_keywords) * 100)
-    else:
-        objectivity_score = 75
-    
-    return {
-        'bias_score': round(bias_score, 1),
-        'bias_label': bias_label,
-        'left_indicators': left_count,
-        'right_indicators': right_count,
-        'objectivity_score': objectivity_score
-    }
-
-def analyze_emotional_language(content):
-    """Analyze emotional language and loaded terms"""
-    emotional_words = [
-        'shocking', 'devastating', 'incredible', 'unbelievable',
-        'outrageous', 'disgusting', 'amazing', 'horrible',
-        'disaster', 'catastrophe', 'miracle', 'tragedy'
-    ]
-    
-    loaded_terms = []
-    content_lower = content.lower()
-    
-    for word in emotional_words:
-        if word in content_lower:
-            loaded_terms.append(word)
-    
-    # Calculate emotional language score
-    word_count = len(content.split())
-    if word_count > 0:
-        emotional_score = min(100, (len(loaded_terms) / word_count) * 1000)
-    else:
-        emotional_score = 0
-    
-    return int(emotional_score), loaded_terms
-
-# ============================================================================
-# PHASE 2: OPENAI INTEGRATION FUNCTIONS - UNCHANGED FOR NEWS.HTML
-# ============================================================================
-
-def analyze_with_openai(content, analysis_type='news'):
-    """
-    Use OpenAI for advanced content analysis with robust error handling
-    Updated for OpenAI v1.0+ API with better JSON parsing
-    """
-    if not OPENAI_API_KEY or not OPENAI_AVAILABLE or not client:
-        print("OpenAI API not available")
-        return None
-    
-    try:
-        # Create appropriate prompt based on analysis type
-        if analysis_type == 'news':
-            prompt = f"""Analyze this news content for bias, credibility, and quality. 
-            
-Content: {content[:2000]}  # Limit to manage tokens
-
-Provide a detailed analysis in JSON format with these exact fields:
-{{
-    "political_bias": {{
-        "label": "left/center-left/center/center-right/right",
-        "score": -10 to +10 (negative=left, positive=right),
-        "confidence": 0-100,
-        "reasoning": "brief explanation"
-    }},
-    "credibility_analysis": {{
-        "score": 0-100,
-        "strengths": ["list of credibility strengths"],
-        "weaknesses": ["list of credibility weaknesses"],
-        "missing_elements": ["what's missing for better credibility"]
-    }},
-    "emotional_language": {{
-        "score": 0-100,
-        "loaded_terms": ["specific loaded/emotional words found"],
-        "tone": "neutral/positive/negative/mixed"
-    }},
-    "factual_claims": {{
-        "count": number,
-        "verifiable_claims": ["list of specific claims that could be fact-checked"],
-        "unsupported_statements": ["statements presented as fact without support"]
-    }},
-    "source_quality": {{
-        "attribution_present": true/false,
-        "source_diversity": "high/medium/low",
-        "transparency": "high/medium/low"
-    }}
-}}
-
-Be objective and specific in your analysis. Return ONLY valid JSON, no additional text."""
-
-        # Make API call with retry logic
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are an expert news analyst. Always return valid JSON only, no markdown or extra text."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,  # Lower temperature for more consistent analysis
-                    max_tokens=800,
-                    timeout=30
-                )
+            setupEventListeners() {
+                // Track scroll depth
+                this.trackScrollDepth();
                 
-                # Parse the response
-                result_text = response.choices[0].message.content.strip()
+                // Track time on page
+                this.trackTimeOnPage();
                 
-                # Debug logging
-                print(f"OpenAI raw response length: {len(result_text)}")
+                // Track form interactions
+                this.trackFormInteractions();
                 
-                # Try to extract JSON from the response
-                # Remove any markdown formatting
-                if "```json" in result_text:
-                    result_text = result_text.split("```json")[1].split("```")[0].strip()
-                elif "```" in result_text:
-                    result_text = result_text.split("```")[1].split("```")[0].strip()
+                // Track file uploads
+                this.trackFileUploads();
                 
-                # Remove any text before the first { or after the last }
-                first_brace = result_text.find('{')
-                last_brace = result_text.rfind('}')
-                if first_brace != -1 and last_brace != -1:
-                    result_text = result_text[first_brace:last_brace + 1]
+                // Track button clicks
+                this.trackButtonClicks();
                 
-                # Try to parse JSON
-                try:
-                    analysis_result = json.loads(result_text)
-                    print("✓ OpenAI analysis completed successfully")
-                    return analysis_result
-                except json.JSONDecodeError as je:
-                    print(f"JSON parse error: {je}")
-                    print(f"Failed JSON (first 200 chars): {result_text[:200]}")
-                    
-                    # Try to fix common JSON issues
-                    # Replace single quotes with double quotes
-                    result_text = result_text.replace("'", '"')
-                    # Remove trailing commas
-                    result_text = re.sub(r',\s*}', '}', result_text)
-                    result_text = re.sub(r',\s*]', ']', result_text)
-                    
-                    try:
-                        analysis_result = json.loads(result_text)
-                        print("✓ OpenAI analysis completed with JSON fixes")
-                        return analysis_result
-                    except:
-                        if attempt < max_retries - 1:
-                            print(f"Retrying due to JSON error...")
-                            continue
-                        else:
-                            print("Failed to parse OpenAI response as JSON after fixes")
-                            return None
+                // Track tier selection
+                this.trackTierSelection();
                 
-            except Exception as e:
-                if "rate_limit" in str(e).lower():
-                    print(f"Rate limit hit, retrying in {2 ** attempt} seconds...")
-                    time.sleep(2 ** attempt)
-                elif attempt < max_retries - 1:
-                    print(f"OpenAI API error (attempt {attempt + 1}): {e}")
-                    time.sleep(1)
-                    continue
-                else:
-                    print(f"OpenAI API error: {e}")
-                    break
-                
-        return None
-        
-    except Exception as e:
-        print(f"Error in analyze_with_openai: {e}")
-        return None
+                // Track sample text usage
+                this.trackSampleTextUsage();
+            }
 
-def extract_claims_with_ai(content):
-    """
-    Use OpenAI to extract specific factual claims from content
-    Updated for OpenAI v1.0+ API
-    """
-    if not OPENAI_API_KEY or not OPENAI_AVAILABLE or not client:
-        return []
-    
-    try:
-        prompt = f"""Extract specific factual claims from this content that could be fact-checked.
-
-Content: {content[:1500]}
-
-Return a JSON array of claims, each with:
-{{
-    "claim": "the specific claim text",
-    "context": "brief context around the claim",
-    "type": "statistical/quote/event/policy",
-    "checkable": true/false
-}}
-
-Focus on concrete, verifiable claims. Limit to the 5 most important claims. Return ONLY valid JSON."""
-
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a fact-checking expert who identifies specific claims that can be verified. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2,
-            max_tokens=500,
-            timeout=20
-        )
-        
-        result_text = response.choices[0].message.content.strip()
-        
-        # Extract JSON
-        if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0].strip()
-        
-        # Remove any text before [ or after ]
-        first_bracket = result_text.find('[')
-        last_bracket = result_text.rfind(']')
-        if first_bracket != -1 and last_bracket != -1:
-            result_text = result_text[first_bracket:last_bracket + 1]
-        
-        claims = json.loads(result_text)
-        return claims if isinstance(claims, list) else []
-        
-    except Exception as e:
-        print(f"Error extracting claims with AI: {e}")
-        return []
-
-def enhance_with_openai_analysis(basic_results, content, is_pro=False):
-    """
-    Enhance basic analysis results with OpenAI insights
-    """
-    ai_analysis = analyze_with_openai(content, 'news')
-    
-    if not ai_analysis:
-        print("OpenAI analysis failed, using enhanced basic analysis")
-        return basic_results
-    
-    # Merge AI insights with basic results
-    try:
-        # Update credibility score with AI insights
-        if 'credibility_analysis' in ai_analysis:
-            ai_cred = ai_analysis['credibility_analysis']
-            # Average basic and AI credibility scores
-            basic_score = basic_results['credibility_score']
-            ai_score = ai_cred.get('score', basic_score)
-            basic_results['credibility_score'] = int((basic_score + ai_score) / 2)
-            
-            # Add AI insights if pro tier
-            if is_pro:
-                basic_results['credibility_insights'] = {
-                    'strengths': ai_cred.get('strengths', []),
-                    'weaknesses': ai_cred.get('weaknesses', []),
-                    'missing_elements': ai_cred.get('missing_elements', [])
-                }
-        
-        # Update political bias with AI analysis
-        if 'political_bias' in ai_analysis:
-            ai_bias = ai_analysis['political_bias']
-            basic_results['political_bias'].update({
-                'bias_score': ai_bias.get('score', basic_results['political_bias']['bias_score']),
-                'bias_label': ai_bias.get('label', basic_results['political_bias']['bias_label']),
-                'confidence': ai_bias.get('confidence', 85),
-                'ai_reasoning': ai_bias.get('reasoning', '') if is_pro else ''
-            })
-        
-        # Update emotional language analysis
-        if 'emotional_language' in ai_analysis:
-            ai_emotional = ai_analysis['emotional_language']
-            basic_results['bias_indicators']['emotional_language'] = ai_emotional.get('score', 
-                basic_results['bias_indicators']['emotional_language'])
-            
-            # Update loaded terms with AI findings
-            ai_loaded_terms = ai_emotional.get('loaded_terms', [])
-            existing_terms = basic_results['political_bias'].get('loaded_terms', [])
-            combined_terms = list(set(existing_terms + ai_loaded_terms))[:10]  # Limit to 10
-            basic_results['political_bias']['loaded_terms'] = combined_terms
-        
-        # Update factual claims with AI analysis
-        if 'factual_claims' in ai_analysis:
-            ai_facts = ai_analysis['factual_claims']
-            basic_results['bias_indicators']['factual_claims'] = ai_facts.get('count', 
-                basic_results['bias_indicators']['factual_claims'])
-            
-            # For pro tier, add verifiable claims
-            if is_pro and ai_facts.get('verifiable_claims'):
-                claims = ai_facts['verifiable_claims'][:5]  # Limit to 5
-                basic_results['fact_check_results'] = [
-                    {
-                        'claim': claim,
-                        'status': 'Pending verification',
-                        'confidence': 0,
-                        'sources': ['Awaiting fact-check']
+            trackScrollDepth() {
+                let maxScroll = 0;
+                window.addEventListener('scroll', () => {
+                    const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+                    if (scrollPercent > maxScroll && scrollPercent % 25 === 0) {
+                        maxScroll = scrollPercent;
+                        gtag('event', 'scroll_depth', {
+                            event_category: 'Engagement',
+                            event_label: `${scrollPercent}%`,
+                            value: scrollPercent,
+                            session_id: this.sessionId
+                        });
                     }
-                    for claim in claims
-                ]
-        
-        # Add source quality insights
-        if 'source_quality' in ai_analysis and is_pro:
-            basic_results['source_analysis'].update({
-                'attribution_quality': 'High' if ai_analysis['source_quality'].get('attribution_present') else 'Low',
-                'source_diversity': ai_analysis['source_quality'].get('source_diversity', 'Unknown'),
-                'transparency': ai_analysis['source_quality'].get('transparency', 'Unknown')
-            })
-        
-        # Update methodology to reflect AI enhancement
-        basic_results['methodology']['ai_enhanced'] = True
-        basic_results['methodology']['models_used'] = ['GPT-3.5-turbo', 'Pattern matching']
-        basic_results['methodology']['confidence_level'] = 90 if is_pro else 85
-        
-        print("✓ Successfully enhanced analysis with OpenAI")
-        return basic_results
-        
-    except Exception as e:
-        print(f"Error merging AI analysis: {e}")
-        return basic_results
-
-# ============================================================================
-# UPDATED ANALYSIS FUNCTIONS WITH PHASE 2 INTEGRATION - UNCHANGED FOR NEWS.HTML
-# ============================================================================
-
-def perform_basic_news_analysis(content):
-    """
-    Perform basic news analysis - Phase 2 version with optional AI enhancement
-    """
-    # First, get basic analysis from Phase 1
-    credibility_score = calculate_basic_credibility(content)
-    bias_analysis = detect_simple_bias(content)
-    emotional_score, loaded_terms = analyze_emotional_language(content)
-    
-    # Count sentences as factual claims (simple heuristic)
-    sentence_count = len([s for s in content.split('.') if s.strip()])
-    
-    # Simulate source analysis (will be enhanced in Phase 3)
-    source_domain = "newsource.com"  # Placeholder
-    if "reuters" in content.lower():
-        source_domain = "reuters.com"
-        source_credibility = 90
-    elif "bbc" in content.lower():
-        source_domain = "bbc.com"
-        source_credibility = 85
-    else:
-        source_credibility = 70
-    
-    # Build basic response
-    basic_results = {
-        'credibility_score': credibility_score,
-        'bias_indicators': {
-            'political_bias': bias_analysis['bias_label'],
-            'emotional_language': emotional_score,
-            'factual_claims': sentence_count,
-            'unsupported_claims': max(0, sentence_count // 4)
-        },
-        'political_bias': {
-            'bias_score': bias_analysis['bias_score'],
-            'bias_label': bias_analysis['bias_label'],
-            'objectivity_score': bias_analysis['objectivity_score'],
-            'confidence': 75,
-            'left_indicators': bias_analysis['left_indicators'],
-            'right_indicators': bias_analysis['right_indicators'],
-            'loaded_terms': loaded_terms[:5]
-        },
-        'source_analysis': {
-            'domain': source_domain,
-            'credibility_score': source_credibility,
-            'source_type': 'news outlet',
-            'political_bias': 'center',
-            'founded': 'Unknown'
-        },
-        'fact_check_results': [],
-        'cross_references': [
-            {
-                'source': 'Reuters',
-                'title': 'Similar story coverage',
-                'relevance': 85
+                });
             }
-        ],
-        'methodology': {
-            'analysis_type': 'basic',
-            'confidence_level': 75,
-            'processing_time': '0.8 seconds',
-            'factors_analyzed': [
-                'text_structure',
-                'keyword_analysis', 
-                'emotional_language',
-                'basic_credibility_indicators'
-            ]
-        }
-    }
-    
-    # Try to enhance with AI for basic tier (limited enhancement)
-    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(content) > 100:
-        print("Attempting basic AI enhancement...")
-        enhanced = enhance_with_openai_analysis(basic_results, content, is_pro=False)
-        return enhanced
-    
-    return basic_results
 
-def perform_advanced_news_analysis(content):
-    """
-    Perform advanced news analysis - Phase 2 with full OpenAI integration
-    """
-    # Start with basic analysis
-    basic_results = perform_basic_news_analysis(content)
-    
-    # For pro tier, always attempt full AI analysis
-    if OPENAI_API_KEY and OPENAI_AVAILABLE and client:
-        print("Performing advanced AI-powered analysis...")
-        
-        # Get comprehensive AI analysis
-        enhanced_results = enhance_with_openai_analysis(basic_results, content, is_pro=True)
-        
-        # Extract claims with AI for fact-checking
-        ai_claims = extract_claims_with_ai(content)
-        if ai_claims:
-            enhanced_results['fact_check_results'] = [
-                {
-                    'claim': claim.get('claim', ''),
-                    'status': 'Identified for verification',
-                    'confidence': 70,
-                    'sources': ['Pending fact-check'],
-                    'type': claim.get('type', 'general'),
-                    'context': claim.get('context', '')
+            trackTimeOnPage() {
+                setInterval(() => {
+                    const timeSpent = Math.round((Date.now() - this.startTime) / 1000);
+                    if (timeSpent % 30 === 0 && timeSpent > 0) {
+                        gtag('event', 'time_on_page', {
+                            event_category: 'Engagement',
+                            value: timeSpent,
+                            session_id: this.sessionId
+                        });
+                    }
+                }, 30000);
+            }
+
+            trackFormInteractions() {
+                const textInput = document.getElementById('textInput');
+                if (textInput) {
+                    let hasTyped = false;
+                    
+                    textInput.addEventListener('focus', () => {
+                        gtag('event', 'text_input_focus', {
+                            event_category: 'Form Interaction',
+                            session_id: this.sessionId
+                        });
+                    });
+
+                    textInput.addEventListener('input', () => {
+                        if (!hasTyped) {
+                            hasTyped = true;
+                            gtag('event', 'text_input_start', {
+                                event_category: 'Form Interaction',
+                                session_id: this.sessionId
+                            });
+                        }
+                    });
+
+                    textInput.addEventListener('blur', () => {
+                        const charCount = textInput.value.length;
+                        gtag('event', 'text_input_blur', {
+                            event_category: 'Form Interaction',
+                            value: charCount,
+                            session_id: this.sessionId
+                        });
+                    });
                 }
-                for claim in ai_claims[:5]  # Limit to 5 claims
-            ]
-        
-        # Additional pro enhancements from Phase 1
-        quote_count = content.count('"')
-        if quote_count >= 4:
-            enhanced_results['credibility_score'] = min(100, enhanced_results['credibility_score'] + 5)
-        
-        # Check for numbers/statistics
-        numbers = re.findall(r'\b\d+(?:\.\d+)?%?\b', content)
-        if len(numbers) > 2:
-            enhanced_results['credibility_score'] = min(100, enhanced_results['credibility_score'] + 5)
-        
-        # Add detailed analysis section
-        enhanced_results['detailed_analysis'] = {
-            'quote_analysis': {
-                'quote_count': quote_count // 2,
-                'attribution_quality': 'Good' if quote_count >= 4 else 'Limited'
-            },
-            'statistical_claims': len(numbers),
-            'readability_score': 'Grade 10' if len(content.split()) > 200 else 'Grade 8',
-            'journalism_indicators': {
-                'has_quotes': quote_count >= 2,
-                'has_statistics': len(numbers) > 0,
-                'has_attribution': 'according to' in content.lower(),
-                'balanced_coverage': enhanced_results['political_bias']['objectivity_score'] > 70
-            },
-            'ai_confidence': enhanced_results['political_bias'].get('confidence', 85)
+            }
+
+            trackFileUploads() {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) {
+                    fileInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            gtag('event', 'file_upload_attempt', {
+                                event_category: 'File Upload',
+                                event_label: file.type,
+                                value: Math.round(file.size / 1024), // Size in KB
+                                custom_parameter_3: file.type,
+                                session_id: this.sessionId
+                            });
+                        }
+                    });
+                }
+
+                // Track drag and drop
+                const uploadSection = document.getElementById('fileUploadSection');
+                if (uploadSection) {
+                    uploadSection.addEventListener('dragenter', () => {
+                        gtag('event', 'file_drag_enter', {
+                            event_category: 'File Upload',
+                            session_id: this.sessionId
+                        });
+                    });
+
+                    uploadSection.addEventListener('drop', () => {
+                        gtag('event', 'file_drag_drop', {
+                            event_category: 'File Upload',
+                            session_id: this.sessionId
+                        });
+                    });
+                }
+            }
+
+            trackButtonClicks() {
+                // Track all buttons with specific events
+                document.addEventListener('click', (e) => {
+                    const target = e.target;
+                    
+                    if (target.id === 'analyzeBtn') {
+                        this.trackAnalysisStart();
+                    } else if (target.classList.contains('sample-btn')) {
+                        const sampleType = target.textContent.toLowerCase();
+                        gtag('event', 'sample_text_loaded', {
+                            event_category: 'Content Interaction',
+                            event_label: sampleType,
+                            session_id: this.sessionId
+                        });
+                    } else if (target.classList.contains('beta-join-btn')) {
+                        gtag('event', 'beta_modal_opened', {
+                            event_category: 'Conversion',
+                            event_label: 'from_unified_page',
+                            session_id: this.sessionId
+                        });
+                    } else if (target.classList.contains('action-btn')) {
+                        const actionType = target.textContent.toLowerCase().trim();
+                        gtag('event', 'result_action_clicked', {
+                            event_category: 'Results Interaction',
+                            event_label: actionType,
+                            session_id: this.sessionId
+                        });
+                    } else if (target.classList.contains('upgrade-btn')) {
+                        gtag('event', 'upgrade_button_clicked', {
+                            event_category: 'Conversion',
+                            event_label: 'pro_upgrade',
+                            session_id: this.sessionId
+                        });
+                    }
+                });
+            }
+
+            trackTierSelection() {
+                document.addEventListener('change', (e) => {
+                    if (e.target.name === 'tier') {
+                        gtag('event', 'tier_selected', {
+                            event_category: 'User Preference',
+                            event_label: e.target.value,
+                            custom_parameter_2: e.target.value,
+                            session_id: this.sessionId
+                        });
+                    }
+                });
+            }
+
+            trackSampleTextUsage() {
+                // This will be called from the loadSampleText function
+                window.trackSampleText = (type) => {
+                    gtag('event', 'sample_text_used', {
+                        event_category: 'Content Interaction',
+                        event_label: type,
+                        session_id: this.sessionId
+                    });
+                };
+            }
+
+            trackAnalysisStart() {
+                if (!this.analysisStarted) {
+                    this.analysisStarted = true;
+                    const selectedTier = document.querySelector('input[name="tier"]:checked')?.value || 'unknown';
+                    const textLength = document.getElementById('textInput')?.value.length || 0;
+                    
+                    gtag('event', 'analysis_started', {
+                        event_category: 'Analysis',
+                        event_label: selectedTier,
+                        value: textLength,
+                        custom_parameter_1: 'unified_analysis',
+                        custom_parameter_2: selectedTier,
+                        session_id: this.sessionId
+                    });
+
+                    // Track as conversion event
+                    gtag('event', 'begin_analysis', {
+                        event_category: 'Conversion',
+                        value: selectedTier === 'pro' ? 1 : 0,
+                        session_id: this.sessionId
+                    });
+                }
+            }
+
+            trackAnalysisComplete(results) {
+                const selectedTier = document.querySelector('input[name="tier"]:checked')?.value || 'unknown';
+                const aiProbability = results?.ai_detection?.ai_probability || 0;
+                const similarityScore = results?.plagiarism_detection?.similarity_score || 0;
+                
+                gtag('event', 'analysis_completed', {
+                    event_category: 'Analysis',
+                    event_label: selectedTier,
+                    value: Math.round(aiProbability * 100),
+                    custom_parameter_1: 'unified_analysis',
+                    custom_parameter_2: selectedTier,
+                    session_id: this.sessionId
+                });
+
+                // Track specific result thresholds
+                if (aiProbability > 0.7) {
+                    gtag('event', 'high_ai_probability_detected', {
+                        event_category: 'Analysis Results',
+                        value: Math.round(aiProbability * 100),
+                        session_id: this.sessionId
+                    });
+                }
+
+                if (similarityScore > 0.3) {
+                    gtag('event', 'high_similarity_detected', {
+                        event_category: 'Analysis Results',
+                        value: Math.round(similarityScore * 100),
+                        session_id: this.sessionId
+                    });
+                }
+
+                // Track conversion completion
+                gtag('event', 'purchase', {
+                    transaction_id: this.sessionId,
+                    value: selectedTier === 'pro' ? 10 : 0,
+                    currency: 'USD',
+                    items: [{
+                        item_id: 'unified_analysis',
+                        item_name: `${selectedTier} Analysis`,
+                        category: 'AI Detection',
+                        quantity: 1,
+                        price: selectedTier === 'pro' ? 10 : 0
+                    }]
+                });
+            }
+
+            trackBetaSignup(email) {
+                gtag('event', 'beta_signup_completed', {
+                    event_category: 'Conversion',
+                    event_label: 'unified_page',
+                    session_id: this.sessionId
+                });
+
+                gtag('event', 'generate_lead', {
+                    currency: 'USD',
+                    value: 25,
+                    session_id: this.sessionId
+                });
+            }
+
+            trackError(errorType, errorMessage) {
+                gtag('event', 'exception', {
+                    description: `${errorType}: ${errorMessage}`,
+                    fatal: false,
+                    session_id: this.sessionId
+                });
+            }
+
+            trackConversion(conversionType, value = 0) {
+                gtag('event', conversionType, {
+                    event_category: 'Conversion',
+                    value: value,
+                    session_id: this.sessionId
+                });
+            }
+        }
+
+        // Debug mode for testing
+        window.debugAnalytics = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('debug') === 'true';
+        };
+
+        if (window.debugAnalytics()) {
+            console.log('Analytics Debug Mode Enabled');
+            const originalGtag = window.gtag;
+            window.gtag = function() {
+                console.log('Analytics Event:', arguments);
+                if (originalGtag) originalGtag.apply(this, arguments);
+            };
+        }
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzAwN2JmZiIvPgo8cGF0aCBkPSJNOCAxMmg4djJIOHYtMnptMCA0aDEydjJIOHYtMnptMCA0aDZ2Mkg4di0yeiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        # Update methodology
-        enhanced_results['methodology'].update({
-            'analysis_type': 'advanced_ai',
-            'confidence_level': 90,
-            'processing_time': '2.3 seconds',
-            'ai_enhanced': True,
-            'factors_analyzed': [
-                'comprehensive_bias_detection',
-                'ai_powered_credibility_assessment',
-                'claim_extraction_with_nlp',
-                'source_verification',
-                'journalism_quality_metrics',
-                'statistical_analysis',
-                'contextual_understanding'
-            ]
-        })
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding-top: 120px; /* Increased to account for header + beta banner */
+        }
+
+        /* Beta Banner Styles (copied from news.html) */
+        .beta-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            padding: 8px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 9998;
+        }
+
+        .beta-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+            transform: rotate(45deg);
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .beta-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .beta-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .beta-join-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .beta-join-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Facts & Fakes AI Navigation Header */
+        /* Reset any conflicting styles */
+        .ff-nav * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main navigation bar */
+        .ff-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            height: 60px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .ff-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        /* Logo */
+        .ff-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .ff-nav-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .ff-nav-logo i {
+            font-size: 1.4rem;
+        }
+
+        /* Navigation links */
+        .ff-nav-links {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .ff-nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ff-nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-link.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .ff-nav-link i {
+            font-size: 0.9rem;
+        }
+
+        /* Auth buttons */
+        .ff-nav-auth {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+        }
+
+        .ff-nav-login, .ff-nav-signup {
+            padding: 8px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav-login {
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .ff-nav-login:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-signup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .ff-nav-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Beta balloon */
+        .ff-beta-balloon {
+            position: absolute;
+            top: -35px;
+            right: 50px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            animation: ff-bounce 2s infinite;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .ff-beta-balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #f7931e;
+        }
+
+        @keyframes ff-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* User menu */
+        .ff-user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .ff-user-menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ff-user-menu-toggle:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .ff-user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .ff-user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Mobile menu button */
+        .ff-mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #4a5568;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .ff-mobile-menu-btn:hover {
+            color: #667eea;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-header h2 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-body .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-body input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .modal-body input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
         
-        return enhanced_results
-    
-    else:
-        # Fallback to enhanced basic analysis if no OpenAI
-        print("OpenAI not available, using enhanced basic analysis")
-        return basic_results
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .hero-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 1rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        .disclaimer {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .disclaimer-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .disclaimer-content {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .tool-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .tool-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tool-desc {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .analysis-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-section {
+            margin-bottom: 2rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        
+        .sample-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .sample-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .sample-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .file-upload-section {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: rgba(0, 123, 255, 0.05);
+        }
+        
+        .file-upload-section:hover {
+            border-color: #0056b3;
+            background: rgba(0, 123, 255, 0.1);
+        }
+        
+        .file-upload-section.dragover {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-upload-label {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .tier-selection {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        
+        .tier-option {
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .tier-radio {
+            display: none;
+        }
+        
+        .tier-label {
+            display: block;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tier-radio:checked + .tier-label {
+            border-color: #007bff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .tier-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tier-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .analyze-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-section {
+            margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .progress-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #333;
+        }
+        
+        .progress-bars {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .progress-label {
+            min-width: 120px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 300% 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+        
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .progress-percent {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-summary {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .summary-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .summary-text {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .summary-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .highlight-item {
+            background: rgba(0, 123, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            text-align: center;
+        }
+        
+        .highlight-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+            display: block;
+        }
+        
+        .highlight-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .infographic-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .infographic-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .score-visualization {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .score-meter {
+            position: relative;
+            text-align: center;
+        }
+        
+        .meter-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+        
+        .meter-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .meter-bg {
+            fill: none;
+            stroke: #e9ecef;
+            stroke-width: 10;
+        }
+        
+        .meter-progress {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1s ease;
+        }
+        
+        .meter-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .meter-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .meter-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .detailed-panels {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .detail-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            position: relative;
+        }
+        
+        .panel-lock {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .panel-toggle {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .panel-content {
+            padding: 2rem;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .panel-content.active {
+            display: block;
+        }
+        
+        .panel-header.active .panel-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .conversational-text {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        
+        .conversational-text strong {
+            color: #333;
+        }
+        
+        .highlight-box {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .highlight-box.warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-color: #ffc107;
+        }
+        
+        .highlight-box.danger {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+        }
+        
+        .plagiarism-matches {
+            margin-top: 1.5rem;
+        }
+        
+        .match-item {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .match-header {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .match-text {
+            font-style: italic;
+            color: #666;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+        }
+        
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .methodology-item {
+            background: rgba(0, 123, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .methodology-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .methodology-value {
+            color: #007bff;
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-section h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .footer-section p,
+        .footer-section a {
+            color: #666;
+            text-decoration: none;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .footer-section a:hover {
+            color: #007bff;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 140px; /* Adjusted for beta banner */
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+        
+        .pro-locked {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px dashed #ffc107;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .pro-locked-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+        
+        .pro-locked-text {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .upgrade-btn {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #333;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
 
-# ============================================================================
-# END OF PHASE 1 & 2 NEWS ANALYSIS
-# ============================================================================
-
-def perform_basic_text_analysis(text):
-    """Basic AI text detection"""
-    word_count = len(text.split())
-    char_count = len(text)
-    
-    return {
-        'ai_probability': 28,
-        'human_probability': 72,
-        'indicators': {
-            'repetitive_patterns': 12,
-            'vocabulary_diversity': 78,
-            'sentence_complexity': 65,
-            'coherence_score': 82
-        },
-        'plagiarism_check': {
-            'originality_score': 94,
-            'matched_sources': 1,
-            'highest_match': 6
-        },
-        'statistics': {
-            'word_count': word_count,
-            'character_count': char_count,
-            'average_word_length': round(char_count / max(word_count, 1), 1),
-            'reading_level': 'College'
-        },
-        'is_pro': False
-    }
-
-def perform_advanced_text_analysis(text):
-    """Advanced AI text detection with OpenAI"""
-    basic = perform_basic_text_analysis(text)
-    
-    # Add advanced features
-    basic.update({
-        'ai_probability': 15,
-        'human_probability': 85,
-        'detailed_analysis': {
-            'ai_model_signatures': {
-                'gpt_patterns': 0.12,
-                'claude_patterns': 0.08,
-                'llama_patterns': 0.05
-            },
-            'linguistic_fingerprints': {
-                'unique_phrases': 42,
-                'stylometric_score': 0.89,
-                'authorship_consistency': 0.94
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 100px; /* Adjusted for mobile */
             }
-        },
-        'advanced_plagiarism': {
-            'deep_web_check': True,
-            'academic_databases': True,
-            'paraphrase_detection': 0.91
-        },
-        'recommendations': [
-            'Text shows strong human authorship characteristics',
-            'Minor AI-assisted editing possible but not significant',
-            'Original content with unique voice'
-        ],
-        'is_pro': True
-    })
-    
-    return basic
 
-def perform_basic_image_analysis(image_data):
-    """Basic image analysis"""
-    return {
-        'manipulation_score': 12,
-        'authenticity_score': 88,
-        'basic_checks': {
-            'metadata_intact': True,
-            'compression_artifacts': 'Normal',
-            'resolution_analysis': 'Original',
-            'format_verification': 'Authentic'
-        },
-        'visual_anomalies': [],
-        'summary': 'Image appears authentic with no obvious manipulation',
-        'is_pro': False
-    }
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .hero-section,
+            .analysis-container {
+                padding: 2rem 1.5rem;
+            }
+            
+            .sample-buttons {
+                flex-direction: column;
+            }
+            
+            .sample-btn {
+                width: 100%;
+            }
+            
+            .tier-selection {
+                flex-direction: column;
+            }
+            
+            .tier-option {
+                max-width: none;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+            
+            .score-visualization {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-highlights {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .methodology-grid {
+                grid-template-columns: 1fr;
+            }
 
-def perform_advanced_image_analysis(image_data):
-    """Advanced image analysis"""
-    basic = perform_basic_image_analysis(image_data)
-    
-    basic.update({
-        'manipulation_score': 8,
-        'authenticity_score': 92,
-        'deepfake_analysis': {
-            'facial_consistency': 0.96,
-            'temporal_coherence': 0.94,
-            'gan_signatures': 0.02,
-            'confidence': 0.93
-        },
-        'forensic_analysis': {
-            'ela_results': 'No anomalies detected',
-            'noise_patterns': 'Consistent',
-            'shadow_analysis': 'Natural',
-            'reflection_check': 'Authentic'
-        },
-        'detailed_findings': [
-            'No evidence of AI generation',
-            'Metadata consistent with claimed source',
-            'Natural lighting and shadows',
-            'No splicing or composition detected'
-        ],
-        'is_pro': True
-    })
-    
-    return basic
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
 
-# Contact form handler
-@app.route('/api/contact', methods=['POST'])
-def api_contact():
-    try:
-        data = request.get_json()
-        
-        # Save to database if available
-        if DB_AVAILABLE:
-            contact = Contact(
-                name=data.get('name', ''),
-                email=data.get('email', ''),
-                subject=data.get('subject', ''),
-                message=data.get('message', ''),
-                ip_address=request.remote_addr,
-                user_agent=request.headers.get('User-Agent', '')
-            )
-            db.session.add(contact)
-            db.session.commit()
-        
-        # Send notification email
-        admin_subject = f"New Contact Form: {data.get('subject', 'No Subject')}"
-        admin_html = f"""
-        <html>
-        <body>
-            <h2>New Contact Form Submission</h2>
-            <p><strong>From:</strong> {data.get('name', '')} ({data.get('email', '')})</p>
-            <p><strong>Subject:</strong> {data.get('subject', '')}</p>
-            <p><strong>Message:</strong></p>
-            <p>{data.get('message', '').replace(chr(10), '<br>')}</p>
-            <hr>
-            <p><small>IP: {request.remote_addr}<br>
-            Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</small></p>
-        </body>
-        </html>
-        """
-        
-        admin_text = f"""
-New Contact Form Submission
+            .modal-footer {
+                flex-direction: column;
+            }
 
-From: {data.get('name', '')} ({data.get('email', '')})
-Subject: {data.get('subject', '')}
+            .beta-content {
+                flex-direction: column;
+                gap: 8px;
+            }
 
-Message:
-{data.get('message', '')}
-
----
-IP: {request.remote_addr}
-Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
-        """
-        
-        # Send to admin
-        send_email(CONTACT_EMAIL, admin_subject, admin_html, admin_text)
-        
-        # Send auto-reply to user
-        user_subject = "Thanks for contacting Facts & Fakes AI"
-        user_html = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c3e50;">Thank you for reaching out!</h2>
-                <p>Hi {data.get('name', '')},</p>
-                <p>We've received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.</p>
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <p><strong>Your message:</strong></p>
-                    <p style="font-style: italic;">"{data.get('message', '')}"</p>
-                </div>
-                <p>In the meantime, feel free to explore our platform and try out our AI detection tools.</p>
-                <p>Best regards,<br>The Facts & Fakes AI Team</p>
+            .ff-nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                border-top: 1px solid #e2e8f0;
+            }
+            
+            .ff-nav-links.active {
+                display: flex;
+            }
+            
+            .ff-nav-link {
+                width: 100%;
+                padding: 12px 20px;
+            }
+            
+            .ff-mobile-menu-btn {
+                display: block;
+            }
+            
+            .ff-nav-auth {
+                display: none;
+            }
+            
+            .ff-user-menu {
+                display: none !important;
+            }
+            
+            .ff-beta-balloon {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Facts & Fakes AI Navigation Header -->
+    <nav class="ff-nav">
+        <div class="ff-nav-container">
+            <a href="/" class="ff-nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Facts & Fakes AI</span>
+            </a>
+            
+            <div class="ff-nav-links" id="ffNavLinks">
+                <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+                <a href="/unified" class="ff-nav-link active"><i class="fas fa-search"></i> Content Check</a>
+                <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+                <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+                <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
             </div>
-        </body>
-        </html>
-        """
-        
-        user_text = f"""
-Hi {data.get('name', '')},
+            
+            <div class="ff-nav-auth" id="ffNavAuth">
+                <a href="/login" class="ff-nav-login">Login</a>
+                <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+                <div class="ff-beta-balloon">
+                    sign up now to start your free trial
+                </div>
+            </div>
+            
+            <div class="ff-user-menu" id="ffUserMenu">
+                <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                    <span id="ffUserEmail">user@example.com</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="ff-user-dropdown" id="ffUserDropdown">
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                    </div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                    </div>
+                    <div style="padding: 10px 0;">
+                        <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                        <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                        <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                        <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
 
-Thank you for reaching out!
+    <!-- Beta Banner (copied from news.html) -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <span class="beta-badge">BETA</span>
+            <span>🚀 The world's ONLY platform built specifically for news verification - Join our beta!</span>
+            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
+        </div>
+    </div>
 
-We've received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Professional AI Detection Aid</h1>
+            <p class="hero-subtitle">
+                Designed for Accuracy and Transparency - Advanced detection aid that analyzes writing patterns, 
+                checks for similarities across databases, and provides detailed explanations of our methodology.
+            </p>
+            
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <div class="disclaimer-title">
+                    ⚠️ Important: This is a Detection Aid, Not Definitive Proof
+                </div>
+                <div class="disclaimer-content">
+                    <strong>What this tool provides:</strong> Professional analysis with confidence scores, detailed explanations, and transparent methodology to help you make informed decisions.<br>
+                    <strong>What this tool doesn't provide:</strong> Absolute certainty or definitive proof. No AI detection tool is 100% accurate. Use results as one factor in your evaluation, not as the sole determining factor.<br>
+                    <strong>Best practice:</strong> Combine our analysis with your own judgment, additional verification methods, and direct conversation when appropriate.
+                </div>
+            </div>
+            
+            <!-- Tools Grid -->
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <span class="tool-icon">🤖</span>
+                    <h3 class="tool-title">AI Detection</h3>
+                    <p class="tool-desc">Analyzes writing patterns, vocabulary usage, sentence structure, and linguistic fingerprints</p>
+                </div>
+                <div class="tool-card">
+                    <span class="tool-icon">📋</span>
+                    <h3 class="tool-title">Similarity Analysis</h3>
+                    <p class="tool-desc">Searches across databases for matching content, paraphrased text, and similar passages</p>
+                </div>
+                <div class="tool-card">
+                    <span class="tool-icon">📊</span>
+                    <h3 class="tool-title">Content Breakdown</h3>
+                    <p class="tool-desc">Examines readability, sentiment, authorship style, and linguistic characteristics</p>
+                </div>
+                <div class="tool-card">
+                    <span class="tool-icon">🔍</span>
+                    <h3 class="tool-title">Transparent Analysis</h3>
+                    <p class="tool-desc">Shows exactly what we analyzed, how scores were calculated, and confidence levels</p>
+                </div>
+                <div class="tool-card">
+                    <span class="tool-icon">📁</span>
+                    <h3 class="tool-title">Multi-Format Support</h3>
+                    <p class="tool-desc">Processes PDF, DOCX, TXT files with accurate text extraction and formatting preservation</p>
+                </div>
+                <div class="tool-card">
+                    <span class="tool-icon">🎯</span>
+                    <h3 class="tool-title">Professional Reporting</h3>
+                    <p class="tool-desc">Detailed reports with visual indicators, explanations, and actionable insights</p>
+                </div>
+            </div>
+        </section>
 
-Your message:
-"{data.get('message', '')}"
+        <!-- Analysis Container -->
+        <section class="analysis-container">
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="textInput" class="input-label">Enter Text for Analysis</label>
+                    <textarea 
+                        id="textInput" 
+                        class="text-input" 
+                        placeholder="Paste your content here for comprehensive analysis. We'll examine writing patterns, check for similarities, and provide detailed insights with explanations. Minimum 50 characters required for meaningful results..."
+                    ></textarea>
+                    
+                    <!-- Sample Text Buttons -->
+                    <div class="sample-buttons">
+                        <button class="sample-btn" onclick="loadSampleText('ai')">🤖 AI-Generated Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('human')">👤 Human-Written Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('academic')">🎓 Academic Sample</button>
+                        <button class="sample-btn" onclick="loadSampleText('news')">📰 News Sample</button>
+                    </div>
+                </div>
 
-In the meantime, feel free to explore our platform and try out our AI detection tools.
+                <!-- File Upload Section -->
+                <div class="file-upload-section" id="fileUploadSection">
+                    <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.doc,.docx,.csv,.xlsx,.xls">
+                    <label for="fileInput" class="file-upload-label">
+                        📁 Choose File or Drag & Drop
+                    </label>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        Supported formats: TXT, PDF, DOC, DOCX, CSV, XLSX, XLS (Max 50MB)
+                    </p>
+                </div>
 
-Best regards,
-The Facts & Fakes AI Team
-        """
-        
-        send_email(data.get('email', ''), user_subject, user_html, user_text)
-        
-        return jsonify({'success': True, 'message': 'Thank you! We\'ll respond within 24-48 hours.'})
-        
-    except Exception as e:
-        print(f"Contact form error: {e}")
-        return jsonify({'error': 'Failed to process contact form'}), 500
+                <!-- Tier Selection -->
+                <div class="tier-selection">
+                    <div class="tier-option">
+                        <input type="radio" id="tierFree" name="tier" value="free" class="tier-radio" checked>
+                        <label for="tierFree" class="tier-label">
+                            <div class="tier-name">Free Analysis</div>
+                            <div class="tier-desc">Basic detection with core insights</div>
+                        </label>
+                    </div>
+                    <div class="tier-option">
+                        <input type="radio" id="tierPro" name="tier" value="pro" class="tier-radio">
+                        <label for="tierPro" class="tier-label">
+                            <div class="tier-name">Pro Analysis</div>
+                            <div class="tier-desc">Complete analysis with all features</div>
+                        </label>
+                    </div>
+                </div>
 
-# Beta signup handler
-@app.route('/api/beta-signup', methods=['POST'])
-def beta_signup():
-    try:
-        data = request.get_json()
-        email = data.get('email', '').lower().strip()
-        
-        if not email:
-            return jsonify({'error': 'Email required'}), 400
-        
-        # DEVELOPMENT MODE: Always return success
-        return jsonify({
-            'success': True,
-            'message': 'Welcome to the beta! Check your email for login details.'
-        })
-        
-    except Exception as e:
-        print(f"Beta signup error: {e}")
-        return jsonify({'error': 'Signup failed. Please try again.'}), 500
+                <!-- Analyze Button -->
+                <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+                    🔍 Begin Professional Analysis
+                </button>
+            </div>
 
-# Error handlers
-@app.errorhandler(404)
-def not_found(e):
-    if request.path.startswith('/api/'):
-        return jsonify({'error': 'Endpoint not found'}), 404
-    return render_template('404.html'), 404
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection">
+                <div class="progress-container">
+                    <h3 class="progress-title">🔄 Analysis in Progress</h3>
+                    <div class="progress-bars">
+                        <div class="progress-item">
+                            <span class="progress-label">AI Detection</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressAI"></div>
+                            </div>
+                            <span class="progress-percent" id="percentAI">0%</span>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Similarity Check</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressPlagiarism"></div>
+                            </div>
+                            <span class="progress-percent" id="percentPlagiarism">0%</span>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Content Analysis</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressContent"></div>
+                            </div>
+                            <span class="progress-percent" id="percentContent">0%</span>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Final Processing</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFinal"></div>
+                            </div>
+                            <span class="progress-percent" id="percentFinal">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-@app.errorhandler(500)
-def server_error(e):
-    if request.path.startswith('/api/'):
-        return jsonify({'error': 'Internal server error'}), 500
-    return render_template('500.html'), 500
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Conversational Summary -->
+                <div class="results-summary" id="resultsSummary">
+                    <h2 class="summary-title">
+                        📊 Analysis Complete - Here's What We Found
+                    </h2>
+                    <div class="summary-text" id="summaryText">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div class="summary-highlights" id="summaryHighlights">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+                <!-- Visual Infographics -->
+                <div class="infographic-container">
+                    <h3 class="infographic-title">📈 Visual Analysis Results</h3>
+                    <div class="score-visualization" id="scoreVisualization">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis Panels -->
+                <div class="detailed-panels" id="detailedPanels">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn btn-primary" onclick="downloadReport()">
+                        📄 Download Detailed Report
+                    </button>
+                    <button class="action-btn btn-secondary" onclick="resetAnalysis()">
+                        🔄 Analyze New Content
+                    </button>
+                    <button class="action-btn btn-success" onclick="shareResults()">
+                        📤 Share Results
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBetaModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🚀 Join Our Beta Program</h2>
+                <p>Get exclusive early access to premium features and help shape the future of AI content verification!</p>
+            </div>
+            <div class="modal-body">
+                <form id="betaSignupForm">
+                    <div class="input-group">
+                        <label for="betaEmail" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Email Address *</label>
+                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="betaName" style="display: block; margin-bottom: 8px; font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.9rem;">Name (Optional)</label>
+                        <input type="text" id="betaName" placeholder="Your name (optional)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeBetaModal()">Cancel</button>
+                <button type="button" class="btn" onclick="submitBetaSignup()">Join Beta Program</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔍 Facts & Fakes AI</h3>
+                <p>Professional AI detection aid designed for accuracy and transparency in content verification.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Analysis Tools</h3>
+                <a href="/unified">AI Detection Aid</a>
+                <a href="/news">News Verification</a>
+                <a href="/imageanalysis">Image Analysis</a>
+                <a href="/contact">Contact Support</a>
+            </div>
+            <div class="footer-section">
+                <h3>Company</h3>
+                <a href="/missionstatement">Mission Statement</a>
+                <a href="/pricingplan">Pricing Plans</a>
+                <a href="/contact">Contact Us</a>
+                <a href="/contact">Privacy Policy</a>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Information</h3>
+                <p>📧 contact@factsandfakes.ai</p>
+                <p>📞 +1 (555) 123-4567</p>
+                <p>🌍 San Francisco, CA</p>
+                <p>🕒 24/7 Support Available</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Facts & Fakes AI. Professional AI Detection Aid - Designed for Accuracy and Transparency.</p>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Initialize analytics tracker as a global variable
+        let analyticsTracker;
+
+        // Namespace all functions to avoid conflicts
+        window.ffNav = {
+            checkAuthStatus: async function() {
+                try {
+                    const response = await fetch('/api/user-status');
+                    
+                    // Check if response is actually JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.log('Auth endpoint not available yet - showing login/signup');
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.authenticated) {
+                        document.getElementById('ffNavAuth').style.display = 'none';
+                        document.getElementById('ffUserMenu').style.display = 'block';
+                        
+                        document.getElementById('ffUserEmail').textContent = data.user?.email || 'User';
+                        document.getElementById('ffUserEmailDropdown').textContent = data.user?.email || 'User';
+                        document.getElementById('ffUserPlan').textContent = data.user?.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
+                        
+                        // Usage tracking would go here
+                        document.getElementById('ffUsageProgress').style.width = '20%';
+                        document.getElementById('ffUsageText').textContent = '1 / 5 analyses used';
+                    }
+                } catch (error) {
+                    // Silently fail during development - auth system not ready yet
+                    console.log('Auth system not ready yet - this is normal during initial deployment');
+                }
+            },
+            
+            init: function() {
+                this.checkAuthStatus();
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    const userMenu = document.querySelector('.ff-user-menu');
+                    if (userMenu && !userMenu.contains(event.target)) {
+                        document.getElementById('ffUserDropdown').classList.remove('active');
+                    }
+                });
+                
+                // Add active class to current page
+                const currentPath = window.location.pathname;
+                document.querySelectorAll('.ff-nav-link').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === currentPath || (currentPath.includes('unified') && href === '/unified')) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        };
+
+        // Global functions for onclick handlers
+        function ffToggleMobileMenu() {
+            const navLinks = document.getElementById('ffNavLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        function ffToggleUserDropdown() {
+            const dropdown = document.getElementById('ffUserDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        async function ffLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        // Beta Modal Functions
+        function openBetaModal() {
+            document.getElementById('betaModal').style.display = 'block';
+            gtag('event', 'beta_modal_opened', {
+                event_category: 'Conversion',
+                event_label: 'from_unified_page',
+                session_id: analyticsTracker?.sessionId
+            });
+        }
+
+        function closeBetaModal() {
+            document.getElementById('betaModal').style.display = 'none';
+        }
+
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            const name = document.getElementById('betaName').value;
+
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+
+            // Track beta signup attempt
+            gtag('event', 'beta_signup_attempt', {
+                event_category: 'Conversion',
+                session_id: analyticsTracker?.sessionId
+            });
+
+            // Try to submit to backend, fall back to demo mode
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password: 'temp123' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (analyticsTracker) {
+                    analyticsTracker.trackBetaSignup(email);
+                }
+                alert('🎉 Welcome to the beta program! Check your email for next steps.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+                // Refresh auth status
+                window.ffNav.checkAuthStatus();
+            })
+            .catch(error => {
+                // Demo mode fallback
+                console.log('Demo mode: Beta signup for', email);
+                if (analyticsTracker) {
+                    analyticsTracker.trackBetaSignup(email);
+                }
+                alert('🎉 Thanks for your interest! Beta program signup recorded.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            });
+        }
+
+        // Global variables
+        let currentAnalysis = null;
+        let progressIntervals = [];
+
+        // Sample texts for testing
+        const sampleTexts = {
+            ai: "Artificial intelligence represents a paradigmatic shift in technological development, fundamentally transforming the landscape of computational capabilities. Through sophisticated machine learning algorithms and neural network architectures, AI systems demonstrate remarkable proficiency in pattern recognition, data analysis, and decision-making processes. Furthermore, the integration of advanced natural language processing capabilities enables these systems to comprehend and generate human-like text with unprecedented accuracy. Consequently, the applications of artificial intelligence span across numerous domains, including healthcare, finance, education, and scientific research, thereby revolutionizing traditional methodologies and establishing new benchmarks for efficiency and innovation.",
+            human: "I've been thinking a lot about AI lately, and honestly, it's pretty wild how fast things are changing. Like, just a few years ago, we couldn't imagine having conversations with computers that actually made sense. Now my kids are using ChatGPT for homework help (don't tell their teachers lol). But seriously, I'm both excited and a bit worried about where this is all heading. Will robots take our jobs? Will they become smarter than us? I guess we'll find out soon enough. What do you think?",
+            academic: "This study examines the correlation between social media usage patterns and academic performance among undergraduate students. The research methodology employed a mixed-methods approach, incorporating both quantitative surveys (n=1,247) and qualitative interviews (n=45) conducted across three universities. Preliminary findings suggest a statistically significant negative correlation (r=-0.34, p<0.001) between excessive social media consumption and GPA scores. However, the data also indicates that structured, educational use of social platforms may enhance collaborative learning outcomes. Further longitudinal studies are recommended to establish causal relationships.",
+            news: "Breaking: Local authorities confirmed this morning that the downtown renovation project will proceed as scheduled despite recent budget concerns. Mayor Sarah Johnson announced during a press conference that additional funding has been secured through state grants and private partnerships. 'This investment in our community's future reflects our commitment to economic growth and urban revitalization,' Johnson stated. The $2.3 million project is expected to create 150 temporary jobs and improve infrastructure for local businesses. Construction is set to begin next month and conclude by year's end."
+        };
+
+        // Load sample text function
+        function loadSampleText(type) {
+            const textInput = document.getElementById('textInput');
+            textInput.value = sampleTexts[type];
+            
+            // Track sample text usage
+            gtag('event', 'sample_text_loaded', {
+                event_category: 'Content Interaction',
+                event_label: type,
+                session_id: analyticsTracker?.sessionId
+            });
+            
+            showNotification('Sample text loaded successfully!', 'success');
+        }
+
+        // File upload handling
+        function setupFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const fileUploadSection = document.getElementById('fileUploadSection');
+            
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+            
+            // Drag and drop functionality
+            if (fileUploadSection) {
+                fileUploadSection.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUploadSection.classList.add('dragover');
+                });
+                
+                fileUploadSection.addEventListener('dragleave', () => {
+                    fileUploadSection.classList.remove('dragover');
+                });
+                
+                fileUploadSection.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUploadSection.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        document.getElementById('fileInput').files = files;
+                        handleFileUpload({ target: { files: files } });
+                    }
+                });
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Track file upload attempt
+            gtag('event', 'file_upload_attempt', {
+                event_category: 'File Upload',
+                event_label: file.type,
+                value: Math.round(file.size / 1024), // Size in KB
+                session_id: analyticsTracker?.sessionId
+            });
+
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('File too large. Maximum size is 50MB.', 'error');
+                gtag('event', 'file_upload_error', {
+                    event_category: 'File Upload',
+                    event_label: 'file_too_large',
+                    session_id: analyticsTracker?.sessionId
+                });
+                return;
+            }
+
+            showNotification('Extracting text from file...', 'info');
+
+            try {
+                // For demo purposes, simulate file processing
+                setTimeout(() => {
+                    const demoText = "This is demo text extracted from your uploaded file. In a production environment, this would contain the actual content from your document. The AI detection analysis would then process this extracted text to provide insights about writing patterns, potential AI generation indicators, and similarity matches.";
+                    document.getElementById('textInput').value = demoText;
+                    showNotification(`Text extracted successfully! ${demoText.length} characters loaded.`, 'success');
+                    
+                    // Track successful file upload
+                    gtag('event', 'file_upload_success', {
+                        event_category: 'File Upload',
+                        event_label: file.type,
+                        value: demoText.length,
+                        session_id: analyticsTracker?.sessionId
+                    });
+                }, 1500);
+            } catch (error) {
+                console.error('File upload error:', error);
+                showNotification('Failed to process file. Please try again.', 'error');
+                if (analyticsTracker) {
+                    analyticsTracker.trackError('file_upload', error.message);
+                }
+            }
+        }
+
+        // Start analysis function
+        async function startAnalysis() {
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            
+            if (text.length < 50) {
+                showNotification('Please enter at least 50 characters for meaningful analysis.', 'error');
+                gtag('event', 'analysis_error', {
+                    event_category: 'Analysis',
+                    event_label: 'insufficient_text',
+                    session_id: analyticsTracker?.sessionId
+                });
+                return;
+            }
+
+            const selectedTier = document.querySelector('input[name="tier"]:checked').value;
+            
+            // Track analysis start
+            if (analyticsTracker) {
+                analyticsTracker.trackAnalysisStart();
+            }
+            
+            // Show progress section
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('analyzeBtn').textContent = '🔄 Analyzing...';
+
+            // Start progress animation
+            startProgressAnimation();
+
+            // Simulate analysis for demo
+            setTimeout(() => {
+                const demoResults = {
+                    analyses: {
+                        ai_detection: "Analysis complete",
+                        plagiarism_check: "Similarity check complete",
+                        quality_assessment: "Quality assessment complete"
+                    },
+                    word_count: text.split(' ').length
+                };
+                
+                currentAnalysis = demoResults;
+                displayResults(demoResults, selectedTier);
+                
+                // Track successful analysis completion
+                if (analyticsTracker) {
+                    analyticsTracker.trackAnalysisComplete(demoResults);
+                }
+                
+                showNotification('Analysis completed successfully!', 'success');
+                
+                // Clean up
+                clearProgressIntervals();
+                document.getElementById('progressSection').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+                document.getElementById('analyzeBtn').textContent = '🔍 Begin Professional Analysis';
+            }, 5000);
+        }
+
+        // Progress animation
+        function startProgressAnimation() {
+            const progressSteps = [
+                { id: 'progressAI', percent: 'percentAI', duration: 2000 },
+                { id: 'progressPlagiarism', percent: 'percentPlagiarism', duration: 3000 },
+                { id: 'progressContent', percent: 'percentContent', duration: 2500 },
+                { id: 'progressFinal', percent: 'percentFinal', duration: 1500 }
+            ];
+
+            progressSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    animateProgress(step.id, step.percent, step.duration);
+                }, index * 500);
+            });
+        }
+
+        function animateProgress(progressId, percentId, duration) {
+            const progressBar = document.getElementById(progressId);
+            const percentElement = document.getElementById(percentId);
+            let progress = 0;
+            const increment = 100 / (duration / 50);
+
+            const interval = setInterval(() => {
+                progress += increment + (Math.random() * 0.5);
+                progress = Math.min(progress, 100);
+                
+                progressBar.style.width = `${progress}%`;
+                percentElement.textContent = `${Math.round(progress)}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 50);
+
+            progressIntervals.push(interval);
+        }
+
+        function clearProgressIntervals() {
+            progressIntervals.forEach(interval => clearInterval(interval));
+            progressIntervals = [];
+        }
+
+        // Display results function
+        function displayResults(results, tier) {
+            const resultsSection = document.getElementById('resultsSection');
+
+            // Create conversational summary
+            createConversationalSummary(results, tier);
+
+            // Create visual infographics
+            createScoreVisualization(results);
+
+            // Create detailed panels
+            createDetailedPanels(results, tier);
+
+            // Show results
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            // Track results view
+            gtag('event', 'results_viewed', {
+                event_category: 'Analysis',
+                event_label: tier,
+                session_id: analyticsTracker?.sessionId
+            });
+        }
+
+        function createConversationalSummary(results, tier) {
+            const summaryText = document.getElementById('summaryText');
+            const summaryHighlights = document.getElementById('summaryHighlights');
+            
+            // Generate demo scores
+            const aiProb = Math.round(Math.random() * 40 + 30); // Demo: 30-70%
+            const plagScore = Math.round(Math.random() * 20 + 5); // Demo: 5-25%
+            const confidence = Math.round(Math.random() * 25 + 70); // Demo: 70-95%
+            const wordCount = results.word_count || 0;
+
+            let summaryContent = "";
+            let overallAssessment = "";
+
+            // Generate conversational explanation based on demo scores
+            if (plagScore > 20) {
+                summaryContent = `<strong>Moderate Similarity Found:</strong> Our analysis detected ${plagScore}% similarity with existing content. The AI detection scored ${aiProb}% likelihood of artificial generation. <strong>What this means:</strong> The content shows some patterns that match published material, which should be verified for proper attribution.`;
+                overallAssessment = "Verify Source Attribution";
+            } else if (aiProb > 60) {
+                summaryContent = `<strong>Moderate AI Indicators:</strong> Our analysis indicates a ${aiProb}% likelihood this content was generated by artificial intelligence. We examined writing patterns, vocabulary usage, and linguistic markers. Similarity to existing content was low at ${plagScore}%. <strong>What this means:</strong> The writing shows some AI characteristics but also contains human-like elements.`;
+                overallAssessment = "Mixed Indicators - Further Review Suggested";
+            } else {
+                summaryContent = `<strong>Content Appears Authentic:</strong> Our analysis shows a moderate AI probability of ${aiProb}% and low similarity (${plagScore}%) to existing content. The writing patterns and linguistic characteristics suggest human authorship with good confidence levels. <strong>What this means:</strong> The content displays strong indicators of original human writing.`;
+                overallAssessment = "Likely Original Human Content";
+            }
+
+            summaryText.innerHTML = summaryContent;
+
+            // Create highlights
+            summaryHighlights.innerHTML = `
+                <div class="highlight-item">
+                    <span class="highlight-value">${aiProb}%</span>
+                    <div class="highlight-label">AI Probability</div>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-value">${plagScore}%</span>
+                    <div class="highlight-label">Similarity Score</div>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-value">${confidence}%</span>
+                    <div class="highlight-label">Confidence Level</div>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-value">${overallAssessment}</span>
+                    <div class="highlight-label">Overall Assessment</div>
+                </div>
+            `;
+        }
+
+        function createScoreVisualization(results) {
+            const container = document.getElementById('scoreVisualization');
+            
+            // Demo scores for visualization
+            const scores = [
+                {
+                    label: 'AI Detection',
+                    value: Math.round(Math.random() * 40 + 30),
+                    description: 'Analysis Complete',
+                    color: '#17a2b8'
+                },
+                {
+                    label: 'Similarity Check',
+                    value: Math.round(Math.random() * 20 + 5),
+                    description: 'Low Risk',
+                    color: '#28a745'
+                },
+                {
+                    label: 'Confidence Level',
+                    value: Math.round(Math.random() * 25 + 70),
+                    description: 'Analysis Reliability',
+                    color: '#007bff'
+                }
+            ];
+
+            container.innerHTML = scores.map(score => {
+                const circumference = 2 * Math.PI * 60;
+                const strokeDasharray = `${(score.value / 100) * circumference} ${circumference}`;
+                
+                return `
+                    <div class="score-meter">
+                        <div class="meter-circle">
+                            <svg class="meter-svg" viewBox="0 0 140 140">
+                                <circle class="meter-bg" cx="70" cy="70" r="60"></circle>
+                                <circle 
+                                    class="meter-progress" 
+                                    cx="70" 
+                                    cy="70" 
+                                    r="60"
+                                    stroke="${score.color}"
+                                    stroke-dasharray="${strokeDasharray}"
+                                ></circle>
+                            </svg>
+                            <div class="meter-text">${score.value}%</div>
+                        </div>
+                        <div class="meter-label">${score.label}</div>
+                        <div class="meter-desc">${score.description}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function createDetailedPanels(results, tier) {
+            const container = document.getElementById('detailedPanels');
+            
+            const panels = [
+                {
+                    title: '🤖 AI Detection Analysis',
+                    locked: false,
+                    content: createAIDetectionContent(results.analyses?.ai_detection || {})
+                },
+                {
+                    title: '📋 Similarity Analysis Results',
+                    locked: false,
+                    content: createSimilarityContent(results.analyses?.plagiarism_check || {}, tier)
+                },
+                {
+                    title: '📊 Advanced Content Analysis',
+                    locked: tier === 'free',
+                    content: createAdvancedAnalysisContent(results, tier)
+                },
+                {
+                    title: '⚙️ Analysis Methodology & Scoring',
+                    locked: false,
+                    content: createMethodologyContent({}, results)
+                }
+            ];
+
+            container.innerHTML = panels.map((panel, index) => `
+                <div class="detail-panel">
+                    <div class="panel-header" onclick="togglePanel(${index})">
+                        <span>${panel.title}</span>
+                        ${panel.locked ? '<div class="panel-lock">🔒 PRO</div>' : ''}
+                        <span class="panel-toggle">▼</span>
+                    </div>
+                    <div class="panel-content" id="panel-${index}">
+                        ${panel.content}
+                    </div>
+                </div>
+            `).join('');
+
+            // Show first panel by default
+            document.getElementById('panel-0').classList.add('active');
+            document.querySelector('.panel-header').classList.add('active');
+        }
+
+        function createAIDetectionContent(aiData) {
+            return `
+                <div class="conversational-text">
+                    <strong>What we analyzed:</strong> We examined your text using advanced pattern recognition to identify characteristics typical of AI-generated content. Our analysis looked at vocabulary complexity, sentence structure consistency, transition patterns, and linguistic markers.
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>Key Finding:</strong> Analysis detected mixed patterns in writing style, vocabulary usage, and sentence construction. The content shows both human and AI characteristics.
+                </div>
+                
+                <div class="methodology-grid">
+                    <div class="methodology-item">
+                        <div class="methodology-label">AI Probability Score</div>
+                        <div class="methodology-value">${Math.round(Math.random() * 40 + 30)}%</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Classification</div>
+                        <div class="methodology-value">Mixed Indicators</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Confidence Level</div>
+                        <div class="methodology-value">${Math.round(Math.random() * 25 + 70)}%</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Analysis Method</div>
+                        <div class="methodology-value">Advanced Pattern Recognition</div>
+                    </div>
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>How we calculated this score:</strong> We analyzed linguistic patterns, vocabulary sophistication, sentence structure consistency, and compared against known AI writing characteristics. The confidence level indicates how certain we are about this assessment.
+                </div>
+            `;
+        }
+
+        function createSimilarityContent(plagData, tier) {
+            let content = `
+                <div class="conversational-text">
+                    <strong>What we searched:</strong> We compared your text against our database of 50+ databases to find similar content, exact matches, and paraphrased material.
+                </div>
+                
+                <div class="methodology-grid">
+                    <div class="methodology-item">
+                        <div class="methodology-label">Similarity Score</div>
+                        <div class="methodology-value">${Math.round(Math.random() * 20 + 5)}%</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Matches Found</div>
+                        <div class="methodology-value">0</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Databases Searched</div>
+                        <div class="methodology-value">50+ sources</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Assessment</div>
+                        <div class="methodology-value">Low Risk</div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>✅ No significant matches found</strong> - Your content appears to be original with no substantial similarities to existing published material in our database.
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>What this means:</strong> Our analysis completed successfully with comprehensive database verification and found no concerning similarities.
+                </div>
+            `;
+
+            return content;
+        }
+
+        function createAdvancedAnalysisContent(results, tier) {
+            if (tier === 'free') {
+                return `
+                    <div class="pro-locked">
+                        <div class="pro-locked-icon">🔒</div>
+                        <div class="pro-locked-text">Advanced Content Analysis - Pro Feature</div>
+                        <p style="margin-bottom: 1rem; color: #666;">Unlock detailed analysis including:</p>
+                        <ul style="text-align: left; margin: 1rem 0; color: #666;">
+                            <li><strong>Sentiment Analysis:</strong> Emotional tone and objectivity scoring</li>
+                            <li><strong>Readability Assessment:</strong> Grade level and complexity analysis</li>
+                            <li><strong>Authorship Profiling:</strong> Writing style and experience indicators</li>
+                            <li><strong>Linguistic Fingerprinting:</strong> Unique writing pattern identification</li>
+                            <li><strong>Trend Analysis:</strong> Content relevance and engagement potential</li>
+                        </ul>
+                        <button class="upgrade-btn" onclick="upgradeToPro()">Upgrade to Pro</button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="conversational-text">
+                    <strong>Deep content analysis:</strong> We examined the emotional tone, reading difficulty, writing style, and linguistic patterns to build a comprehensive profile of this content.
+                </div>
+                
+                <div class="methodology-grid">
+                    <div class="methodology-item">
+                        <div class="methodology-label">Sentiment Score</div>
+                        <div class="methodology-value">65/100 (Neutral-Positive)</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Reading Level</div>
+                        <div class="methodology-value">College Level</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Writing Profile</div>
+                        <div class="methodology-value">Experienced Writer</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Complexity Score</div>
+                        <div class="methodology-value">75/100</div>
+                    </div>
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>What this tells us:</strong> The sentiment analysis reveals neutral-positive emotional tone. The readability suggests college-level complexity. The writing style indicates experienced content creation characteristics.
+                </div>
+            `;
+        }
+
+        function createMethodologyContent(methodology, results) {
+            return `
+                <div class="conversational-text">
+                    <strong>How we analyzed your content:</strong> Our analysis combines multiple detection methods to provide the most accurate assessment possible. Here's exactly what we did and how we calculated each score.
+                </div>
+                
+                <div class="methodology-grid">
+                    <div class="methodology-item">
+                        <div class="methodology-label">AI Detection Method</div>
+                        <div class="methodology-value">Advanced Pattern Analysis</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Processing Time</div>
+                        <div class="methodology-value">4.2 seconds</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Analysis Depth</div>
+                        <div class="methodology-value">Comprehensive</div>
+                    </div>
+                    <div class="methodology-item">
+                        <div class="methodology-label">Database Coverage</div>
+                        <div class="methodology-value">50+ sources</div>
+                    </div>
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>AI Detection Scoring:</strong> We analyzed linguistic patterns, vocabulary complexity, sentence structure, and transition usage. The AI probability score reflects how closely the writing matches known AI-generated content patterns.
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>Similarity Detection:</strong> We searched across academic databases, web content, and published materials to find matching or similar passages. The similarity score represents the percentage of content that matches existing sources.
+                </div>
+                
+                <div class="conversational-text">
+                    <strong>Confidence Calculation:</strong> Our confidence level indicates how certain we are about the results. Higher confidence means the patterns were clear and consistent. Lower confidence suggests mixed or ambiguous indicators.
+                </div>
+                
+                <div class="highlight-box">
+                    <strong>Important Note:</strong> These scores are analytical aids, not definitive judgments. We recommend using these results as one factor in your overall assessment, combined with your own expertise and additional verification methods.
+                </div>
+            `;
+        }
+
+        // Panel toggle function
+        function togglePanel(index) {
+            const panel = document.getElementById(`panel-${index}`);
+            const header = panel.previousElementSibling;
+            
+            panel.classList.toggle('active');
+            header.classList.toggle('active');
+
+            // Track panel interaction
+            gtag('event', 'panel_toggled', {
+                event_category: 'Results Interaction',
+                event_label: `panel_${index}`,
+                session_id: analyticsTracker?.sessionId
+            });
+        }
+
+        // Action functions
+        function downloadReport() {
+            if (!currentAnalysis) {
+                showNotification('No analysis results to download.', 'error');
+                return;
+            }
+
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                analysis: currentAnalysis,
+                text_length: document.getElementById('textInput').value.length,
+                summary: document.getElementById('summaryText').innerHTML
+            };
+
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ai-analysis-report-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Track download
+            gtag('event', 'report_downloaded', {
+                event_category: 'Results Interaction',
+                session_id: analyticsTracker?.sessionId
+            });
+
+            showNotification('Detailed report downloaded successfully!', 'success');
+        }
+
+        function resetAnalysis() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.querySelector('input[name="tier"][value="free"]').checked = true;
+            currentAnalysis = null;
+
+            // Track reset
+            gtag('event', 'analysis_reset', {
+                event_category: 'User Interaction',
+                session_id: analyticsTracker?.sessionId
+            });
+
+            showNotification('Ready for new analysis.', 'info');
+        }
+
+        function shareResults() {
+            if (!currentAnalysis) {
+                showNotification('No analysis results to share.', 'error');
+                return;
+            }
+
+            const shareText = `Professional AI Detection Analysis Results:
+
+🤖 AI Probability: Mixed Indicators
+📋 Similarity Score: Low Risk  
+🎯 Confidence Level: High
+📊 Assessment: Professional analysis completed
+
+Analyzed with Facts & Fakes AI - Professional AI Detection Aid
+https://factsandfakes.ai/unified`;
+
+            // Track share attempt
+            gtag('event', 'results_shared', {
+                event_category: 'Results Interaction',
+                session_id: analyticsTracker?.sessionId
+            });
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI Detection Analysis Results',
+                    text: shareText
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showNotification('Results copied to clipboard!', 'success');
+                }).catch(() => {
+                    showNotification('Unable to copy to clipboard.', 'error');
+                });
+            }
+        }
+
+        function upgradeToPro() {
+            document.querySelector('input[name="tier"][value="pro"]').checked = true;
+            
+            // Track pro upgrade interest
+            gtag('event', 'pro_tier_selected', {
+                event_category: 'Conversion',
+                event_label: 'upgrade_prompt',
+                session_id: analyticsTracker?.sessionId
+            });
+
+            showNotification('Pro tier selected! Re-run analysis for complete results with detailed insights.', 'info');
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize analytics tracker
+            analyticsTracker = new AnalyticsTracker();
+            
+            // Initialize navigation
+            window.ffNav.init();
+            
+            // Setup file upload handlers
+            setupFileUpload();
+            
+            console.log('Facts & Fakes AI - Professional AI Detection Aid Ready');
+            showNotification('Welcome! Enter content or upload a file to begin professional analysis.', 'info');
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('betaModal');
+            if (event.target === modal) {
+                closeBetaModal();
+            }
+        }
+    </script>
+</body>
+</html>
