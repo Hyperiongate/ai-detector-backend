@@ -2295,28 +2295,32 @@
             const uploadSection = document.getElementById('fileUploadSection');
             
             // File input change
-            fileInput.addEventListener('change', handleFileUpload);
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
             
             // Drag and drop
-            uploadSection.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadSection.classList.add('dragover');
-            });
-            
-            uploadSection.addEventListener('dragleave', () => {
-                uploadSection.classList.remove('dragover');
-            });
-            
-            uploadSection.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadSection.classList.remove('dragover');
+            if (uploadSection) {
+                uploadSection.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadSection.classList.add('dragover');
+                });
                 
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    handleFileUpload({ target: { files: files } });
-                }
-            });
+                uploadSection.addEventListener('dragleave', () => {
+                    uploadSection.classList.remove('dragover');
+                });
+                
+                uploadSection.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadSection.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        handleFileUpload({ target: { files: files } });
+                    }
+                });
+            }
         });
 
         function handleFileUpload(event) {
@@ -3971,6 +3975,9 @@
                 playClickSound();
             }
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
