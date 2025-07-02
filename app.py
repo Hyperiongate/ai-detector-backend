@@ -851,7 +851,7 @@ def analyze_unified():
             result['news_analysis'] = perform_realistic_unified_news_check(text)
         
         if analysis_type in ['image'] and data.get('image'):
-    result['image_analysis'] = perform_basic_image_analysis(data.get('image'))  # Safer
+            result['image_analysis'] = perform_basic_image_analysis(data.get('image'))  # Safer
         
         # Add metadata
         result['analysis_complete'] = True
