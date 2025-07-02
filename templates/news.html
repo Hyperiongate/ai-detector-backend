@@ -1934,16 +1934,6 @@
             text-transform: uppercase;
         }
 
-        .confidence-high {
-            background: rgba(16, 185, 129, 0.2);
-            color: #059669;
-        }
-
-        .confidence-medium {
-            background: rgba(245, 158, 11, 0.2);
-            color: #d97706;
-        }
-
         .confidence-low {
             background: rgba(239, 68, 68, 0.2);
             color: #dc2626;
@@ -2940,6 +2930,8 @@
 
     <script src="/static/auth-analysis.js"></script>
     <script>
+        // UPDATED SCRIPT WITH PROPER API ENDPOINT
+
         // Store dropdown states
         const sectionStates = {};
 
@@ -3046,8 +3038,8 @@ The technology is expected to be integrated into the company's product line by Q
             showNotification('Form reset successfully', 'info');
         }
 
-        // Run analysis
-        function runAnalysis(tier) {
+        // UPDATED: Run analysis with proper API call
+        async function runAnalysis(tier) {
             const activeTab = document.querySelector('.input-tab.active');
             let input = '';
             
@@ -3070,97 +3062,58 @@ The technology is expected to be integrated into the company's product line by Q
             
             // Show progress section
             document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
             
-            // Simulate analysis process
-            simulateAnalysis(tier);
-        }
-
-        // Simulate analysis
-        function simulateAnalysis(tier) {
-            const progressBar = document.getElementById('progressBar');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const progressStatus = document.getElementById('progressStatus');
-            const stages = document.querySelectorAll('.progress-stage');
-            const claimProgress = document.getElementById('claimProgress');
-            const claimCounter = document.getElementById('claimCounter');
-            const claimProgressFill = document.getElementById('claimProgressFill');
-            
-            let progress = 0;
-            let claimsFound = 0;
-            const statusMessages = [
-                'Extracting article content...',
-                'Analyzing political bias patterns...',
-                'Verifying sources and citations...',
-                'Cross-checking claims with database...',
-                'Generating comprehensive report...'
-            ];
-            
-            const interval = setInterval(() => {
-                progress += 2;
-                progressBar.style.width = progress + '%';
-                progressPercentage.textContent = progress + '%';
-                
-                // Update stages
-                const currentStage = Math.floor(progress / 20);
-                stages.forEach((stage, index) => {
-                    if (index < currentStage) {
-                        stage.classList.add('completed');
-                        stage.classList.remove('active');
-                    } else if (index === currentStage) {
-                        stage.classList.add('active');
-                        stage.classList.remove('completed');
-                    } else {
-                        stage.classList.remove('active', 'completed');
-                    }
+            // Call the API
+            try {
+                const response = await fetch('/api/analyze-unified', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: input,
+                        type: 'news'
+                    })
                 });
-                
-                // Update status message
-                if (currentStage < statusMessages.length) {
-                    progressStatus.textContent = statusMessages[currentStage];
+
+                if (!response.ok) {
+                    throw new Error('Analysis failed');
                 }
+
+                const data = await response.json();
                 
-                // Show claim progress at stage 3
-                if (currentStage === 3 && claimProgress.style.display === 'none') {
-                    claimProgress.style.display = 'flex';
-                    // Simulate finding claims
-                    const claimInterval = setInterval(() => {
-                        if (claimsFound < 8) {
-                            claimsFound++;
-                            claimCounter.textContent = claimsFound;
-                            claimProgressFill.style.width = (claimsFound / 8 * 100) + '%';
-                        } else {
-                            clearInterval(claimInterval);
-                        }
-                    }, 300);
-                }
+                // Hide progress section
+                document.getElementById('progressSection').style.display = 'none';
                 
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('progressSection').style.display = 'none';
-                        claimProgress.style.display = 'none';
-                        showResults(tier, claimsFound);
-                    }, 500);
-                }
-            }, 50);
+                // Show results
+                showResultsFromAPI(tier, data);
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                document.getElementById('progressSection').style.display = 'none';
+                showNotification('Analysis failed. Please try again.', 'error');
+            }
         }
 
-        // Show results
-        function showResults(tier, claimsFound = 0) {
+        // UPDATED: Show results from API data
+        function showResultsFromAPI(tier, apiData) {
             const results = document.getElementById('results');
             results.style.display = 'block';
             
             // Track completion
             trackNewsEvent('analysis_completed', {
-                analysis_type: tier,
-                claims_found: claimsFound
+                analysis_type: tier
             });
             
-            // Create results HTML based on tier
+            // Extract data from API response
+            const newsAnalysis = apiData.news_analysis || {};
+            
+            // Generate results HTML based on tier
             if (tier === 'pro') {
-                results.innerHTML = generateProResults(claimsFound);
+                results.innerHTML = generateProResultsFromAPI(newsAnalysis);
             } else {
-                results.innerHTML = generateFreeResults();
+                results.innerHTML = generateFreeResultsFromAPI(newsAnalysis);
             }
             
             // Initialize any interactive elements in results
@@ -3169,29 +3122,39 @@ The technology is expected to be integrated into the company's product line by Q
             showNotification(`${tier === 'pro' ? 'Pro' : 'Free'} analysis completed!`, 'success');
         }
 
-        // Generate Pro results
-        function generateProResults(claimsFound) {
+        // Generate Pro results from API data
+        function generateProResultsFromAPI(newsData) {
+            const credibilityScore = newsData.credibility_score || 75;
+            const biasData = newsData.political_bias || {};
+            const factChecks = newsData.fact_check_results || [];
+            const biasScore = biasData.bias_score || 0;
+            const biasLabel = biasData.bias_label || 'center';
+            const objectivityScore = biasData.objectivity_score || 75;
+            
+            // Calculate bias position (convert -10 to +10 scale to 0-100%)
+            const biasPosition = ((biasScore + 10) / 20) * 100;
+            
             return `
                 <div class="results-nav-bar">
                     <button class="active" onclick="scrollToSection('overview')">Overview</button>
                     <button onclick="scrollToSection('credibility')">Credibility</button>
                     <button onclick="scrollToSection('bias')">Bias Analysis</button>
-                    <button onclick="scrollToSection('claims')">Claims (${claimsFound})</button>
+                    <button onclick="scrollToSection('claims')">Claims (${factChecks.length})</button>
                     <button onclick="scrollToSection('sources')">Sources</button>
                 </div>
 
                 <div class="results-preview">
                     <div class="preview-card credibility" onclick="scrollToSection('credibility')">
-                        <h3>Credibility Score: 78%</h3>
-                        <p>Based on 500+ source verification</p>
+                        <h3>Credibility Score: ${credibilityScore}%</h3>
+                        <p>Based on comprehensive analysis</p>
                     </div>
                     <div class="preview-card bias" onclick="scrollToSection('bias')">
-                        <h3>Bias: Center-Left</h3>
-                        <p>Interactive spectrum analysis</p>
+                        <h3>Bias: ${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)}</h3>
+                        <p>Objectivity: ${objectivityScore}%</p>
                     </div>
                     <div class="preview-card claims" onclick="scrollToSection('claims')">
-                        <h3>${claimsFound} Claims Found</h3>
-                        <p>Full fact-checking completed</p>
+                        <h3>${factChecks.length} Claims Found</h3>
+                        <p>Ready for verification</p>
                     </div>
                 </div>
 
@@ -3201,12 +3164,12 @@ The technology is expected to be integrated into the company's product line by Q
                         <span>Analysis Overview</span>
                     </div>
                     <div class="compact-summary">
-                        <div class="score-circle" style="--score-deg: 280deg; background: conic-gradient(from 0deg, #10b981 0deg, #10b981 280deg, #e5e7eb 280deg, #e5e7eb 360deg);">
-                            <span class="score-text">78%</span>
+                        <div class="score-circle" style="--score-deg: ${credibilityScore * 3.6}deg; background: conic-gradient(from 0deg, #10b981 0deg, #10b981 ${credibilityScore * 3.6}deg, #e5e7eb ${credibilityScore * 3.6}deg, #e5e7eb 360deg);">
+                            <span class="score-text">${credibilityScore}%</span>
                         </div>
                         <div class="summary-content">
-                            <h3>Generally Credible</h3>
-                            <p class="summary-dialogue">This article demonstrates good journalistic standards with proper source attribution. Some claims require additional verification, but overall the reporting appears balanced and fact-based.</p>
+                            <h3>${credibilityScore >= 80 ? 'Highly Credible' : credibilityScore >= 60 ? 'Generally Credible' : 'Questionable Credibility'}</h3>
+                            <p class="summary-dialogue">${getCredibilitySummary(credibilityScore, biasLabel)}</p>
                         </div>
                     </div>
                 </div>
@@ -3218,20 +3181,20 @@ The technology is expected to be integrated into the company's product line by Q
                     </div>
                     <div class="data-grid">
                         <div class="data-item">
-                            <div class="data-value">78%</div>
+                            <div class="data-value">${credibilityScore}%</div>
                             <div class="data-label">Overall Score</div>
                         </div>
                         <div class="data-item">
-                            <div class="data-value">12</div>
-                            <div class="data-label">Sources Cited</div>
+                            <div class="data-value">${newsData.source_analysis?.credibility_score || 70}%</div>
+                            <div class="data-label">Source Rating</div>
                         </div>
                         <div class="data-item">
-                            <div class="data-value">3</div>
-                            <div class="data-label">Expert Quotes</div>
+                            <div class="data-value">${newsData.bias_indicators?.factual_claims || 0}</div>
+                            <div class="data-label">Factual Claims</div>
                         </div>
                         <div class="data-item">
-                            <div class="data-value">High</div>
-                            <div class="data-label">Transparency</div>
+                            <div class="data-value">${newsData.source_analysis?.source_type || 'Unknown'}</div>
+                            <div class="data-label">Source Type</div>
                         </div>
                     </div>
                 </div>
@@ -3250,16 +3213,16 @@ The technology is expected to be integrated into the company's product line by Q
                             <span>Far Right</span>
                         </div>
                         <div class="bias-spectrum" onclick="showBiasDetails(event)">
-                            <div class="bias-indicator" style="left: 35%"></div>
+                            <div class="bias-indicator" style="left: ${biasPosition}%"></div>
                         </div>
-                        <div class="bias-tooltip">Center-Left Bias Detected</div>
+                        <div class="bias-tooltip">${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)} Bias Detected</div>
                     </div>
                     <div class="confidence-meter">
                         <span class="confidence-meter-label">Confidence:</span>
                         <div class="confidence-meter-bar">
-                            <div class="confidence-meter-fill confidence-high" style="width: 85%"></div>
+                            <div class="confidence-meter-fill confidence-high" style="width: ${biasData.confidence || 75}%"></div>
                         </div>
-                        <span class="confidence-meter-value">85%</span>
+                        <span class="confidence-meter-value">${biasData.confidence || 75}%</span>
                     </div>
                 </div>
 
@@ -3268,45 +3231,28 @@ The technology is expected to be integrated into the company's product line by Q
                         <i class="fas fa-fact-check"></i>
                         <span>Claim Verification</span>
                     </div>
-                    <div class="claim-counter">${claimsFound} Claims Analyzed</div>
+                    <div class="claim-counter">${factChecks.length} Claims Analyzed</div>
                     <div class="evidence-explorer">
                         <div class="evidence-grid">
-                            <div class="evidence-card" onclick="toggleEvidence(this)">
-                                <div class="evidence-card-header">
-                                    <div class="evidence-type">
-                                        <i class="fas fa-check-circle" style="color: #10b981"></i>
-                                        <span>Verified Claim</span>
+                            ${factChecks.map((claim, index) => `
+                                <div class="evidence-card" onclick="toggleEvidence(this)">
+                                    <div class="evidence-card-header">
+                                        <div class="evidence-type">
+                                            <i class="fas fa-${claim.status === 'Verified' ? 'check-circle' : 'exclamation-triangle'}" style="color: ${claim.status === 'Verified' ? '#10b981' : '#f59e0b'}"></i>
+                                            <span>${claim.status || 'Pending'}</span>
+                                        </div>
+                                        <span class="evidence-confidence confidence-${claim.confidence > 70 ? 'high' : 'medium'}">${claim.confidence > 70 ? 'HIGH' : 'MEDIUM'}</span>
                                     </div>
-                                    <span class="evidence-confidence confidence-high">HIGH</span>
-                                </div>
-                                <div class="evidence-preview">
-                                    "The company achieved a 95% accuracy rate in testing"
-                                </div>
-                                <div class="evidence-details">
-                                    <div class="evidence-methodology">
-                                        Verified through company SEC filings and independent audit reports.
+                                    <div class="evidence-preview">
+                                        "${claim.claim || 'Claim text'}"
                                     </div>
-                                </div>
-                            </div>
-                            ${claimsFound > 1 ? `
-                            <div class="evidence-card" onclick="toggleEvidence(this)">
-                                <div class="evidence-card-header">
-                                    <div class="evidence-type">
-                                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b"></i>
-                                        <span>Unverified Claim</span>
-                                    </div>
-                                    <span class="evidence-confidence confidence-medium">MEDIUM</span>
-                                </div>
-                                <div class="evidence-preview">
-                                    "Industry experts are divided on the implications"
-                                </div>
-                                <div class="evidence-details">
-                                    <div class="evidence-methodology">
-                                        Only one expert quoted. Additional sources needed for verification.
+                                    <div class="evidence-details">
+                                        <div class="evidence-methodology">
+                                            ${claim.sources ? claim.sources.join(', ') : 'Verification pending'}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            ` : ''}
+                            `).join('')}
                         </div>
                     </div>
                 </div>
@@ -3317,12 +3263,12 @@ The technology is expected to be integrated into the company's product line by Q
                         <span>Source Analysis</span>
                     </div>
                     <div class="source-network">
-                        <p style="color: #6b7280; margin-bottom: 20px;">Connected source verification network</p>
+                        <p style="color: #6b7280; margin-bottom: 20px;">Source credibility and verification network</p>
                         <div class="network-nodes">
-                            <div class="network-node primary">Primary Source</div>
-                            <div class="network-node">SEC Filing</div>
-                            <div class="network-node">Expert Quote</div>
-                            <div class="network-node">Company PR</div>
+                            <div class="network-node primary">${newsData.source_analysis?.domain || 'Primary Source'}</div>
+                            ${newsData.cross_references?.map(ref => `
+                                <div class="network-node">${ref.source}</div>
+                            `).join('') || '<div class="network-node">Cross-check pending</div>'}
                         </div>
                     </div>
                 </div>
@@ -3341,21 +3287,23 @@ The technology is expected to be integrated into the company's product line by Q
             `;
         }
 
-        // Generate Free results
-        function generateFreeResults() {
+        // Generate Free results from API data
+        function generateFreeResultsFromAPI(newsData) {
+            const credibilityScore = newsData.credibility_score || 0;
+            
             return `
                 <div class="results-preview">
                     <div class="preview-card credibility">
                         <h3>Basic Credibility Check</h3>
-                        <p>Limited source verification</p>
+                        <p>Limited analysis complete</p>
                     </div>
                     <div class="preview-card bias">
                         <h3>Bias Indicator</h3>
-                        <p>Simple bias detection</p>
+                        <p>Basic bias detected</p>
                     </div>
                     <div class="preview-card claims">
                         <h3>Limited Claims Check</h3>
-                        <p>Basic fact verification</p>
+                        <p>Upgrade for full analysis</p>
                     </div>
                 </div>
 
@@ -3386,6 +3334,17 @@ The technology is expected to be integrated into the company's product line by Q
                     <button onclick="window.location.href='/pricingplan'">Upgrade to Pro</button>
                 </div>
             `;
+        }
+
+        // Helper function to generate credibility summary
+        function getCredibilitySummary(score, bias) {
+            if (score >= 80) {
+                return "This article demonstrates excellent journalistic standards with proper source attribution and balanced reporting. The content appears well-researched and factually accurate.";
+            } else if (score >= 60) {
+                return `This article shows ${bias !== 'center' ? 'some ' + bias + ' bias but' : ''} generally good journalistic practices. Some claims may benefit from additional verification, but overall the reporting appears credible.`;
+            } else {
+                return "This article raises several credibility concerns. Multiple claims lack proper attribution and the reporting shows significant bias. Readers should verify information from additional sources.";
+            }
         }
 
         // Initialize results interactions
@@ -3553,10 +3512,6 @@ The technology is expected to be integrated into the company's product line by Q
 
         // Comparison functions
         function openComparison() {
-            document.getElementById('comparisonPanel').classList.add('open');
-        }
-
-        function closeComparison() {
             document.getElementById('comparisonPanel').classList.remove('open');
         }
 
@@ -3680,4 +3635,18 @@ The technology is expected to be integrated into the company's product line by Q
         });
     </script>
 </body>
-</html>
+</html>').classList.add('open');
+        }
+
+        function closeComparison() {
+            document.getElementById('comparisonPanelhigh {
+            background: rgba(16, 185, 129, 0.2);
+            color: #059669;
+        }
+
+        .confidence-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+        }
+
+        .confidence-
