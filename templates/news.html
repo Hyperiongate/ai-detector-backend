@@ -1081,112 +1081,349 @@
             padding: 30px;
         }
 
-        /* FIXED Political Bias Specific Styles */
-        .bias-spectrum-container {
+        /* NEW Political Bias Compass Design */
+        .bias-compass-container {
             margin: 30px 0;
             padding: 20px;
+            text-align: center;
         }
 
-        .bias-spectrum-title {
+        .bias-compass-title {
             font-weight: 700;
             color: #1f2937;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-size: 1.4rem;
             text-align: center;
         }
 
-        /* Label ABOVE the spectrum */
-        .bias-position-label {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 40px;
-            display: inline-block;
-            width: 100%;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* The spectrum bar */
-        .bias-spectrum {
-            background: linear-gradient(90deg, 
-                #3b82f6 0%, 
-                #60a5fa 20%, 
-                #10b981 50%, 
-                #f59e0b 80%, 
-                #ef4444 100%);
-            height: 60px;
-            border-radius: 30px;
+        .bias-compass {
             position: relative;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            margin: 60px 0 20px 0; /* Top margin for indicator space */
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
         }
 
-        /* Fixed indicator positioning */
-        .bias-indicator {
+        .compass-circle {
             position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 10;
-        }
-
-        /* Circle with score - positioned ABOVE the bar */
-        .bias-indicator-circle {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 60px;
-            background: white;
-            border: 6px solid #1f2937;
             border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .compass-outer {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #3b82f6 0%, #10b981 25%, #fbbf24 50%, #f59e0b 75%, #ef4444 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .compass-inner {
+            width: 200px;
+            height: 200px;
+            background: white;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .compass-center {
+            width: 80px;
+            height: 80px;
+            background: #f3f4f6;
+            font-weight: 900;
+            font-size: 1.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 900;
-            font-size: 1.5rem;
             color: #1f2937;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
-        /* Arrow pointing down */
-        .bias-indicator-arrow {
+        .compass-labels {
             position: absolute;
-            top: 20px;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .compass-label {
+            position: absolute;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #1f2937;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .compass-label.left {
+            top: 50%;
+            left: -20px;
+            transform: translateY(-50%);
+        }
+
+        .compass-label.right {
+            top: 50%;
+            right: -20px;
+            transform: translateY(-50%);
+        }
+
+        .compass-label.far-left {
+            top: 20%;
+            left: 10%;
+        }
+
+        .compass-label.far-right {
+            top: 20%;
+            right: 10%;
+        }
+
+        .compass-label.center {
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .compass-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 120px;
+            background: #1f2937;
+            transform-origin: center bottom;
+            transform: translate(-50%, -100%) rotate(0deg);
+            transition: transform 1s ease;
+            z-index: 10;
+        }
+
+        .compass-needle::before {
+            content: '';
+            position: absolute;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 20px solid #1f2937;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #1f2937;
         }
 
-        /* Vertical line through bar */
-        .bias-indicator-line {
+        .bias-position-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-top: 30px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Enhanced Cross-Source Verification */
+        .verification-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        /* Emotional Language Meter */
+        .emotion-meter-container {
+            margin: 30px 0;
+        }
+
+        .emotion-meter {
+            background: #e5e7eb;
+            height: 40px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .emotion-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #fbbf24 50%, #ef4444 100%);
+            border-radius: 20px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .emotion-marker {
             position: absolute;
             top: -10px;
-            bottom: -10px;
-            left: 50%;
             transform: translateX(-50%);
             width: 4px;
+            height: 60px;
             background: #1f2937;
         }
 
-        .bias-labels {
+        .emotion-marker::before {
+            content: attr(data-value);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .emotion-labels {
             display: flex;
             justify-content: space-between;
             margin-top: 10px;
+            color: #6b7280;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Smaller detail cards */
+        .source-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .source-detail-card {
+            background: rgba(249, 250, 251, 0.5);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .source-detail-card:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .detail-icon {
+            width: 30px;
+            height: 30px;
+            margin: 0 auto 8px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .detail-label {
             font-size: 0.85rem;
             color: #6b7280;
             font-weight: 600;
+        }
+
+        /* Enhanced Transparency Explanation */
+        .transparency-breakdown {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .transparency-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .transparency-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .transparency-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .transparency-icon.positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: #059669;
+        }
+
+        .transparency-icon.negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+        }
+
+        .transparency-text {
+            flex: 1;
+        }
+
+        .transparency-title {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .transparency-description {
+            font-size: 0.9rem;
+            color: #6b7280;
+            line-height: 1.4;
         }
 
         /* Claims Section Styles */
@@ -1348,54 +1585,6 @@
             border-radius: 20px;
             font-weight: 700;
             font-size: 0.9rem;
-        }
-
-        /* Source Analysis Styles */
-        .source-details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .source-detail-card {
-            background: rgba(249, 250, 251, 0.5);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .source-detail-card:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .detail-icon {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 10px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .detail-value {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .detail-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-            font-weight: 600;
         }
 
         /* Additional Findings Styles */
@@ -1620,6 +1809,10 @@
             .claims-grid {
                 grid-template-columns: 1fr;
             }
+
+            .verification-stats {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1728,6 +1921,27 @@
                 grid-template-columns: 1fr;
                 text-align: center;
                 gap: 10px;
+            }
+
+            .bias-compass {
+                width: 250px;
+                height: 250px;
+            }
+
+            .compass-outer {
+                width: 250px;
+                height: 250px;
+            }
+
+            .compass-inner {
+                width: 160px;
+                height: 160px;
+            }
+
+            .compass-center {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
         }
     </style>
@@ -1854,7 +2068,7 @@
                                 <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
                                 <div>
                                     <strong style="color: #4c1d95;">Review Your Results:</strong><br>
-                                    <span style="color: #6b7280;">Explore bias spectrum, source verification, and claim analysis</span>
+                                    <span style="color: #6b7280;">Explore bias compass, source verification, and claim analysis</span>
                                 </div>
                             </div>
                         </div>
@@ -1890,7 +2104,7 @@
                                 <ul style="list-style: none; padding: 0; margin: 0;">
                                     <li style="margin-bottom: 10px; color: white;">✓ Advanced credibility analysis</li>
                                     <li style="margin-bottom: 10px; color: white;">✓ 500+ source database</li>
-                                    <li style="margin-bottom: 10px; color: white;">✓ Interactive bias spectrum</li>
+                                    <li style="margin-bottom: 10px; color: white;">✓ Interactive bias compass</li>
                                     <li style="margin-bottom: 10px; color: white;">✓ Unlimited analyses</li>
                                     <li style="margin-bottom: 10px; color: white;">✓ Downloadable PDF reports</li>
                                     <li style="margin-bottom: 10px; color: white;">✓ Full claim verification</li>
@@ -2169,7 +2383,7 @@
             `;
             resultsDiv.appendChild(summaryBanner);
             
-            // Political Bias Analysis Section - FIXED
+            // Political Bias Analysis Section - NEW COMPASS DESIGN
             const biasSection = createAnalysisSection({
                 id: 'political-bias',
                 icon: '⚖️',
@@ -2177,36 +2391,30 @@
                 title: 'Political Bias Analysis',
                 summary: `${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)} bias detected with ${objectivityScore}% objectivity`,
                 content: `
-                    <div class="bias-spectrum-container">
-                        <h3 class="bias-spectrum-title">Political Orientation Detection</h3>
+                    <div class="bias-compass-container">
+                        <h3 class="bias-compass-title">Political Orientation Detection</h3>
                         
-                        <!-- Label ABOVE the spectrum -->
-                        <div class="bias-position-label">
-                            ${biasLabel.toUpperCase()} BIAS DETECTED
-                        </div>
-                        
-                        <!-- The spectrum bar with properly positioned indicator -->
-                        <div class="bias-spectrum">
-                            <!-- Indicator positioned correctly -->
-                            <div class="bias-indicator" style="left: ${calculateBiasPosition(biasScore)}%;">
-                                <!-- Circle with score ABOVE the bar -->
-                                <div class="bias-indicator-circle">
-                                    ${Math.abs(biasScore).toFixed(0)}
-                                </div>
-                                <!-- Arrow pointing down -->
-                                <div class="bias-indicator-arrow"></div>
-                                <!-- Vertical line through the bar -->
-                                <div class="bias-indicator-line"></div>
+                        <!-- Compass Visualization -->
+                        <div class="bias-compass">
+                            <div class="compass-circle compass-outer"></div>
+                            <div class="compass-circle compass-inner"></div>
+                            <div class="compass-circle compass-center">${Math.abs(biasScore).toFixed(0)}</div>
+                            
+                            <!-- Labels -->
+                            <div class="compass-labels">
+                                <div class="compass-label far-left">Far Left</div>
+                                <div class="compass-label left">Left</div>
+                                <div class="compass-label center">Center</div>
+                                <div class="compass-label right">Right</div>
+                                <div class="compass-label far-right">Far Right</div>
                             </div>
+                            
+                            <!-- Needle -->
+                            <div class="compass-needle" style="transform: translate(-50%, -100%) rotate(${calculateCompassRotation(biasScore)}deg);"></div>
                         </div>
                         
-                        <!-- Labels below the spectrum -->
-                        <div class="bias-labels">
-                            <span>Far Left</span>
-                            <span>Left</span>
-                            <span>Center</span>
-                            <span>Right</span>
-                            <span>Far Right</span>
+                        <div class="bias-position-badge">
+                            ${biasLabel.toUpperCase()} BIAS DETECTED
                         </div>
                     </div>
                     
@@ -2262,7 +2470,7 @@
             });
             resultsDiv.appendChild(biasSection);
             
-            // Cross-Source Comparison Section
+            // Enhanced Cross-Source Comparison Section
             const comparisonSection = createAnalysisSection({
                 id: 'source-comparison',
                 icon: '🔄',
@@ -2271,18 +2479,34 @@
                 summary: 'Compared with major news outlets for consistency',
                 content: `
                     <div class="comparison-chart-container">
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            ${crossReferences.length > 0 ? 
-                            `Our verification engine found ${crossReferences.length} additional source${crossReferences.length > 1 ? 's' : ''} 
-                            reporting on this story. ${crossReferences.length > 5 ? 
-                            'This widespread coverage across multiple outlets suggests a significant news event with broad media attention.' : 
-                            crossReferences.length > 2 ? 
-                            'Moderate coverage across select outlets indicates this story has gained some traction in the media landscape.' : 
-                            'Limited coverage suggests this may be breaking news, regional reporting, or an exclusive story.'}` :
-                            `Our cross-reference check found no matching coverage in other major outlets at this time. 
-                            This could indicate: (1) Breaking news not yet picked up by other sources, (2) An exclusive 
-                            report or investigation, (3) Regional or niche coverage, or (4) Content requiring additional verification.`}
+                        <!-- Verification Statistics -->
+                        <div class="verification-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">📰</div>
+                                <div class="stat-number">${crossReferences.length}</div>
+                                <div class="stat-label">Sources Checked</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">✅</div>
+                                <div class="stat-number">${crossReferences.filter(ref => ref.relevance > 70).length}</div>
+                                <div class="stat-label">Matching Reports</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🌐</div>
+                                <div class="stat-number">${crossReferences.length > 0 ? Math.round(crossReferences.reduce((sum, ref) => sum + ref.relevance, 0) / crossReferences.length) : 0}%</div>
+                                <div class="stat-label">Avg. Similarity</div>
+                            </div>
+                        </div>
+                        
+                        <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
+                            <strong>What this means:</strong> We searched ${crossReferences.length > 0 ? '500+' : 'our database of 500+'} news sources to find corroborating reports. 
+                            ${crossReferences.length > 5 ? 
+                            `The high number of matching sources (${crossReferences.length}) indicates this is a widely reported story with multiple independent verifications. This widespread coverage increases confidence in the core facts.` : 
+                            crossReferences.length > 0 ?
+                            `We found ${crossReferences.length} source${crossReferences.length > 1 ? 's' : ''} reporting similar information. Limited coverage may indicate: breaking news, regional story, or exclusive reporting.` :
+                            `No matching coverage was found in other outlets. This could mean: (1) Breaking news not yet reported elsewhere, (2) Exclusive or original reporting, (3) Regional/niche coverage, or (4) Content requiring additional verification.`}
                         </p>
+                        
                         <div class="comparison-items">
                             ${generateComparisonItems(crossReferences)}
                         </div>
@@ -2292,7 +2516,7 @@
             });
             resultsDiv.appendChild(comparisonSection);
             
-            // Source & Author Analysis Section
+            // Source & Author Analysis Section with smaller icons
             const sourceSection = createAnalysisSection({
                 id: 'source-analysis',
                 icon: '📊',
@@ -2332,7 +2556,7 @@
             });
             resultsDiv.appendChild(sourceSection);
             
-            // Emotional Language Analysis Section
+            // Enhanced Emotional Language Analysis with meter
             const emotionalSection = createAnalysisSection({
                 id: 'emotional-analysis',
                 icon: '💭',
@@ -2341,7 +2565,21 @@
                 summary: `Emotional intensity: ${biasIndicators.emotional_language || 0}%`,
                 content: `
                     <div class="analysis-body">
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                        <div class="emotion-meter-container">
+                            <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Emotional Content Level</h4>
+                            <div class="emotion-meter">
+                                <div class="emotion-fill" style="width: ${biasIndicators.emotional_language || 0}%;">
+                                    <div class="emotion-marker" style="left: 100%;" data-value="${biasIndicators.emotional_language || 0}%"></div>
+                                </div>
+                            </div>
+                            <div class="emotion-labels">
+                                <span>Factual</span>
+                                <span>Moderate</span>
+                                <span>Emotional</span>
+                            </div>
+                        </div>
+                        
+                        <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
                             Our linguistic analysis detected ${biasIndicators.emotional_language > 50 ? 'high' : 
                             biasIndicators.emotional_language > 20 ? 'moderate' : 'low'} levels of emotional language
                             (${biasIndicators.emotional_language || 0}%). ${generateEmotionalNarrative(politicalBias, biasIndicators)}
@@ -2364,7 +2602,7 @@
             });
             resultsDiv.appendChild(emotionalSection);
             
-            // Writing Style Analysis Section
+            // Writing Style Analysis Section with smaller icons
             const styleSection = createAnalysisSection({
                 id: 'style-analysis',
                 icon: '✏️',
@@ -2404,7 +2642,7 @@
             });
             resultsDiv.appendChild(styleSection);
             
-            // Fact-Checking Signals Section
+            // Enhanced Fact-Checking Signals Section
             const signalsSection = createAnalysisSection({
                 id: 'fact-signals',
                 icon: '🎯',
@@ -2413,6 +2651,10 @@
                 summary: 'Indicators of reliable vs questionable reporting',
                 content: `
                     <div class="analysis-body">
+                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                            <strong>How our fact-checking works:</strong> We analyze over 50 linguistic and structural indicators to identify patterns associated with reliable journalism versus potential misinformation. 
+                            This includes checking for attribution phrases ("according to"), direct quotes, specific data points, and warning signs like vague sourcing or excessive qualifying language.
+                        </p>
                         ${generateFactSignalsContent(results, textContent)}
                     </div>
                 `,
@@ -2436,7 +2678,7 @@
             });
             resultsDiv.appendChild(temporalSection);
             
-            // Transparency Score Section
+            // Enhanced Transparency Score Section
             const transparencySection = createAnalysisSection({
                 id: 'transparency-score',
                 icon: '🔍',
@@ -2445,6 +2687,13 @@
                 summary: 'How well sources and claims are documented',
                 content: `
                     <div class="analysis-body">
+                        <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">What We Check For Transparency:</h4>
+                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
+                            Transparency is crucial for credible journalism. We evaluate whether the article clearly identifies its author, 
+                            attributes information to specific sources, includes direct quotes, acknowledges any limitations in reporting, 
+                            and avoids over-reliance on anonymous sources. High transparency means readers can verify claims independently.
+                        </p>
+                        
                         ${generateTransparencyAnalysis(textContent, sourceAnalysis)}
                     </div>
                 `,
@@ -2452,19 +2701,19 @@
             });
             resultsDiv.appendChild(transparencySection);
             
-            // Additional Findings Section (Pro only)
+            // Additional Findings Section (Pro only) - Updated to mention GPT-4
             if (tier === 'pro' && methodology.ai_enhanced) {
                 const findingsSection = createAnalysisSection({
                     id: 'additional-findings',
                     icon: '🔍',
                     iconColor: '#dc2626',
                     title: 'Advanced AI Insights',
-                    summary: 'Deep analysis using GPT-3.5 and pattern recognition',
+                    summary: 'Deep analysis using GPT-4 and pattern recognition',
                     content: `
                         <div class="analysis-body">
                             <p style="color: #4b5563; line-height: 1.8; margin-bottom: 25px; font-size: 1.05rem;">
                                 <strong>How Our AI Works For You:</strong><br>
-                                We employ cutting-edge artificial intelligence models including GPT-3.5 and proprietary pattern 
+                                We employ cutting-edge artificial intelligence models including GPT-4 and proprietary pattern 
                                 recognition algorithms to analyze this article at a depth impossible for human reviewers alone. 
                                 Our AI examines linguistic patterns, identifies manipulation techniques, detects emotional 
                                 manipulation, and compares writing styles against our database of millions of articles to 
@@ -2485,19 +2734,15 @@
                 tier: tier,
                 credibility_score: credibilityScore,
                 bias: biasLabel,
-                sections_shown: tier === 'pro' ? 4 : 3
+                sections_shown: tier === 'pro' ? 10 : 6
             });
         }
 
-        // Helper function to calculate bias position
-        function calculateBiasPosition(biasScore) {
-            // Convert bias score (-10 to +10) to percentage (0 to 100)
-            // -10 = 0% (far left), 0 = 50% (center), +10 = 100% (far right)
-            const normalizedScore = (biasScore + 10) / 20; // Convert to 0-1 range
-            const percentage = normalizedScore * 100;
-            
-            // Clamp between 5% and 95% to keep indicator within bounds
-            return Math.max(5, Math.min(95, percentage));
+        // Helper function to calculate compass rotation
+        function calculateCompassRotation(biasScore) {
+            // Convert bias score (-10 to +10) to rotation angle
+            // -10 = -90deg (far left), 0 = 0deg (center), +10 = 90deg (far right)
+            return (biasScore / 10) * 90;
         }
         
         // Calculate reading level
@@ -2585,6 +2830,13 @@
                         }
                     </div>
                 </div>
+                <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
+                    <strong>What this means:</strong> ${signals.positive.length > signals.negative.length ? 
+                    'The article shows more positive indicators of reliable journalism than red flags. This suggests adherence to professional standards, though readers should still verify key claims.' :
+                    signals.negative.length > signals.positive.length ?
+                    'The article shows more warning signs than positive indicators. Exercise caution and seek additional sources to verify the information presented.' :
+                    'The article shows a balance of positive and negative indicators. Cross-reference important claims with other sources for verification.'}
+                </p>
             `;
         }
         
@@ -2612,7 +2864,7 @@
             `;
         }
         
-        // Generate transparency analysis
+        // Enhanced transparency analysis with breakdown
         function generateTransparencyAnalysis(text, sourceAnalysis) {
             let transparencyScore = 50; // Base score
             const factors = [];
@@ -2620,29 +2872,53 @@
             // Check various transparency factors
             if (sourceAnalysis.author?.name && sourceAnalysis.author.name !== 'Not Specified') {
                 transparencyScore += 15;
-                factors.push({ positive: true, text: 'Clear author attribution' });
+                factors.push({ 
+                    positive: true, 
+                    title: 'Clear Author Attribution',
+                    description: 'The article identifies its author, allowing readers to research their credentials and previous work.'
+                });
             } else {
-                factors.push({ positive: false, text: 'No author attribution' });
+                factors.push({ 
+                    positive: false, 
+                    title: 'No Author Attribution',
+                    description: 'No author is identified, making it difficult to assess credibility or potential biases.'
+                });
             }
             
             if ((text.match(/according to/gi) || []).length > 0) {
                 transparencyScore += 10;
-                factors.push({ positive: true, text: 'Uses source attribution' });
+                factors.push({ 
+                    positive: true, 
+                    title: 'Uses Source Attribution',
+                    description: 'Information is attributed to specific sources, allowing verification.'
+                });
             }
             
             if ((text.match(/"/g) || []).length >= 4) {
                 transparencyScore += 10;
-                factors.push({ positive: true, text: 'Includes direct quotes' });
+                factors.push({ 
+                    positive: true, 
+                    title: 'Includes Direct Quotes',
+                    description: 'Direct quotes provide transparency about what sources actually said.'
+                });
             }
             
             if (text.includes('could not be reached') || text.includes('declined to comment')) {
                 transparencyScore += 5;
-                factors.push({ positive: true, text: 'Acknowledges attempted verification' });
+                factors.push({ 
+                    positive: true, 
+                    title: 'Acknowledges Reporting Limitations',
+                    description: 'The article transparently notes when sources were unavailable for comment.'
+                });
             }
             
             if (text.includes('anonymous') || text.includes('unnamed source')) {
                 transparencyScore -= 10;
-                factors.push({ positive: false, text: 'Relies on anonymous sources' });
+                factors.push({ 
+                    positive: false, 
+                    title: 'Uses Anonymous Sources',
+                    description: 'Anonymous sources reduce transparency and make verification difficult.'
+                });
             }
             
             return `
@@ -2658,19 +2934,30 @@
                             </div>
                         </div>
                     </div>
-                    <h4 style="margin-top: 15px; color: #4b5563;">Transparency Score</h4>
+                    <h4 style="margin-top: 15px; color: #4b5563;">Overall Transparency Score</h4>
                 </div>
-                <div style="display: grid; gap: 10px;">
+                
+                <div class="transparency-breakdown">
                     ${factors.map(factor => `
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px;
-                            background: ${factor.positive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-                            border-radius: 8px;">
-                            <i class="fas fa-${factor.positive ? 'check' : 'times'}" 
-                                style="color: ${factor.positive ? '#10b981' : '#ef4444'};"></i>
-                            <span style="color: #4b5563;">${factor.text}</span>
+                        <div class="transparency-item">
+                            <div class="transparency-icon ${factor.positive ? 'positive' : 'negative'}">
+                                <i class="fas fa-${factor.positive ? 'check' : 'times'}"></i>
+                            </div>
+                            <div class="transparency-text">
+                                <div class="transparency-title">${factor.title}</div>
+                                <div class="transparency-description">${factor.description}</div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
+                
+                <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
+                    <strong>Bottom line:</strong> ${transparencyScore >= 70 ? 
+                    'This article demonstrates high transparency, making it easier for readers to verify claims and assess credibility.' :
+                    transparencyScore >= 50 ?
+                    'This article shows moderate transparency. Some information can be verified, but certain aspects lack clear attribution.' :
+                    'This article has low transparency, making independent verification difficult. Seek additional sources for important claims.'}
+                </p>
             `;
         }
 
