@@ -1770,6 +1770,97 @@
                             <div class="tool-item">
                                 <i class="fas fa-balance-scale"></i> Real-Time Political Bias Detection
                             </div>
+                            <div class="tool-item">
+                                <i class="fas fa-check-circle"></i> Multi-Source Fact Verification
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-database"></i> 500+ News Source Credibility Database
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-search"></i> Cross-Source Verification Network
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-shield-alt"></i> Misinformation Pattern Recognition
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-network-wired"></i> Multi-Outlet Story Comparison
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-chart-line"></i> Journalism Quality Scoring
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-clock"></i> Timeline & Event Verification
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-fingerprint"></i> Editorial vs News Classification
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-brain"></i> Advanced AI Content Analysis
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-globe"></i> Real-Time Breaking News Verification
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-comments"></i> Social Media Echo Analysis
+                            </div>
+                            <div class="tool-item">
+                                <i class="fas fa-microscope"></i> Deep Linguistic Pattern Detection
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dropdown-section">
+                <div class="dropdown-header" onclick="toggleDropdown(this, 'info')">
+                    <span><i class="fas fa-info-circle"></i> How to Use NewsVerify Pro</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+                <div class="dropdown-content">
+                    <div style="display: grid; gap: 15px;">
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+                            <div>
+                                <strong style="color: #4c1d95;">Choose Your Input Method:</strong><br>
+                                <span style="color: #6b7280;">Either paste news text directly or enter a news article URL</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+                            <div>
+                                <strong style="color: #4c1d95;">Select Analysis Type:</strong><br>
+                                <span style="color: #6b7280;">FREE: Basic credibility check | PRO: Comprehensive verification with bias analysis</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+                            <div>
+                                <strong style="color: #4c1d95;">Review Your Results:</strong><br>
+                                <span style="color: #6b7280;">Explore bias spectrum, source verification, and claim analysis</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dropdown-section">
+                <div class="dropdown-header" onclick="toggleDropdown(this, 'info')">
+                    <span><i class="fas fa-crown"></i> Free vs Pro Comparison</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+                <div class="dropdown-content">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                            <h4 style="color: #6b7280; margin-bottom: 15px;"><i class="fas fa-gift"></i> FREE Version</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Basic credibility score</li>
+                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Source verification (100+ sources)</li>
+                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Simple bias indicator</li>
+                                <li style="margin-bottom: 10px; color: #4b5563;">✓ 5 analyses per day</li>
+                                <li style="margin-bottom: 10px; color: #9ca3af;">✗ No downloadable reports</li>
+                                <li style="margin-bottom: 10px; color: #9ca3af;">✗ Limited evidence details</li>
+                            </ul>
+                        </div>
                         <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 12px; border: 2px solid #667eea;">
                             <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-crown"></i> PRO Version</h4>
                             <ul style="list-style: none; padding: 0; margin: 0;">
@@ -1915,80 +2006,26 @@
 
     <script src="/static/auth-analysis.js"></script>
     <script>
-        // Initialize analytics tracking
-        document.addEventListener('DOMContentLoaded', function() {
-            trackNewsEvent('news_verification_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: screen.width + 'x' + screen.height,
-                referrer: document.referrer,
-                unique_feature: 'first_news_verification_platform'
-            });
+        // ============================================================================
+        // GLOBAL VARIABLES AND FUNCTIONS - MUST BE AT TOP LEVEL
+        // ============================================================================
+        
+        let currentInputType = 'text';
+        let currentAnalysisData = null;
+        let currentTier = 'free';
+
+        // Show notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.display = 'block';
+            document.body.appendChild(notification);
             
-            setupNewsAnalytics();
-        });
-
-        // Setup comprehensive news verification analytics
-        function setupNewsAnalytics() {
-            // Track navigation clicks
-            document.querySelectorAll('.nav-links a, .nav-links-secondary a').forEach(link => {
-                link.addEventListener('click', function() {
-                    const destination = this.getAttribute('href');
-                    trackNewsEvent('navigation_clicked', {
-                        destination: destination,
-                        link_text: this.textContent.trim()
-                    });
-                });
-            });
-
-            // Track tool interactions
-            document.querySelectorAll('.tool-item').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    const toolTitle = this.textContent.trim();
-                    trackNewsEvent('news_tool_hovered', {
-                        tool: toolTitle
-                    });
-                });
-            });
-
-            // Track form interactions
-            document.querySelectorAll('input, textarea').forEach(field => {
-                field.addEventListener('focus', function() {
-                    const fieldType = this.type || 'textarea';
-                    const fieldId = this.id;
-                    trackNewsEvent('form_field_focused', {
-                        field_type: fieldType,
-                        field_id: fieldId
-                    });
-                });
-
-                field.addEventListener('input', function() {
-                    const fieldId = this.id;
-                    const hasContent = this.value.length > 0;
-                    trackNewsEvent('form_field_input', {
-                        field_id: fieldId,
-                        has_content: hasContent,
-                        content_length: this.value.length
-                    });
-                });
-            });
-
-            // Track engagement metrics
-            let pageStartTime = Date.now();
-            let engagementEvents = 0;
-
-            ['click', 'scroll', 'mousemove', 'keydown'].forEach(eventType => {
-                document.addEventListener(eventType, function() {
-                    engagementEvents++;
-                });
-            });
-
-            window.addEventListener('beforeunload', function() {
-                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-                trackNewsEvent('page_session_end', {
-                    time_on_page: timeOnPage,
-                    engagement_events: engagementEvents
-                });
-            });
+            setTimeout(() => {
+                notification.style.display = 'none';
+                document.body.removeChild(notification);
+            }, 3000);
         }
 
         // Beta Modal Functions
@@ -2082,7 +2119,7 @@
             });
         }
 
-        // Updated Claims Modal Functions
+        // Claims Modal Functions
         function closeClaimsModal() {
             document.getElementById('claimsModal').style.display = 'none';
         }
@@ -2162,26 +2199,38 @@
             showAllClaims('unsupported');
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('betaModal');
-            const crossModal = document.getElementById('crossVerifyModal');
-            const claimsModal = document.getElementById('claimsModal');
-            if (event.target === modal) {
-                closeBetaModal();
+        // Dropdown toggle function
+        function toggleDropdown(header, tier) {
+            const content = header.nextElementSibling;
+            const isOpen = header.classList.contains('open');
+            
+            // Check if it's a locked dropdown and user is on free tier
+            if (header.classList.contains('locked') && tier === 'free') {
+                showNotification('Upgrade to Pro to unlock this feature!', 'info');
+                return;
             }
-            if (event.target === crossModal) {
-                closeCrossVerifyModal();
+            
+            // Toggle open state
+            header.classList.toggle('open');
+            content.classList.toggle('open');
+            
+            // Smooth transition
+            if (!isOpen) {
+                content.style.display = 'block';
+                // Trigger reflow
+                content.offsetHeight;
+                content.classList.add('open');
+            } else {
+                content.classList.remove('open');
+                setTimeout(() => {
+                    if (!content.classList.contains('open')) {
+                        content.style.display = 'none';
+                    }
+                }, 300);
             }
-            if (event.target === claimsModal) {
-                closeClaimsModal();
-            }
-        };
+        }
 
-        let currentInputType = 'text';
-        let currentAnalysisData = null;
-        let currentTier = 'free';
-
+        // Input type switching
         function switchInputType(type) {
             currentInputType = type;
             
@@ -2206,6 +2255,7 @@
             });
         }
 
+        // Load test data
         function loadTestData() {
             const testContent = "Breaking: Infrastructure Bill Passes Senate with Bipartisan Support. The Department of Transportation announced today the allocation of $2.3 billion for highway improvements across 15 states, according to officials who state this initiative will create approximately 45,000 jobs over the next 18 months. The announcement comes following congressional support for the infrastructure bill passed last quarter. Sources close to the administration suggest this represents the largest single infrastructure investment in recent history. Industry experts predict significant economic impact in rural communities, though some critics question the timeline for implementation.";
             
@@ -2218,374 +2268,57 @@
             });
         }
 
-        // ============================================================================
-        // INTERACTIVE EVIDENCE EXPLORER - NEW FUNCTIONALITY
-        // ============================================================================
-
-        // Main function to create the Interactive Evidence Explorer
-        function createInteractiveEvidenceExplorer(analysisData) {
-            const evidenceData = generateEvidenceCards(analysisData);
-            
-            const explorerHTML = `
-                <div class="evidence-explorer">
-                    <div class="evidence-explorer-header">
-                        <div class="evidence-explorer-title">
-                            <i class="fas fa-search-plus"></i>
-                            Interactive Evidence Explorer
-                        </div>
-                        <div class="evidence-counter">
-                            ${evidenceData.length} Evidence Points
-                        </div>
-                    </div>
-                    
-                    <div class="evidence-grid">
-                        ${evidenceData.map((evidence, index) => createEvidenceCard(evidence, index)).join('')}
-                    </div>
-                    
-                    ${createInteractiveBiasSpectrum(analysisData)}
-                    ${createSourceNetwork(analysisData)}
-                </div>
-            `;
-            
-            return explorerHTML;
+        // Reset form
+        function resetForm() {
+            document.getElementById('news-text').value = '';
+            document.getElementById('news-url').value = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+            showNotification('Form reset successfully', 'success');
+            trackNewsEvent('form_reset');
         }
 
-        // Generate evidence cards from analysis data
-        function generateEvidenceCards(data) {
-            const evidence = [];
-            
-            // Credibility Evidence
-            evidence.push({
-                type: 'Credibility Assessment',
-                icon: 'fas fa-shield-alt',
-                confidence: getConfidenceLevel(data.credibility_score || 65),
-                preview: `Overall credibility scored ${data.credibility_score || 65}/100 based on multiple verification factors`,
-                details: `
-                    <div class="evidence-methodology">
-                        <strong>Analysis Method:</strong> Multi-factor credibility scoring including source verification, 
-                        content structure analysis, and cross-reference validation.
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <strong>Contributing Factors:</strong><br>
-                        • Source authority: ${data.source_analysis?.credibility_score || 'Medium'}<br>
-                        • Content structure: ${data.content_quality || 'Professional'}<br>
-                        • Fact-check correlation: ${data.fact_check_alignment || 'Verified'}<br>
-                        • Citation quality: ${data.citation_score || 'Good'}
-                    </div>
-                `,
-                sources: ['NewsVerify Database', 'Source Authority Index', 'Content Analysis Engine'],
-                methodology: 'Advanced algorithmic assessment with human-verified training data'
-            });
-            
-            // Bias Analysis Evidence  
-            if (data.political_bias || data.bias_indicators) {
-                const biasData = data.political_bias || {};
-                evidence.push({
-                    type: 'Political Bias Detection',
-                    icon: 'fas fa-balance-scale',
-                    confidence: 'high',
-                    preview: `${biasData.bias_label || 'Center'} political lean detected with ${biasData.objectivity_score || 75}% objectivity`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Bias Analysis:</strong> Language pattern recognition, source selection analysis, 
-                            and narrative framing assessment.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Bias Indicators:</strong><br>
-                            • Language sentiment: ${biasData.sentiment_score || 'Neutral'}<br>
-                            • Left indicators: ${biasData.left_indicators || 0}<br>
-                            • Right indicators: ${biasData.right_indicators || 0}<br>
-                            • Loaded terms: ${biasData.loaded_terms?.length || 0}
-                        </div>
-                    `,
-                    sources: ['Political Language Database', 'Bias Pattern Recognition', 'Editorial Analysis Engine'],
-                    methodology: 'Machine learning model trained on 100,000+ manually classified news articles'
-                });
+        // Download report function
+        function downloadReport() {
+            if (!currentAnalysisData) {
+                showNotification('No analysis data to download', 'error');
+                return;
             }
             
-            // Source Verification Evidence
-            const sourceScore = data.source_analysis?.credibility_score || 70;
-            evidence.push({
-                type: 'Source Verification',
-                icon: 'fas fa-database',
-                confidence: getConfidenceLevel(sourceScore),
-                preview: `Source verified against 500+ news outlet database with ${sourceScore}/100 reliability score`,
-                details: `
-                    <div class="evidence-methodology">
-                        <strong>Source Analysis:</strong> Comprehensive database lookup, ownership transparency check, 
-                        and historical accuracy assessment.
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <strong>Verification Points:</strong><br>
-                        • Domain: ${data.source_analysis?.domain || 'Unknown'}<br>
-                        • Type: ${data.source_analysis?.source_type || 'Unknown'}<br>
-                        • Political bias: ${data.source_analysis?.political_bias || 'Unknown'}<br>
-                        • Founded: ${data.source_analysis?.founded || 'Unknown'}
-                    </div>
-                `,
-                sources: ['NewsVerify Source Database', 'Media Ownership Registry', 'Fact-Check Archives'],
-                methodology: 'Real-time database verification with continuous source monitoring'
-            });
-            
-            // Fact-Check Cross-Reference Evidence
-            if (data.fact_check_results && data.fact_check_results.length > 0) {
-                evidence.push({
-                    type: 'Fact-Check Cross-Reference',
-                    icon: 'fas fa-check-circle',
-                    confidence: 'high',
-                    preview: `Cross-referenced ${data.fact_check_results.length} claims against fact-checking organizations`,
-                    details: `
-                        <div class="evidence-methodology">
-                            <strong>Fact-Check Process:</strong> Automated claim extraction and verification against 
-                            multiple fact-checking databases.
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <strong>Claims Analyzed:</strong><br>
-                            ${data.fact_check_results.slice(0, 3).map(fc => 
-                                `• "${(fc.claim || '').substring(0, 60)}..." - ${fc.status || 'Unknown'}`
-                            ).join('<br>')}
-                        </div>
-                    `,
-                    sources: ['Snopes', 'PolitiFact', 'FactCheck.org', 'Reuters Fact Check'],
-                    methodology: 'Automated claim extraction and cross-reference verification'
-                });
-            }
-            
-            return evidence;
-        }
+            // Generate PDF report content
+            const reportContent = `
+NEWS VERIFICATION REPORT
+Generated: ${new Date().toLocaleString()}
 
-        // Create individual evidence card HTML
-        function createEvidenceCard(evidence, index) {
-            return `
-                <div class="evidence-card" onclick="toggleEvidenceCard(${index})">
-                    <div class="evidence-card-header">
-                        <div class="evidence-type">
-                            <i class="${evidence.icon}"></i>
-                            ${evidence.type}
-                        </div>
-                        <div class="evidence-confidence confidence-${evidence.confidence}">${evidence.confidence.toUpperCase()}</div>
-                        <i class="fas fa-chevron-down expand-indicator"></i>
-                    </div>
-                    
-                    <div class="evidence-preview">${evidence.preview}</div>
-                    
-                    <div class="evidence-details" id="evidence-details-${index}">
-                        ${evidence.details}
-                        
-                        <div class="evidence-sources">
-                            ${evidence.sources.map(source => `<span class="evidence-source">${source}</span>`).join('')}
-                        </div>
-                    </div>
-                </div>
+CREDIBILITY SCORE: ${currentAnalysisData.credibility_score}/100
+POLITICAL BIAS: ${currentAnalysisData.political_bias?.bias_label || 'Unknown'}
+OBJECTIVITY: ${currentAnalysisData.political_bias?.objectivity_score || 0}%
+
+SOURCE ANALYSIS:
+Domain: ${currentAnalysisData.source_analysis?.domain || 'Unknown'}
+Credibility: ${currentAnalysisData.source_analysis?.credibility_score || 0}/100
+
+FULL REPORT DETAILS...
             `;
-        }
-
-        // Toggle evidence card expansion
-        function toggleEvidenceCard(index) {
-            const card = document.querySelectorAll('.evidence-card')[index];
-            const details = document.getElementById(`evidence-details-${index}`);
             
-            if (!card || !details) return;
+            // Create blob and download
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `news-verification-report-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
             
-            card.classList.toggle('expanded');
-            details.classList.toggle('visible');
-            
-            // Track interaction
-            trackNewsEvent('evidence_card_toggled', {
-                evidence_type: card.querySelector('.evidence-type').textContent.trim(),
-                action: card.classList.contains('expanded') ? 'expanded' : 'collapsed',
-                card_index: index
+            showNotification('Report downloaded successfully!', 'success');
+            trackNewsEvent('report_downloaded', {
+                tier: currentTier
             });
         }
 
-        // Create interactive bias spectrum
-        function createInteractiveBiasSpectrum(data) {
-            const biasData = data.political_bias || {};
-            const biasScore = biasData.bias_score || 0;
-            const biasPosition = Math.max(5, Math.min(95, 50 + (biasScore * 5)));
-            
-            return `
-                <div class="interactive-bias-spectrum">
-                    <h4 style="margin-bottom: 15px; color: #4a5568;">
-                        <i class="fas fa-balance-scale"></i> Interactive Political Bias Spectrum
-                    </h4>
-                    <div class="bias-spectrum-container">
-                        <div class="bias-hover-zones">
-                            <div class="bias-zone" data-zone="left" onmouseenter="showBiasTooltip(event, 'left')" onmouseleave="hideBiasTooltip()"></div>
-                            <div class="bias-zone" data-zone="center-left" onmouseenter="showBiasTooltip(event, 'center-left')" onmouseleave="hideBiasTooltip()"></div>
-                            <div class="bias-zone" data-zone="center" onmouseenter="showBiasTooltip(event, 'center')" onmouseleave="hideBiasTooltip()"></div>
-                            <div class="bias-zone" data-zone="center-right" onmouseenter="showBiasTooltip(event, 'center-right')" onmouseleave="hideBiasTooltip()"></div>
-                            <div class="bias-zone" data-zone="right" onmouseenter="showBiasTooltip(event, 'right')" onmouseleave="hideBiasTooltip()"></div>
-                        </div>
-                        
-                        <div class="bias-indicator pulse" style="left: ${biasPosition}%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: white; border: 4px solid #374151; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 2;"></div>
-                        <div class="bias-labels" style="position: absolute; top: -25px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; font-weight: 600;">
-                            <span>LEFT</span>
-                            <span>CENTER</span>
-                            <span>RIGHT</span>
-                        </div>
-                    </div>
-                    
-                    <div class="bias-tooltip" id="biasTooltip"></div>
-                </div>
-            `;
-        }
-
-        // Create source network visualization
-        function createSourceNetwork(data) {
-            const sources = [
-                { name: 'Primary Source', type: 'primary', description: 'Main content source being analyzed' },
-                { name: 'Fact-Check DB', type: 'secondary', description: 'Cross-reference verification database' },
-                { name: 'Credibility Index', type: 'secondary', description: 'Source reliability assessment' },
-                { name: 'Bias Detection', type: 'secondary', description: 'Political lean analysis engine' }
-            ];
-            
-            return `
-                <div class="source-network">
-                    <h4 style="margin-bottom: 15px; color: #4a5568; text-align: center;">
-                        <i class="fas fa-network-wired"></i> Source Verification Network
-                    </h4>
-                    <div class="network-nodes">
-                        ${sources.map(source => `
-                            <div class="network-node ${source.type}" 
-                                 onmouseenter="showNetworkTooltip(event, '${source.description}')"
-                                 onmouseleave="hideNetworkTooltip()">
-                                ${source.name}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Get confidence level based on score
-        function getConfidenceLevel(score) {
-            if (score >= 80) return 'high';
-            if (score >= 60) return 'medium';
-            return 'low';
-        }
-
-        // Show bias tooltip
-        function showBiasTooltip(event, zone) {
-            const tooltip = document.getElementById('biasTooltip');
-            if (!tooltip) return;
-            
-            const descriptions = {
-                'left': 'Left-leaning bias detected - Content may favor progressive viewpoints',
-                'center-left': 'Slight left bias - Mostly balanced with minor progressive lean',
-                'center': 'Neutral bias - Content maintains political balance and objectivity',
-                'center-right': 'Slight right bias - Mostly balanced with minor conservative lean',
-                'right': 'Right-leaning bias detected - Content may favor conservative viewpoints'
-            };
-            
-            tooltip.textContent = descriptions[zone];
-            tooltip.classList.add('visible');
-            
-            // Track interaction
-            if (typeof trackNewsEvent === 'function') {
-                trackNewsEvent('bias_spectrum_explored', { zone: zone });
-            }
-        }
-
-        // Hide bias tooltip
-        function hideBiasTooltip() {
-            const tooltip = document.getElementById('biasTooltip');
-            if (tooltip) {
-                tooltip.classList.remove('visible');
-            }
-        }
-
-        // Show network tooltip
-        function showNetworkTooltip(event, description) {
-            // Create or update network tooltip
-            let tooltip = document.getElementById('networkTooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('div');
-                tooltip.id = 'networkTooltip';
-                tooltip.className = 'enhanced-tooltip';
-                document.body.appendChild(tooltip);
-            }
-            
-            tooltip.innerHTML = `<h4>Verification Node</h4>${description}`;
-            tooltip.style.left = event.pageX + 'px';
-            tooltip.style.top = (event.pageY - 60) + 'px';
-            tooltip.classList.add('visible');
-            
-            // Track interaction
-            if (typeof trackNewsEvent === 'function') {
-                trackNewsEvent('source_network_explored', { description: description });
-            }
-        }
-
-        // Hide network tooltip
-        function hideNetworkTooltip() {
-            const tooltip = document.getElementById('networkTooltip');
-            if (tooltip) {
-                tooltip.classList.remove('visible');
-            }
-        }
-
-        // Animated counter function
-        function animateCounter(element, start, end, duration) {
-            const range = end - start;
-            const increment = range / (duration / 16); // 60fps
-            let current = start;
-            
-            const timer = setInterval(() => {
-                current += increment;
-                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-                    current = end;
-                    clearInterval(timer);
-                }
-                element.textContent = Math.round(current);
-                element.classList.add('counting');
-                setTimeout(() => element.classList.remove('counting'), 150);
-            }, 16);
-        }
-
-        // Enhanced showNewsResults function with Interactive Evidence Explorer
-        function showNewsResultsWithExplorer(results, tier) {
-            // Call existing showNewsResults function
-            showNewsResults(results, tier);
-            
-            // Add the Interactive Evidence Explorer as a dropdown section
-            const resultsDiv = document.getElementById('results');
-            if (!resultsDiv) return;
-            
-            // Create Evidence Explorer dropdown section
-            const explorerSection = document.createElement('div');
-            explorerSection.className = 'dropdown-section';
-            explorerSection.id = 'evidence-explorer-section';
-            
-            const explorerHeader = document.createElement('div');
-            explorerHeader.className = 'dropdown-header';
-            explorerHeader.onclick = function() { toggleDropdown(this, tier); };
-            explorerHeader.innerHTML = '<span><i class="fas fa-search-plus"></i> Interactive Evidence Explorer</span><i class="fas fa-chevron-down dropdown-icon"></i>';
-            explorerSection.appendChild(explorerHeader);
-            
-            const explorerContent = document.createElement('div');
-            explorerContent.className = 'dropdown-content';
-            explorerContent.innerHTML = createInteractiveEvidenceExplorer(results);
-            explorerSection.appendChild(explorerContent);
-            
-            // Insert after the last dropdown section
-            const dropdowns = resultsDiv.querySelectorAll('.dropdown-section');
-            if (dropdowns.length > 0) {
-                dropdowns[dropdowns.length - 1].insertAdjacentElement('afterend', explorerSection);
-            } else {
-                resultsDiv.appendChild(explorerSection);
-            }
-            
-            // Track the enhancement
-            if (typeof trackNewsEvent === 'function') {
-                trackNewsEvent('interactive_explorer_loaded', {
-                    tier: tier,
-                    evidence_count: generateEvidenceCards(results).length
-                });
-            }
-        }
-
-        // Scroll to section function
+        // Scroll to section
         function scrollToSection(sectionId) {
             const section = document.getElementById(sectionId);
             if (section) {
@@ -2613,10 +2346,36 @@
             }
         }
 
-        // ============================================================================
-        // END OF INTERACTIVE EVIDENCE EXPLORER CODE
-        // ============================================================================
+        // Generate news dialogue based on scores
+        function generateNewsDialogue(credibilityScore, biasLabel, sourceCredibility) {
+            if (credibilityScore >= 80) {
+                return `This article demonstrates high credibility with strong source verification and minimal bias indicators. The ${biasLabel} political lean is well-balanced with factual reporting. Source reliability scored ${sourceCredibility}/100, indicating trustworthy journalism standards.`;
+            } else if (credibilityScore >= 60) {
+                return `This content shows moderate credibility with some areas of concern. The ${biasLabel} political bias is noticeable but not extreme. Source credibility of ${sourceCredibility}/100 suggests reasonable reliability with room for improvement in journalistic standards.`;
+            } else {
+                return `This article requires careful verification due to low credibility indicators. The ${biasLabel} political bias is pronounced and may affect objectivity. Source credibility of ${sourceCredibility}/100 raises concerns about reliability. Cross-reference with multiple sources recommended.`;
+            }
+        }
 
+        // Animated counter function
+        function animateCounter(element, start, end, duration) {
+            const range = end - start;
+            const increment = range / (duration / 16); // 60fps
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current);
+                element.classList.add('counting');
+                setTimeout(() => element.classList.remove('counting'), 150);
+            }, 16);
+        }
+
+        // Main analysis function
         async function runAnalysis(tier) {
             tier = tier || 'free';
             currentTier = tier;
@@ -2846,15 +2605,7 @@
             }
         }
 
-        function resetProgressBars() {
-            document.getElementById('progressBar').style.width = '0%';
-            const progressPercentage = document.getElementById('progressPercentage');
-            if (progressPercentage) {
-                progressPercentage.textContent = '0%';
-            }
-            document.getElementById('progressStatus').textContent = 'Initializing advanced verification systems...';
-        }
-
+        // Show news results
         function showNewsResults(results, tier) {
             const resultsDiv = document.getElementById('results');
             
@@ -2911,6 +2662,7 @@
             
             // Create the main results container
             resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'block';
             
             // Create version badge
             const versionBadge = document.createElement('div');
@@ -3164,92 +2916,220 @@
                         
                         ${substantiatedClaimsCount > 0 ? `
                             <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px;">
-                                
-                            <div class="tool-item">
-                                <i class="fas fa-database"></i> 500+ News Source Credibility Database
+                                <p style="color: #059669; font-weight: bold; margin-bottom: 10px;">
+                                    <i class="fas fa-check-circle"></i> ${substantiatedClaimsCount} Well-Supported Claims Found
+                                </p>
+                                <p style="color: #047857; font-weight: normal; font-size: 0.9rem;">These statements are properly sourced and verified.</p>
+                                <button style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; margin-top: 10px;" onclick="showAllClaims('substantiated')">
+                                    <i class="fas fa-list"></i> View Supported Claims
+                                </button>
                             </div>
-                            <div class="tool-item">
-                                <i class="fas fa-search"></i> Cross-Source Verification Network
+                        ` : ''}
+                        
+                        ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                <h5 style="color: #4a5568; margin-bottom: 10px;">Loaded Language Detected:</h5>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${politicalBias.loaded_terms.map(term => 
+                                        `<span style="background: rgba(245, 158, 11, 0.1); color: #d97706; padding: 4px 12px; border-radius: 16px; font-size: 0.9rem;">${term}</span>`
+                                    ).join('')}
+                                </div>
                             </div>
-                            <div class="tool-item">
-                                <i class="fas fa-shield-alt"></i> Misinformation Pattern Recognition
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-network-wired"></i> Multi-Outlet Story Comparison
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-chart-line"></i> Journalism Quality Scoring
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-clock"></i> Timeline & Event Verification
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-fingerprint"></i> Editorial vs News Classification
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-brain"></i> Advanced AI Content Analysis
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-globe"></i> Real-Time Breaking News Verification
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-comments"></i> Social Media Echo Analysis
-                            </div>
-                            <div class="tool-item">
-                                <i class="fas fa-microscope"></i> Deep Linguistic Pattern Detection
-                            </div>
-                        </div>
+                        ` : ''}
                     </div>
-                </div>
-            </div>
+                `;
+            } else {
+                // Free tier - show locked content
+                biasContent.innerHTML = `
+                    <div class="locked-content">
+                        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Unlock Political Bias Analysis</h3>
+                        <p>Get detailed political bias metrics, objectivity scores, and claim verification with Pro.</p>
+                    </div>
+                    <div class="upgrade-prompt">
+                        <h3>Upgrade to Pro for Complete Analysis</h3>
+                        <div class="features-grid">
+                            <div>✓ Political bias spectrum</div>
+                            <div>✓ Objectivity scoring</div>
+                            <div>✓ Claim verification</div>
+                            <div>✓ Loaded language detection</div>
+                        </div>
+                        <button onclick="window.location.href='/pricingplan'">Upgrade Now</button>
+                    </div>
+                `;
+            }
+            
+            biasSection.appendChild(biasContent);
+            resultsDiv.appendChild(biasSection);
 
-            <div class="dropdown-section">
-                <div class="dropdown-header" onclick="toggleDropdown(this, 'info')">
-                    <span><i class="fas fa-info-circle"></i> How to Use NewsVerify Pro</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </div>
-                <div class="dropdown-content">
+            // Source Verification Section
+            const sourceSection = document.createElement('div');
+            sourceSection.className = 'dropdown-section';
+            sourceSection.id = 'source-verification';
+            
+            const sourceHeader = document.createElement('div');
+            sourceHeader.className = 'dropdown-header';
+            sourceHeader.onclick = function() { toggleDropdown(this, tier); };
+            sourceHeader.innerHTML = '<span><i class="fas fa-shield-alt"></i> Source Credibility & Trust Analysis</span><i class="fas fa-chevron-down dropdown-icon"></i>';
+            sourceSection.appendChild(sourceHeader);
+            
+            const sourceContent = document.createElement('div');
+            sourceContent.className = 'dropdown-content';
+            sourceContent.innerHTML = `
+                <div style="background: rgba(102, 126, 234, 0.05); padding: 25px; border-radius: 12px;">
+                    <h4 style="color: #4a5568; margin-bottom: 20px;">Source Verification Results:</h4>
                     <div style="display: grid; gap: 15px;">
-                        <div style="display: flex; align-items: start; gap: 15px;">
-                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
-                            <div>
-                                <strong style="color: #4c1d95;">Choose Your Input Method:</strong><br>
-                                <span style="color: #6b7280;">Either paste news text directly or enter a news article URL</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: start; gap: 15px;">
-                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
-                            <div>
-                                <strong style="color: #4c1d95;">Select Analysis Type:</strong><br>
-                                <span style="color: #6b7280;">FREE: Basic credibility check | PRO: Comprehensive verification with bias analysis</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: start; gap: 15px;">
-                            <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
-                            <div>
-                                <strong style="color: #4c1d95;">Review Your Results:</strong><br>
-                                <span style="color: #6b7280;">Explore bias spectrum, source verification, and claim analysis</span>
-                            </div>
-                        </div>
+                        <div><strong>Domain:</strong> ${sourceAnalysis.domain || 'Unknown'}</div>
+                        <div><strong>Credibility Score:</strong> ${sourceCredibility}/100</div>
+                        <div><strong>Source Type:</strong> ${sourceAnalysis.source_type || 'Unknown'}</div>
+                        <div><strong>Political Bias:</strong> ${sourceAnalysis.political_bias || 'Unknown'}</div>
+                        <div><strong>Founded:</strong> ${sourceAnalysis.founded || 'Unknown'}</div>
                     </div>
-                </div>
-            </div>
-
-            <div class="dropdown-section">
-                <div class="dropdown-header" onclick="toggleDropdown(this, 'info')">
-                    <span><i class="fas fa-crown"></i> Free vs Pro Comparison</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </div>
-                <div class="dropdown-content">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 12px; border: 2px solid #e5e7eb;">
-                            <h4 style="color: #6b7280; margin-bottom: 15px;"><i class="fas fa-gift"></i> FREE Version</h4>
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Basic credibility score</li>
-                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Source verification (100+ sources)</li>
-                                <li style="margin-bottom: 10px; color: #4b5563;">✓ Simple bias indicator</li>
-                                <li style="margin-bottom: 10px; color: #4b5563;">✓ 5 analyses per day</li>
-                                <li style="margin-bottom: 10px; color: #9ca3af;">✗ No downloadable reports</li>
-                                <li style="margin-bottom: 10px; color: #9ca3af;">✗ Limited evidence details</li>
-                            </ul>
+                    
+                    ${tier === 'pro' ? `
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(102, 126, 234, 0.2);">
+                            <h4 style="color: #4a5568; margin-bottom: 15px;">Cross-Reference Verification:</h4>
+                            ${crossReferences.map(ref => `
+                                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                                    <strong>${ref.source}</strong>: ${ref.title} (Relevance: ${ref.relevance}%)
+                                </div>
+                            `).join('')}
+                            <button onclick="openCrossVerifyModal()" style="background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;">
+                                <i class="fas fa-search"></i> Cross-Verify with More Sources
+                            </button>
                         </div>
+                    ` : ''}
+                </div>
+            `;
+            sourceSection.appendChild(sourceContent);
+            resultsDiv.appendChild(sourceSection);
+
+            // If pro tier and there are fact-check results, add fact-check section
+            if (tier === 'pro' && factCheckResults.length > 0) {
+                const factCheckSection = document.createElement('div');
+                factCheckSection.className = 'dropdown-section';
+                factCheckSection.id = 'fact-check';
+                
+                const factCheckHeader = document.createElement('div');
+                factCheckHeader.className = 'dropdown-header';
+                factCheckHeader.onclick = function() { toggleDropdown(this, tier); };
+                factCheckHeader.innerHTML = '<span><i class="fas fa-check-circle"></i> Fact-Check Analysis</span><i class="fas fa-chevron-down dropdown-icon"></i>';
+                factCheckSection.appendChild(factCheckHeader);
+                
+                const factCheckContent = document.createElement('div');
+                factCheckContent.className = 'dropdown-content';
+                factCheckContent.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #4a5568; margin-bottom: 15px;">Claims Analyzed:</h4>
+                        ${factCheckResults.map((fc, index) => `
+                            <div style="background: ${fc.status === 'Verified' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(245, 158, 11, 0.05)'}; 
+                                        border-left: 4px solid ${fc.status === 'Verified' ? '#10b981' : '#f59e0b'}; 
+                                        padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: #4a5568; margin-bottom: 10px;">Claim ${index + 1}:</h5>
+                                <p style="font-style: italic; margin-bottom: 10px;">"${fc.claim}"</p>
+                                <p><strong>Status:</strong> ${fc.status}</p>
+                                <p><strong>Confidence:</strong> ${fc.confidence}%</p>
+                                <p><strong>Sources:</strong> ${fc.sources.join(', ')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                factCheckSection.appendChild(factCheckContent);
+                resultsDiv.appendChild(factCheckSection);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('betaModal');
+            const crossModal = document.getElementById('crossVerifyModal');
+            const claimsModal = document.getElementById('claimsModal');
+            if (event.target === modal) {
+                closeBetaModal();
+            }
+            if (event.target === crossModal) {
+                closeCrossVerifyModal();
+            }
+            if (event.target === claimsModal) {
+                closeClaimsModal();
+            }
+        };
+
+        // Initialize analytics tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            trackNewsEvent('news_verification_page_loaded', {
+                user_agent: navigator.userAgent,
+                screen_resolution: screen.width + 'x' + screen.height,
+                referrer: document.referrer,
+                unique_feature: 'first_news_verification_platform'
+            });
+            
+            setupNewsAnalytics();
+        });
+
+        // Setup comprehensive news verification analytics
+        function setupNewsAnalytics() {
+            // Track navigation clicks
+            document.querySelectorAll('.nav-links a, .nav-links-secondary a').forEach(link => {
+                link.addEventListener('click', function() {
+                    const destination = this.getAttribute('href');
+                    trackNewsEvent('navigation_clicked', {
+                        destination: destination,
+                        link_text: this.textContent.trim()
+                    });
+                });
+            });
+
+            // Track tool interactions
+            document.querySelectorAll('.tool-item').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const toolTitle = this.textContent.trim();
+                    trackNewsEvent('news_tool_hovered', {
+                        tool: toolTitle
+                    });
+                });
+            });
+
+            // Track form interactions
+            document.querySelectorAll('input, textarea').forEach(field => {
+                field.addEventListener('focus', function() {
+                    const fieldType = this.type || 'textarea';
+                    const fieldId = this.id;
+                    trackNewsEvent('form_field_focused', {
+                        field_type: fieldType,
+                        field_id: fieldId
+                    });
+                });
+
+                field.addEventListener('input', function() {
+                    const fieldId = this.id;
+                    const hasContent = this.value.length > 0;
+                    trackNewsEvent('form_field_input', {
+                        field_id: fieldId,
+                        has_content: hasContent,
+                        content_length: this.value.length
+                    });
+                });
+            });
+
+            // Track engagement metrics
+            let pageStartTime = Date.now();
+            let engagementEvents = 0;
+
+            ['click', 'scroll', 'mousemove', 'keydown'].forEach(eventType => {
+                document.addEventListener(eventType, function() {
+                    engagementEvents++;
+                });
+            });
+
+            window.addEventListener('beforeunload', function() {
+                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
+                trackNewsEvent('page_session_end', {
+                    time_on_page: timeOnPage,
+                    engagement_events: engagementEvents
+                });
+            });
+        }
+    </script>
+</body>
+</html>
