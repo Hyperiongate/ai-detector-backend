@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>NewsVerify Pro - AI-Powered News Verification Platform</title>
+    <title>NewsVerify Pro - News Verification Platform</title>
     
     <!-- Google Analytics 4 Integration -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9CLSNV2S8Q"></script>
@@ -12,11 +12,41 @@
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-9CLSNV2S8Q');
+        
+        // Custom Analytics Events for News Verification Page
+        function trackNewsEvent(eventName, eventData = {}) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, {
+                    event_category: 'News_Verification',
+                    page_title: 'NewsVerify Pro - News Verification Platform',
+                    ...eventData
+                });
+            }
+            
+            // Backend analytics tracking
+            if (typeof backendAnalytics !== 'undefined') {
+                backendAnalytics.track(eventName, {
+                    page: 'news_verification',
+                    timestamp: new Date().toISOString(),
+                    ...eventData
+                });
+            }
+        }
+        
+        // Track page view
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_view', {
+                page_title: 'NewsVerify Pro - News Verification Platform',
+                page_location: window.location.href,
+                content_group1: 'News Verification'
+            });
+        }
     </script>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -25,156 +55,1054 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
             line-height: 1.6;
+            padding-top: 60px;
+        }
+
+        /* Beta Banner */
+        .beta-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            padding: 8px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .beta-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+            transform: rotate(45deg);
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .beta-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .beta-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .beta-join-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .beta-join-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-header h2 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-body .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-body input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .modal-body input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* Unsupported Claims Modal Styles */
+        #claimsModal .modal-content {
+            background: white;
+            color: #333;
+        }
+
+        #claimsModal .modal-header {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        #claimsModal .modal-header h2 {
+            color: white;
+        }
+
+        #claimsModal .modal-body {
+            padding: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .claim-item {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .claim-item:hover {
+            background: rgba(245, 158, 11, 0.15);
+            transform: translateX(5px);
+        }
+
+        .claim-number {
+            color: #f59e0b;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .claim-text {
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .claim-reason {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .unsupported-claims-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        .unsupported-claims-notice p {
+            color: #f59e0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .unsupported-claims-notice button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .unsupported-claims-notice button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Container adjustments */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         /* Header */
         .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+        .nav-links-secondary {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .nav-links-secondary a {
             color: white;
             text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links-secondary a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links-secondary a.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+        }
+
+        /* Tool Container */
+        .tool-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Grid layout for info sections - 2 per row */
+        .info-sections-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Compact dropdown sections */
+        .dropdown-section.compact {
+            border: 2px solid rgba(102, 126, 234, 0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(249, 250, 251, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-section.compact:hover {
+            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .dropdown-section.compact.active {
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        /* Compact header styling */
+        .compact-header {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .compact-header:hover {
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .compact-header.open {
+            background: rgba(102, 126, 234, 0.12);
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .compact-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .compact-header-content i {
+            font-size: 1.3rem;
+            color: #667eea;
+        }
+
+        .compact-header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .compact-title {
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        .compact-subtitle {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .compact-header .dropdown-icon {
+            font-size: 1rem;
+            color: #6b7280;
+            transition: transform 0.3s ease;
+        }
+
+        .compact-header.open .dropdown-icon {
+            transform: rotate(180deg);
+            color: #667eea;
+        }
+
+        /* Fixed dropdown content styles */
+        .dropdown-section.compact .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            background: white;
+            transition: max-height 0.5s ease-in-out;
+        }
+
+        .dropdown-section.compact .dropdown-content.open {
+            max-height: 1000px;
+        }
+
+        /* Add inner wrapper for proper padding animation */
+        .dropdown-content-inner {
+            padding: 25px;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        /* Special styling for usage section */
+        #usage-section .compact-header-content i {
+            color: #10b981;
+        }
+
+        /* Tools Section */
+        .tools-employed {
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tools-employed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .tools-title {
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .nav-links {
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .tool-item {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+        }
+
+        .tool-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .tool-item i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        /* Enhanced Progress Section with Multi-stage */
+        .progress-section {
+            margin-bottom: 30px;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            position: sticky;
+            top: 80px;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .progress-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
+            background-size: 300% 100%;
+            animation: rainbow-flow 4s ease-in-out infinite;
+        }
+
+        @keyframes rainbow-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .progress-title {
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            text-align: center;
             display: flex;
-            gap: 30px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Multi-stage progress indicators */
+        .progress-stages {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .progress-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .progress-stage:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 60%;
+            width: 80%;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: -1;
+        }
+
+        .progress-stage.active::after {
+            background: linear-gradient(90deg, #667eea, #10b981);
+        }
+
+        .progress-stage.completed::after {
+            background: #10b981;
+        }
+
+        .stage-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-stage.active .stage-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            animation: stagePulse 1s ease-in-out infinite;
+        }
+
+        .progress-stage.completed .stage-icon {
+            background: #10b981;
+            color: white;
+        }
+
+        @keyframes stagePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .stage-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-align: center;
+            max-width: 100px;
+        }
+
+        .progress-stage.active .stage-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .progress-stage.completed .stage-label {
+            color: #10b981;
+        }
+
+        /* Enhanced colorful progress bar */
+        .progress-bar {
+            background: #e2e8f0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                #ff6b6b 0%, 
+                #f06595 14%, 
+                #cc5de8 28%, 
+                #845ef7 42%, 
+                #5c7cfa 56%, 
+                #339af0 70%, 
+                #22b8cf 84%, 
+                #20c997 100%);
+            border-radius: 13px;
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+            background-size: 200% 100%;
+            animation: gradient-shift 3s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.6), 
+                transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Progress percentage display */
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        /* Spinning icon and status text */
+        .progress-status {
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .progress-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid transparent;
+            border-top: 3px solid #667eea;
+            border-right: 3px solid #10b981;
+            border-bottom: 3px solid #764ba2;
+            border-left: 3px solid #f59e0b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Sticky Results Navigation Bar */
+        .results-nav-bar {
+            position: sticky;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            z-index: 50;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: slideDownFade 0.5s ease forwards;
+        }
+
+        @keyframes slideDownFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-nav-bar button {
+            padding: 8px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .results-nav-bar button:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .results-nav-bar button.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Results Preview Cards */
+        .results-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            border-radius: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .preview-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
         }
 
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s;
+        .preview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transition: all 0.3s ease;
         }
 
-        .nav-links a:hover {
-            opacity: 0.8;
+        .preview-card.credibility {
+            border-color: rgba(16, 185, 129, 0.2);
         }
 
-        .sign-in-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 20px;
-            border-radius: 20px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .preview-card.credibility::before {
+            background: linear-gradient(90deg, #10b981, #059669);
         }
 
-        .sign-in-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+        .preview-card.credibility:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(145deg, #ffffff, #f0fdf4);
         }
 
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 60px 20px 40px;
-            color: white;
-            max-width: 900px;
-            margin: 0 auto;
+        .preview-card.bias {
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
+        .preview-card.bias::before {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .preview-card.bias:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            background: linear-gradient(145deg, #ffffff, #f5f3ff);
+        }
+
+        .preview-card.claims {
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .preview-card.claims::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+
+        .preview-card.claims:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: linear-gradient(145deg, #ffffff, #fffbeb);
+        }
+
+        .preview-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .preview-card h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            line-height: 1.3;
         }
 
-        .hero p {
-            font-size: 1.25rem;
-            opacity: 0.95;
-            margin-bottom: 10px;
+        .preview-card p {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin: 0;
         }
 
-        .hero .subtitle {
-            font-size: 1rem;
-            opacity: 0.8;
-            font-style: italic;
+        .preview-card.credibility h3 {
+            color: #059669;
         }
 
-        /* Main Container */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-        }
-
-        /* Tool Card */
-        .tool-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        /* Features Grid */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .feature-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .feature-card i {
-            font-size: 2.5rem;
+        .preview-card.bias h3 {
             color: #667eea;
-            margin-bottom: 15px;
         }
 
-        .feature-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #333;
+        .preview-card.claims h3 {
+            color: #d97706;
         }
 
-        .feature-card p {
+        /* Results Overview Container - No dropdown wrapper */
+        .results-overview-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .results-overview-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .results-overview-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .results-overview-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .results-overview-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .results-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .result-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .result-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .result-icon.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .result-icon.pro-only {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .result-description {
             font-size: 0.9rem;
-            color: #666;
-            line-height: 1.5;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .result-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .status-badge.pro-only {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        /* Enhanced result item styles for inline expansion */
+        .result-item-expandable {
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .result-item-expandable.expanded {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .inline-result-content {
+            padding: 25px;
+            background: rgba(249, 250, 251, 0.5);
+            border-top: 2px solid rgba(102, 126, 234, 0.1);
+            animation: slideDown 0.3s ease;
+        }
+
+        .result-item.locked {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .result-item.locked:hover {
+            transform: none;
+            border-color: #e2e8f0;
         }
 
         /* Input Section */
@@ -186,30 +1114,31 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .tab-btn {
-            flex: 1;
+        .input-tab {
             padding: 12px 24px;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 10px;
+            border: none;
+            background: #f8fafc;
+            color: #6b7280;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.3s ease;
             font-size: 1rem;
-            color: #666;
         }
 
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+        .input-tab:hover {
+            background: #f1f5f9;
+            color: #374151;
         }
 
-        .tab-btn:hover:not(.active) {
-            border-color: #667eea;
+        .input-tab.active {
+            background: white;
             color: #667eea;
+            border-bottom: 2px solid #667eea;
+            transform: translateY(2px);
         }
 
         .input-content {
@@ -222,8 +1151,8 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .input-group {
@@ -233,34 +1162,35 @@
         .input-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1rem;
         }
 
-        .input-group textarea,
-        .input-group input {
+        .input-group input, .input-group textarea {
             width: 100%;
             padding: 15px;
             border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: white;
             font-family: inherit;
         }
 
-        .input-group textarea:focus,
-        .input-group input:focus {
+        .input-group input:focus, .input-group textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .input-group textarea {
-            min-height: 150px;
+            min-height: 120px;
             resize: vertical;
+            line-height: 1.5;
         }
 
-        /* Buttons */
+        /* Button Styles */
         .button-group {
             display: flex;
             gap: 15px;
@@ -269,654 +1199,1807 @@
         }
 
         .btn {
-            padding: 14px 28px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-            display: inline-flex;
+            transition: all 0.3s ease;
+            display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        .btn-secondary {
+            background: #6b7280;
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #666;
-            border: 2px solid #e2e8f0;
+        .btn-test {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
         }
 
-        .btn-secondary:hover {
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-compare {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-compare:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(20, 184, 166, 0.3);
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+            margin-top: 30px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Version Badge */
+        .version-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .version-badge.free {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .version-badge.pro {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        /* Result Card styles */
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
+        }
+
+        .result-card.locked-card {
+            opacity: 0.8;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: #4a5568;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .result-header i {
+            color: #667eea;
+            font-size: 1.4rem;
+        }
+
+        /* Enhanced Dropdown Styles */
+        .dropdown-section {
+            margin-bottom: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-section.active {
             border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .dropdown-header {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 18px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .dropdown-header:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .dropdown-header.open {
+            background: rgba(102, 126, 234, 0.15);
+            border-bottom: 2px solid #667eea;
+        }
+
+        .dropdown-header.locked {
+            background: rgba(156, 163, 175, 0.1);
+            color: #9ca3af;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .dropdown-header.locked:hover {
+            background: rgba(156, 163, 175, 0.15);
+        }
+
+        .dropdown-header.locked::after {
+            content: '🔒 PRO ONLY';
+            position: absolute;
+            right: 60px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .dropdown-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dropdown-toggle {
+            background: rgba(102, 126, 234, 0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dropdown-toggle:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .dropdown-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
             color: #667eea;
         }
 
-        /* Progress Section */
-        .progress-section {
+        .dropdown-header.open .dropdown-icon {
+            transform: rotate(180deg);
+            color: #764ba2;
+        }
+
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 25px;
+            background: white;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.5s ease;
+        }
+
+        .dropdown-content.open {
+            max-height: 800px;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        /* Special styling for overview section to ensure visibility */
+        #results-overview .dropdown-content.open {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar styling */
+        .dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Section Summary for collapsed state */
+        .section-summary {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-left: 20px;
+            font-size: 0.9rem;
+            color: #6b7280;
             display: none;
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            padding: 30px;
+        }
+
+        .dropdown-header:not(.open) .section-summary {
+            display: inline-block;
+        }
+
+        /* Compact Summary */
+        .compact-summary {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding: 25px;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
             border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        /* Enhanced Animated Score Circle */
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 900;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+            background: #e5e7eb;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        /* Animated ring fill */
+        @keyframes ringFill {
+            from { background-position: 0deg; }
+            to { background-position: 360deg; }
+        }
+
+        .score-circle.animating {
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent var(--score-deg),
+                #e5e7eb var(--score-deg),
+                #e5e7eb 360deg
+            );
+            animation: ringFill 2s ease-out;
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            animation: fadeInScale 0.5s ease 1.5s forwards;
+        }
+
+        @keyframes fadeInScale {
+            from { 
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .summary-content {
+            flex: 1;
+        }
+
+        .summary-content h3 {
+            margin-bottom: 12px;
+            font-size: 1.4rem;
+        }
+
+        .summary-dialogue {
+            color: #6b7280;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        /* Locked Content */
+        .locked-content {
+            background: linear-gradient(145deg, rgba(156, 163, 175, 0.05), rgba(156, 163, 175, 0.1));
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: #6b7280;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .locked-content .lock-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+
+        .locked-content h3 {
+            color: #4b5563;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .locked-content p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .upgrade-prompt {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .upgrade-prompt h3 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .upgrade-prompt .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .upgrade-prompt button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-prompt button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Enhanced Export Options */
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-btn.pdf {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .export-btn.json {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        .export-btn.email {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .export-btn.share {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* Data Grid with Animated Counters */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .data-item {
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .data-item:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .data-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .data-value.counting {
+            animation: numberPulse 0.3s ease;
+        }
+
+        @keyframes numberPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .data-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Feature Teaser */
+        .feature-teaser {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
             text-align: center;
         }
 
-        .progress-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
+        .feature-teaser h4 {
+            color: #d97706;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
         }
 
-        .progress-bar {
-            background: #e2e8f0;
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
+        .feature-teaser p {
+            color: #92400e;
+            margin-bottom: 15px;
+        }
+
+        .feature-teaser .preview-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #b45309;
+        }
+
+        /* Interactive Bias Spectrum */
+        .interactive-bias-spectrum {
+            margin: 30px 0;
             position: relative;
         }
 
-        .progress-fill {
+        .bias-spectrum {
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%);
+            height: 40px;
+            border-radius: 20px;
+            position: relative;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .bias-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 4px solid #374151;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 2;
+            transition: all 0.5s ease;
+        }
+
+        .bias-indicator.pulse {
+            animation: biasPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes biasPulse {
+            0%, 100% { 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(102, 126, 234, 0.4);
+                transform: translate(-50%, -50%) scale(1.15);
+            }
+        }
+
+        .bias-labels {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Bias Tooltip */
+        .bias-tooltip {
+            position: absolute;
+            bottom: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .bias-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* Interactive Evidence Explorer Styles */
+        .evidence-explorer {
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .evidence-explorer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .evidence-explorer-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .evidence-counter {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .evidence-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .evidence-card {
+            background: white;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .evidence-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .evidence-card.expanded {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .evidence-card-header {
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .evidence-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+
+        .evidence-confidence {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .confidence-high {
+            background: rgba(16, 185, 129, 0.2);
+            color: #059669;
+        }
+
+        .confidence-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+        }
+
+        .confidence-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+        }
+
+        .expand-indicator {
+            color: #6b7280;
+            transition: transform 0.3s ease;
+        }
+
+        .evidence-card.expanded .expand-indicator {
+            transform: rotate(180deg);
+        }
+
+        .evidence-preview {
+            padding: 20px;
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .evidence-details {
+            display: none;
+            padding: 0 20px 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .evidence-details.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .evidence-methodology {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .evidence-sources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .evidence-source {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Source Network Visualization */
+        .source-network {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .network-nodes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .network-node {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            padding: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .network-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .network-node.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        /* Info Tooltip Styles */
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            color: #667eea;
+            margin-left: 5px;
+        }
+
+        .info-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            max-width: 250px;
+            z-index: 1000;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .info-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+        }
+
+        /* Enhanced Tooltip */
+        .enhanced-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 250px;
+            line-height: 1.4;
+        }
+
+        .enhanced-tooltip h4 {
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: #667eea;
+        }
+
+        .enhanced-tooltip.visible {
+            opacity: 1;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Comparison Mode Styles */
+        .comparison-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .comparison-panel.open {
+            right: 0;
+        }
+
+        .comparison-header {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .comparison-items {
+            padding: 20px;
+        }
+
+        .comparison-item {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .comparison-item h4 {
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .comparison-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Cross-Verify Modal */
+        #crossVerifyModal .modal-content {
+            background: white;
+        }
+
+        #crossVerifyModal .modal-header {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+        }
+
+        #crossVerifyModal input {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: #4a5568;
+        }
+
+        #crossVerifyModal .modal-body p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: #10b981;
+            color: white;
+        }
+
+        .notification.error {
+            background: #ef4444;
+            color: white;
+        }
+
+        .notification.info {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Claim Counter Animation */
+        .claim-counter {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            animation: claimPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes claimPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .claim-progress {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .claim-progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .claim-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #f59e0b, #d97706);
             width: 0%;
             transition: width 0.5s ease;
+        }
+
+        /* Confidence Meters */
+        .confidence-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .confidence-meter-label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 120px;
+        }
+
+        .confidence-meter-bar {
+            flex: 1;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-meter-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .progress-fill::after {
+        .confidence-meter-fill::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 2s infinite;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.6), 
+                transparent);
+            animation: confidenceShine 2s infinite;
         }
 
-        @keyframes shimmer {
+        @keyframes confidenceShine {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
 
-        .progress-status {
-            color: #666;
-            font-size: 1rem;
+        .confidence-high .confidence-meter-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
         }
 
-        /* Results Section */
-        .results-section {
+        .confidence-medium .confidence-meter-fill {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+
+        .confidence-low .confidence-meter-fill {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+
+        .confidence-meter-value {
+            font-weight: 700;
+            color: #667eea;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Analysis History */
+        .analysis-history {
+            position: fixed;
+            bottom: 80px;
+            right: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            max-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
             display: none;
-            animation: fadeInUp 0.5s ease;
+            z-index: 100;
         }
 
-        @keyframes fadeInUp {
-            from { 
+        .analysis-history.visible {
+            display: block;
+            animation: slideUpFade 0.3s ease;
+        }
+
+        @keyframes slideUpFade {
+            from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
-            to { 
+            to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .results-card {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .results-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .results-header h2 {
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .summary-text {
-            font-size: 1.25rem;
-            color: #555;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto 40px;
-            text-align: left;
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-
-        /* Infographics */
-        .infographics-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .infographic {
-            text-align: center;
-        }
-
-        .infographic h3 {
-            font-size: 1.3rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        /* Credibility Gauge */
-        .credibility-gauge {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-        }
-
-        .gauge-circle {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 180deg,
-                #e2e8f0 0deg,
-                #e2e8f0 var(--score-deg),
-                transparent var(--score-deg)
-            );
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .gauge-circle::before {
-            content: '';
-            position: absolute;
-            width: 80%;
-            height: 80%;
-            background: white;
-            border-radius: 50%;
-            top: 10%;
-            left: 10%;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .gauge-value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
+        .history-header {
             font-weight: 700;
-            color: #333;
-        }
-
-        .gauge-label {
-            position: absolute;
-            bottom: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.9rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Bias Spectrum */
-        .bias-spectrum {
-            position: relative;
-            height: 60px;
-            background: linear-gradient(90deg, 
-                #dc2626 0%, 
-                #f59e0b 25%, 
-                #10b981 50%, 
-                #3b82f6 75%, 
-                #dc2626 100%
-            );
-            border-radius: 30px;
-            margin: 20px auto;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .bias-marker {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            background: white;
-            border: 4px solid #333;
-            border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            transition: all 0.5s ease;
-        }
-
-        .bias-labels {
+            color: #4a5568;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 600;
-        }
-
-        /* Upgrade CTA */
-        .upgrade-cta {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .upgrade-cta h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-        }
-
-        .upgrade-cta p {
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            opacity: 0.95;
-        }
-
-        .upgrade-features {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-            text-align: left;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .upgrade-feature {
-            display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1rem;
         }
 
-        .upgrade-feature i {
-            font-size: 1.2rem;
+        .history-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .btn-upgrade {
-            background: white;
-            color: #d97706;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        .history-item:hover {
+            background: #f1f5f9;
+            border-color: #667eea;
         }
 
-        .btn-upgrade:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+        .history-item-title {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
         }
 
-        /* Footer */
-        .footer {
-            background: rgba(0, 0, 0, 0.1);
-            color: white;
-            padding: 40px 0;
-            margin-top: 60px;
+        .history-item-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #6b7280;
         }
 
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-        }
-
-        .footer-section h4 {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .footer-section a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            display: block;
-            padding: 5px 0;
-            transition: color 0.3s;
-        }
-
-        .footer-section a:hover {
-            color: white;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
+            body {
+                padding-top: 60px;
             }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
+            
+            .container {
+                padding: 15px;
             }
-
-            .infographics-container {
-                grid-template-columns: 1fr;
+            
+            .tool-container {
+                padding: 25px;
             }
-
+            
             .button-group {
                 flex-direction: column;
             }
-
-            .btn {
+            
+            .button-group .btn {
                 width: 100%;
                 justify-content: center;
             }
+            
+            .nav-links-secondary {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .compact-summary {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .data-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-            .upgrade-features {
+            .score-circle {
+                width: 80px;
+                height: 80px;
+                font-size: 1.3rem;
+            }
+
+            .upgrade-prompt .features-grid {
                 grid-template-columns: 1fr;
             }
 
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .beta-content {
+                flex-direction: column;
+                gap: 8px;
             }
 
-            .nav-links {
-                display: none;
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            /* Progress section on mobile */
+            .progress-section {
+                position: relative;
+                top: auto;
+            }
+
+            .results-nav-bar {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .results-nav-bar button {
+                width: 100%;
+            }
+
+            .progress-stages {
+                padding: 0 10px;
+            }
+
+            .stage-label {
+                font-size: 0.7rem;
+                max-width: 80px;
+            }
+
+            .comparison-panel {
+                width: 100%;
+            }
+
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .export-options {
+                flex-direction: column;
+            }
+
+            .export-btn {
+                width: 100%;
+            }
+
+            .info-sections-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .compact-header {
+                padding: 12px 15px;
+            }
+            
+            .compact-title {
+                font-size: 0.95rem;
+            }
+            
+            .compact-subtitle {
+                font-size: 0.8rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <a href="/" class="logo">
-                <i class="fas fa-shield-alt"></i>
-                Facts & Fakes AI
-            </a>
-            <nav class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How it Works</a>
-                <a href="#pricing">Pricing</a>
-                <button class="sign-in-btn">Sign In</button>
-            </nav>
+    {% include 'header.html' %}
+
+    <!-- Beta Banner -->
+    <div class="beta-banner">
+        <div class="beta-content">
+            <span class="beta-badge">BETA</span>
+            <span>🚀 The world's ONLY platform built specifically for news verification - Join our beta!</span>
+            <button class="beta-join-btn" onclick="openBetaModal()">Join Beta</button>
         </div>
-    </header>
+    </div>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>NewsVerify Pro</h1>
-        <p>AI-Powered News Verification & Bias Detection</p>
-        <p class="subtitle">The world's first platform built specifically for professional news verification</p>
-    </section>
-
-    <!-- Main Container -->
     <div class="container">
-        <div class="tool-card">
-            <!-- Features Grid -->
-            <div class="features-grid" id="features">
-                <div class="feature-card">
-                    <i class="fas fa-balance-scale"></i>
-                    <h3>Bias Detection</h3>
-                    <p>Advanced AI identifies political bias across the full spectrum</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>Credibility Scoring</h3>
-                    <p>Comprehensive analysis of source reliability and accuracy</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-search"></i>
-                    <h3>Instant Verification</h3>
-                    <p>Real-time analysis of any news article or social media post</p>
-                </div>
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> NewsVerify Pro</h1>
+            <p>Professional News Verification Engine • Advanced political bias detection, source credibility scoring, and cross-reference verification</p>
+            <p style="font-size: 0.95rem; opacity: 0.8;">The World's First AI Platform Built Specifically for News Verification & Media Analysis</p>
+        </div>
+
+        <nav class="nav-bar">
+            <div class="nav-links-secondary">
+                <a href="/"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="active"><i class="fas fa-newspaper"></i> News Verification</a>
+                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
+                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
+                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
+                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
             </div>
+        </nav>
 
-            <!-- Input Section -->
-            <div class="input-section" id="how-it-works">
-                <div class="input-tabs">
-                    <button class="tab-btn active" onclick="switchTab('text')">
-                        <i class="fas fa-file-text"></i> Paste Article Text
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('url')">
-                        <i class="fas fa-link"></i> Enter Article URL
-                    </button>
-                </div>
-
-                <div class="input-content active" id="text-input">
-                    <div class="input-group">
-                        <label for="news-text">News Article or Social Media Post</label>
-                        <textarea 
-                            id="news-text" 
-                            placeholder="Paste any news article, social media post, or news content here for instant verification..."
-                        ></textarea>
+        <div class="tool-container">
+            <!-- Compact Collapsible Information Sections -->
+            <div class="info-sections-grid">
+                <div class="dropdown-section compact" id="methodologies-section">
+                    <div class="dropdown-header compact-header" onclick="toggleDropdown(this)">
+                        <div class="compact-header-content">
+                            <i class="fas fa-cogs"></i>
+                            <div class="compact-header-text">
+                                <span class="compact-title">12 Analysis Methods</span>
+                                <span class="compact-subtitle">Advanced verification systems</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
                     </div>
-                </div>
-
-                <div class="input-content" id="url-input">
-                    <div class="input-group">
-                        <label for="news-url">Article URL</label>
-                        <input 
-                            type="url" 
-                            id="news-url" 
-                            placeholder="https://example.com/news-article"
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="analyzeNews()">
-                    <i class="fas fa-search"></i> Analyze Now
-                </button>
-                <button class="btn btn-secondary" onclick="loadSample()">
-                    <i class="fas fa-flask"></i> Try Sample Article
-                </button>
-                <button class="btn btn-secondary" onclick="clearForm()">
-                    <i class="fas fa-redo"></i> Clear
-                </button>
-            </div>
-
-            <!-- Progress Section -->
-            <div class="progress-section" id="progress">
-                <div class="progress-title">
-                    <i class="fas fa-cog fa-spin"></i> Analyzing Article...
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                </div>
-                <div class="progress-status" id="progress-status">
-                    Extracting content and checking sources...
-                </div>
-            </div>
-
-            <!-- Results Section -->
-            <div class="results-section" id="results">
-                <div class="results-card">
-                    <div class="results-header">
-                        <h2>Analysis Complete</h2>
-                    </div>
-
-                    <!-- Conversational Summary -->
-                    <div class="summary-text" id="summary-text">
-                        <!-- Summary will be inserted here -->
-                    </div>
-
-                    <!-- Infographics -->
-                    <div class="infographics-container">
-                        <!-- Credibility Gauge -->
-                        <div class="infographic">
-                            <h3>Credibility Score</h3>
-                            <div class="credibility-gauge">
-                                <div class="gauge-circle" id="credibility-gauge">
-                                    <div class="gauge-value" id="credibility-value">0</div>
-                                    <div class="gauge-label">Credibility</div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-content-inner">
+                            <div class="tools-employed" style="border: none; margin: 0;">
+                                <div class="tools-grid">
+                                    <div class="tool-item">
+                                        <i class="fas fa-balance-scale"></i> Real-Time Political Bias Detection
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-check-circle"></i> Multi-Source Fact Verification
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-database"></i> 500+ News Source Credibility Database
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-search"></i> Cross-Source Verification Network
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-shield-alt"></i> Misinformation Pattern Recognition
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-network-wired"></i> Multi-Outlet Story Comparison
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-chart-line"></i> Journalism Quality Scoring
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-clock"></i> Timeline & Event Verification
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-fingerprint"></i> Editorial vs News Classification
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-brain"></i> Advanced AI Content Analysis
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-globe"></i> Real-Time Breaking News Verification
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-comments"></i> Social Media Echo Analysis
+                                    </div>
+                                    <div class="tool-item">
+                                        <i class="fas fa-microscope"></i> Deep Linguistic Pattern Detection
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Bias Spectrum -->
-                        <div class="infographic">
-                            <h3>Political Bias</h3>
-                            <div class="bias-spectrum">
-                                <div class="bias-marker" id="bias-marker"></div>
-                            </div>
-                            <div class="bias-labels">
-                                <span>Far Left</span>
-                                <span>Center</span>
-                                <span>Far Right</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Upgrade CTA -->
-                    <div class="upgrade-cta">
-                        <h3>Want More Detailed Results?</h3>
-                        <p>Upgrade to Pro for comprehensive analysis including:</p>
-                        <div class="upgrade-features">
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>Claim-by-claim fact checking</span>
-                            </div>
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>500+ source verification</span>
-                            </div>
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>Detailed bias breakdown</span>
-                            </div>
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>Downloadable PDF reports</span>
-                            </div>
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>Cross-reference verification</span>
-                            </div>
-                            <div class="upgrade-feature">
-                                <i class="fas fa-check"></i>
-                                <span>Historical analysis tracking</span>
-                            </div>
-                        </div>
-                        <button class="btn btn-upgrade" onclick="upgradeToPro()">
-                            <i class="fas fa-crown"></i> Upgrade to Pro
-                        </button>
                     </div>
                 </div>
+
+                <div class="dropdown-section compact" id="how-to-use-section">
+                    <div class="dropdown-header compact-header" onclick="toggleDropdown(this)">
+                        <div class="compact-header-content">
+                            <i class="fas fa-info-circle"></i>
+                            <div class="compact-header-text">
+                                <span class="compact-title">How to Use</span>
+                                <span class="compact-subtitle">3 simple steps</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-content-inner">
+                            <div style="display: grid; gap: 15px;">
+                                <div style="display: flex; align-items: start; gap: 15px;">
+                                    <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+                                    <div>
+                                        <strong style="color: #4c1d95;">Choose Your Input Method:</strong><br>
+                                        <span style="color: #6b7280;">Either paste news text directly or enter a news article URL</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: start; gap: 15px;">
+                                    <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+                                    <div>
+                                        <strong style="color: #4c1d95;">Select Analysis Type:</strong><br>
+                                        <span style="color: #6b7280;">FREE: Basic credibility check | PRO: Comprehensive verification with bias analysis</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: start; gap: 15px;">
+                                    <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+                                    <div>
+                                        <strong style="color: #4c1d95;">Review Your Results:</strong><br>
+                                        <span style="color: #6b7280;">Explore bias spectrum, source verification, and claim analysis</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown-section compact" id="comparison-section">
+                    <div class="dropdown-header compact-header" onclick="toggleDropdown(this)">
+                        <div class="compact-header-content">
+                            <i class="fas fa-crown"></i>
+                            <div class="compact-header-text">
+                                <span class="compact-title">Free vs Pro</span>
+                                <span class="compact-subtitle">Compare features</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-content-inner">
+                            <div style="display: grid; gap: 20px;">
+                                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; border: 2px solid #e5e7eb;">
+                                    <h4 style="color: #6b7280; margin-bottom: 15px; font-size: 1.2rem;"><i class="fas fa-gift"></i> FREE Version</h4>
+                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                        <li style="margin-bottom: 10px; color: #4b5563;">✓ Basic credibility score</li>
+                                        <li style="margin-bottom: 10px; color: #4b5563;">✓ Source verification (100+ sources)</li>
+                                        <li style="margin-bottom: 10px; color: #4b5563;">✓ Simple bias indicator</li>
+                                        <li style="margin-bottom: 10px; color: #4b5563;">✓ 5 analyses per day</li>
+                                        <li style="margin-bottom: 10px; color: #9ca3af;">✗ No downloadable reports</li>
+                                        <li style="margin-bottom: 10px; color: #9ca3af;">✗ Limited evidence details</li>
+                                    </ul>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px; border-radius: 12px; border: 2px solid #667eea;">
+                                    <h4 style="color: white; margin-bottom: 15px; font-size: 1.2rem;"><i class="fas fa-crown"></i> PRO Version</h4>
+                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                        <li style="margin-bottom: 10px; color: white;">✓ Advanced credibility analysis</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ 500+ source database</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ Interactive bias spectrum</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ Unlimited analyses</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ Downloadable PDF reports</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ Full claim verification</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ All 12 analysis methodologies</li>
+                                        <li style="margin-bottom: 10px; color: white;">✓ Priority customer support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dropdown-section compact" id="usage-section">
+                    <div class="dropdown-header compact-header" onclick="toggleDropdown(this)">
+                        <div class="compact-header-content">
+                            <i class="fas fa-chart-bar"></i>
+                            <div class="compact-header-text">
+                                <span class="compact-title">Daily Usage</span>
+                                <span class="compact-subtitle">Track your analyses</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-content-inner">
+                            <div id="usageCounter">
+                                <!-- Usage counter content will be populated here -->
+                                <div style="text-align: center; padding: 20px;">
+                                    <p style="color: #6b7280; font-size: 1.1rem;">Daily analyses available</p>
+                                    <div style="font-size: 2.5rem; font-weight: 700; color: #667eea; margin: 10px 0;">Unlimited</div>
+                                    <p style="color: #10b981; font-weight: 600;">Development Mode Active</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Message Area -->
+            <div id="authMessageArea"></div>
+
+            <!-- Enhanced Progress Bars -->
+            <div class="progress-section" id="progressSection" style="display: none;">
+                <div class="progress-title">
+                    <i class="fas fa-cogs fa-spin" style="color: #667eea;"></i>
+                    News Verification in Progress...
+                </div>
+                
+                <!-- Multi-stage progress indicators -->
+                <div class="progress-stages" id="progressStages">
+                    <div class="progress-stage" data-stage="0">
+                        <div class="stage-icon">📄</div>
+                        <div class="stage-label">Extracting Content</div>
+                    </div>
+                    <div class="progress-stage" data-stage="1">
+                        <div class="stage-icon">⚖️</div>
+                        <div class="stage-label">Analyzing Bias</div>
+                    </div>
+                    <div class="progress-stage" data-stage="2">
+                        <div class="stage-icon">🔍</div>
+                        <div class="stage-label">Checking Sources</div>
+                    </div>
+                    <div class="progress-stage" data-stage="3">
+                        <div class="stage-icon">✓</div>
+                        <div class="stage-label">Verifying Claims</div>
+                    </div>
+                    <div class="progress-stage" data-stage="4">
+                        <div class="stage-icon">📊</div>
+                        <div class="stage-label">Generating Report</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar">
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
+                </div>
+                
+                <div class="progress-status">
+                    <div class="progress-spinner"></div>
+                    <span id="progressStatus">Initializing advanced verification systems...</span>
+                </div>
+                
+                <!-- Claim verification progress -->
+                <div class="claim-progress" style="display: none;" id="claimProgress">
+                    <span style="color: #6b7280; font-weight: 600;">Claims found:</span>
+                    <span class="claim-counter" id="claimCounter">0</span>
+                    <div class="claim-progress-bar">
+                        <div class="claim-progress-fill" id="claimProgressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="switchInputType('text')">📝 News Text Analysis</button>
+                    <button class="input-tab" onclick="switchInputType('url')">🔗 URL Verification</button>
+                </div>
+                
+                <div class="input-content active" id="textInput">
+                    <div class="input-group">
+                        <label for="news-text"><i class="fas fa-file-text"></i> News Article or Social Media Content</label>
+                        <textarea id="news-text" placeholder="Paste news article, social media post, or any news content for comprehensive verification and bias analysis..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="input-content" id="urlInput">
+                    <div class="input-group">
+                        <label for="news-url"><i class="fas fa-link"></i> News Article URL</label>
+                        <input type="url" id="news-url" placeholder="https://example.com/news-article-for-verification">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="runAnalysis('free')">
+                    <i class="fas fa-play"></i> Start Free Analysis
+                </button>
+                <button class="btn btn-primary" onclick="runAnalysis('pro')" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-crown"></i> Start Pro Analysis
+                </button>
+                <button class="btn btn-test" onclick="loadTestData()">
+                    <i class="fas fa-flask"></i> Load Sample News
+                </button>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+
+            <div class="results" id="results">
+                <!-- Results will be populated here -->
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Product</h4>
-                <a href="#">News Verification</a>
-                <a href="#">AI Text Detection</a>
-                <a href="#">Image Analysis</a>
-                <a href="#">API Access</a>
-            </div>
-            <div class="footer-section">
-                <h4>Company</h4>
-                <a href="#">About Us</a>
-                <a href="#">Our Mission</a>
-                <a href="#">Contact</a>
-                <a href="#">Careers</a>
-            </div>
-            <div class="footer-section">
-                <h4>Resources</h4>
-                <a href="#">Blog</a>
-                <a href="#">Documentation</a>
-                <a href="#">Case Studies</a>
-                <a href="#">FAQ</a>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Cookie Policy</a>
-                <a href="#">GDPR</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 Facts & Fakes AI. All rights reserved.</p>
-        </div>
-    </footer>
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
+    <!-- Comparison Panel -->
+    <div class="comparison-panel" id="comparisonPanel">
+        <div class="comparison-header">
+            <h3>Article Comparison</h3>
+            <button onclick="closeComparison()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
+        </div>
+        <div class="comparison-items" id="comparisonItems">
+            <!-- Comparison items will be added here -->
+        </div>
+    </div>
+
+    <!-- Analysis History -->
+    <div class="analysis-history" id="analysisHistory">
+        <div class="history-header">
+            <span>Analysis History</span>
+            <button onclick="clearHistory()" style="background: transparent; border: none; color: #6b7280; cursor: pointer;">Clear</button>
+        </div>
+        <div id="historyItems">
+            <!-- History items will be added here -->
+        </div>
+    </div>
+
+    <!-- Beta Modal -->
+    <div id="betaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeBetaModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🚀 Join Our Beta Program</h2>
+                <p>Get exclusive early access to the world's first news verification platform and help shape the future of media analysis!</p>
+            </div>
+            <div class="modal-body">
+                <form id="betaSignupForm">
+                    <div class="input-group">
+                        <input type="email" id="betaEmail" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="betaName" placeholder="Your name (optional)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBetaModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitBetaSignup()">Join Beta Program</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cross-Verify Modal -->
+    <div id="crossVerifyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCrossVerifyModal()">&times;</span>
+            <div class="modal-header">
+                <h2>🔍 Cross-Source Verification</h2>
+                <p>Verify news across multiple sources in real-time</p>
+            </div>
+            <div class="modal-body">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #4a5568;">Enter News Topic or Keywords</label>
+                <input type="text" id="crossVerifyTopic" placeholder="e.g., Infrastructure Bill, Climate Summit" style="background: white; border: 2px solid #e2e8f0; color: #4a5568;">
+                <p style="color: #6b7280; font-size: 0.9rem; margin-top: 10px;">We'll search and compare coverage from Reuters, CNN, Fox News, BBC, and more trusted sources.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCrossVerifyModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="runCrossVerification()">Start Cross-Verification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsupported Claims Modal -->
+    <div id="claimsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClaimsModal()">&times;</span>
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Unsupported Claims Detected</h2>
+                <p>The following statements require attribution or supporting evidence:</p>
+            </div>
+            <div class="modal-body" id="claimsList">
+                <!-- Claims will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/auth-analysis.js"></script>
     <script>
-        // Sample articles for testing
-        const sampleArticles = [
-            `Breaking: Tech Giant Announces Revolutionary AI Breakthrough
+        // Store dropdown states
+        const sectionStates = {};
 
-Leading technology company XYZ Corp unveiled groundbreaking artificial intelligence technology at their annual conference yesterday. CEO Jane Smith demonstrated the new system's capabilities, claiming it represents "the most significant leap in AI development this decade."
+        // Fixed toggleDropdown function - removed tier parameter
+        function toggleDropdown(header) {
+            const content = header.nextElementSibling;
+            const section = header.parentElement;
+            const sectionId = section.id;
+            const isOpen = header.classList.contains('open');
+            
+            // Toggle open state
+            header.classList.toggle('open');
+            content.classList.toggle('open');
+            
+            // Store state
+            sectionStates[sectionId] = !isOpen;
+            
+            console.log(`Toggled ${sectionId}: ${!isOpen ? 'open' : 'closed'}`);
+        }
 
-The announcement has divided industry experts. Dr. Robert Johnson from MIT's AI Lab praised the innovation but urged caution: "While impressive, we must carefully consider the ethical implications." Meanwhile, competitors have questioned the claims, with rival firm ABC Tech suggesting independent verification is needed.
+        // Initialize dropdowns on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdowns = document.querySelectorAll('.dropdown-section.compact');
+            dropdowns.forEach(dropdown => {
+                const content = dropdown.querySelector('.dropdown-content');
+                const header = dropdown.querySelector('.dropdown-header');
+                
+                // Ensure dropdowns start closed
+                content.classList.remove('open');
+                header.classList.remove('open');
+            });
+        });
 
-According to company data, the new AI system achieved 95% accuracy in complex problem-solving tasks, surpassing all previous benchmarks. The technology is expected to be integrated into consumer products by Q4 2024.
+        // Show notification function
+        function showNotification(message, type = 'info') {
+            let notification = document.getElementById('notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.className = 'notification';
+                document.body.appendChild(notification);
+            }
+            
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
 
-Environmental groups have raised concerns about the energy consumption of such advanced AI systems, though XYZ Corp maintains their technology is 40% more efficient than current alternatives.`,
-
-            `Climate Summit Reaches Historic Agreement on Emissions
-
-World leaders concluded the Global Climate Summit with an unprecedented agreement to reduce carbon emissions by 50% over the next decade. The accord, signed by 195 nations, represents the most ambitious climate action plan to date.
-
-Environmental activists celebrated the agreement, though some argue it doesn't go far enough. "This is a step in the right direction, but we need more aggressive action," stated Maria Garcia from Green Future Initiative.
-
-The agreement includes $100 billion in funding for developing nations to transition to renewable energy. Critics from industry groups warn about potential economic impacts, while supporters emphasize the long-term benefits of sustainable development.`,
-
-            `Local Community Rallies to Save Historic Library
-
-Residents of Oakville gathered yesterday to protest the proposed demolition of the 120-year-old Carnegie Library. The building, which has served generations of local families, faces destruction to make way for a modern shopping complex.
-
-"This library is the heart of our community," said longtime resident Tom Williams. City officials claim maintenance costs have become unsustainable, but protesters argue the cultural value outweighs financial concerns.
-
-A petition to preserve the building has gathered over 10,000 signatures. The city council will vote on the matter next Tuesday.`
-        ];
-
-        let currentSampleIndex = 0;
-
-        // Tab switching
-        function switchTab(type) {
-            const textTab = document.querySelector('.tab-btn:nth-child(1)');
-            const urlTab = document.querySelector('.tab-btn:nth-child(2)');
-            const textInput = document.getElementById('text-input');
-            const urlInput = document.getElementById('url-input');
-
+        // Switch input type
+        function switchInputType(type) {
+            const textTab = document.querySelector('.input-tab:nth-child(1)');
+            const urlTab = document.querySelector('.input-tab:nth-child(2)');
+            const textInput = document.getElementById('textInput');
+            const urlInput = document.getElementById('urlInput');
+            
             if (type === 'text') {
                 textTab.classList.add('active');
                 urlTab.classList.remove('active');
@@ -930,213 +3013,670 @@ A petition to preserve the building has gathered over 10,000 signatures. The cit
             }
         }
 
-        // Load sample article
-        function loadSample() {
-            document.getElementById('news-text').value = sampleArticles[currentSampleIndex];
-            currentSampleIndex = (currentSampleIndex + 1) % sampleArticles.length;
+        // Load test data
+        function loadTestData() {
+            const testArticle = `Breaking News: Major Tech Company Announces Revolutionary AI Breakthrough
+
+Tech giant XYZ Corp announced today that they have developed a new artificial intelligence system capable of understanding and generating human-like text with unprecedented accuracy. The announcement was made during their annual developer conference.
+
+CEO Jane Smith stated, "This represents a significant leap forward in AI technology. Our new system can understand context and nuance in ways that were previously impossible."
+
+Industry experts are divided on the implications. Dr. John Doe from MIT's AI Lab expressed both excitement and caution: "While this is indeed impressive, we need to carefully consider the ethical implications of such powerful AI systems."
+
+The company claims their new AI has achieved a 95% accuracy rate in understanding complex human instructions, surpassing all previous benchmarks. However, some competitors have questioned these claims, suggesting that independent verification is needed.
+
+The technology is expected to be integrated into the company's product line by Q4 2024, with initial applications in customer service and content creation.`;
+
+            const activeTab = document.querySelector('.input-tab.active');
+            if (activeTab.textContent.includes('Text')) {
+                document.getElementById('news-text').value = testArticle;
+            } else {
+                document.getElementById('news-url').value = 'https://example.com/ai-breakthrough-news';
+            }
             
-            // Switch to text tab if not already there
-            switchTab('text');
+            showNotification('Sample news article loaded!', 'success');
         }
 
-        // Clear form
-        function clearForm() {
+        // Reset form
+        function resetForm() {
             document.getElementById('news-text').value = '';
             document.getElementById('news-url').value = '';
             document.getElementById('results').style.display = 'none';
-            document.getElementById('progress').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            showNotification('Form reset successfully', 'info');
         }
 
-        // Analyze news
-        function analyzeNews() {
-            const activeTab = document.querySelector('.tab-btn.active');
+        // Run analysis
+        function runAnalysis(tier) {
+            const activeTab = document.querySelector('.input-tab.active');
             let input = '';
-
-            if (activeTab.textContent.includes('Article Text')) {
+            
+            if (activeTab.textContent.includes('Text')) {
                 input = document.getElementById('news-text').value;
             } else {
                 input = document.getElementById('news-url').value;
             }
-
+            
             if (!input.trim()) {
-                alert('Please enter some content to analyze');
+                showNotification('Please enter news text or URL to analyze', 'error');
                 return;
             }
-
-            // Show progress
-            document.getElementById('progress').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-
-            // Simulate analysis
-            simulateAnalysis();
+            
+            // Track analysis event
+            trackNewsEvent('analysis_started', {
+                analysis_type: tier,
+                input_type: activeTab.textContent.includes('Text') ? 'text' : 'url'
+            });
+            
+            // Show progress section
+            document.getElementById('progressSection').style.display = 'block';
+            
+            // Simulate analysis process
+            simulateAnalysis(tier);
         }
 
-        // Simulate analysis process
-        function simulateAnalysis() {
-            const progressFill = document.getElementById('progress-fill');
-            const progressStatus = document.getElementById('progress-status');
+        // Simulate analysis
+        function simulateAnalysis(tier) {
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressStatus = document.getElementById('progressStatus');
+            const stages = document.querySelectorAll('.progress-stage');
+            const claimProgress = document.getElementById('claimProgress');
+            const claimCounter = document.getElementById('claimCounter');
+            const claimProgressFill = document.getElementById('claimProgressFill');
+            
             let progress = 0;
-
-            const statuses = [
-                'Extracting content and checking sources...',
-                'Analyzing political bias indicators...',
-                'Evaluating credibility markers...',
-                'Cross-referencing with database...',
+            let claimsFound = 0;
+            const statusMessages = [
+                'Extracting article content...',
+                'Analyzing political bias patterns...',
+                'Verifying sources and citations...',
+                'Cross-checking claims with database...',
                 'Generating comprehensive report...'
             ];
-
+            
             const interval = setInterval(() => {
-                progress += 5;
-                progressFill.style.width = progress + '%';
-
+                progress += 2;
+                progressBar.style.width = progress + '%';
+                progressPercentage.textContent = progress + '%';
+                
+                // Update stages
+                const currentStage = Math.floor(progress / 20);
+                stages.forEach((stage, index) => {
+                    if (index < currentStage) {
+                        stage.classList.add('completed');
+                        stage.classList.remove('active');
+                    } else if (index === currentStage) {
+                        stage.classList.add('active');
+                        stage.classList.remove('completed');
+                    } else {
+                        stage.classList.remove('active', 'completed');
+                    }
+                });
+                
                 // Update status message
-                const statusIndex = Math.floor(progress / 20);
-                if (statusIndex < statuses.length) {
-                    progressStatus.textContent = statuses[statusIndex];
+                if (currentStage < statusMessages.length) {
+                    progressStatus.textContent = statusMessages[currentStage];
                 }
-
+                
+                // Show claim progress at stage 3
+                if (currentStage === 3 && claimProgress.style.display === 'none') {
+                    claimProgress.style.display = 'flex';
+                    // Simulate finding claims
+                    const claimInterval = setInterval(() => {
+                        if (claimsFound < 8) {
+                            claimsFound++;
+                            claimCounter.textContent = claimsFound;
+                            claimProgressFill.style.width = (claimsFound / 8 * 100) + '%';
+                        } else {
+                            clearInterval(claimInterval);
+                        }
+                    }, 300);
+                }
+                
                 if (progress >= 100) {
                     clearInterval(interval);
                     setTimeout(() => {
-                        showResults();
+                        document.getElementById('progressSection').style.display = 'none';
+                        claimProgress.style.display = 'none';
+                        showResults(tier, claimsFound);
                     }, 500);
                 }
-            }, 100);
-        }
-
-        // Generate random analysis results
-        function generateAnalysis() {
-            // Random credibility score (60-95 for more realistic range)
-            const credibility = Math.floor(Math.random() * 35) + 60;
-            
-            // Random bias position (0-100)
-            const biasPosition = Math.random() * 100;
-            
-            // Determine bias label
-            let biasLabel = '';
-            if (biasPosition < 10) biasLabel = 'far-left';
-            else if (biasPosition < 30) biasLabel = 'left-leaning';
-            else if (biasPosition < 40) biasLabel = 'center-left';
-            else if (biasPosition < 60) biasLabel = 'center';
-            else if (biasPosition < 70) biasLabel = 'center-right';
-            else if (biasPosition < 90) biasLabel = 'right-leaning';
-            else biasLabel = 'far-right';
-
-            // Generate conversational summary based on results
-            const summaries = {
-                'high-cred-center': `This article demonstrates strong journalistic standards with well-sourced information and balanced reporting. The content maintains political neutrality while presenting multiple perspectives on the issue. The facts presented are verifiable through reputable sources, and the author provides appropriate context without inserting personal opinions. This appears to be reliable news content suitable for forming informed opinions.`,
-                
-                'high-cred-left': `This article contains accurate and well-researched information with proper source attribution. However, it shows a noticeable left-leaning bias in its framing and selection of quoted experts. While the facts themselves appear reliable, readers should be aware that the presentation emphasizes progressive viewpoints and may not fully represent conservative perspectives on this issue. The credibility remains high due to factual accuracy, but the political slant is worth noting.`,
-                
-                'high-cred-right': `The article presents factually accurate information backed by credible sources. It exhibits a right-leaning bias through its choice of examples and expert opinions, predominantly featuring conservative voices. Despite this political orientation, the core facts are verifiable and the reporting maintains professional standards. Readers should consider seeking additional perspectives to get a complete picture of the issue.`,
-                
-                'medium-cred-center': `This article shows reasonable journalistic effort with some credible sources, though it lacks the depth of professional news reporting. The political stance appears relatively balanced, but some claims would benefit from additional verification. While not showing obvious bias, the limited sourcing and occasional unsupported statements suggest readers should cross-reference key facts with other sources before drawing firm conclusions.`,
-                
-                'medium-cred-biased': `The article mixes factual reporting with obvious political bias, making it important to read critically. While some claims are properly sourced, others appear to be opinions presented as facts. The ${biasLabel.replace('-', ' ')} perspective significantly colors the presentation of information. Readers should verify key claims independently and seek out alternative viewpoints to understand the full context of this issue.`,
-                
-                'low-cred': `This content shows significant credibility concerns with multiple unsupported claims and potential misinformation. The heavy ${biasLabel.replace('-', ' ')} bias, combined with emotional language and lack of proper sourcing, suggests this is more opinion or propaganda than news reporting. Readers should be extremely cautious about accepting any claims made here without independent verification from reliable sources.`
-            };
-
-            // Select appropriate summary template
-            let summaryKey = '';
-            if (credibility >= 80) {
-                if (biasPosition >= 40 && biasPosition <= 60) summaryKey = 'high-cred-center';
-                else if (biasPosition < 40) summaryKey = 'high-cred-left';
-                else summaryKey = 'high-cred-right';
-            } else if (credibility >= 65) {
-                if (biasPosition >= 40 && biasPosition <= 60) summaryKey = 'medium-cred-center';
-                else summaryKey = 'medium-cred-biased';
-            } else {
-                summaryKey = 'low-cred';
-            }
-
-            return {
-                credibility: credibility,
-                biasPosition: biasPosition,
-                biasLabel: biasLabel,
-                summary: summaries[summaryKey]
-            };
+            }, 50);
         }
 
         // Show results
-        function showResults() {
-            const analysis = generateAnalysis();
+        function showResults(tier, claimsFound = 0) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
             
-            // Hide progress, show results
-            document.getElementById('progress').style.display = 'none';
-            document.getElementById('results').style.display = 'block';
-
-            // Update summary text
-            document.getElementById('summary-text').textContent = analysis.summary;
-
-            // Update credibility gauge
-            const credibilityValue = document.getElementById('credibility-value');
-            const credibilityGauge = document.getElementById('credibility-gauge');
+            // Track completion
+            trackNewsEvent('analysis_completed', {
+                analysis_type: tier,
+                claims_found: claimsFound
+            });
             
-            // Animate credibility score
-            let currentScore = 0;
-            const scoreInterval = setInterval(() => {
-                if (currentScore < analysis.credibility) {
-                    currentScore++;
-                    credibilityValue.textContent = currentScore;
-                    
-                    // Update gauge fill
-                    const degrees = (currentScore / 100) * 180;
-                    credibilityGauge.style.setProperty('--score-deg', degrees + 'deg');
-                    
-                    // Color based on score
-                    let color = '#dc2626'; // red
-                    if (currentScore >= 80) color = '#10b981'; // green
-                    else if (currentScore >= 65) color = '#f59e0b'; // yellow
-                    
-                    credibilityGauge.style.background = `conic-gradient(from 180deg, ${color} 0deg, ${color} ${degrees}deg, #e2e8f0 ${degrees}deg)`;
-                } else {
-                    clearInterval(scoreInterval);
-                }
-            }, 20);
-
-            // Update bias marker
-            const biasMarker = document.getElementById('bias-marker');
-            setTimeout(() => {
-                biasMarker.style.left = analysis.biasPosition + '%';
-            }, 500);
+            // Create results HTML based on tier
+            if (tier === 'pro') {
+                results.innerHTML = generateProResults(claimsFound);
+            } else {
+                results.innerHTML = generateFreeResults();
+            }
+            
+            // Initialize any interactive elements in results
+            initializeResultsInteractions();
+            
+            showNotification(`${tier === 'pro' ? 'Pro' : 'Free'} analysis completed!`, 'success');
         }
 
-        // Upgrade to pro
-        function upgradeToPro() {
-            window.location.href = '/pricing';
+        // Generate Pro results
+        function generateProResults(claimsFound) {
+            return `
+                <div class="results-nav-bar">
+                    <button class="active" onclick="scrollToSection('overview')">Overview</button>
+                    <button onclick="scrollToSection('credibility')">Credibility</button>
+                    <button onclick="scrollToSection('bias')">Bias Analysis</button>
+                    <button onclick="scrollToSection('claims')">Claims (${claimsFound})</button>
+                    <button onclick="scrollToSection('sources')">Sources</button>
+                </div>
+
+                <div class="results-preview">
+                    <div class="preview-card credibility" onclick="scrollToSection('credibility')">
+                        <h3>Credibility Score: 78%</h3>
+                        <p>Based on 500+ source verification</p>
+                    </div>
+                    <div class="preview-card bias" onclick="scrollToSection('bias')">
+                        <h3>Bias: Center-Left</h3>
+                        <p>Interactive spectrum analysis</p>
+                    </div>
+                    <div class="preview-card claims" onclick="scrollToSection('claims')">
+                        <h3>${claimsFound} Claims Found</h3>
+                        <p>Full fact-checking completed</p>
+                    </div>
+                </div>
+
+                <div id="overview" class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analysis Overview</span>
+                    </div>
+                    <div class="compact-summary">
+                        <div class="score-circle" style="--score-deg: 280deg; background: conic-gradient(from 0deg, #10b981 0deg, #10b981 280deg, #e5e7eb 280deg, #e5e7eb 360deg);">
+                            <span class="score-text">78%</span>
+                        </div>
+                        <div class="summary-content">
+                            <h3>Generally Credible</h3>
+                            <p class="summary-dialogue">This article demonstrates good journalistic standards with proper source attribution. Some claims require additional verification, but overall the reporting appears balanced and fact-based.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="credibility" class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Credibility Analysis</span>
+                    </div>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-value">78%</div>
+                            <div class="data-label">Overall Score</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">12</div>
+                            <div class="data-label">Sources Cited</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">3</div>
+                            <div class="data-label">Expert Quotes</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">High</div>
+                            <div class="data-label">Transparency</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bias" class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Political Bias Analysis</span>
+                    </div>
+                    <div class="interactive-bias-spectrum">
+                        <div class="bias-labels">
+                            <span>Far Left</span>
+                            <span>Left</span>
+                            <span>Center</span>
+                            <span>Right</span>
+                            <span>Far Right</span>
+                        </div>
+                        <div class="bias-spectrum" onclick="showBiasDetails(event)">
+                            <div class="bias-indicator" style="left: 35%"></div>
+                        </div>
+                        <div class="bias-tooltip">Center-Left Bias Detected</div>
+                    </div>
+                    <div class="confidence-meter">
+                        <span class="confidence-meter-label">Confidence:</span>
+                        <div class="confidence-meter-bar">
+                            <div class="confidence-meter-fill confidence-high" style="width: 85%"></div>
+                        </div>
+                        <span class="confidence-meter-value">85%</span>
+                    </div>
+                </div>
+
+                <div id="claims" class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-fact-check"></i>
+                        <span>Claim Verification</span>
+                    </div>
+                    <div class="claim-counter">${claimsFound} Claims Analyzed</div>
+                    <div class="evidence-explorer">
+                        <div class="evidence-grid">
+                            <div class="evidence-card" onclick="toggleEvidence(this)">
+                                <div class="evidence-card-header">
+                                    <div class="evidence-type">
+                                        <i class="fas fa-check-circle" style="color: #10b981"></i>
+                                        <span>Verified Claim</span>
+                                    </div>
+                                    <span class="evidence-confidence confidence-high">HIGH</span>
+                                </div>
+                                <div class="evidence-preview">
+                                    "The company achieved a 95% accuracy rate in testing"
+                                </div>
+                                <div class="evidence-details">
+                                    <div class="evidence-methodology">
+                                        Verified through company SEC filings and independent audit reports.
+                                    </div>
+                                </div>
+                            </div>
+                            ${claimsFound > 1 ? `
+                            <div class="evidence-card" onclick="toggleEvidence(this)">
+                                <div class="evidence-card-header">
+                                    <div class="evidence-type">
+                                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b"></i>
+                                        <span>Unverified Claim</span>
+                                    </div>
+                                    <span class="evidence-confidence confidence-medium">MEDIUM</span>
+                                </div>
+                                <div class="evidence-preview">
+                                    "Industry experts are divided on the implications"
+                                </div>
+                                <div class="evidence-details">
+                                    <div class="evidence-methodology">
+                                        Only one expert quoted. Additional sources needed for verification.
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sources" class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-link"></i>
+                        <span>Source Analysis</span>
+                    </div>
+                    <div class="source-network">
+                        <p style="color: #6b7280; margin-bottom: 20px;">Connected source verification network</p>
+                        <div class="network-nodes">
+                            <div class="network-node primary">Primary Source</div>
+                            <div class="network-node">SEC Filing</div>
+                            <div class="network-node">Expert Quote</div>
+                            <div class="network-node">Company PR</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-options">
+                    <button class="export-btn pdf" onclick="exportReport('pdf')">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </button>
+                    <button class="export-btn json" onclick="exportReport('json')">
+                        <i class="fas fa-code"></i> Export JSON
+                    </button>
+                    <button class="export-btn share" onclick="shareReport()">
+                        <i class="fas fa-share"></i> Share Report
+                    </button>
+                </div>
+            `;
         }
 
-        // Analytics tracking
-        function trackEvent(eventName, eventData = {}) {
-            if (typeof gtag !== 'undefined') {
-                gtag('event', eventName, {
-                    event_category: 'News_Verification',
-                    ...eventData
-                });
+        // Generate Free results
+        function generateFreeResults() {
+            return `
+                <div class="results-preview">
+                    <div class="preview-card credibility">
+                        <h3>Basic Credibility Check</h3>
+                        <p>Limited source verification</p>
+                    </div>
+                    <div class="preview-card bias">
+                        <h3>Bias Indicator</h3>
+                        <p>Simple bias detection</p>
+                    </div>
+                    <div class="preview-card claims">
+                        <h3>Limited Claims Check</h3>
+                        <p>Basic fact verification</p>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Free Analysis Results</span>
+                    </div>
+                    <div class="compact-summary">
+                        <div class="score-circle" style="background: #e5e7eb;">
+                            <span class="score-text">?</span>
+                        </div>
+                        <div class="summary-content">
+                            <h3>Basic Analysis Complete</h3>
+                            <p class="summary-dialogue">Free analysis provides limited insights. Upgrade to Pro for comprehensive verification including bias spectrum, detailed source analysis, and full claim checking.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upgrade-prompt">
+                    <h3>Unlock Full Analysis</h3>
+                    <div class="features-grid">
+                        <div>✓ Interactive bias spectrum</div>
+                        <div>✓ 500+ source verification</div>
+                        <div>✓ Complete claim checking</div>
+                        <div>✓ Downloadable reports</div>
+                    </div>
+                    <button onclick="window.location.href='/pricingplan'">Upgrade to Pro</button>
+                </div>
+            `;
+        }
+
+        // Initialize results interactions
+        function initializeResultsInteractions() {
+            // Add any event listeners for interactive elements
+            const biasSpectrum = document.querySelector('.bias-spectrum');
+            if (biasSpectrum) {
+                biasSpectrum.addEventListener('mousemove', showBiasTooltip);
+                biasSpectrum.addEventListener('mouseleave', hideBiasTooltip);
             }
         }
 
-        // Track page interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track analyze button clicks
-            document.querySelector('.btn-primary').addEventListener('click', () => {
-                trackEvent('analyze_clicked', {
-                    input_type: document.querySelector('.tab-btn.active').textContent.includes('Text') ? 'text' : 'url'
+        // Scroll to section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Update active button
+                document.querySelectorAll('.results-nav-bar button').forEach(btn => {
+                    btn.classList.remove('active');
                 });
-            });
+                event.target.classList.add('active');
+            }
+        }
 
-            // Track sample usage
-            document.querySelector('.btn-secondary').addEventListener('click', () => {
-                trackEvent('sample_loaded');
-            });
+        // Toggle evidence details
+        function toggleEvidence(card) {
+            card.classList.toggle('expanded');
+            const details = card.querySelector('.evidence-details');
+            if (details) {
+                details.classList.toggle('visible');
+            }
+        }
 
-            // Track upgrade clicks
-            document.querySelector('.btn-upgrade').addEventListener('click', () => {
-                trackEvent('upgrade_clicked', {
-                    location: 'results_cta'
+        // Show bias details
+        function showBiasDetails(event) {
+            const spectrum = event.currentTarget;
+            const rect = spectrum.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = (x / rect.width) * 100;
+            
+            const indicator = spectrum.querySelector('.bias-indicator');
+            indicator.style.left = percentage + '%';
+            
+            const tooltip = spectrum.querySelector('.bias-tooltip');
+            let biasText = 'Center';
+            if (percentage < 20) biasText = 'Far Left';
+            else if (percentage < 40) biasText = 'Left';
+            else if (percentage < 60) biasText = 'Center';
+            else if (percentage < 80) biasText = 'Right';
+            else biasText = 'Far Right';
+            
+            tooltip.textContent = biasText + ' Bias';
+            tooltip.style.left = percentage + '%';
+        }
+
+        // Show/hide bias tooltip
+        function showBiasTooltip(event) {
+            const tooltip = event.currentTarget.querySelector('.bias-tooltip');
+            if (tooltip) {
+                tooltip.classList.add('visible');
+            }
+        }
+
+        function hideBiasTooltip(event) {
+            const tooltip = event.currentTarget.querySelector('.bias-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+            }
+        }
+
+        // Export report
+        function exportReport(format) {
+            showNotification(`Exporting report as ${format.toUpperCase()}...`, 'info');
+            // In real implementation, this would generate and download the report
+            setTimeout(() => {
+                showNotification(`Report exported successfully!`, 'success');
+            }, 2000);
+        }
+
+        // Share report
+        function shareReport() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'News Verification Report',
+                    text: 'Check out this news verification analysis',
+                    url: window.location.href
                 });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                showNotification('Link copied to clipboard!', 'success');
+            }
+        }
+
+        // Beta modal functions
+        function openBetaModal() {
+            document.getElementById('betaModal').style.display = 'block';
+        }
+
+        function closeBetaModal() {
+            document.getElementById('betaModal').style.display = 'none';
+        }
+
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            const name = document.getElementById('betaName').value;
+            
+            if (!email) {
+                showNotification('Please enter your email address', 'error');
+                return;
+            }
+            
+            // Track beta signup
+            trackNewsEvent('beta_signup', {
+                email: email,
+                name: name
             });
+            
+            showNotification('Thank you for joining our beta program!', 'success');
+            closeBetaModal();
+        }
+
+        // Cross-verify modal functions
+        function openCrossVerifyModal() {
+            document.getElementById('crossVerifyModal').style.display = 'block';
+        }
+
+        function closeCrossVerifyModal() {
+            document.getElementById('crossVerifyModal').style.display = 'none';
+        }
+
+        function runCrossVerification() {
+            const topic = document.getElementById('crossVerifyTopic').value;
+            if (!topic) {
+                showNotification('Please enter a topic to verify', 'error');
+                return;
+            }
+            
+            showNotification('Cross-verification started...', 'info');
+            closeCrossVerifyModal();
+            // In real implementation, this would start the cross-verification process
+        }
+
+        // Claims modal functions
+        function openClaimsModal(claims) {
+            const modal = document.getElementById('claimsModal');
+            const claimsList = document.getElementById('claimsList');
+            
+            // Populate claims
+            claimsList.innerHTML = claims.map((claim, index) => `
+                <div class="claim-item">
+                    <div class="claim-number">Claim ${index + 1}</div>
+                    <div class="claim-text">"${claim.text}"</div>
+                    <div class="claim-reason">${claim.reason}</div>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'block';
+        }
+
+        function closeClaimsModal() {
+            document.getElementById('claimsModal').style.display = 'none';
+        }
+
+        // Comparison functions
+        function openComparison() {
+            document.getElementById('comparisonPanel').classList.add('open');
+        }
+
+        function closeComparison() {
+            document.getElementById('comparisonPanel').classList.remove('open');
+        }
+
+        function addToComparison(articleId, title) {
+            const comparisonItems = document.getElementById('comparisonItems');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'comparison-item';
+            itemDiv.innerHTML = `
+                <h4>${title}</h4>
+                <button class="comparison-remove" onclick="removeFromComparison(this)">×</button>
+            `;
+            comparisonItems.appendChild(itemDiv);
+            showNotification('Added to comparison', 'success');
+        }
+
+        function removeFromComparison(button) {
+            button.parentElement.remove();
+        }
+
+        // History functions
+        function toggleHistory() {
+            const history = document.getElementById('analysisHistory');
+            history.classList.toggle('visible');
+        }
+
+        function addToHistory(title, score, date) {
+            const historyItems = document.getElementById('historyItems');
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <div class="history-item-title">${title}</div>
+                <div class="history-item-meta">
+                    <span>${score}%</span>
+                    <span>${date}</span>
+                </div>
+            `;
+            historyItems.insertBefore(item, historyItems.firstChild);
+        }
+
+        function clearHistory() {
+            if (confirm('Clear all history?')) {
+                document.getElementById('historyItems').innerHTML = '';
+                showNotification('History cleared', 'info');
+            }
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Handle scroll for back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            // Track page view is already handled in the HTML
+            
+            // Check for any saved state
+            const savedState = localStorage.getItem('newsVerifyState');
+            if (savedState) {
+                // Restore any saved state if needed
+            }
+            
+            // Initialize tooltips
+            document.querySelectorAll('[data-tooltip]').forEach(element => {
+                element.addEventListener('mouseenter', showTooltip);
+                element.addEventListener('mouseleave', hideTooltip);
+            });
+        });
+
+        // Tooltip functions
+        function showTooltip(event) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'enhanced-tooltip';
+            tooltip.innerHTML = event.target.getAttribute('data-tooltip');
+            document.body.appendChild(tooltip);
+            
+            const rect = event.target.getBoundingClientRect();
+            tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+            tooltip.style.left = (rect.left + rect.width/2 - tooltip.offsetWidth/2) + 'px';
+            
+            setTimeout(() => tooltip.classList.add('visible'), 10);
+            event.target._tooltip = tooltip;
+        }
+
+        function hideTooltip(event) {
+            if (event.target._tooltip) {
+                event.target._tooltip.remove();
+                delete event.target._tooltip;
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl/Cmd + Enter to run analysis
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                runAnalysis('free');
+            }
+            // Escape to close modals
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+                closeComparison();
+            }
         });
     </script>
 </body>
