@@ -1081,19 +1081,21 @@
             padding: 30px;
         }
 
-        /* Political Bias Specific Styles */
+        /* FIXED Political Bias Specific Styles */
         .bias-spectrum-container {
             margin: 30px 0;
+            padding: 20px;
         }
 
         .bias-spectrum-title {
             font-weight: 700;
             color: #1f2937;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-size: 1.2rem;
             text-align: center;
         }
 
+        /* Label ABOVE the spectrum */
         .bias-position-label {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -1102,12 +1104,13 @@
             font-weight: 700;
             font-size: 1.1rem;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             display: inline-block;
             width: 100%;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
+        /* The spectrum bar */
         .bias-spectrum {
             background: linear-gradient(90deg, 
                 #3b82f6 0%, 
@@ -1119,40 +1122,62 @@
             border-radius: 30px;
             position: relative;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            margin: 0 0 50px 0;
+            margin: 60px 0 20px 0; /* Top margin for indicator space */
         }
 
+        /* Fixed indicator positioning */
         .bias-indicator {
             position: absolute;
-            top: -15px;
-            transform: translateX(-50%);
+            top: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             align-items: center;
+            z-index: 10;
         }
 
-        .bias-indicator-arrow {
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid #1f2937;
-            margin-bottom: 5px;
-        }
-
+        /* Circle with score - positioned ABOVE the bar */
         .bias-indicator-circle {
-            width: 50px;
-            height: 50px;
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
             background: white;
-            border: 5px solid #1f2937;
+            border: 6px solid #1f2937;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             color: #1f2937;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Arrow pointing down */
+        .bias-indicator-arrow {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 20px solid #1f2937;
+        }
+
+        /* Vertical line through bar */
+        .bias-indicator-line {
+            position: absolute;
+            top: -10px;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            background: #1f2937;
         }
 
         .bias-labels {
@@ -2144,7 +2169,7 @@
             `;
             resultsDiv.appendChild(summaryBanner);
             
-            // Political Bias Analysis Section
+            // Political Bias Analysis Section - FIXED
             const biasSection = createAnalysisSection({
                 id: 'political-bias',
                 icon: '⚖️',
@@ -2154,15 +2179,28 @@
                 content: `
                     <div class="bias-spectrum-container">
                         <h3 class="bias-spectrum-title">Political Orientation Detection</h3>
+                        
+                        <!-- Label ABOVE the spectrum -->
                         <div class="bias-position-label">
                             ${biasLabel.toUpperCase()} BIAS DETECTED
                         </div>
+                        
+                        <!-- The spectrum bar with properly positioned indicator -->
                         <div class="bias-spectrum">
-                            <div class="bias-indicator" style="left: ${calculateBiasPosition(biasScore)}%">
+                            <!-- Indicator positioned correctly -->
+                            <div class="bias-indicator" style="left: ${calculateBiasPosition(biasScore)}%;">
+                                <!-- Circle with score ABOVE the bar -->
+                                <div class="bias-indicator-circle">
+                                    ${Math.abs(biasScore).toFixed(0)}
+                                </div>
+                                <!-- Arrow pointing down -->
                                 <div class="bias-indicator-arrow"></div>
-                                <div class="bias-indicator-circle">${Math.abs(biasScore).toFixed(0)}</div>
+                                <!-- Vertical line through the bar -->
+                                <div class="bias-indicator-line"></div>
                             </div>
                         </div>
+                        
+                        <!-- Labels below the spectrum -->
                         <div class="bias-labels">
                             <span>Far Left</span>
                             <span>Left</span>
@@ -2171,11 +2209,13 @@
                             <span>Far Right</span>
                         </div>
                     </div>
+                    
                     <div class="analysis-body">
                         <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
                             ${generateBiasNarrative(biasLabel, biasScore, objectivityScore, politicalBias)}
                         </p>
                     </div>
+                    
                     <div class="claims-container">
                         <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 10px;">Claim Verification Analysis</h3>
                         <div class="claims-grid">
@@ -2452,7 +2492,12 @@
         // Helper function to calculate bias position
         function calculateBiasPosition(biasScore) {
             // Convert bias score (-10 to +10) to percentage (0 to 100)
-            return Math.max(5, Math.min(95, 50 + (biasScore * 5)));
+            // -10 = 0% (far left), 0 = 50% (center), +10 = 100% (far right)
+            const normalizedScore = (biasScore + 10) / 20; // Convert to 0-1 range
+            const percentage = normalizedScore * 100;
+            
+            // Clamp between 5% and 95% to keep indicator within bounds
+            return Math.max(5, Math.min(95, percentage));
         }
         
         // Calculate reading level
