@@ -3921,20 +3921,6 @@ with multiple trusted sources.
             versionBadge.innerHTML = '<i class="fas fa-' + (tier === 'pro' ? 'crown' : 'shield-alt') + '"></i>' + tier.toUpperCase() + ' NEWS VERIFICATION';
             resultsDiv.appendChild(versionBadge);
 
-            // Create sticky results navigation bar
-            const navBar = document.createElement('div');
-            navBar.className = 'results-nav-bar';
-            navBar.innerHTML = `
-                <button onclick="scrollToSection('results-overview')"><i class="fas fa-list"></i> Overview</button>
-                <button onclick="scrollToSection('results-preview')"><i class="fas fa-chart-line"></i> Summary</button>
-                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(1) .result-item'))"><i class="fas fa-chart-line"></i> Credibility</button>
-                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(2) .result-item'))"><i class="fas fa-balance-scale"></i> Bias</button>
-                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(3) .result-item'))"><i class="fas fa-shield-alt"></i> Sources</button>
-                ${factCheckResults.length > 0 ? '<button onclick="toggleInlineResult(document.querySelector(\'.result-item-expandable:nth-child(4) .result-item\'))"><i class="fas fa-check-circle"></i> Facts</button>' : ''}
-                <button onclick="collapseAllInline()"><i class="fas fa-compress-alt"></i> Collapse All</button>
-            `;
-            resultsDiv.appendChild(navBar);
-
             // Create results preview cards with proper ID
             const previewSection = document.createElement('div');
             previewSection.className = 'results-preview';
@@ -4083,8 +4069,6 @@ with multiple trusted sources.
             overviewSection.appendChild(overviewContent);
             resultsDiv.appendChild(overviewSection);
 
-            // Don't create the standalone sections anymore - everything is in the overview box
-            
             // Show history button
             const historyBtn = document.createElement('button');
             historyBtn.style.position = 'fixed';
