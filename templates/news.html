@@ -1345,8 +1345,34 @@
         }
 
         .dropdown-content.open {
-            max-height: 2000px;
+            max-height: 800px;
             padding: 25px;
+            overflow-y: auto;
+        }
+
+        /* Special styling for overview section to ensure visibility */
+        #results-overview .dropdown-content.open {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar styling */
+        .dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* Section Summary for collapsed state */
@@ -2923,10 +2949,41 @@
             showNotification('All available sections expanded', 'info');
         }
 
-        // Enhanced scroll to section without auto-opening
+        // Collapse all inline results
+        function collapseAllInline() {
+            document.querySelectorAll('.result-item-expandable').forEach(item => {
+                item.classList.remove('expanded');
+                const content = item.querySelector('.inline-result-content');
+                if (content) content.style.display = 'none';
+                const chevron = item.querySelector('.fa-chevron-down');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            });
+            showNotification('All sections collapsed', 'info');
+        }
+
+        // Scroll to section and ensure it's visible
         function scrollToSection(sectionId) {
             const section = document.getElementById(sectionId);
             if (section) {
+                // If it's the results-preview, scroll to the preview cards
+                if (sectionId === 'results-preview') {
+                    const previewSection = document.querySelector('.results-preview');
+                    if (previewSection) {
+                        previewSection.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start',
+                            inline: 'nearest' 
+                        });
+                    }
+                    return;
+                }
+                
+                // For other sections, ensure the dropdown is open
+                const header = section.querySelector('.dropdown-header');
+                if (header && !header.classList.contains('open')) {
+                    header.click();
+                }
+                
                 // Smooth scroll to section
                 section.scrollIntoView({ 
                     behavior: 'smooth', 
@@ -3869,18 +3926,19 @@ with multiple trusted sources.
             navBar.className = 'results-nav-bar';
             navBar.innerHTML = `
                 <button onclick="scrollToSection('results-overview')"><i class="fas fa-list"></i> Overview</button>
-                <button onclick="scrollToSection('main-assessment')"><i class="fas fa-chart-line"></i> Assessment</button>
-                <button onclick="scrollToSection('bias-analysis')"><i class="fas fa-balance-scale"></i> Bias</button>
-                <button onclick="scrollToSection('source-verification')"><i class="fas fa-shield-alt"></i> Sources</button>
-                ${factCheckResults.length > 0 ? '<button onclick="scrollToSection(\'fact-check\')"><i class="fas fa-check-circle"></i> Facts</button>' : ''}
-                <button onclick="collapseAll()"><i class="fas fa-compress-alt"></i> Collapse All</button>
-                <button onclick="expandAll()"><i class="fas fa-expand-alt"></i> Expand All</button>
+                <button onclick="scrollToSection('results-preview')"><i class="fas fa-chart-line"></i> Summary</button>
+                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(1) .result-item'))"><i class="fas fa-chart-line"></i> Credibility</button>
+                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(2) .result-item'))"><i class="fas fa-balance-scale"></i> Bias</button>
+                <button onclick="toggleInlineResult(document.querySelector('.result-item-expandable:nth-child(3) .result-item'))"><i class="fas fa-shield-alt"></i> Sources</button>
+                ${factCheckResults.length > 0 ? '<button onclick="toggleInlineResult(document.querySelector(\'.result-item-expandable:nth-child(4) .result-item\'))"><i class="fas fa-check-circle"></i> Facts</button>' : ''}
+                <button onclick="collapseAllInline()"><i class="fas fa-compress-alt"></i> Collapse All</button>
             `;
             resultsDiv.appendChild(navBar);
 
-            // Create results preview cards
+            // Create results preview cards with proper ID
             const previewSection = document.createElement('div');
             previewSection.className = 'results-preview';
+            previewSection.id = 'results-preview';
             previewSection.innerHTML = `
                 <div class="preview-card credibility" onclick="scrollToSection('main-assessment')">
                     <h3>Credibility Score</h3>
