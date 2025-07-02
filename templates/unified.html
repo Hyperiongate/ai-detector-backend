@@ -1586,20 +1586,111 @@
             `;
             resultsDiv.appendChild(mainCard);
             
-            // Plagiarism results
+            // Plagiarism results with detailed matches
             if (aiAnalysis.plagiarism_check) {
                 const plagiarismCard = document.createElement('div');
-                plagiarismCard.className = 'result-card';
-                plagiarismCard.innerHTML = `
-                    <div class="result-header">
+                plagiarismCard.className = 'dropdown-section';
+                
+                const plagHeader = document.createElement('div');
+                plagHeader.className = 'dropdown-header';
+                plagHeader.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px;">
                         <i class="fas fa-copy"></i>
-                        Plagiarism Check Results
+                        <span>Plagiarism & Similarity Analysis</span>
+                        <span style="background: ${aiAnalysis.plagiarism_check.originality_score >= 90 ? '#10b981' : aiAnalysis.plagiarism_check.originality_score >= 70 ? '#f59e0b' : '#ef4444'}; color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.85rem;">
+                            ${aiAnalysis.plagiarism_check.originality_score}% Original
+                        </span>
                     </div>
-                    <p><strong>Originality Score:</strong> ${aiAnalysis.plagiarism_check.originality_score}%</p>
-                    <p><strong>Matched Sources:</strong> ${aiAnalysis.plagiarism_check.matched_sources}</p>
-                    <p><strong>Highest Match:</strong> ${aiAnalysis.plagiarism_check.highest_match}%</p>
+                    <button class="btn-toggle" onclick="toggleDropdown(this.parentElement)">
+                        <span class="toggle-text">See Results</span>
+                    </button>
                 `;
+                plagHeader.onclick = function() { toggleDropdown(this); };
+                plagiarismCard.appendChild(plagHeader);
+                
+                const plagContent = document.createElement('div');
+                plagContent.className = 'dropdown-content';
+                
+                // Add visual similarity chart
+                plagContent.innerHTML = `
+                    <div style="text-align: center; margin: 20px 0;">
+                        <canvas id="plagiarismChart" width="300" height="200"></canvas>
+                    </div>
+                    
+                    <div class="data-grid" style="margin-bottom: 20px;">
+                        <div class="data-item">
+                            <div class="data-value">${aiAnalysis.plagiarism_check.originality_score}%</div>
+                            <div class="data-label">Original Content</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">${aiAnalysis.plagiarism_check.matched_sources}</div>
+                            <div class="data-label">Sources Checked</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">${aiAnalysis.plagiarism_check.highest_match}%</div>
+                            <div class="data-label">Highest Match</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value">${tier === 'pro' ? '100M+' : '10M+'}</div>
+                            <div class="data-label">Database Size</div>
+                        </div>
+                    </div>
+                    
+                    ${aiAnalysis.plagiarism_check.plagiarized_lines && aiAnalysis.plagiarism_check.plagiarized_lines.length > 0 ? `
+                        <h4 style="color: #4a5568; margin: 20px 0 15px;">Similarity Matches Found:</h4>
+                        <div style="display: grid; gap: 15px;">
+                            ${aiAnalysis.plagiarism_check.plagiarized_lines.map((line, idx) => `
+                                <div style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <strong>Match ${idx + 1}</strong>
+                                        <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                            ${line.similarity}% Similar
+                                        </span>
+                                    </div>
+                                    <p style="font-style: italic; color: #6b7280; margin-bottom: 8px;">"${line.text}"</p>
+                                    <p style="font-size: 0.9rem; color: #4a5568;"><strong>Source:</strong> ${line.source}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 40px; background: rgba(16, 185, 129, 0.05); border-radius: 12px;">
+                            <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 15px;"></i>
+                            <h3 style="color: #059669; margin-bottom: 10px;">No Significant Matches Found</h3>
+                            <p style="color: #6b7280;">Your content appears to be original with no substantial similarities.</p>
+                        </div>
+                    `}
+                `;
+                
+                plagiarismCard.appendChild(plagContent);
                 resultsDiv.appendChild(plagiarismCard);
+                
+                // Create plagiarism chart after DOM update
+                setTimeout(() => {
+                    const canvas = document.getElementById('plagiarismChart');
+                    if (canvas && typeof Chart !== 'undefined') {
+                        new Chart(canvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Original Content', 'Matched Content'],
+                                datasets: [{
+                                    data: [
+                                        aiAnalysis.plagiarism_check.originality_score,
+                                        100 - aiAnalysis.plagiarism_check.originality_score
+                                    ],
+                                    backgroundColor: ['#10b981', '#f59e0b'],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+                    }
+                }, 100);
             }
             
             // Writing statistics
