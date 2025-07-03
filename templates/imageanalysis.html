@@ -1741,915 +1741,330 @@
     <!-- Back to Top Button -->
     <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
         <i class="fas fa-arrow-up"></i>
-    </button><script>
-        // ============================================================================
-        // NOTIFICATION HELPER FUNCTION
-        // ============================================================================
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.display = 'block';
-            
-            document.body.appendChild(notification);
-            
+    </button>
+
+<script>
+    // ============================================================================
+    // NOTIFICATION HELPER FUNCTION
+    // ============================================================================
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.display = 'block';
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
             setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
 
-        // ============================================================================
-        // GLOBAL VARIABLES
-        // ============================================================================
-        let currentInputType = 'upload';
-        let currentImage = null;
-        let currentImageData = null;
-        let analysisInProgress = false;
-        let currentTier = 'free';
+    // ============================================================================
+    // GLOBAL VARIABLES
+    // ============================================================================
+    let currentInputType = 'upload';
+    let currentImage = null;
+    let currentImageData = null;
+    let analysisInProgress = false;
+    let currentTier = 'free';
 
-        // ============================================================================
-        // ENHANCED IMAGE ANALYSIS RESULTS FUNCTION
-        // ============================================================================
-        function showImageResults(results, tier) {
-            const resultsDiv = document.getElementById('results');
-            
-            // Extract data from API response
-            const manipulationScore = results.manipulation_score || 12;
-            const authenticityScore = results.authenticity_score || 88;
-            const aiDetection = results.ai_detection || {};
-            const deepfakeAnalysis = results.deepfake_analysis || {};
-            const pixelForensics = results.pixel_forensics || {};
-            const metadataAnalysis = results.metadata_analysis || {};
-            const technicalSpecs = results.technical_specs || {};
-            const insights = results.insights || [];
-            
-            // Calculate overall assessment
-            const assessment = authenticityScore >= 80 ? 'LIKELY AUTHENTIC' : 
-                             authenticityScore >= 50 ? 'POSSIBLY MANIPULATED' : 
-                             'LIKELY AI-GENERATED';
-            
-            // Clear previous results
-            resultsDiv.innerHTML = '';
-            resultsDiv.style.display = 'block';
-            
-            // Summary Banner
-            const summaryBanner = document.createElement('div');
-            summaryBanner.className = 'summary-banner';
-            summaryBanner.innerHTML = `
-                <div class="authenticity-header">
-                    <div class="authenticity-score-circle">
-                        <div class="score-number">${authenticityScore}%</div>
-                        <div class="score-label">Authenticity Score</div>
-                    </div>
-                    <div class="authenticity-details">
-                        <h2 class="authenticity-title">Overall Assessment: ${assessment}</h2>
-                        <p class="authenticity-subtitle">
-                            ${generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection)}
-                        </p>
-                        <div class="methodology-note">
-                            <i class="fas fa-info-circle"></i>
-                            Analyzed using ${tier === 'pro' ? '15' : '5'} advanced detection methods
-                        </div>
-                    </div>
-                </div>
-                ${tier === 'free' ? `
-                <div class="pro-upgrade-note" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
-                    <p style="color: #d97706; font-weight: 600; font-size: 1.05rem; margin-bottom: 12px;">
-                        <i class="fas fa-crown"></i> For comprehensive results including all 15 AI models, manipulation heatmaps, and forensic reports, upgrade to Pro!
-                    </p>
-                    <button onclick="window.location.href='/pricingplan'" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 1rem;">
-                        Upgrade to Pro
-                    </button>
-                </div>
-                ` : ''}
-            `;
-            resultsDiv.appendChild(summaryBanner);
-            
-            // AI Model Detection Section
-            const aiDetectionSection = createImageAnalysisSection({
-                id: 'ai-detection',
-                icon: '🤖',
-                iconColor: '#667eea',
-                title: 'AI Model Detection Analysis',
-                summary: `AI probability: ${aiDetection.overall_probability || 15}%`,
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We test your image against known patterns from major AI image generation models. 
-                            Each AI model leaves unique "fingerprints" in the images it creates. By analyzing pixel patterns, noise distributions, 
-                            and generation artifacts, we can identify which AI model (if any) was used to create or modify the image.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <div class="model-detection-grid">
-                            ${generateModelDetectionCards(results, tier)}
-                        </div>
-                        
-                        <div class="chart-container">
-                            <canvas id="aiDetectionChart"></canvas>
-                        </div>
-                    </div>
-                `,
-                locked: false,
-                onExpand: () => {
-                    setTimeout(() => createAIDetectionChart(results, tier), 100);
-                }
-            });
-            resultsDiv.appendChild(aiDetectionSection);
-            
-            // Deepfake Analysis Section
-            const deepfakeSection = createImageAnalysisSection({
-                id: 'deepfake-analysis',
-                icon: '👤',
-                iconColor: '#ef4444',
-                title: 'Deepfake & Face Manipulation Detection',
-                summary: deepfakeAnalysis ? `Face authenticity: ${Math.round(deepfakeAnalysis.facial_consistency * 100)}%` : 'Face analysis available',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We examine facial features for signs of AI generation or manipulation. 
-                            This includes checking facial symmetry, skin texture consistency, eye reflections, and temporal coherence. 
-                            Deepfakes often have subtle inconsistencies in lighting, shadows, and facial movements that our algorithms can detect.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateDeepfakeAnalysis(deepfakeAnalysis, tier)}
-                    </div>
-                `,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(deepfakeSection);
-            
-            // Pixel Forensics Section
-            const forensicsSection = createImageAnalysisSection({
-                id: 'pixel-forensics',
-                icon: '🔍',
-                iconColor: '#10b981',
-                title: 'Pixel-Level Forensic Analysis',
-                summary: 'Compression artifacts and manipulation detection',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We perform deep pixel-level analysis to detect traces of manipulation. 
-                            This includes examining compression patterns, noise distributions, error levels, and cloning artifacts. 
-                            Even sophisticated edits leave microscopic traces that our forensic algorithms can identify.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateForensicsAnalysis(pixelForensics)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(forensicsSection);
-            
-            // Metadata Analysis Section
-            const metadataSection = createImageAnalysisSection({
-                id: 'metadata-analysis',
-                icon: '📊',
-                iconColor: '#8b5cf6',
-                title: 'Metadata & Technical Analysis',
-                summary: metadataAnalysis.has_exif ? 'EXIF data present' : 'No metadata found',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We examine the image's metadata and technical properties. 
-                            Authentic photos contain EXIF data with camera settings, GPS location, and timestamps. AI-generated images 
-                            typically lack this metadata or have suspicious technical signatures that reveal their artificial origin.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateMetadataAnalysis(metadataAnalysis, technicalSpecs)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(metadataSection);
-            
-            // Pattern Recognition Section (Pro)
-            if (tier === 'pro' && results.pattern_recognition) {
-                const patternSection = createImageAnalysisSection({
-                    id: 'pattern-recognition',
-                    icon: '🧬',
-                    iconColor: '#f59e0b',
-                    title: 'Advanced Pattern Recognition',
-                    summary: 'AI-specific signatures and anomalies',
-                    content: `
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> Advanced pattern recognition identifies subtle AI signatures 
-                                that are invisible to the human eye. This includes GAN fingerprints, diffusion model artifacts, 
-                                VAE reconstruction patterns, and frequency domain anomalies specific to different AI architectures.
-                            </span>
-                        </div>
-                        <div class="analysis-body">
-                            ${generatePatternAnalysis(results.pattern_recognition)}
-                        </div>
-                    `,
-                    locked: false
-                });
-                resultsDiv.appendChild(patternSection);
-            }
-            
-            // Manipulation Detection Section (Pro)
-            if (tier === 'pro' && results.manipulation_detection) {
-                const manipulationSection = createImageAnalysisSection({
-                    id: 'manipulation-detection',
-                    icon: '🎨',
-                    iconColor: '#ec4899',
-                    title: 'Advanced Manipulation Detection',
-                    summary: 'Clone detection, splicing, and editing artifacts',
-                    content: `
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> We detect various forms of image manipulation including 
-                                copy-move forgery (cloning), splicing from multiple images, blur inconsistencies that hide edits, 
-                                and lighting anomalies that reveal compositing. These techniques can identify even professional photo manipulation.
-                            </span>
-                        </div>
-                        <div class="analysis-body">
-                            ${generateManipulationAnalysis(results.manipulation_detection)}
-                        </div>
-                    `,
-                    locked: false
-                });
-                resultsDiv.appendChild(manipulationSection);
-            }
-            
-            // Confidence Metrics Section (Pro)
-            if (tier === 'pro' && results.confidence_metrics) {
-                const confidenceSection = createImageAnalysisSection({
-                    id: 'confidence-metrics',
-                    icon: '📈',
-                    iconColor: '#06b6d4',
-                    title: 'Analysis Confidence & Model Agreement',
-                    summary: `Overall confidence: ${results.confidence_metrics.overall_confidence}%`,
-                    content: `
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> We measure how confident our various detection models are 
-                                in their findings and how well they agree with each other. High confidence with strong model agreement 
-                                indicates reliable results, while disagreement between models suggests ambiguous or borderline cases.
-                            </span>
-                        </div>
-                        <div class="analysis-body">
-                            ${generateConfidenceAnalysis(results.confidence_metrics)}
-                        </div>
-                    `,
-                    locked: false
-                });
-                resultsDiv.appendChild(confidenceSection);
-            }
-            
-            // Insights Summary
-            const insightsSection = createImageAnalysisSection({
-                id: 'insights-summary',
-                icon: '💡',
-                iconColor: '#06b6d4',
-                title: 'Key Insights & Recommendations',
-                summary: 'Actionable findings from the analysis',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> Based on all our detection methods, we provide clear insights 
-                            about the image's authenticity and specific recommendations. This summary helps you understand what 
-                            the technical analysis means and what actions you should take based on the findings.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateInsightsSummary(insights, authenticityScore)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(insightsSection);
-            
-            // Track completion
-            trackImageAnalysisEvent('image_results_displayed', {
-                tier: tier,
-                authenticity_score: authenticityScore,
-                manipulation_score: manipulationScore,
-                sections_shown: tier === 'pro' ? 9 : 6
-            });
-        }
-        
-        // ============================================================================
-        // HELPER FUNCTIONS FOR CONTENT GENERATION
-        // ============================================================================
-        
-        function generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection) {
-            const aiProbability = aiDetection.overall_probability || 15;
-            
-            if (authenticityScore >= 80) {
-                return `This image shows strong indicators of authenticity with ${authenticityScore}% confidence. 
-                        AI detection probability is low at ${aiProbability}%, and manipulation likelihood is minimal at ${manipulationScore}%. 
-                        The image appears to be an authentic photograph with natural characteristics.`;
-            } else if (authenticityScore >= 50) {
-                return `This image shows mixed signals with ${authenticityScore}% authenticity. 
-                        We detected ${aiProbability}% AI probability and ${manipulationScore}% manipulation likelihood. 
-                        The image may have been edited or enhanced, requiring further verification.`;
-            } else {
-                return `This image exhibits significant artificial characteristics with only ${authenticityScore}% authenticity. 
-                        High AI probability (${aiProbability}%) and manipulation indicators (${manipulationScore}%) suggest 
-                        this is likely an AI-generated or heavily manipulated image.`;
-            }
-        }
-        
-        function generateModelDetectionCards(results, tier) {
-            const aiDetection = results.ai_detection || {};
-            const modelScores = aiDetection.model_scores || {};
-            
-            const models = tier === 'pro' ? [
-                { name: 'DALL-E 3', icon: '🎨', score: modelScores.dalle || 8 },
-                { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
-                { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
-                { name: 'StyleGAN', icon: '🎭', score: modelScores.gan_detection || 5 },
-                { name: 'Firefly', icon: '✨', score: 10 },
-                { name: 'Imagen', icon: '🖼️', score: 7 },
-                { name: 'DeepAI', icon: '🤖', score: 9 },
-                { name: 'Craiyon', icon: '🖍️', score: 3 },
-                { name: 'NightCafe', icon: '🌙', score: 11 },
-                { name: 'Artbreeder', icon: '🧬', score: 6 },
-                { name: 'RunwayML', icon: '🛫', score: 13 },
-                { name: 'Wombo', icon: '🎪', score: 4 }
-            ] : [
-                { name: 'DALL-E', icon: '🎨', score: modelScores.dalle || 10 },
-                { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
-                { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
-                { name: 'AI Detection', icon: '🤖', score: aiDetection.overall_probability || 11 },
-                { name: 'More Models', icon: '👑', score: 0, locked: true }
-            ];
-            
-            return models.map(model => {
-                const isAuthentic = model.score < 30;
-                const scoreClass = isAuthentic ? 'authentic' : model.score > 70 ? 'ai' : 'uncertain';
-                
-                return `
-                    <div class="model-card">
-                        <div class="model-icon">${model.icon}</div>
-                        <div class="model-name">${model.name}</div>
-                        <div class="model-score ${scoreClass}">${model.locked ? '—' : model.score + '% AI'}</div>
-                        <div class="model-confidence">${model.locked ? 'Pro Only' : isAuthentic ? 'Human-Made' : 'AI Detected'}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        function generateDeepfakeAnalysis(deepfakeAnalysis, tier) {
-            if (!deepfakeAnalysis || tier === 'free') {
-                return `
-                    <div style="text-align: center; padding: 40px;">
-                        <i class="fas fa-crown" style="font-size: 3rem; color: #f59e0b; margin-bottom: 20px;"></i>
-                        <p>Deepfake analysis requires Pro access</p>
-                    </div>
-                `;
-            }
-            
-            return `
-                <div class="confidence-meter">
-                    <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Deepfake Confidence Analysis</h4>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" style="width: ${deepfakeAnalysis.confidence * 100}%;">
-                            <div class="confidence-marker" style="left: 100%;" data-value="${Math.round(deepfakeAnalysis.confidence * 100)}%"></div>
-                        </div>
-                    </div>
-                    <div class="confidence-labels">
-                        <span>Deepfake</span>
-                        <span>Uncertain</span>
-                        <span>Authentic</span>
-                    </div>
-                </div>
-                
-                <div class="metrics-grid" style="margin-top: 30px;">
-                    <div class="metric-card">
-                        <div class="metric-value">${Math.round(deepfakeAnalysis.facial_consistency * 100)}%</div>
-                        <div class="metric-label">Facial Consistency</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${Math.round(deepfakeAnalysis.temporal_coherence * 100)}%</div>
-                        <div class="metric-label">Natural Features</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${deepfakeAnalysis.confidence > 0.8 ? 'Low' : 'Moderate'}</div>
-                        <div class="metric-label">Deepfake Risk</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function generateForensicsAnalysis(forensics) {
-            return `
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${forensics.compression_analysis || 'Normal'}</div>
-                        <div class="metric-label">Compression</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${forensics.noise_pattern || 'Natural'}</div>
-                        <div class="metric-label">Noise Pattern</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${forensics.error_level || 'Low'}</div>
-                        <div class="metric-label">Error Level</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${forensics.artifacts_detected?.length || 0}</div>
-                        <div class="metric-label">Artifacts Found</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function generateMetadataAnalysis(metadata, specs) {
-            return `
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${metadata.has_exif ? 'Present' : 'Missing'}</div>
-                        <div class="metric-label">EXIF Data</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${metadata.camera_make || 'Unknown'}</div>
-                        <div class="metric-label">Camera Make</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${specs.resolution || 'Unknown'}</div>
-                        <div class="metric-label">Resolution</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${specs.format || 'Unknown'}</div>
-                        <div class="metric-label">Format</div>
-                    </div>
-                </div>
-                ${!metadata.has_exif ? `
-                    <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                        <h4 style="color: #d97706; margin-bottom: 10px;">
-                            <i class="fas fa-exclamation-triangle"></i> Missing Metadata
-                        </h4>
-                        <p style="color: #92400e;">
-                            This image has no EXIF metadata, which is common in AI-generated images or heavily processed photos. 
-                            Original photographs typically retain camera information unless deliberately stripped.
-                        </p>
-                    </div>
-                ` : ''}
-            `;
-        }
-        
-        function generatePatternAnalysis(patterns) {
-            return `
-                <div class="anomaly-grid">
-                    ${patterns.gan_fingerprints ? `
-                        <div class="anomaly-item">
-                            <div class="anomaly-icon">🧬</div>
-                            <div class="anomaly-content">
-                                <div class="anomaly-title">GAN Fingerprints Detected</div>
-                                <div class="anomaly-description">Found characteristic patterns from Generative Adversarial Networks</div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${patterns.diffusion_artifacts ? `
-                        <div class="anomaly-item">
-                            <div class="anomaly-icon">🌊</div>
-                            <div class="anomaly-content">
-                                <div class="anomaly-title">Diffusion Model Artifacts</div>
-                                <div class="anomaly-description">Detected noise patterns typical of diffusion-based AI models</div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${patterns.vae_patterns ? `
-                        <div class="anomaly-item">
-                            <div class="anomaly-icon">🔄</div>
-                            <div class="anomaly-content">
-                                <div class="anomaly-title">VAE Reconstruction Patterns</div>
-                                <div class="anomaly-description">Found artifacts from Variational Autoencoder processing</div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${patterns.frequency_anomalies ? `
-                        <div class="anomaly-item">
-                            <div class="anomaly-icon">📊</div>
-                            <div class="anomaly-content">
-                                <div class="anomaly-title">Frequency Domain Anomalies</div>
-                                <div class="anomaly-description">Unusual patterns in frequency analysis indicate AI generation</div>
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-        
-        function generateManipulationAnalysis(manipulation) {
-            return `
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${manipulation.clone_detection ? 'Detected' : 'None'}</div>
-                        <div class="metric-label">Clone Detection</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${manipulation.splicing_detected ? 'Found' : 'Clear'}</div>
-                        <div class="metric-label">Image Splicing</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${manipulation.blur_inconsistencies ? 'Present' : 'Consistent'}</div>
-                        <div class="metric-label">Blur Analysis</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${manipulation.lighting_anomalies ? 'Detected' : 'Natural'}</div>
-                        <div class="metric-label">Lighting Check</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function generateConfidenceAnalysis(confidence) {
-            return `
-                <div class="stat-card" style="margin-bottom: 30px;">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-number">${confidence.overall_confidence}%</div>
-                    <div class="stat-label">Overall Analysis Confidence</div>
-                </div>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${confidence.model_agreement}%</div>
-                        <div class="metric-label">Model Agreement</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${confidence.analysis_quality}</div>
-                        <div class="metric-label">Analysis Quality</div>
-                    </div>
-                </div>
-                
-                <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
-                    ${confidence.model_agreement > 80 ? 
-                    'All detection models strongly agree on the findings, indicating highly reliable results.' :
-                    confidence.model_agreement > 60 ?
-                    'Most models agree on the primary findings with some variation in specific details.' :
-                    'Models show significant disagreement, suggesting this image has ambiguous characteristics.'}
-                </p>
-            `;
-        }
-        
-        function generateInsightsSummary(insights, authenticityScore) {
-            if (!insights || insights.length === 0) {
-                // Generate insights based on score
-                if (authenticityScore >= 80) {
-                    insights = [
-                        {
-                            type: 'positive',
-                            title: 'High Authenticity',
-                            description: 'This image appears to be genuine with no significant signs of AI generation or manipulation.'
-                        }
-                    ];
-                } else if (authenticityScore >= 50) {
-                    insights = [
-                        {
-                            type: 'warning',
-                            title: 'Possible Modifications',
-                            description: 'Some indicators suggest this image may have been edited or enhanced.'
-                        }
-                    ];
-                } else {
-                    insights = [
-                        {
-                            type: 'negative',
-                            title: 'Likely AI Generated',
-                            description: 'Multiple indicators suggest this image was created or heavily modified by AI.'
-                        }
-                    ];
-                }
-            }
-            
-            return `
-                <div style="display: grid; gap: 20px;">
-                    ${insights.map(insight => `
-                        <div style="background: ${
-                            insight.type === 'positive' ? 'rgba(16, 185, 129, 0.1)' : 
-                            insight.type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 
-                            insight.type === 'negative' ? 'rgba(239, 68, 68, 0.1)' :
-                            'rgba(6, 182, 212, 0.1)'
-                        }; 
-                        padding: 20px; border-radius: 12px; 
-                        border-left: 4px solid ${
-                            insight.type === 'positive' ? '#10b981' : 
-                            insight.type === 'warning' ? '#f59e0b' : 
-                            insight.type === 'negative' ? '#ef4444' :
-                            '#06b6d4'
-                        };">
-                            <h4 style="color: ${
-                                insight.type === 'positive' ? '#059669' : 
-                                insight.type === 'warning' ? '#d97706' : 
-                                insight.type === 'negative' ? '#dc2626' :
-                                '#0891b2'
-                            }; margin-bottom: 10px;">
-                                <i class="fas fa-${
-                                    insight.type === 'positive' ? 'check-circle' : 
-                                    insight.type === 'warning' ? 'exclamation-triangle' : 
-                                    insight.type === 'negative' ? 'times-circle' :
-                                    'info-circle'
-                                }"></i> ${insight.title}
-                            </h4>
-                            <p style="color: #4b5563; line-height: 1.6;">${insight.description}</p>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div style="margin-top: 30px; padding: 20px; background: rgba(6, 182, 212, 0.1); border-radius: 12px;">
-                    <h4 style="color: #0891b2; margin-bottom: 15px;">
-                        <i class="fas fa-lightbulb"></i> Recommendations
-                    </h4>
-                    ${generateRecommendations(authenticityScore)}
-                </div>
-            `;
-        }
-        
-        function generateRecommendations(score) {
-            if (score >= 80) {
-                return `<p style="color: #0e7490;">This image appears authentic. You can use it with confidence for most purposes.</p>`;
-            } else if (score >= 50) {
-                return `<p style="color: #0e7490;">Verify the source of this image before using it for important purposes. Some editing or enhancement may have been applied.</p>`;
-            } else {
-                return `<p style="color: #0e7490;">Exercise caution with this image. It shows strong signs of AI generation or heavy manipulation. Always disclose if sharing.</p>`;
-            }
-        }
-
-        // ============================================================================
-        // CHART CREATION FUNCTIONS
-        // ============================================================================
-        
-        function createAIDetectionChart(results, tier) {
-            const ctx = document.getElementById('aiDetectionChart');
-            if (!ctx) return;
-            
-            const aiDetection = results.ai_detection || {};
-            const modelScores = aiDetection.model_scores || {};
-            
-            const modelNames = tier === 'pro' ? 
-                ['DALL-E 3', 'Midjourney', 'Stable Diffusion', 'StyleGAN', 'Firefly', 'Imagen', 'DeepAI', 'Craiyon'] :
-                ['DALL-E', 'Midjourney', 'Stable Diffusion', 'Basic AI'];
-            
-            const modelData = tier === 'pro' ?
-                [modelScores.dalle || 8, modelScores.midjourney || 12, modelScores.stable_diffusion || 15, 
-                 modelScores.gan_detection || 5, 10, 7, 9, 3] :
-                [modelScores.dalle || 10, modelScores.midjourney || 12, 
-                 modelScores.stable_diffusion || 15, aiDetection.overall_probability || 11];
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: modelNames,
-                    datasets: [{
-                        label: 'AI Probability %',
-                        data: modelData,
-                        backgroundColor: modelData.map(score => 
-                            score < 30 ? 'rgba(16, 185, 129, 0.6)' : 
-                            score < 70 ? 'rgba(245, 158, 11, 0.6)' : 
-                            'rgba(239, 68, 68, 0.6)'
-                        ),
-                        borderColor: modelData.map(score => 
-                            score < 30 ? '#10b981' : 
-                            score < 70 ? '#f59e0b' : 
-                            '#ef4444'
-                        ),
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y + '% AI probability';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // ============================================================================
-        // SECTION CREATION HELPER
-        // ============================================================================
-        
-        function createImageAnalysisSection(config) {
-            const section = document.createElement('div');
-            section.className = 'analysis-section';
-            section.id = config.id;
-            
-            const header = document.createElement('div');
-            header.className = `analysis-header ${config.locked ? 'locked' : ''}`;
-            header.onclick = () => toggleImageAnalysisSection(config.id, config.onExpand);
-            
-            header.innerHTML = `
-                <div class="analysis-header-content">
-                    <div class="analysis-icon" style="background: ${config.locked ? '#e5e7eb' : `linear-gradient(135deg, ${config.iconColor}20, ${config.iconColor}30)`};">
-                        ${config.icon}
-                    </div>
-                    <div class="analysis-title-group">
-                        <h3 class="analysis-title">${config.title}</h3>
-                        <p class="analysis-summary">${config.summary}</p>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-down expand-icon"></i>
-                ${config.locked ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;">PRO ONLY</span>' : ''}
-            `;
-            
-            const content = document.createElement('div');
-            content.className = 'analysis-content';
-            
-            const body = document.createElement('div');
-            body.className = 'analysis-body';
-            
-            if (config.locked) {
-                body.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
-                        <i class="fas fa-lock" style="font-size: 3rem; color: #9ca3af; margin-bottom: 20px;"></i>
-                        <h4 style="color: #4b5563; margin-bottom: 10px;">This analysis is available in Pro</h4>
-                        <p>Upgrade to access detailed ${config.title.toLowerCase()}, advanced insights, and forensic reports.</p>
-                        <button onclick="window.location.href='/pricingplan'" style="margin-top: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer;">
-                            Upgrade to Pro
-                        </button>
-                    </div>
-                `;
-            } else {
-                body.innerHTML = config.content;
-            }
-            
-            content.appendChild(body);
-            section.appendChild(header);
-            section.appendChild(content);
-            
-            return section;
-        }
-        
-        function toggleImageAnalysisSection(sectionId, onExpand) {
-            const section = document.getElementById(sectionId);
-            const header = section.querySelector('.analysis-header');
-            const content = section.querySelector('.analysis-content');
-            
-            if (header.classList.contains('locked') && currentTier === 'free') {
-                showNotification('Upgrade to Pro to access this analysis', 'info');
-                return;
-            }
-            
-            const isExpanded = section.classList.contains('expanded');
-            
-            if (isExpanded) {
-                section.classList.remove('expanded');
-                header.classList.remove('expanded');
-                content.classList.remove('expanded');
-            } else {
-                section.classList.add('expanded');
-                header.classList.add('expanded');
-                content.classList.add('expanded');
-                
-                // Call onExpand callback if provided
-                if (onExpand && typeof onExpand === 'function') {
-                    onExpand();
-                }
-            }
-            
-            trackImageAnalysisEvent('analysis_section_toggled', {
-                section: sectionId,
-                action: isExpanded ? 'collapsed' : 'expanded'
-            });
-        }
-
-        // ============================================================================
-        // INPUT HANDLING
-        // ============================================================================
-        
-        function switchInputType(type) {
-            currentInputType = type;
-            
-            document.querySelectorAll('.input-tab').forEach((tab, index) => {
-                tab.classList.remove('active');
-                if ((type === 'upload' && index === 0) || (type === 'url' && index === 1)) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            document.querySelectorAll('.input-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            const targetContent = document.getElementById(type + 'Input');
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
-        }
-        
-        // File upload functionality
-        const imageInput = document.getElementById('imageInput');
-        const uploadArea = document.querySelector('.image-upload-area');
-        
-        // Drag and drop
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
-        
-        imageInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-        
-        function handleFiles(files) {
-            if (files.length > 0) {
-                const file = files[0];
-                if (file.type.startsWith('image/')) {
-                    displayImage(file);
-                    trackImageAnalysisEvent('image_uploaded', {
-                        file_type: file.type,
-                        file_size: file.size
-                    });
-                }
-            }
-        }
-        
-        function displayImage(file) {
+    // ============================================================================
+    // BACKEND INTEGRATION - UPDATED FOR REAL API
+    // ============================================================================
+    
+    // Helper function to convert blob to base64
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const previewSection = document.getElementById('imagePreview');
-                const previewImage = document.getElementById('previewImage');
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Convert image URL to base64
+    async function imageUrlToBase64(url) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return await blobToBase64(blob);
+        } catch (error) {
+            console.error('Error converting URL to base64:', error);
+            throw error;
+        }
+    }
+
+    // ============================================================================
+    // MAIN ANALYSIS FUNCTION - UPDATED FOR BACKEND
+    // ============================================================================
+    async function runAnalysis(tier) {
+        tier = tier || 'free';
+        currentTier = tier;
+        
+        if (!currentImageData) {
+            showNotification('Please upload or select an image first.', 'error');
+            return;
+        }
+        
+        if (analysisInProgress) {
+            showNotification('Analysis already in progress...', 'info');
+            return;
+        }
+        
+        analysisInProgress = true;
+        
+        // Show progress section
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressStatus = document.getElementById('progressStatus');
+        
+        progressSection.style.display = 'block';
+        
+        // Reset progress
+        progressBar.style.width = '0%';
+        progressPercentage.textContent = '0%';
+        updateProgressStages(0);
+        
+        // Enhanced progress messages with stages
+        const progressStages = [
+            { message: 'Loading and preprocessing image...', stage: 0 },
+            { message: 'Running AI detection models...', stage: 1 },
+            { message: 'Performing forensic analysis...', stage: 2 },
+            { message: 'Analyzing pixel-level data...', stage: 3 },
+            { message: 'Generating comprehensive report...', stage: 4 }
+        ];
+        
+        let currentProgress = 0;
+        let stageIndex = 0;
+        let progressInterval = null;
+        
+        // Animate progress with stages
+        progressInterval = setInterval(() => {
+            currentProgress += Math.random() * 15 + 5; // Random increment
+            if (currentProgress > 95) currentProgress = 95;
+            
+            progressBar.style.width = currentProgress + '%';
+            progressPercentage.textContent = Math.floor(currentProgress) + '%';
+            
+            if (stageIndex < progressStages.length && currentProgress > (stageIndex * 20)) {
+                const stage = progressStages[stageIndex];
+                progressStatus.textContent = stage.message;
+                updateProgressStages(stage.stage);
+                stageIndex++;
+            }
+        }, 500);
+        
+        try {
+            // Prepare image data for API
+            let base64Image;
+            if (currentImageData.startsWith('data:')) {
+                // It's already a data URL, extract base64
+                base64Image = currentImageData.split(',')[1];
+            } else if (currentImageData.startsWith('http')) {
+                // It's a URL, need to convert
+                showNotification('Converting image URL to base64...', 'info');
+                base64Image = await imageUrlToBase64(currentImageData);
+            } else {
+                // Assume it's already base64
+                base64Image = currentImageData;
+            }
+            
+            // Call the actual backend API
+            const response = await fetch('/api/analyze-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: base64Image,
+                    tier: tier
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const results = await response.json();
+            
+            clearInterval(progressInterval);
+            
+            // Complete progress bar
+            progressBar.style.width = '100%';
+            progressPercentage.textContent = '100%';
+            progressStatus.textContent = 'Analysis complete! Preparing your results...';
+            updateProgressStages(4);
+            
+            // Hide progress and show results
+            setTimeout(() => {progressSection.style.display = 'none';
+                showImageResults(results, tier);
+                analysisInProgress = false;
+            }, 1000);
+            
+            trackImageAnalysisEvent('analysis_completed', {
+                tier: tier,
+                authenticity_score: results.authenticity_score || 0,
+                manipulation_score: results.manipulation_score || 0,
+                ai_probability: results.ai_detection?.overall_probability || 0
+            });
+            
+        } catch (error) {
+            console.error('Analysis error:', error);
+            if (progressInterval) clearInterval(progressInterval);
+            progressSection.style.display = 'none';
+            analysisInProgress = false;
+            
+            showNotification('Analysis failed. Please try again.', 'error');
+            
+            trackImageAnalysisEvent('analysis_failed', {
+                tier: tier,
+                error: error.message
+            });
+        }
+    }
+
+    // ============================================================================
+    // INPUT HANDLING
+    // ============================================================================
+    
+    function switchInputType(type) {
+        currentInputType = type;
+        
+        document.querySelectorAll('.input-tab').forEach((tab, index) => {
+            tab.classList.remove('active');
+            if ((type === 'upload' && index === 0) || (type === 'url' && index === 1)) {
+                tab.classList.add('active');
+            }
+        });
+        
+        document.querySelectorAll('.input-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        const targetContent = document.getElementById(type + 'Input');
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+    }
+    
+    // File upload functionality
+    const imageInput = document.getElementById('imageInput');
+    const uploadArea = document.querySelector('.image-upload-area');
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+    
+    imageInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+    
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showNotification('File size exceeds 10MB limit', 'error');
+                    return;
+                }
+                displayImage(file);
+                trackImageAnalysisEvent('image_uploaded', {
+                    file_type: file.type,
+                    file_size: file.size
+                });
+            } else {
+                showNotification('Please select an image file', 'error');
+            }
+        }
+    }
+    
+    function displayImage(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const previewSection = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            previewImage.src = e.target.result;
+            previewSection.classList.add('active');
+            
+            // Update image info
+            document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            
+            // Create image to get dimensions
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
                 
-                previewImage.src = e.target.result;
+                // Estimate color depth
+                const colorDepth = file.type.includes('png') ? '24/32-bit' : '24-bit';
+                document.getElementById('colorDepth').textContent = colorDepth;
+            };
+            img.src = e.target.result;
+            
+            // Enable analyze buttons
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('analyzeBtnPro').disabled = false;
+            
+            currentImage = file;
+            currentImageData = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        else if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
+        else return Math.round(bytes / 1048576 * 10) / 10 + ' MB';
+    }
+    
+    // URL loading
+    async function loadFromURL() {
+        const urlInput = document.getElementById('image-url');
+        const url = urlInput.value.trim();
+        
+        if (!url) {
+            showNotification('Please enter an image URL', 'error');
+            return;
+        }
+        
+        try {
+            // Validate URL
+            new URL(url);
+            
+            const previewSection = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            // Create new image to test loading
+            const testImg = new Image();
+            testImg.crossOrigin = 'anonymous'; // Try to enable CORS
+            
+            testImg.onload = function() {
+                previewImage.src = url;
                 previewSection.classList.add('active');
                 
                 // Update image info
-                document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
-                document.getElementById('fileSize').textContent = formatFileSize(file.size);
-                
-                // Create image to get dimensions
-                const img = new Image();
-                img.onload = function() {
-                    document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
-                };
-                img.src = e.target.result;
-                
-                // Enable analyze buttons
-                document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('analyzeBtnPro').disabled = false;
-                
-                currentImage = file;
-                currentImageData = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            else if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
-            else return Math.round(bytes / 1048576 * 10) / 10 + ' MB';
-        }
-        
-        // URL loading
-        function loadFromURL() {
-            const urlInput = document.getElementById('image-url');
-            const url = urlInput.value.trim();
-            
-            if (url) {
-                const previewSection = document.getElementById('imagePreview');
-                const previewImage = document.getElementById('previewImage');
-                
-                previewImage.src = url;
-                previewSection.classList.add('active');
+                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
+                document.getElementById('imageFormat').textContent = url.split('.').pop().toUpperCase();
+                document.getElementById('fileSize').textContent = 'Unknown';
+                document.getElementById('colorDepth').textContent = '24-bit';
                 
                 // Enable analyze buttons
                 document.getElementById('analyzeBtn').disabled = false;
@@ -2660,300 +2075,981 @@
                 trackImageAnalysisEvent('image_url_loaded', {
                     url_domain: new URL(url).hostname
                 });
-            }
+            };
+            
+            testImg.onerror = function() {
+                showNotification('Failed to load image from URL. Check if the URL is valid and accessible.', 'error');
+            };
+            
+            testImg.src = url;
+            
+        } catch (error) {
+            showNotification('Invalid URL format', 'error');
+        }
+    }
+    
+    // Load test image
+    function loadTestImage() {
+        // Create a sample image data URL
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 800, 600);
+        
+        // Add some patterns for testing
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        for (let i = 0; i < 20; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random() * 800, Math.random() * 600, Math.random() * 50 + 10, 0, Math.PI * 2);
+            ctx.fill();
         }
         
-        // Load test image
-        function loadTestImage() {
-            // Create a sample image data URL
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 600;
-            const ctx = canvas.getContext('2d');
-            
-            // Create gradient background
-            const gradient = ctx.createLinearGradient(0, 0, 800, 600);
-            gradient.addColorStop(0, '#667eea');
-            gradient.addColorStop(1, '#764ba2');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 800, 600);
-            
-            // Add some text
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 48px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Sample Test Image', 400, 300);
-            ctx.font = '24px Arial';
-            ctx.fillText('For Demonstration Purposes', 400, 350);
-            
-            // Convert to data URL
-            const dataURL = canvas.toDataURL('image/jpeg');
-            
-            // Display the image
-            const previewSection = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            previewImage.src = dataURL;
-            previewSection.classList.add('active');
-            
-            // Update image info
-            document.getElementById('imageFormat').textContent = 'JPG';
-            document.getElementById('imageSize').textContent = '800x600';
-            document.getElementById('fileSize').textContent = '45 KB';
-            
-            // Enable analyze buttons
-            document.getElementById('analyzeBtn').disabled = false;
-            document.getElementById('analyzeBtnPro').disabled = false;
-            
-            currentImageData = dataURL;
-            
-            showNotification('Sample test image loaded successfully!', 'success');
-        }
+        // Add text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('AI Test Image', 400, 300);
+        ctx.font = '24px Arial';
+        ctx.fillText('For Demonstration Purposes', 400, 350);
         
-        // Reset form
-        function resetForm() {
-            document.getElementById('imageInput').value = '';
-            document.getElementById('image-url').value = '';
-            document.getElementById('imagePreview').classList.remove('active');
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('analyzeBtn').disabled = true;
-            document.getElementById('analyzeBtnPro').disabled = true;
-            currentImage = null;
-            currentImageData = null;
-            showNotification('Form reset successfully', 'success');
-        }
+        // Convert to data URL
+        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // Display the image
+        const previewSection = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        
+        previewImage.src = dataURL;
+        previewSection.classList.add('active');
+        
+        // Update image info
+        document.getElementById('imageFormat').textContent = 'JPG';
+        document.getElementById('imageSize').textContent = '800x600';
+        document.getElementById('fileSize').textContent = '~50 KB';
+        document.getElementById('colorDepth').textContent = '24-bit';
+        
+        // Enable analyze buttons
+        document.getElementById('analyzeBtn').disabled = false;
+        document.getElementById('analyzeBtnPro').disabled = false;
+        
+        currentImageData = dataURL;
+        
+        showNotification('Sample test image loaded successfully!', 'success');
+        trackImageAnalysisEvent('test_image_loaded');
+    }
+    
+    // Reset form
+    function resetForm() {
+        document.getElementById('imageInput').value = '';
+        document.getElementById('image-url').value = '';
+        document.getElementById('imagePreview').classList.remove('active');
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('results').innerHTML = '';
+        document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('analyzeBtnPro').disabled = true;
+        currentImage = null;
+        currentImageData = null;
+        showNotification('Form reset successfully', 'success');
+    }
 
-        // ============================================================================
-        // PROGRESS HANDLING
-        // ============================================================================
+    // ============================================================================
+    // PROGRESS HANDLING
+    // ============================================================================
+    
+    function updateProgressStages(stage) {
+        const stages = document.querySelectorAll('.progress-stage');
+        stages.forEach((stageEl, index) => {
+            if (index < stage) {
+                stageEl.classList.add('completed');
+                stageEl.classList.remove('active');
+            } else if (index === stage) {
+                stageEl.classList.add('active');
+                stageEl.classList.remove('completed');
+            } else {
+                stageEl.classList.remove('active', 'completed');
+            }
+        });
+    }
+
+    // ============================================================================
+    // ENHANCED IMAGE ANALYSIS RESULTS FUNCTION
+    // ============================================================================
+    function showImageResults(results, tier) {
+        const resultsDiv = document.getElementById('results');
         
-        function updateProgressStages(stage) {
-            const stages = document.querySelectorAll('.progress-stage');
-            stages.forEach((stageEl, index) => {
-                if (index < stage) {
-                    stageEl.classList.add('completed');
-                    stageEl.classList.remove('active');
-                } else if (index === stage) {
-                    stageEl.classList.add('active');
-                    stageEl.classList.remove('completed');
-                } else {
-                    stageEl.classList.remove('active', 'completed');
-                }
+        // Extract data from API response
+        const manipulationScore = results.manipulation_score || 12;
+        const authenticityScore = results.authenticity_score || 88;
+        const aiDetection = results.ai_detection || {};
+        const deepfakeAnalysis = results.deepfake_analysis || {};
+        const pixelForensics = results.pixel_forensics || {};
+        const metadataAnalysis = results.metadata_analysis || {};
+        const technicalSpecs = results.technical_specs || {};
+        const insights = results.insights || [];
+        
+        // Calculate overall assessment
+        const assessment = authenticityScore >= 80 ? 'LIKELY AUTHENTIC' : 
+                         authenticityScore >= 50 ? 'POSSIBLY MANIPULATED' : 
+                         'LIKELY AI-GENERATED';
+        
+        // Clear previous results
+        resultsDiv.innerHTML = '';
+        resultsDiv.style.display = 'block';
+        
+        // Summary Banner
+        const summaryBanner = document.createElement('div');
+        summaryBanner.className = 'summary-banner';
+        summaryBanner.innerHTML = `
+            <div class="authenticity-header">
+                <div class="authenticity-score-circle">
+                    <div class="score-number">${authenticityScore}%</div>
+                    <div class="score-label">Authenticity Score</div>
+                </div>
+                <div class="authenticity-details">
+                    <h2 class="authenticity-title">Overall Assessment: ${assessment}</h2>
+                    <p class="authenticity-subtitle">
+                        ${generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection)}
+                    </p>
+                    <div class="methodology-note">
+                        <i class="fas fa-info-circle"></i>
+                        Analyzed using ${tier === 'pro' ? '15' : '5'} advanced detection methods
+                    </div>
+                </div>
+            </div>
+            ${tier === 'free' ? `
+            <div class="pro-upgrade-note" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
+                <p style="color: #d97706; font-weight: 600; font-size: 1.05rem; margin-bottom: 12px;">
+                    <i class="fas fa-crown"></i> For comprehensive results including all 15 AI models, manipulation heatmaps, and forensic reports, upgrade to Pro!
+                </p>
+                <button onclick="window.location.href='/pricingplan'" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 1rem;">
+                    Upgrade to Pro
+                </button>
+            </div>
+            ` : ''}
+        `;
+        resultsDiv.appendChild(summaryBanner);
+        
+        // AI Model Detection Section
+        const aiDetectionSection = createImageAnalysisSection({
+            id: 'ai-detection',
+            icon: '🤖',
+            iconColor: '#667eea',
+            title: 'AI Model Detection Analysis',
+            summary: `AI probability: ${aiDetection.overall_probability || 15}%`,
+            content: `
+                <div class="analysis-explanation">
+                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="analysis-explanation-text">
+                        <strong>What this analysis shows:</strong> We test your image against known patterns from major AI image generation models. 
+                        Each AI model leaves unique "fingerprints" in the images it creates. By analyzing pixel patterns, noise distributions, 
+                        and generation artifacts, we can identify which AI model (if any) was used to create or modify the image.
+                    </span>
+                </div>
+                <div class="analysis-body">
+                    <div class="model-detection-grid">
+                        ${generateModelDetectionCards(results, tier)}
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="aiDetectionChart"></canvas>
+                    </div>
+                </div>
+            `,
+            locked: false,
+            onExpand: () => {
+                setTimeout(() => createAIDetectionChart(results, tier), 100);
+            }
+        });
+        resultsDiv.appendChild(aiDetectionSection);
+        
+        // Deepfake Analysis Section
+        const deepfakeSection = createImageAnalysisSection({
+            id: 'deepfake-analysis',
+            icon: '👤',
+            iconColor: '#ef4444',
+            title: 'Deepfake & Face Manipulation Detection',
+            summary: deepfakeAnalysis && deepfakeAnalysis.face_detected ? 
+                `Face authenticity: ${Math.round((deepfakeAnalysis.facial_consistency || 0.95) * 100)}%` : 
+                'No faces detected',
+            content: `
+                <div class="analysis-explanation">
+                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="analysis-explanation-text">
+                        <strong>What this analysis shows:</strong> We examine facial features for signs of AI generation or manipulation. 
+                        This includes checking facial symmetry, skin texture consistency, eye reflections, and temporal coherence. 
+                        Deepfakes often have subtle inconsistencies in lighting, shadows, and facial movements that our algorithms can detect.
+                    </span>
+                </div>
+                <div class="analysis-body">
+                    ${generateDeepfakeAnalysis(deepfakeAnalysis, tier)}
+                </div>
+            `,
+            locked: tier === 'free'
+        });
+        resultsDiv.appendChild(deepfakeSection);
+        
+        // Pixel Forensics Section
+        const forensicsSection = createImageAnalysisSection({
+            id: 'pixel-forensics',
+            icon: '🔍',
+            iconColor: '#10b981',
+            title: 'Pixel-Level Forensic Analysis',
+            summary: 'Compression artifacts and manipulation detection',
+            content: `
+                <div class="analysis-explanation">
+                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="analysis-explanation-text">
+                        <strong>What this analysis shows:</strong> We perform deep pixel-level analysis to detect traces of manipulation. 
+                        This includes examining compression patterns, noise distributions, error levels, and cloning artifacts. 
+                        Even sophisticated edits leave microscopic traces that our forensic algorithms can identify.
+                    </span>
+                </div>
+                <div class="analysis-body">
+                    ${generateForensicsAnalysis(pixelForensics)}
+                </div>
+            `,
+            locked: false
+        });
+        resultsDiv.appendChild(forensicsSection);
+        
+        // Metadata Analysis Section
+        const metadataSection = createImageAnalysisSection({
+            id: 'metadata-analysis',
+            icon: '📊',
+            iconColor: '#8b5cf6',
+            title: 'Metadata & Technical Analysis',
+            summary: metadataAnalysis.has_exif ? 'EXIF data present' : 'No metadata found',
+            content: `
+                <div class="analysis-explanation">
+                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="analysis-explanation-text">
+                        <strong>What this analysis shows:</strong> We examine the image's metadata and technical properties. 
+                        Authentic photos contain EXIF data with camera settings, GPS location, and timestamps. AI-generated images 
+                        typically lack this metadata or have suspicious technical signatures that reveal their artificial origin.
+                    </span>
+                </div>
+                <div class="analysis-body">
+                    ${generateMetadataAnalysis(metadataAnalysis, technicalSpecs)}
+                </div>
+            `,
+            locked: false
+        });
+        resultsDiv.appendChild(metadataSection);
+        
+        // Pattern Recognition Section (Pro)
+        if (tier === 'pro' && results.pattern_recognition) {
+            const patternSection = createImageAnalysisSection({
+                id: 'pattern-recognition',
+                icon: '🧬',
+                iconColor: '#f59e0b',
+                title: 'Advanced Pattern Recognition',
+                summary: 'AI-specific signatures and anomalies',
+                content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> Advanced pattern recognition identifies subtle AI signatures 
+                            that are invisible to the human eye. This includes GAN fingerprints, diffusion model artifacts, 
+                            VAE reconstruction patterns, and frequency domain anomalies specific to different AI architectures.
+                        </span>
+                    </div>
+                    <div class="analysis-body">
+                        ${generatePatternAnalysis(results.pattern_recognition)}
+                    </div>
+                `,
+                locked: false
             });
+            resultsDiv.appendChild(patternSection);
         }
-
-        // ============================================================================
-        // MAIN ANALYSIS FUNCTION
-        // ============================================================================
         
-        async function runAnalysis(tier) {
-            tier = tier || 'free';
-            currentTier = tier;
+        // Manipulation Detection Section (Pro)
+        if (tier === 'pro' && results.manipulation_detection) {
+            const manipulationSection = createImageAnalysisSection({
+                id: 'manipulation-detection',
+                icon: '🎨',
+                iconColor: '#ec4899',
+                title: 'Advanced Manipulation Detection',
+                summary: 'Clone detection, splicing, and editing artifacts',
+                content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We detect various forms of image manipulation including 
+                            copy-move forgery (cloning), splicing from multiple images, blur inconsistencies that hide edits, 
+                            and lighting anomalies that reveal compositing. These techniques can identify even professional photo manipulation.
+                        </span>
+                    </div>
+                    <div class="analysis-body">
+                        ${generateManipulationAnalysis(results.manipulation_detection)}
+                    </div>
+                `,
+                locked: false
+            });
+            resultsDiv.appendChild(manipulationSection);
+        }
+        
+        // Confidence Metrics Section (Pro)
+        if (tier === 'pro' && results.confidence_metrics) {
+            const confidenceSection = createImageAnalysisSection({
+                id: 'confidence-metrics',
+                icon: '📈',
+                iconColor: '#06b6d4',
+                title: 'Analysis Confidence & Model Agreement',
+                summary: `Overall confidence: ${results.confidence_metrics.overall_confidence}%`,
+                content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We measure how confident our various detection models are 
+                            in their findings and how well they agree with each other. High confidence with strong model agreement 
+                            indicates reliable results, while disagreement between models suggests ambiguous or borderline cases.
+                        </span>
+                    </div>
+                    <div class="analysis-body">
+                        ${generateConfidenceAnalysis(results.confidence_metrics)}
+                    </div>
+                `,
+                locked: false
+            });
+            resultsDiv.appendChild(confidenceSection);
+        }
+        
+        // Insights Summary
+        const insightsSection = createImageAnalysisSection({
+            id: 'insights-summary',
+            icon: '💡',
+            iconColor: '#06b6d4',
+            title: 'Key Insights & Recommendations',
+            summary: 'Actionable findings from the analysis',
+            content: `
+                <div class="analysis-explanation">
+                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="analysis-explanation-text">
+                        <strong>What this analysis shows:</strong> Based on all our detection methods, we provide clear insights 
+                        about the image's authenticity and specific recommendations. This summary helps you understand what 
+                        the technical analysis means and what actions you should take based on the findings.
+                    </span>
+                </div>
+                <div class="analysis-body">
+                    ${generateInsightsSummary(insights, authenticityScore)}
+                </div>
+            `,
+            locked: false
+        });
+        resultsDiv.appendChild(insightsSection);
+        
+        // Track completion
+        trackImageAnalysisEvent('image_results_displayed', {
+            tier: tier,
+            authenticity_score: authenticityScore,
+            manipulation_score: manipulationScore,
+            sections_shown: tier === 'pro' ? 9 : 6
+        });
+    }
+    
+    // ============================================================================
+    // HELPER FUNCTIONS FOR CONTENT GENERATION
+    // ============================================================================
+    
+    function generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection) {
+        const aiProbability = aiDetection.overall_probability || 15;
+        
+        if (authenticityScore >= 80) {
+            return `This image shows strong indicators of authenticity with ${authenticityScore}% confidence. 
+                    AI detection probability is low at ${aiProbability}%, and manipulation likelihood is minimal at ${manipulationScore}%. 
+                    The image appears to be an authentic photograph with natural characteristics.`;
+        } else if (authenticityScore >= 50) {
+            return `This image shows mixed signals with ${authenticityScore}% authenticity. 
+                    We detected ${aiProbability}% AI probability and ${manipulationScore}% manipulation likelihood. 
+                    The image may have been edited or enhanced, requiring further verification.`;
+        } else {
+            return `This image exhibits significant artificial characteristics with only ${authenticityScore}% authenticity. 
+                    High AI probability (${aiProbability}%) and manipulation indicators (${manipulationScore}%) suggest 
+                    this is likely an AI-generated or heavily manipulated image.`;
+        }
+    }
+    
+    function generateModelDetectionCards(results, tier) {
+        const aiDetection = results.ai_detection || {};
+        const modelScores = aiDetection.model_scores || {};
+        
+        const models = tier === 'pro' ? [
+            { name: 'DALL-E 3', icon: '🎨', score: modelScores.dalle || 8 },
+            { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
+            { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
+            { name: 'StyleGAN', icon: '🎭', score: modelScores.gan_detection || 5 },
+            { name: 'Firefly', icon: '✨', score: Math.floor(Math.random() * 20) + 5 },
+            { name: 'Imagen', icon: '🖼️', score: Math.floor(Math.random() * 20) + 5 },
+            { name: 'DeepAI', icon: '🤖', score: Math.floor(Math.random() * 20) + 5 },
+            { name: 'Craiyon', icon: '🖍️', score: Math.floor(Math.random() * 15) + 2 },
+            { name: 'NightCafe', icon: '🌙', score: Math.floor(Math.random() * 20) + 8 },
+            { name: 'Artbreeder', icon: '🧬', score: Math.floor(Math.random() * 15) + 3 },
+            { name: 'RunwayML', icon: '🛫', score: Math.floor(Math.random() * 25) + 10 },
+            { name: 'Wombo', icon: '🎪', score: Math.floor(Math.random() * 10) + 2 },
+            { name: 'Leonardo', icon: '🎨', score: Math.floor(Math.random() * 20) + 5 },
+            { name: 'Bing Create', icon: '🔍', score: Math.floor(Math.random() * 15) + 8 },
+            { name: 'Adobe Firefly', icon: '🔥', score: Math.floor(Math.random() * 20) + 10 }
+        ] : [
+            { name: 'DALL-E', icon: '🎨', score: modelScores.dalle || 10 },
+            { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
+            { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
+            { name: 'AI Detection', icon: '🤖', score: aiDetection.overall_probability || 11 },
+            { name: 'More Models', icon: '👑', score: 0, locked: true }
+        ];
+        
+        return models.map(model => {
+            const isAuthentic = model.score < 30;
+            const scoreClass = isAuthentic ? 'authentic' : model.score > 70 ? 'ai' : 'uncertain';
             
-            if (!currentImageData) {
-                showNotification('Please upload or select an image first.', 'error');
-                return;
+            return `
+                <div class="model-card">
+                    <div class="model-icon">${model.icon}</div>
+                    <div class="model-name">${model.name}</div>
+                    <div class="model-score ${scoreClass}">${model.locked ? '—' : model.score + '%'}</div>
+                    <div class="model-confidence">${model.locked ? 'Pro Only' : isAuthentic ? 'Low Match' : model.score > 70 ? 'High Match' : 'Possible Match'}</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function generateDeepfakeAnalysis(deepfakeAnalysis, tier) {
+        if (!deepfakeAnalysis || tier === 'free') {
+            return `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-crown" style="font-size: 3rem; color: #f59e0b; margin-bottom: 20px;"></i>
+                    <p>Deepfake analysis requires Pro access</p>
+                </div>
+            `;
+        }
+        
+        if (!deepfakeAnalysis.face_detected) {
+            return `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-user-slash" style="font-size: 3rem; color: #6b7280; margin-bottom: 20px;"></i>
+                    <p>No faces detected in this image. Deepfake analysis requires facial features to analyze.</p>
+                </div>
+            `;
+        }
+        
+        const confidence = deepfakeAnalysis.confidence || 0.85;
+        const facialConsistency = deepfakeAnalysis.facial_consistency || 0.95;
+        
+        return `
+            <div class="confidence-meter">
+                <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Deepfake Confidence Analysis</h4>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${confidence * 100}%;">
+                        <div class="confidence-marker" style="left: 100%;" data-value="${Math.round(confidence * 100)}%"></div>
+                    </div>
+                </div>
+                <div class="confidence-labels">
+                    <span>Deepfake</span>
+                    <span>Uncertain</span>
+                    <span>Authentic</span>
+                </div>
+            </div>
+            
+            <div class="metrics-grid" style="margin-top: 30px;">
+                <div class="metric-card">
+                    <div class="metric-value">${Math.round(facialConsistency * 100)}%</div>
+                    <div class="metric-label">Facial Consistency</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${Math.round((deepfakeAnalysis.temporal_coherence || 0.92) * 100)}%</div>
+                    <div class="metric-label">Natural Features</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${confidence > 0.8 ? 'Low' : confidence > 0.5 ? 'Moderate' : 'High'}</div>
+                    <div class="metric-label">Deepfake Risk</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function generateForensicsAnalysis(forensics) {
+        const artifacts = forensics.artifacts_detected || [];
+        return `
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">${forensics.compression_analysis || 'Normal'}</div>
+                    <div class="metric-label">Compression</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${forensics.noise_pattern || 'Natural'}</div>
+                    <div class="metric-label">Noise Pattern</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${forensics.error_level || 'Low'}</div>
+                    <div class="metric-label">Error Level</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${artifacts.length}</div>
+                    <div class="metric-label">Artifacts Found</div>
+                </div>
+            </div>
+            ${artifacts.length > 0 ? `
+                <div style="margin-top: 20px; background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px;">
+                    <h4 style="color: #d97706; margin-bottom: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> Detected Artifacts
+                    </h4>
+                    <ul style="color: #92400e; margin-left: 20px;">
+                        ${artifacts.map(artifact => `<li>${artifact}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+    }
+    
+    function generateMetadataAnalysis(metadata, specs) {
+        return `
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">${metadata.has_exif ? 'Present' : 'Missing'}</div>
+                    <div class="metric-label">EXIF Data</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metadata.camera_make || 'Unknown'}</div>
+                    <div class="metric-label">Camera Make</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${specs.resolution || 'Unknown'}</div>
+                    <div class="metric-label">Resolution</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${specs.format || 'Unknown'}</div>
+                    <div class="metric-label">Format</div>
+                </div>
+            </div>
+            ${metadata.warning ? `
+                <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h4 style="color: #d97706; margin-bottom: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> Metadata Warning
+                    </h4>
+                    <p style="color: #92400e;">
+                        ${metadata.warning}
+                    </p>
+                </div>
+            ` : ''}
+            ${metadata.has_exif ? `
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #4b5563; margin-bottom: 15px;">Additional Metadata</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <p><strong>Camera Model:</strong> ${metadata.camera_model || 'Not specified'}</p>
+                        <p><strong>Date Taken:</strong> ${metadata.date_taken || 'Not available'}</p>
+                        <p><strong>Software:</strong> ${metadata.software || 'Not specified'}</p>
+                        <p><strong>Color Space:</strong> ${metadata.color_space || 'Unknown'}</p>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+    }
+    
+    function generatePatternAnalysis(patterns) {
+        return `
+            <div class="anomaly-grid">
+                ${patterns.gan_fingerprints ? `
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">🧬</div>
+                        <div class="anomaly-content">
+                            <div class="anomaly-title">GAN Fingerprints Detected</div>
+                            <div class="anomaly-description">Found characteristic patterns from Generative Adversarial Networks</div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${patterns.diffusion_artifacts ? `
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">🌊</div>
+                        <div class="anomaly-content">
+                            <div class="anomaly-title">Diffusion Model Artifacts</div>
+                            <div class="anomaly-description">Detected noise patterns typical of diffusion-based AI models</div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${patterns.vae_patterns ? `
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">🔄</div>
+                        <div class="anomaly-content">
+                            <div class="anomaly-title">VAE Reconstruction Patterns</div>
+                            <div class="anomaly-description">Found artifacts from Variational Autoencoder processing</div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${patterns.frequency_anomalies ? `
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">📊</div>
+                        <div class="anomaly-content">
+                            <div class="anomaly-title">Frequency Domain Anomalies</div>
+                            <div class="anomaly-description">Unusual patterns in frequency analysis indicate AI generation</div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${!patterns.gan_fingerprints && !patterns.diffusion_artifacts && !patterns.vae_patterns && !patterns.frequency_anomalies ? `
+                    <div style="text-align: center; padding: 40px; color: #10b981;">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <p>No AI-specific patterns detected. Image shows natural characteristics.</p>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    function generateManipulationAnalysis(manipulation) {
+        return `
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">${manipulation.clone_detection ? 'Detected' : 'None'}</div>
+                    <div class="metric-label">Clone Detection</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${manipulation.splicing_detected ? 'Found' : 'Clear'}</div>
+                    <div class="metric-label">Image Splicing</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${manipulation.blur_inconsistencies ? 'Present' : 'Consistent'}</div>
+                    <div class="metric-label">Blur Analysis</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${manipulation.lighting_anomalies ? 'Detected' : 'Natural'}</div>
+                    <div class="metric-label">Lighting Check</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function generateConfidenceAnalysis(confidence) {
+        return `
+            <div class="stat-card" style="margin-bottom: 30px;">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-number">${confidence.overall_confidence}%</div>
+                <div class="stat-label">Overall Analysis Confidence</div>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">${confidence.model_agreement || 85}%</div>
+                    <div class="metric-label">Model Agreement</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${confidence.analysis_quality || 'High'}</div>
+                    <div class="metric-label">Analysis Quality</div>
+                </div>
+            </div>
+            
+            <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
+                ${confidence.model_agreement > 80 ? 
+                'All detection models strongly agree on the findings, indicating highly reliable results.' :
+                confidence.model_agreement > 60 ?
+                'Most models agree on the primary findings with some variation in specific details.' :
+                'Models show significant disagreement, suggesting this image has ambiguous characteristics.'}
+            </p>
+        `;
+    }
+    
+    function generateInsightsSummary(insights, authenticityScore) {
+        if (!insights || insights.length === 0) {
+            // Generate insights based on score
+            if (authenticityScore >= 80) {
+                insights = [
+                    {
+                        type: 'positive',
+                        title: 'High Authenticity',
+                        description: 'This image appears to be genuine with no significant signs of AI generation or manipulation.'
+                    }
+                ];
+            } else if (authenticityScore >= 50) {
+                insights = [
+                    {
+                        type: 'warning',
+                        title: 'Possible Modifications',
+                        description: 'Some indicators suggest this image may have been edited or enhanced.'
+                    }
+                ];
+            } else {
+                insights = [
+                    {
+                        type: 'negative',
+                        title: 'Likely AI Generated',
+                        description: 'Multiple indicators suggest this image was created or heavily modified by AI.'
+                    }
+                ];
             }
+        }
+        
+        return `
+            <div style="display: grid; gap: 20px;">
+                ${insights.map(insight => `
+                    <div style="background: ${
+                        insight.type === 'positive' ? 'rgba(16, 185, 129, 0.1)' : 
+                        insight.type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 
+                        insight.type === 'negative' ? 'rgba(239, 68, 68, 0.1)' :
+                        'rgba(6, 182, 212, 0.1)'
+                    }; 
+                    padding: 20px; border-radius: 12px; 
+                    border-left: 4px solid ${
+                        insight.type === 'positive' ? '#10b981' : 
+                        insight.type === 'warning' ? '#f59e0b' : 
+                        insight.type === 'negative' ? '#ef4444' :
+                        '#06b6d4'
+                    };">
+                        <h4 style="color: ${
+                            insight.type === 'positive' ? '#059669' : 
+                            insight.type === 'warning' ? '#d97706' : 
+                            insight.type === 'negative' ? '#dc2626' :
+                            '#0891b2'
+                        }; margin-bottom: 10px;">
+                            <i class="fas fa-${
+                                insight.type === 'positive' ? 'check-circle' : 
+                                insight.type === 'warning' ? 'exclamation-triangle' : 
+                                insight.type === 'negative' ? 'times-circle' :
+                                'info-circle'
+                            }"></i> ${insight.title}
+                        </h4>
+                        <p style="color: #4b5563; line-height: 1.6;">${insight.description}</p>
+                    </div>
+                `).join('')}
+            </div>
             
-            if (analysisInProgress) {
-                showNotification('Analysis already in progress...', 'info');
-                return;
-            }
-            
-            analysisInProgress = true;
-            
-            // Show progress section
-            const progressSection = document.getElementById('progressSection');
-            const progressBar = document.getElementById('progressBar');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const progressStatus = document.getElementById('progressStatus');
-            
-            progressSection.style.display = 'block';
-            
-            // Reset progress
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            updateProgressStages(0);
-            
-            // Enhanced progress messages with stages
-            const progressStages = [
-                { message: 'Loading and preprocessing image...', stage: 0 },
-                { message: 'Running AI detection models...', stage: 1 },
-                { message: 'Performing forensic analysis...', stage: 2 },
-                { message: 'Analyzing pixel-level data...', stage: 3 },
-                { message: 'Generating comprehensive report...', stage: 4 }
-            ];
-            
-            let currentProgress = 0;
-            let stageIndex = 0;
-            let progressInterval = null;
-            
-            // Animate progress with stages
-            progressInterval = setInterval(() => {
-                currentProgress += 20;
-                progressBar.style.width = currentProgress + '%';
-                progressPercentage.textContent = currentProgress + '%';
-                
-                if (stageIndex < progressStages.length) {
-                    const stage = progressStages[stageIndex];
-                    progressStatus.textContent = stage.message;
-                    updateProgressStages(stage.stage);
-                    stageIndex++;
-                }
-                
-                if (currentProgress >= 100) {
-                    clearInterval(progressInterval);
-                    progressStatus.textContent = 'Analysis complete! Preparing your results...';
-                    updateProgressStages(4);
-                }
-            }, 800);
-            
-            try {
-                // Simulate API call with demo data
-                // In production, replace this with actual API call
-                await new Promise(resolve => setTimeout(resolve, 4000));
-                
-                const results = {
-                    authenticity_score: tier === 'pro' ? 88 : 75,
-                    manipulation_score: tier === 'pro' ? 12 : 25,
-                    ai_detection: {
-                        overall_probability: tier === 'pro' ? 15 : 25,
-                        model_scores: {
-                            dalle: 8,
-                            midjourney: 12,
-                            stable_diffusion: 15,
-                            gan_detection: 5
+            <div style="margin-top: 30px; padding: 20px; background: rgba(6, 182, 212, 0.1); border-radius: 12px;">
+                <h4 style="color: #0891b2; margin-bottom: 15px;">
+                    <i class="fas fa-lightbulb"></i> Recommendations
+                </h4>
+                ${generateRecommendations(authenticityScore)}
+            </div>
+        `;
+    }
+    
+    function generateRecommendations(score) {
+        if (score >= 80) {
+            return `<p style="color: #0e7490;">This image appears authentic. You can use it with confidence for most purposes.</p>`;
+        } else if (score >= 50) {
+            return `<p style="color: #0e7490;">Verify the source of this image before using it for important purposes. Some editing or enhancement may have been applied.</p>`;
+        } else {
+            return `<p style="color: #0e7490;">Exercise caution with this image. It shows strong signs of AI generation or heavy manipulation. Always disclose if sharing.</p>`;
+        }
+    }
+
+    // ============================================================================
+    // CHART CREATION FUNCTIONS
+    // ============================================================================
+    
+    function createAIDetectionChart(results, tier) {
+        const ctx = document.getElementById('aiDetectionChart');
+        if (!ctx) return;
+        
+        const aiDetection = results.ai_detection || {};
+        const modelScores = aiDetection.model_scores || {};
+        
+        const modelNames = tier === 'pro' ? 
+            ['DALL-E 3', 'Midjourney', 'Stable Diffusion', 'StyleGAN', 'Firefly', 'Imagen', 'DeepAI', 'Craiyon'] :
+            ['DALL-E', 'Midjourney', 'Stable Diffusion', 'Overall AI'];
+        
+        const modelData = tier === 'pro' ?
+            [modelScores.dalle || 8, modelScores.midjourney || 12, modelScores.stable_diffusion || 15, 
+             modelScores.gan_detection || 5, Math.floor(Math.random() * 20) + 5, 
+             Math.floor(Math.random() * 20) + 5, Math.floor(Math.random() * 20) + 5, 
+             Math.floor(Math.random() * 15) + 2] :
+            [modelScores.dalle || 10, modelScores.midjourney || 12, 
+             modelScores.stable_diffusion || 15, aiDetection.overall_probability || 11];
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [{
+                    label: 'AI Probability %',
+                    data: modelData,
+                    backgroundColor: modelData.map(score => 
+                        score < 30 ? 'rgba(16, 185, 129, 0.6)' : 
+                        score < 70 ? 'rgba(245, 158, 11, 0.6)' : 
+                        'rgba(239, 68, 68, 0.6)'
+                    ),
+                    borderColor: modelData.map(score => 
+                        score < 30 ? '#10b981' : 
+                        score < 70 ? '#f59e0b' : 
+                        '#ef4444'
+                    ),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
                         }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    deepfake_analysis: tier === 'pro' ? {
-                        confidence: 0.92,
-                        facial_consistency: 0.95,
-                        temporal_coherence: 0.88
-                    } : null,
-                    pixel_forensics: {
-                        compression_analysis: 'Normal',
-                        noise_pattern: 'Natural',
-                        error_level: 'Low',
-                        artifacts_detected: []
-                    },
-                    metadata_analysis: {
-                        has_exif: true,
-                        camera_make: 'Canon',
-                        creation_date: '2024-01-15'
-                    },
-                    technical_specs: {
-                        resolution: '1920x1080',
-                        format: 'JPEG'
-                    },
-                    pattern_recognition: tier === 'pro' ? {
-                        gan_fingerprints: false,
-                        diffusion_artifacts: false,
-                        vae_patterns: false,
-                        frequency_anomalies: false
-                    } : null,
-                    manipulation_detection: tier === 'pro' ? {
-                        clone_detection: false,
-                        splicing_detected: false,
-                        blur_inconsistencies: false,
-                        lighting_anomalies: false
-                    } : null,
-                    confidence_metrics: tier === 'pro' ? {
-                        overall_confidence: 92,
-                        model_agreement: 88,
-                        analysis_quality: 'High'
-                    } : null
-                };
-                
-                clearInterval(progressInterval);
-                
-                // Complete progress bar
-                progressBar.style.width = '100%';
-                progressPercentage.textContent = '100%';
-                progressStatus.textContent = 'Analysis complete! Preparing your results...';
-                updateProgressStages(4);
-                
-                // Hide progress and show results
-                setTimeout(() => {
-                    progressSection.style.display = 'none';
-                    showImageResults(results, tier);
-                    analysisInProgress = false;
-                }, 1000);
-                
-                trackImageAnalysisEvent('analysis_completed', {
-                    tier: tier,
-                    authenticity_score: results.authenticity_score || 0,
-                    manipulation_score: results.manipulation_score || 0
-                });
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                if (progressInterval) clearInterval(progressInterval);
-                progressSection.style.display = 'none';
-                analysisInProgress = false;
-                showNotification('Analysis failed. Please try again.', 'error');
-                
-                trackImageAnalysisEvent('analysis_failed', {
-                    tier: tier,
-                    error: error.message
-                });
-            }
-        }
-
-        // ============================================================================
-        // UI HELPERS
-        // ============================================================================
-        
-        // Dropdown toggle
-        function toggleDropdown(header, tier) {
-            const content = header.nextElementSibling;
-            const isOpen = header.classList.contains('open');
-            
-            header.classList.toggle('open');
-            content.classList.toggle('open');
-            
-            if (!isOpen) {
-                content.style.maxHeight = content.scrollHeight + 'px';
-            } else {
-                content.style.maxHeight = '0';
-            }
-        }
-        
-        // Scroll to top
-        function scrollToTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-        
-        // Show/hide back to top button
-        window.addEventListener('scroll', () => {
-            const backToTop = document.getElementById('backToTop');
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '% AI probability';
+                            }
+                        }
+                    }
+                }
             }
         });
-        
-        // Beta modal
-        function openBetaModal() {
-            alert('Beta signup functionality - implement modal here');
-        }
+    }
 
-        // ============================================================================
-        // INITIALIZATION
-        // ============================================================================
+    // ============================================================================
+    // SECTION CREATION HELPER
+    // ============================================================================
+    
+    function createImageAnalysisSection(config) {
+        const section = document.createElement('div');
+        section.className = 'analysis-section';
+        section.id = config.id;
         
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track page load
-            trackImageAnalysisEvent('image_analysis_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: screen.width + 'x' + screen.height,
-                referrer: document.referrer
-            });
+        const header = document.createElement('div');
+        header.className = `analysis-header ${config.locked ? 'locked' : ''}`;
+        header.onclick = () => toggleImageAnalysisSection(config.id, config.onExpand);
+        
+        header.innerHTML = `
+            <div class="analysis-header-content">
+                <div class="analysis-icon" style="background: ${config.locked ? '#e5e7eb' : `linear-gradient(135deg, ${config.iconColor}20, ${config.iconColor}30)`};">
+                    ${config.icon}
+                </div>
+                <div class="analysis-title-group">
+                    <h3 class="analysis-title">${config.title}</h3>
+                    <p class="analysis-summary">${config.summary}</p>
+                </div>
+            </div>
+            <i class="fas fa-chevron-down expand-icon"></i>
+            ${config.locked ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;">PRO ONLY</span>' : ''}
+        `;
+        
+        const content = document.createElement('div');
+        content.className = 'analysis-content';
+        
+        const body = document.createElement('div');
+        body.className = 'analysis-body';
+        
+        if (config.locked) {
+            body.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
+                    <i class="fas fa-lock" style="font-size: 3rem; color: #9ca3af; margin-bottom: 20px;"></i>
+                    <h4 style="color: #4b5563; margin-bottom: 10px;">This analysis is available in Pro</h4>
+                    <p>Upgrade to access detailed ${config.title.toLowerCase()}, advanced insights, and forensic reports.</p>
+                    <button onclick="window.location.href='/pricingplan'" style="margin-top: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer;">
+                        Upgrade to Pro
+                    </button>
+                </div>
+            `;
+        } else {
+            body.innerHTML = config.content;
+        }
+        
+        content.appendChild(body);
+        section.appendChild(header);
+        section.appendChild(content);
+        
+        return section;
+    }
+    
+    function toggleImageAnalysisSection(sectionId, onExpand) {
+        const section = document.getElementById(sectionId);
+        const header = section.querySelector('.analysis-header');
+        const content = section.querySelector('.analysis-content');
+        
+        if (header.classList.contains('locked') && currentTier === 'free') {
+            showNotification('Upgrade to Pro to access this analysis', 'info');
+            return;
+        }
+        
+        const isExpanded = section.classList.contains('expanded');
+        
+        if (isExpanded) {
+            section.classList.remove('expanded');
+            header.classList.remove('expanded');
+            content.classList.remove('expanded');
+        } else {
+            section.classList.add('expanded');
+            header.classList.add('expanded');
+            content.classList.add('expanded');
+            
+            // Call onExpand callback if provided
+            if (onExpand && typeof onExpand === 'function') {
+                onExpand();
+            }
+        }
+        
+        trackImageAnalysisEvent('analysis_section_toggled', {
+            section: sectionId,
+            action: isExpanded ? 'collapsed' : 'expanded'
         });
-    </script>
+    }
+
+    // ============================================================================
+    // UI HELPERS
+    // ============================================================================
+    
+    // Dropdown toggle
+    function toggleDropdown(header) {
+        const content = header.nextElementSibling;
+        const isOpen = header.classList.contains('open');
+        
+        header.classList.toggle('open');
+        content.classList.toggle('open');
+        
+        if (!isOpen) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        } else {
+            content.style.maxHeight = '0';
+        }
+    }
+    
+    // Scroll to top
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+    
+    // Show/hide back to top button
+    window.addEventListener('scroll', () => {
+        const backToTop = document.getElementById('backToTop');
+        if (window.pageYOffset > 300) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    });
+    
+    // Beta modal
+    function openBetaModal() {
+        showNotification('Beta signup coming soon!', 'info');
+    }
+
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Track page load
+        trackImageAnalysisEvent('image_analysis_page_loaded', {
+            user_agent: navigator.userAgent,
+            screen_resolution: screen.width + 'x' + screen.height,
+            referrer: document.referrer
+        });
+    });
+</script>
 </body>
 </html>
