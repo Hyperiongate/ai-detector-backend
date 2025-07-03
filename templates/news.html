@@ -1081,6 +1081,40 @@
             padding: 30px;
         }
 
+        /* Analysis explanation box styles */
+        .analysis-explanation {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.1));
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-explanation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+        }
+
+        .analysis-explanation-icon {
+            font-size: 1.3rem;
+            color: #6366f1;
+            margin-right: 10px;
+        }
+
+        .analysis-explanation-text {
+            color: #4b5563;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
         /* NEW Political Bias Compass Design */
         .bias-compass-container {
             margin: 30px 0;
@@ -2651,6 +2685,14 @@
                 title: 'Political Bias Analysis',
                 summary: `${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)} bias detected with ${objectivityScore}% objectivity`,
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We examine the article's language, word choices, and framing to detect political bias. 
+                            The compass shows where the content falls on the political spectrum from far-left to far-right. Higher objectivity scores indicate 
+                            more balanced reporting, while lower scores suggest stronger political slant.
+                        </span>
+                    </div>
                     <div class="bias-compass-container">
                         <h3 class="bias-compass-title">Political Orientation Detection</h3>
                         
@@ -2738,6 +2780,14 @@
                 title: 'Cross-Source Verification',
                 summary: 'Compared with major news outlets for consistency',
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We search our database of 500+ news sources to find other outlets covering the same story. 
+                            More sources reporting similar facts increases credibility. If few or no other sources are found, it could mean breaking news, 
+                            exclusive reporting, or content requiring extra verification.
+                        </span>
+                    </div>
                     <div class="comparison-chart-container">
                         <!-- Verification Statistics -->
                         <div class="verification-stats">
@@ -2784,6 +2834,14 @@
                 title: 'Source & Author Credibility',
                 summary: `Source reliability: ${sourceAnalysis.credibility_score || 70}/100`,
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We evaluate the news outlet's track record, correction history, and journalistic standards. 
+                            Higher scores indicate established outlets with strong fact-checking practices. We also analyze author credentials when available 
+                            to assess expertise and potential biases.
+                        </span>
+                    </div>
                     <div class="analysis-body">
                         <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
                             ${generateSourceNarrative(sourceAnalysis)}
@@ -2824,6 +2882,14 @@
                 title: 'Emotional Language & Manipulation Detection',
                 summary: `Emotional intensity: ${biasIndicators.emotional_language || 0}%`,
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We measure how much the article uses emotional language versus factual reporting. 
+                            High emotional content may indicate opinion pieces or attempts to persuade through feelings rather than facts. 
+                            Professional news reporting typically maintains lower emotional intensity.
+                        </span>
+                    </div>
                     <div class="analysis-body">
                         <div class="emotion-meter-container">
                             <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Emotional Content Level</h4>
@@ -2870,6 +2936,14 @@
                 title: 'Writing Style & Authenticity Analysis',
                 summary: 'Linguistic patterns and authorship verification',
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We analyze writing patterns including sentence structure, vocabulary complexity, 
+                            and statistical claims. Professional journalism typically shows consistent patterns like proper attribution, specific data, 
+                            and varied sentence lengths. Unusual patterns may indicate AI-generated content or non-professional sources.
+                        </span>
+                    </div>
                     <div class="analysis-body">
                         <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
                             ${generateStyleNarrative(results)}
@@ -2910,6 +2984,14 @@
                 title: 'Fact-Checking Signals & Red Flags',
                 summary: 'Indicators of reliable vs questionable reporting',
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We look for specific indicators that distinguish reliable journalism from questionable content. 
+                            Positive signals include named sources, direct quotes, and specific data. Red flags include vague attribution ("some say"), 
+                            excessive qualifying language ("allegedly"), and lack of verifiable details.
+                        </span>
+                    </div>
                     <div class="analysis-body">
                         <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
                             <strong>How our fact-checking works:</strong> We analyze over 50 linguistic and structural indicators to identify patterns associated with reliable journalism versus potential misinformation. 
@@ -2929,7 +3011,16 @@
                 iconColor: '#f97316',
                 title: 'Timeline & Currency Analysis',
                 summary: 'When events occurred vs when reported',
-                content: generateEnhancedTemporalAnalysis(textContent),
+                content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We identify all dates and time references to assess how current the information is. 
+                            Fresh news should have recent dates and specific time markers. Lack of temporal references makes it difficult to verify 
+                            when events actually occurred, which is a common tactic in misleading content.
+                        </span>
+                    </div>
+                    ${generateEnhancedTemporalAnalysis(textContent)}`,
                 locked: tier === 'free'
             });
             resultsDiv.appendChild(temporalSection);
@@ -2942,6 +3033,14 @@
                 title: 'Transparency & Attribution Score',
                 summary: 'How well sources and claims are documented',
                 content: `
+                    <div class="analysis-explanation">
+                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                        <span class="analysis-explanation-text">
+                            <strong>What this analysis shows:</strong> We measure how transparent the article is about its sources and limitations. 
+                            High transparency means clear author attribution, specific source citations, and acknowledgment of what couldn't be verified. 
+                            Low transparency often correlates with unreliable or biased content.
+                        </span>
+                    </div>
                     <div class="analysis-body">
                         <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">What We Check For Transparency:</h4>
                         <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
@@ -4027,5 +4126,4 @@
         });
     </script>
 </body>
-</html>.length > 0 ? 
-                            signals.negative
+</html>
