@@ -4559,12 +4559,13 @@
             
             const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${shareData}`;
             
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                showNotification('Shareable analysis link copied to clipboard!', 'success');
-                trackNewsEvent('analysis_link_shared', { tier: currentTier });
-            }).catch(() => {
-                showNotification('Could not copy link - please copy manually: ' + shareUrl, 'info');
-           });
+           navigator.clipboard.writeText(shareUrl).then(() => {
+            showNotification('Shareable analysis link copied to clipboard!', 'success');
+            trackNewsEvent('analysis_link_shared', { tier: currentTier });
+        }).catch(() => {
+            showNotification('Could not copy link - please copy manually: ' + shareUrl, 'info');
+        });
+    }
         
         // Ensure functions are globally accessible
         window.runAnalysis = runAnalysis;
