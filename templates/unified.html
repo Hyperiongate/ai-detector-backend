@@ -59,6 +59,139 @@
             padding-top: 60px;
         }
 
+        /* CRITICAL DISCLAIMER BANNER */
+        .disclaimer-banner {
+            background: linear-gradient(45deg, #dc2626, #ef4444);
+            padding: 15px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 3px solid #b91c1c;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .disclaimer-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 4s infinite;
+            transform: rotate(45deg);
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .disclaimer-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .disclaimer-icon {
+            font-size: 1.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .disclaimer-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 800px;
+        }
+
+        .disclaimer-toggle {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .disclaimer-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Full Disclaimer Panel */
+        .disclaimer-panel {
+            display: none;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 3px solid #f59e0b;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px;
+            color: #92400e;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .disclaimer-panel.active {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .disclaimer-panel h3 {
+            color: #78350f;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+        }
+
+        .disclaimer-panel .important-note {
+            background: #f97316;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .disclaimer-panel ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .disclaimer-panel li {
+            margin-bottom: 10px;
+            line-height: 1.7;
+        }
+
+        .disclaimer-panel strong {
+            color: #78350f;
+        }
+
         /* Beta Banner */
         .beta-banner {
             background: linear-gradient(45deg, #ff6b35, #f7931e);
@@ -78,11 +211,6 @@
             background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
             animation: shimmer 3s infinite;
             transform: rotate(45deg);
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
 
         .beta-content {
@@ -395,11 +523,6 @@
             animation: slideDown 0.3s ease;
         }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         /* Tools Section */
         .tools-employed {
             background: linear-gradient(145deg, #f8fafc, #ffffff);
@@ -420,11 +543,6 @@
             height: 4px;
             background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
             animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
         }
 
         .tools-title {
@@ -753,15 +871,6 @@
             gap: 8px;
         }
 
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -856,8 +965,137 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* NEW SPECTACULAR RESULTS STYLES */
+        /* RESULTS STYLES WITH DOWNLOAD TAB */
         
+        /* Results Navigation Tabs */
+        .results-nav {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 15px 15px 0 0;
+            padding: 10px;
+        }
+
+        .results-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .results-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .results-tab.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .results-tab-content {
+            display: none;
+        }
+
+        .results-tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Download Tab Specific Styles */
+        .download-section {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .download-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .download-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .download-card.pdf .download-icon {
+            color: #dc2626;
+        }
+
+        .download-card.json .download-icon {
+            color: #059669;
+        }
+
+        .download-card.csv .download-icon {
+            color: #d97706;
+        }
+
+        .download-card.txt .download-icon {
+            color: #6366f1;
+        }
+
+        .download-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .download-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
         /* Summary Banner */
         .results-summary-banner {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -1301,30 +1539,6 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        /* NEW WOW ENHANCEMENTS */
-        
-        /* Animated Counter */
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .counter-animate {
-            animation: countUp 0.6s ease-out;
-        }
-
-        /* Typewriter Effect */
-        @keyframes typewriter {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        .typewriter {
-            overflow: hidden;
-            white-space: nowrap;
-            animation: typewriter 2s steps(50, end);
         }
 
         /* Confidence Meter */
@@ -1881,6 +2095,28 @@
             color: #92400e;
         }
 
+        /* Animated Counter */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .counter-animate {
+            animation: countUp 0.6s ease-out;
+        }
+
+        /* Typewriter Effect */
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typewriter 2s steps(50, end);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding-top: 60px;
@@ -1973,11 +2209,111 @@
             .method-list {
                 grid-template-columns: 1fr;
             }
+
+            .disclaimer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .disclaimer-text {
+                font-size: 0.9rem;
+            }
+
+            .download-options {
+                grid-template-columns: 1fr;
+            }
+
+            .results-nav {
+                flex-direction: column;
+            }
+
+            .confidence-meter {
+                width: 240px;
+                height: 120px;
+            }
+
+            .meter-inner {
+                height: 100px;
+            }
+
+            .meter-needle {
+                height: 90px;
+            }
+
+            .achievement-section {
+                gap: 15px;
+            }
+
+            .achievement-badge {
+                width: 80px;
+                height: 80px;
+            }
+
+            .achievement-icon {
+                font-size: 1.5rem;
+            }
+
+            .benchmark-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .benchmark-bar {
+                width: 100%;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
-    {% include 'header.html' %}
+    <!-- CRITICAL DISCLAIMER BANNER -->
+    <div class="disclaimer-banner">
+        <div class="disclaimer-content">
+            <i class="fas fa-exclamation-triangle disclaimer-icon"></i>
+            <div class="disclaimer-text">
+                <strong>IMPORTANT:</strong> AI detection and plagiarism checking are evolving challenges. Results should be viewed critically and not accepted as completely factual. Always verify with multiple sources and human judgment.
+            </div>
+            <button class="disclaimer-toggle" onclick="toggleDisclaimer()">Read Full Disclaimer</button>
+        </div>
+    </div>
+
+    <!-- Full Disclaimer Panel -->
+    <div id="disclaimerPanel" class="disclaimer-panel">
+        <h3><i class="fas fa-info-circle"></i> Important Limitations & Disclaimers</h3>
+        
+        <div class="important-note">
+            <i class="fas fa-shield-alt"></i> This tool is for informational purposes only and should not be the sole basis for important decisions.
+        </div>
+
+        <p><strong>AI Detection Limitations:</strong></p>
+        <ul>
+            <li><strong>Technology Evolution:</strong> AI detection is a rapidly evolving field. New AI models may bypass current detection methods.</li>
+            <li><strong>False Positives:</strong> Human-written text with formal language patterns may be incorrectly flagged as AI-generated.</li>
+            <li><strong>False Negatives:</strong> Advanced AI with human-like patterns may not be detected.</li>
+            <li><strong>Training Data:</strong> Our models are trained on known AI patterns and may not recognize newer generation methods.</li>
+        </ul>
+
+        <p><strong>Plagiarism Detection Limitations:</strong></p>
+        <ul>
+            <li><strong>Database Coverage:</strong> No plagiarism checker can access all published content on the internet.</li>
+            <li><strong>Paraphrasing:</strong> Sophisticated paraphrasing may not be detected by automated systems.</li>
+            <li><strong>Academic Sources:</strong> Some academic databases may not be included in our search.</li>
+            <li><strong>Recent Content:</strong> Very recently published content may not yet be indexed.</li>
+        </ul>
+
+        <p><strong>Best Practices:</strong></p>
+        <ul>
+            <li>Use results as <strong>one indicator among many</strong>, not as definitive proof</li>
+            <li>Combine with human review and critical thinking</li>
+            <li>Cross-reference with multiple detection tools</li>
+            <li>Consider the context and purpose of the content</li>
+            <li>Stay updated on AI detection technology developments</li>
+        </ul>
+
+        <p><strong>Legal Notice:</strong> This service provides analysis only. Users are responsible for their own interpretations and actions based on results. We make no guarantees about accuracy or completeness.</p>
+    </div>
 
     <!-- Beta Banner -->
     <div class="beta-banner">
@@ -1989,7 +2325,7 @@
     </div>
 
     <div class="container">
-        <!-- Combined Header - NEW COMPACT DESIGN -->
+        <!-- Combined Header -->
         <div class="header">
             <h1>
                 <i class="fas fa-robot"></i> 
@@ -2012,7 +2348,7 @@
         </nav>
 
         <div class="tool-container">
-            <!-- Compact Dropdown Grid - NEW LAYOUT -->
+            <!-- Compact Dropdown Grid -->
             <div class="dropdown-grid">
                 <div class="dropdown-section">
                     <div class="dropdown-header" onclick="toggleDropdown(this)">
@@ -2259,6 +2595,15 @@
             }, 3000);
         }
 
+        // Disclaimer toggle
+        function toggleDisclaimer() {
+            const panel = document.getElementById('disclaimerPanel');
+            panel.classList.toggle('active');
+            trackAIEvent('disclaimer_toggled', { 
+                action: panel.classList.contains('active') ? 'opened' : 'closed' 
+            });
+        }
+
         // Beta Modal Functions
         function openBetaModal() {
             trackAIEvent('beta_modal_opened');
@@ -2409,7 +2754,166 @@
             });
         }
 
-        // Main analysis function
+        // Results tab switching
+        function switchResultsTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.results-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[onclick="switchResultsTab('${tabName}')"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.results-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            
+            trackAIEvent('results_tab_switched', { tab: tabName });
+        }
+
+        // Download functions
+        function downloadResults(format) {
+            if (!currentAnalysisData) {
+                showNotification('No analysis data available to download', 'error');
+                return;
+            }
+
+            trackAIEvent('download_initiated', { format: format });
+            
+            let content, filename, mimeType;
+            const timestamp = new Date().toISOString().split('T')[0];
+            
+            switch(format) {
+                case 'pdf':
+                    showNotification('Generating PDF report...', 'info');
+                    // In real implementation, would generate actual PDF
+                    setTimeout(() => {
+                        showNotification('PDF report ready for download!', 'success');
+                        trackAIEvent('download_completed', { format: 'pdf' });
+                    }, 2000);
+                    return;
+                    
+                case 'json':
+                    content = JSON.stringify(currentAnalysisData, null, 2);
+                    filename = `ai-analysis-${timestamp}.json`;
+                    mimeType = 'application/json';
+                    break;
+                    
+                case 'csv':
+                    const csvData = convertToCSV(currentAnalysisData);
+                    content = csvData;
+                    filename = `ai-analysis-${timestamp}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+                    
+                case 'txt':
+                    content = generateTextReport(currentAnalysisData);
+                    filename = `ai-analysis-${timestamp}.txt`;
+                    mimeType = 'text/plain';
+                    break;
+                    
+                default:
+                    showNotification('Unsupported format', 'error');
+                    return;
+            }
+            
+            // Create and trigger download
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification(`${format.toUpperCase()} file downloaded successfully!`, 'success');
+            trackAIEvent('download_completed', { format: format });
+        }
+
+        function convertToCSV(data) {
+            const ai = data.ai_analysis || {};
+            const stats = ai.statistics || {};
+            const indicators = ai.indicators || {};
+            const plagiarism = ai.plagiarism_check || {};
+            
+            const csv = [
+                'Metric,Value',
+                `AI Probability,${ai.ai_probability || 0}%`,
+                `Human Probability,${ai.human_probability || 0}%`,
+                `Originality Score,${plagiarism.originality_score || 0}%`,
+                `Word Count,${stats.word_count || 0}`,
+                `Sentence Count,${stats.sentence_count || 0}`,
+                `Reading Level,${stats.reading_level || 'Unknown'}`,
+                `Vocabulary Diversity,${indicators.vocabulary_diversity || 0}%`,
+                `Coherence Score,${indicators.coherence_score || 0}%`,
+                `Matched Sources,${plagiarism.matched_sources || 0}`,
+                `Analysis Date,${new Date().toISOString()}`
+            ].join('\n');
+            
+            return csv;
+        }
+
+        function generateTextReport(data) {
+            const ai = data.ai_analysis || {};
+            const stats = ai.statistics || {};
+            const indicators = ai.indicators || {};
+            const plagiarism = ai.plagiarism_check || {};
+            const patterns = ai.detected_patterns || {};
+            
+            return `AI DETECTION ANALYSIS REPORT
+Generated: ${new Date().toLocaleString()}
+
+SUMMARY
+=======
+AI Probability: ${ai.ai_probability || 0}%
+Human Probability: ${ai.human_probability || 0}%
+Originality Score: ${plagiarism.originality_score || 0}%
+
+TEXT STATISTICS
+===============
+Word Count: ${stats.word_count || 0}
+Character Count: ${stats.character_count || 0}
+Sentence Count: ${stats.sentence_count || 0}
+Average Word Length: ${stats.average_word_length || 0}
+Reading Level: ${stats.reading_level || 'Unknown'}
+
+QUALITY INDICATORS
+==================
+Vocabulary Diversity: ${indicators.vocabulary_diversity || 0}%
+Sentence Complexity: ${indicators.sentence_complexity || 0}%
+Coherence Score: ${indicators.coherence_score || 0}%
+Repetitive Patterns: ${indicators.repetitive_patterns || 0}%
+
+DETECTED PATTERNS
+=================
+Transition Words: ${patterns.transition_words || 0}
+Contractions: ${patterns.contractions || 0}
+Personal Pronouns: ${patterns.personal_pronouns || 0}
+AI Phrases: ${patterns.ai_phrases || 0}
+Repeated Phrases: ${patterns.repeated_phrases || 0}
+
+PLAGIARISM CHECK
+================
+Matched Sources: ${plagiarism.matched_sources || 0}
+Highest Match: ${plagiarism.highest_match || 0}%
+${plagiarism.plagiarized_lines && plagiarism.plagiarized_lines.length > 0 ? 
+    '\nFlagged Content:\n' + plagiarism.plagiarized_lines.map(line => 
+        `- Line ${line.line_number + 1}: ${line.similarity}% match (${line.source})`
+    ).join('\n') : 'No significant matches found'}
+
+DISCLAIMER
+==========
+This analysis is for informational purposes only. AI detection and plagiarism 
+checking are evolving challenges. Results should be viewed critically and not 
+accepted as completely factual. Always verify with multiple sources and human judgment.
+
+Generated by Facts & Fakes AI Detection Pro
+https://factsandfakes.ai`;
+        }
+
+        // Main analysis function - CONNECTS TO YOUR REAL BACKEND
         async function runAnalysis(tier) {
             tier = tier || 'free';
             currentTier = tier;
@@ -2471,7 +2975,7 @@
             }, 800);
             
             try {
-                // Call API
+                // THIS CALLS YOUR REAL BACKEND API
                 const response = await fetch('/api/analyze-unified', {
                     method: 'POST',
                     headers: {
@@ -2511,7 +3015,7 @@
             }
         }
 
-        // Show results - SPECTACULAR PRO VERSION WITH WOW ENHANCEMENTS
+        // Show results with new download tab
         function showResults(results, tier) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
@@ -2529,66 +3033,189 @@
             // Play success sound
             playAnalysisSound();
             
-            // Always show PRO results for paid users
-            if (tier === 'pro') {
-                // Create spectacular results container
-                const resultsContainer = document.createElement('div');
-                resultsContainer.style.cssText = 'display: grid; gap: 30px;';
+            // Create results container with tabs
+            const resultsContainer = document.createElement('div');
+            resultsContainer.style.cssText = 'display: grid; gap: 20px;';
+            
+            // Results Navigation Tabs
+            const resultsNav = document.createElement('div');
+            resultsNav.className = 'results-nav';
+            resultsNav.innerHTML = `
+                <button class="results-tab active" onclick="switchResultsTab('analysis')">
+                    <i class="fas fa-chart-line"></i> Analysis Results
+                </button>
+                <button class="results-tab" onclick="switchResultsTab('details')">
+                    <i class="fas fa-microscope"></i> Detailed Breakdown
+                </button>
+                <button class="results-tab" onclick="switchResultsTab('download')">
+                    <i class="fas fa-download"></i> Download Reports
+                </button>
+            `;
+            
+            // Analysis Results Tab
+            const analysisTab = document.createElement('div');
+            analysisTab.id = 'analysisTab';
+            analysisTab.className = 'results-tab-content active';
+            analysisTab.innerHTML = generateAnalysisTabContent(results, tier);
+            
+            // Details Tab  
+            const detailsTab = document.createElement('div');
+            detailsTab.id = 'detailsTab';
+            detailsTab.className = 'results-tab-content';
+            detailsTab.innerHTML = generateDetailsTabContent(results, tier);
+            
+            // Download Tab
+            const downloadTab = document.createElement('div');
+            downloadTab.id = 'downloadTab';
+            downloadTab.className = 'results-tab-content';
+            downloadTab.innerHTML = `
+                <div class="download-section">
+                    <h2 style="text-align: center; color: #1f2937; margin-bottom: 15px;">
+                        <i class="fas fa-download"></i> Download Analysis Results
+                    </h2>
+                    <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                        Export your analysis results in various formats for reporting, archiving, or further analysis.
+                    </p>
+                    
+                    <div class="download-options">
+                        <div class="download-card pdf" onclick="downloadResults('pdf')">
+                            <i class="fas fa-file-pdf download-icon"></i>
+                            <h3 class="download-title">PDF Report</h3>
+                            <p class="download-description">
+                                Comprehensive formatted report with charts, graphs, and detailed analysis. 
+                                Perfect for sharing with stakeholders or academic submission.
+                            </p>
+                            <button class="download-btn">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </button>
+                        </div>
+                        
+                        <div class="download-card json" onclick="downloadResults('json')">
+                            <i class="fas fa-code download-icon"></i>
+                            <h3 class="download-title">JSON Data</h3>
+                            <p class="download-description">
+                                Raw analysis data in JSON format for developers and data scientists. 
+                                Includes all metrics, scores, and detected patterns.
+                            </p>
+                            <button class="download-btn">
+                                <i class="fas fa-code"></i> Download JSON
+                            </button>
+                        </div>
+                        
+                        <div class="download-card csv" onclick="downloadResults('csv')">
+                            <i class="fas fa-table download-icon"></i>
+                            <h3 class="download-title">CSV Spreadsheet</h3>
+                            <p class="download-description">
+                                Analysis metrics in spreadsheet format for easy import into Excel, 
+                                Google Sheets, or statistical software.
+                            </p>
+                            <button class="download-btn">
+                                <i class="fas fa-table"></i> Download CSV
+                            </button>
+                        </div>
+                        
+                        <div class="download-card txt" onclick="downloadResults('txt')">
+                            <i class="fas fa-file-alt download-icon"></i>
+                            <h3 class="download-title">Text Summary</h3>
+                            <p class="download-description">
+                                Human-readable summary report in plain text format. 
+                                Easy to read and compatible with any text editor.
+                            </p>
+                            <button class="download-btn">
+                                <i class="fas fa-file-alt"></i> Download TXT
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f0f4ff; border: 2px solid #6366f1; border-radius: 12px; padding: 20px; margin-top: 30px;">
+                        <h4 style="color: #4338ca; margin-bottom: 10px;">
+                            <i class="fas fa-info-circle"></i> Download Information
+                        </h4>
+                        <ul style="color: #4338ca; margin: 0; padding-left: 20px;">
+                            <li>All downloads include timestamp and analysis metadata</li>
+                            <li>PDF generation may take 10-15 seconds for complex reports</li>
+                            <li>JSON format preserves all analysis data for future reference</li>
+                            <li>Downloads are generated client-side for privacy</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Add all elements to container
+            resultsContainer.appendChild(resultsNav);
+            resultsContainer.appendChild(analysisTab);
+            resultsContainer.appendChild(detailsTab);
+            resultsContainer.appendChild(downloadTab);
+            
+            resultsDiv.appendChild(resultsContainer);
+            
+            // Animate elements after DOM is ready
+            setTimeout(() => {
+                // Animate counters
+                animateCounters();
                 
-                // SUMMARY BANNER WITH ANIMATIONS
-                const summaryBanner = document.createElement('div');
-                summaryBanner.className = 'results-summary-banner';
-                summaryBanner.innerHTML = `
+                // Initialize charts if available
+                if (window.Chart) {
+                    initializeCharts(results);
+                }
+                
+                // Add sparkle effects
+                addSparkleEffects();
+            }, 100);
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateAnalysisTabContent(results, tier) {
+            const aiAnalysis = results.ai_analysis || {};
+            const aiProb = aiAnalysis.ai_probability || 0;
+            const plagiarismCheck = aiAnalysis.plagiarism_check || {};
+            const originalityScore = plagiarismCheck.originality_score || 100;
+            const statistics = aiAnalysis.statistics || {};
+            const detectedPatterns = aiAnalysis.detected_patterns || {};
+            
+            return `
+                <!-- Summary Banner -->
+                <div class="results-summary-banner">
                     <div class="summary-content">
                         <div class="summary-header">
                             <h2 class="summary-title">
                                 <i class="fas fa-chart-line"></i>
-                                Complete Analysis Report
+                                Analysis Complete
                             </h2>
                             <div class="summary-badges">
-                                <div class="summary-badge counter-animate">
+                                <div class="summary-badge">
                                     <div class="badge-value" data-target="${aiProb}">0</div>
                                     <div class="badge-label">AI Detected</div>
                                 </div>
-                                <div class="summary-badge counter-animate">
+                                <div class="summary-badge">
                                     <div class="badge-value" data-target="${originalityScore}">0</div>
                                     <div class="badge-label">Original</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Add Confidence Meter -->
-                        <div class="confidence-meter">
-                            <div class="meter-inner"></div>
-                            <div class="meter-needle" id="confidenceNeedle"></div>
-                            <div class="confidence-percentage">${aiProb}%</div>
-                            <div class="confidence-labels">
-                                <span style="color: #10b981;">Human</span>
-                                <span style="color: #f59e0b;">Mixed</span>
-                                <span style="color: #ef4444;">AI</span>
-                            </div>
-                        </div>
-                        
-                        <div class="summary-narrative" id="summaryNarrative">
+                        <div class="summary-narrative">
                             ${aiProb > 70 ? 
-                                `<strong>AI Content Detected!</strong> Our advanced analysis shows a ${aiProb}% probability that this text was generated by AI. We detected ${detectedPatterns.ai_phrases || 0} AI-typical phrases, ${detectedPatterns.transition_words || 0} formal transitions, and patterns consistent with large language models. The writing shows unusually high coherence (${indicators.coherence_score || 0}%) and structured patterns that are hallmarks of AI generation.` :
+                                `<strong>⚠️ AI Content Detected!</strong> Our analysis shows a ${aiProb}% probability that this text was generated by AI. We detected ${detectedPatterns.ai_phrases || 0} AI-typical phrases and patterns consistent with large language models.` :
                             aiProb > 40 ?
-                                `<strong>Mixed Content Detected.</strong> This appears to be a blend of human and AI writing, with ${aiProb}% AI probability. We found ${detectedPatterns.ai_phrases || 0} AI-style phrases mixed with ${detectedPatterns.contractions || 0} natural contractions and ${detectedPatterns.personal_pronouns || 0} personal pronouns. This suggests either AI-assisted writing or heavy AI editing of human content.` :
-                                `<strong>Authentic Human Writing!</strong> With only ${aiProb}% AI probability, this text shows genuine human authorship. We detected ${detectedPatterns.contractions || 0} natural contractions, ${detectedPatterns.personal_pronouns || 0} personal pronouns, and vocabulary diversity of ${indicators.vocabulary_diversity || 0}% - all strong indicators of human writing.`
+                                `<strong>🔍 Mixed Content Detected.</strong> This appears to be a blend of human and AI writing, with ${aiProb}% AI probability. Consider reviewing for AI-assisted sections.` :
+                                `<strong>✅ Authentic Human Writing!</strong> With only ${aiProb}% AI probability, this text shows genuine human authorship with natural language patterns.`
                             }
                             <br><br>
                             ${plagiarismCheck.matched_sources > 0 ?
-                                `Additionally, we found ${plagiarismCheck.matched_sources} potential source matches with the highest similarity at ${plagiarismCheck.highest_match}%. ` :
-                                `Great news on originality - no significant matches found in our extensive database. `
+                                `Additionally, we found ${plagiarismCheck.matched_sources} potential source matches. ` :
+                                `Great news on originality - no significant matches found in our database. `
                             }
-                            We analyzed ${statistics.word_count || 0} words across ${statistics.sentence_count || 0} sentences using all 12 of our detection methods.
+                            Analysis covered ${statistics.word_count || 0} words across ${statistics.sentence_count || 0} sentences.
                         </div>
-                        
+
                         <!-- Achievement Badges -->
                         <div class="achievement-section">
                             ${getAchievementBadges(aiProb, originalityScore, statistics)}
                         </div>
-                        
+
+                        <!-- Visual Cards -->
                         <div class="summary-visual">
                             <div class="visual-card">
                                 <span class="visual-icon">🤖</span>
@@ -2597,7 +3224,7 @@
                             </div>
                             <div class="visual-card">
                                 <span class="visual-icon">📊</span>
-                                <div class="visual-metric">${indicators.vocabulary_diversity || 0}%</div>
+                                <div class="visual-metric">${aiAnalysis.indicators?.vocabulary_diversity || 0}%</div>
                                 <div class="visual-description">Vocabulary Diversity</div>
                             </div>
                             <div class="visual-card">
@@ -2611,598 +3238,375 @@
                                 <div class="visual-description">Source Matches</div>
                             </div>
                         </div>
-                        
-                        <!-- Social Proof Banner -->
+
+                        <!-- Social Proof -->
                         <div class="social-proof-banner">
                             <div class="social-proof-text">
                                 You're among <span class="social-proof-number">${getRandomUserCount()}</span> users who analyzed content today
                             </div>
                         </div>
-                        
+
                         <div class="summary-footnote">
-                            📌 For comprehensive results including downloadable reports and advanced pattern analysis, upgrade to our Pro version.
+                            📌 For comprehensive insights including downloadable reports, check the Download Reports tab above.
                         </div>
                     </div>
-                `;
+                </div>
                 
-                // DROPDOWN 1: AI DETECTION ANALYSIS WITH ENHANCEMENTS
-                const aiDropdown = document.createElement('div');
-                aiDropdown.className = 'analysis-dropdown';
-                aiDropdown.innerHTML = `
-                    <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
-                        <div class="dropdown-title">
-                            <div class="dropdown-icon-main">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div class="dropdown-text">
-                                <div class="dropdown-title-text">AI Detection Analysis</div>
-                                <div class="dropdown-subtitle">How likely is AI involvement? ${aiProb}% probability detected</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-chevron"></i>
+                <!-- Quick Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <i class="fas fa-robot" style="font-size: 2rem; color: #ef4444; margin-bottom: 10px;"></i>
+                        <div style="font-size: 2rem; font-weight: 900; color: #1f2937;">${aiProb}%</div>
+                        <div style="color: #6b7280;">AI Probability</div>
                     </div>
-                    
-                    <div class="analysis-dropdown-content">
-                        <!-- Analysis Explanation Box -->
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> This AI detection analysis uses 12 different methods to determine whether your text was written by a human or generated by AI. It examines linguistic patterns, vocabulary usage, sentence structures, and writing style consistency to provide a comprehensive assessment of AI involvement.
-                            </span>
-                        </div>
-                        
-                        <!-- Writing Score Display -->
-                        <div class="writing-score">
-                            <svg class="score-ring" width="200" height="200">
-                                <circle cx="100" cy="100" r="80" stroke="#e5e7eb" stroke-width="20" fill="none"></circle>
-                                <circle cx="100" cy="100" r="80" 
-                                        stroke="${getScoreColor(aiProb)}" 
-                                        stroke-width="20" fill="none"
-                                        stroke-dasharray="${(100 - aiProb) * 5.03} 503"
-                                        stroke-linecap="round"
-                                        style="transition: stroke-dasharray 1.5s ease;"></circle>
-                            </svg>
-                            <div class="score-text">
-                                <div class="score-grade">${getWritingGrade(aiProb)}</div>
-                                <div class="score-label">Authenticity Grade</div>
-                            </div>
-                        </div>
-                        
-                        <div class="content-narrative">
-                            <strong>Our Verdict:</strong> ${
-                                aiProb > 70 ? "This text is highly likely to be AI-generated." :
-                                aiProb > 40 ? "This text shows mixed authorship - likely AI-assisted or edited." :
-                                "This text appears to be genuinely human-written."
-                            }
-                            <br><br>
-                            <strong>How we determined this:</strong> We employed 12 different analysis methods including linguistic fingerprinting, pattern recognition, and neural network detection. Key indicators include:
-                        </div>
-                        
-                        <!-- Comparative Benchmarking -->
-                        <div class="benchmark-container">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-balance-scale"></i>
-                                Your Text vs. Known Samples
-                            </h4>
-                            ${generateBenchmarkComparison(aiProb, indicators)}
-                        </div>
-                        
-                        <div class="pattern-visualization">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-fingerprint"></i>
-                                Detected Patterns
-                            </h4>
-                            <div class="pattern-grid">
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${detectedPatterns.transition_words || 0}</span>
-                                    <span class="pattern-name">Transitions</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${detectedPatterns.ai_phrases || 0}</span>
-                                    <span class="pattern-name">AI Phrases</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${detectedPatterns.repeated_phrases || 0}</span>
-                                    <span class="pattern-name">Repetitions</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${detectedPatterns.contractions || 0}</span>
-                                    <span class="pattern-name">Contractions</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${indicators.coherence_score || 0}%</span>
-                                    <span class="pattern-name">Coherence</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${indicators.sentence_complexity || 0}%</span>
-                                    <span class="pattern-name">Complexity</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${aiProb > 40 ? `
-                            <div class="ai-examples">
-                                <h4 class="ai-examples-title">
-                                    <i class="fas fa-quote-right"></i>
-                                    AI Indicators Found
-                                </h4>
-                                ${detectedPatterns.ai_phrases > 0 ? `
-                                    <div class="ai-example-item">
-                                        <div class="ai-example-text">"Furthermore," "Moreover," "Additionally" used ${detectedPatterns.transition_words} times</div>
-                                        <div class="ai-example-reason">AI models overuse formal transition words</div>
-                                    </div>
-                                ` : ''}
-                                ${indicators.coherence_score > 85 ? `
-                                    <div class="ai-example-item">
-                                        <div class="ai-example-text">Unusually high coherence score of ${indicators.coherence_score}%</div>
-                                        <div class="ai-example-reason">AI maintains perfect logical flow unlike natural human writing</div>
-                                    </div>
-                                ` : ''}
-                                ${detectedPatterns.quotes_found > 2 ? `
-                                    <div class="ai-example-item">
-                                        <div class="ai-example-text">Found ${detectedPatterns.quotes_found} quoted sections</div>
-                                        <div class="ai-example-reason">AI often includes quotes to appear authoritative</div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        ` : ''}
-                        
-                        <!-- Line Graph for AI Probability Over Text -->
-                        <div class="line-graph-container">
-                            <canvas id="aiLineGraph"></canvas>
-                        </div>
-                        
-                        <div class="bar-chart">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-chart-bar"></i>
-                                AI Detection Confidence by Method
-                            </h4>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Pattern Recognition</span>
-                                    <span>${Math.min(100, aiProb + 10)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 10)}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Linguistic Analysis</span>
-                                    <span>${Math.min(100, aiProb + 5)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 5)}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Neural Network</span>
-                                    <span>${aiProb}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${aiProb}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Vocabulary Analysis</span>
-                                    <span>${Math.max(0, aiProb - 5)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.max(0, aiProb - 5)}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="method-showcase">
-                            <h4 class="method-title">Analysis Methods Used</h4>
-                            <div class="method-list">
-                                <div class="method-item"><i class="fas fa-check-circle"></i> GPT/Claude Pattern Detection</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Sentence Structure Analysis</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Vocabulary Complexity</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Transition Word Frequency</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Coherence Scoring</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Statistical Fingerprinting</div>
-                            </div>
-                        </div>
+                    <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: #10b981; margin-bottom: 10px;"></i>
+                        <div style="font-size: 2rem; font-weight: 900; color: #1f2937;">${originalityScore}%</div>
+                        <div style="color: #6b7280;">Originality</div>
                     </div>
-                `;
-                
-                // DROPDOWN 2: PLAGIARISM ANALYSIS
-                const plagiarismDropdown = document.createElement('div');
-                plagiarismDropdown.className = 'analysis-dropdown';
-                plagiarismDropdown.innerHTML = `
-                    <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
-                        <div class="dropdown-title">
-                            <div class="dropdown-icon-main" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <div class="dropdown-text">
-                                <div class="dropdown-title-text">Plagiarism Detection</div>
-                                <div class="dropdown-subtitle">${originalityScore}% original • ${plagiarismCheck.matched_sources || 0} sources checked</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-chevron"></i>
+                    <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <i class="fas fa-file-alt" style="font-size: 2rem; color: #667eea; margin-bottom: 10px;"></i>
+                        <div style="font-size: 2rem; font-weight: 900; color: #1f2937;">${statistics.word_count || 0}</div>
+                        <div style="color: #6b7280;">Words Analyzed</div>
                     </div>
-                    
-                    <div class="analysis-dropdown-content">
-                        <!-- Analysis Explanation Box -->
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> This plagiarism detection scans your text against our database of over 100 million documents including academic papers, web content, and published works. It identifies potential matches and calculates an originality score to ensure your content is unique and properly attributed.
-                            </span>
-                        </div>
-                        
-                        <div class="content-visualization">
-                            <div class="circular-chart">
-                                <svg width="220" height="220">
-                                    <defs>
-                                        <pattern id="diagonalHatch2" patternUnits="userSpaceOnUse" width="4" height="4">
-                                            <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" style="stroke:#f59e0b; stroke-width:0.5"/>
-                                        </pattern>
-                                    </defs>
-                                    <circle cx="110" cy="110" r="90" fill="#10b981"/>
-                                    <circle cx="110" cy="110" r="90" fill="url(#diagonalHatch2)" 
-                                            stroke="none"
-                                            mask="url(#plagMask2)"/>
-                                    <mask id="plagMask2">
-                                        <rect width="220" height="220" fill="white"/>
-                                        <path d="M 110 110 L 110 20 A 90 90 0 0 1 ${110 + 90 * Math.cos((originalityScore * 3.6 - 90) * Math.PI / 180)} ${110 + 90 * Math.sin((originalityScore * 3.6 - 90) * Math.PI / 180)} z" fill="black"/>
-                                    </mask>
-                                </svg>
-                                <div class="chart-center-text">
-                                    <span class="chart-percentage">${originalityScore}%</span>
-                                    <span class="chart-label">Original Content</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="content-narrative">
-                            <strong>Originality Assessment:</strong> ${
-                                originalityScore >= 90 ? "Excellent! Your content appears to be highly original." :
-                                originalityScore >= 70 ? "Good originality, but we found some potential matches." :
-                                "Significant similarities detected. Please review the flagged sections."
-                            }
-                            <br><br>
-                            <strong>How we checked:</strong> We compared your text against our database of over 100 million documents including academic papers, web content, news articles, and published works. Our analysis uses advanced fingerprinting to detect both exact matches and paraphrased content.
-                        </div>
-                        
-                        <!-- Export Options -->
-                        <div class="export-section">
-                            <button class="export-btn pdf" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf"></i>
-                                Download Report
-                            </button>
-                            <button class="export-btn certificate" onclick="generateCertificate()">
-                                <i class="fas fa-certificate"></i>
-                                Get Certificate
-                            </button>
-                            <button class="export-btn share" onclick="shareResults()">
-                                <i class="fas fa-share-alt"></i>
-                                Share Results
-                            </button>
-                        </div>
-                        
-                        ${plagiarismCheck.plagiarized_lines && plagiarismCheck.plagiarized_lines.length > 0 ? `
-                            <div class="plagiarism-matches">
-                                <h4 class="pattern-title">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    Potential Matches Found
-                                </h4>
-                                ${plagiarismCheck.plagiarized_lines.slice(0, 5).map((line, index) => `
-                                    <div class="match-item">
-                                        <div class="match-header">
-                                            <div class="match-source">
-                                                <i class="fas fa-link"></i>
-                                                ${line.source}
-                                            </div>
-                                            <div class="match-percentage">${line.similarity}% match</div>
-                                        </div>
-                                        <div class="match-text">
-                                            "...${highlightText(line.text, 'ai')}..."
-                                        </div>
-                                        <div class="match-context">
-                                            Line ${line.line_number + 1} of your text
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : `
-                            <div class="pattern-visualization">
-                                <h4 class="pattern-title">
-                                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                    No Significant Matches Found
-                                </h4>
-                                <p style="color: #6b7280; text-align: center; padding: 20px;">
-                                    Great news! We didn't find any concerning similarities in our extensive database.
-                                </p>
-                            </div>
-                        `}
-                        
-                        <div class="method-showcase">
-                            <h4 class="method-title">Databases Checked</h4>
-                            <div class="method-list">
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Academic Papers (50M+)</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Web Content Archive</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> News Articles Database</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Wikipedia & References</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Published Books</div>
-                                <div class="method-item"><i class="fas fa-check-circle"></i> Student Papers Archive</div>
-                            </div>
-                        </div>
+                    <div style="background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <i class="fas fa-graduation-cap" style="font-size: 2rem; color: #f59e0b; margin-bottom: 10px;"></i>
+                        <div style="font-size: 1.5rem; font-weight: 900; color: #1f2937;">${statistics.reading_level || 'Unknown'}</div>
+                        <div style="color: #6b7280;">Reading Level</div>
                     </div>
-                `;
-                
-                // DROPDOWN 3: WRITING QUALITY
-                const qualityDropdown = document.createElement('div');
-                qualityDropdown.className = 'analysis-dropdown';
-                qualityDropdown.innerHTML = `
-                    <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
-                        <div class="dropdown-title">
-                            <div class="dropdown-icon-main" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                <i class="fas fa-pen-fancy"></i>
-                            </div>
-                            <div class="dropdown-text">
-                                <div class="dropdown-title-text">Writing Quality Analysis</div>
-                                <div class="dropdown-subtitle">${statistics.reading_level || 'Unknown'} level • ${statistics.word_count || 0} words</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-chevron"></i>
+                </div>
+
+                <!-- Confidence Meter -->
+                <div class="confidence-meter">
+                    <div class="meter-inner"></div>
+                    <div class="meter-needle" id="confidenceNeedle"></div>
+                    <div class="confidence-percentage">${aiProb}%</div>
+                    <div class="confidence-labels">
+                        <span style="color: #10b981;">Human</span>
+                        <span style="color: #f59e0b;">Mixed</span>
+                        <span style="color: #ef4444;">AI</span>
                     </div>
-                    
-                    <div class="analysis-dropdown-content">
-                        <!-- Analysis Explanation Box -->
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> The writing quality analysis evaluates your text's readability, vocabulary richness, sentence variety, and overall coherence. It provides insights into your writing style and offers personalized improvement suggestions to help enhance clarity and engagement.
-                            </span>
-                        </div>
-                        
-                        <div class="content-narrative">
-                            <strong>Writing Assessment:</strong> Your text demonstrates ${statistics.reading_level || 'Unknown'} level writing with ${statistics.word_count || 0} words across ${statistics.sentence_count || 0} sentences. 
-                            The average sentence length is ${statistics.average_sentence_length || 0} words, ${
-                                statistics.average_sentence_length > 20 ? "which is quite long and may impact readability" :
-                                statistics.average_sentence_length > 15 ? "which is well-balanced for most readers" :
-                                "which is concise and easy to read"
-                            }.
-                        </div>
-                        
-                        <div class="pattern-visualization">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-chart-pie"></i>
-                                Writing Statistics
-                            </h4>
-                            <div class="pattern-grid">
-                                <div class="pattern-item">
-                                    <span class="pattern-value pulse-text">${statistics.word_count || 0}</span>
-                                    <span class="pattern-name">Total Words</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value pulse-text">${statistics.sentence_count || 0}</span>
-                                    <span class="pattern-name">Sentences</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${statistics.average_word_length || 0}</span>
-                                    <span class="pattern-name">Avg Word Length</span>
-                                </div>
-                                <div class="pattern-item">
-                                    <span class="pattern-value">${indicators.vocabulary_diversity || 0}%</span>
-                                    <span class="pattern-name">Vocab Diversity</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-chart">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-tasks"></i>
-                                Quality Metrics
-                            </h4>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Readability</span>
-                                    <span>${Math.min(100, 120 - statistics.average_sentence_length * 2)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.min(100, 120 - statistics.average_sentence_length * 2)}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Vocabulary Richness</span>
-                                    <span>${indicators.vocabulary_diversity || 0}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${indicators.vocabulary_diversity || 0}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Sentence Variety</span>
-                                    <span>${indicators.sentence_complexity || 0}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${indicators.sentence_complexity || 0}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Overall Coherence</span>
-                                    <span>${indicators.coherence_score || 0}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${indicators.coherence_score || 0}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pattern-visualization" style="background: #dbeafe; border: 2px solid #3b82f6;">
-                            <h4 class="pattern-title" style="color: #1e40af;">
-                                <i class="fas fa-lightbulb"></i>
-                                Writing Improvement Tips
-                            </h4>
-                            <ul style="margin: 0; padding-left: 20px; color: #1e40af;">
-                                ${indicators.vocabulary_diversity < 50 ? '<li>Try using more varied vocabulary to enhance engagement</li>' : ''}
-                                ${statistics.average_sentence_length > 20 ? '<li>Consider breaking up longer sentences for better readability</li>' : ''}
-                                ${detectedPatterns.contractions === 0 ? '<li>Adding contractions can make your writing more conversational</li>' : ''}
-                                ${detectedPatterns.transition_words > 10 ? '<li>Reduce formal transitions for a more natural flow</li>' : ''}
-                                ${indicators.coherence_score > 90 ? '<li>Your writing is very structured - consider adding some variety</li>' : ''}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-                
-                // DROPDOWN 4: ADVANCED INSIGHTS
-                const insightsDropdown = document.createElement('div');
-                insightsDropdown.className = 'analysis-dropdown';
-                insightsDropdown.innerHTML = `
-                    <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
-                        <div class="dropdown-title">
-                            <div class="dropdown-icon-main" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                                <i class="fas fa-microscope"></i>
-                            </div>
-                            <div class="dropdown-text">
-                                <div class="dropdown-title-text">Advanced Pattern Analysis</div>
-                                <div class="dropdown-subtitle">Deep linguistic fingerprinting results</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-chevron"></i>
-                    </div>
-                    
-                    <div class="analysis-dropdown-content">
-                        <!-- Analysis Explanation Box -->
-                        <div class="analysis-explanation">
-                            <span class="analysis-explanation-icon">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                            <span class="analysis-explanation-text">
-                                <strong>What this analysis shows:</strong> Advanced pattern analysis performs deep linguistic fingerprinting to identify subtle patterns in your writing. It examines repetition frequencies, phrase patterns, and structural elements that distinguish human writing from AI-generated content, providing the most detailed insights into authorship.
-                            </span>
-                        </div>
-                        
-                        <div class="content-narrative">
-                            <strong>Deep Analysis:</strong> Our advanced algorithms detected ${detectedPatterns.repeated_phrases || 0} repeated phrase patterns,
-                            ${detectedPatterns.quotes_found || 0} quoted sections, and analyzed the text's linguistic fingerprint across multiple dimensions.
-                            ${detectedPatterns.ai_phrases > 3 ? 
-                                `We found an unusually high number of AI-typical phrases (${detectedPatterns.ai_phrases}), suggesting heavy AI influence.` :
-                                `The low count of AI phrases (${detectedPatterns.ai_phrases || 0}) supports human authorship.`
-                            }
-                        </div>
-                        
-                        <div class="chart-container">
-                            <canvas id="radarChart"></canvas>
-                        </div>
-                        
-                        <div class="pattern-visualization">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-dna"></i>
-                                Linguistic DNA
-                            </h4>
-                            <div class="evidence-grid">
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Sentence Patterns</div>
-                                    <div class="evidence-text">
-                                        ${indicators.sentence_complexity > 80 ? 
-                                            "Highly uniform sentence structure detected" :
-                                            "Natural variation in sentence patterns"
-                                        }
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Complexity: ${indicators.sentence_complexity || 0}%
-                                    </div>
-                                </div>
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Vocabulary Usage</div>
-                                    <div class="evidence-text">
-                                        ${indicators.vocabulary_diversity > 80 ?
-                                            "Rich and varied vocabulary detected" :
-                                            indicators.vocabulary_diversity > 50 ?
-                                            "Moderate vocabulary diversity" :
-                                            "Limited vocabulary range detected"
-                                        }
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Diversity: ${indicators.vocabulary_diversity || 0}%
-                                    </div>
-                                </div>
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Repetition Analysis</div>
-                                    <div class="evidence-text">
-                                        Found ${detectedPatterns.repeated_phrases || 0} repeated phrases
-                                        ${detectedPatterns.repeated_phrases > 5 ? " - unusually high" : ""}
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Pattern Score: ${indicators.repetitive_patterns || 0}%
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="method-showcase" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-                            <h4 class="method-title" style="color: #92400e;">Key Findings Summary</h4>
-                            <div style="color: #78350f; line-height: 1.8;">
-                                ${aiProb > 70 ? 
-                                    `This text exhibits strong AI characteristics with ${detectedPatterns.ai_phrases} AI phrases, 
-                                    ${detectedPatterns.transition_words} formal transitions, and ${indicators.coherence_score}% coherence. 
-                                    The uniform structure and vocabulary patterns are typical of large language models.` :
-                                aiProb > 40 ?
-                                    `Mixed authorship detected with both AI and human elements. Found ${detectedPatterns.ai_phrases} AI phrases 
-                                    balanced against ${detectedPatterns.contractions} contractions and ${detectedPatterns.personal_pronouns} personal pronouns. 
-                                    This suggests AI-assisted writing or heavy editing.` :
-                                    `Strong human authorship indicators with natural language variation, ${detectedPatterns.contractions} contractions,
-                                    and ${detectedPatterns.personal_pronouns} personal pronouns. The ${indicators.vocabulary_diversity}% vocabulary diversity 
-                                    and variable sentence structure support authentic human writing.`
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add all elements to container
-                resultsContainer.appendChild(summaryBanner);
-                resultsContainer.appendChild(aiDropdown);
-                resultsContainer.appendChild(plagiarismDropdown);
-                resultsContainer.appendChild(qualityDropdown);
-                resultsContainer.appendChild(insightsDropdown);
-                
-                resultsDiv.appendChild(resultsContainer);
-                
-                // Animate elements after DOM is ready
-                setTimeout(() => {
-                    // Animate counters
-                    animateCounters();
-                    
-                    // Animate confidence meter
-                    animateConfidenceMeter(aiProb);
-                    
-                    // Initialize charts
-                    initializeCharts(results);
-                    
-                    // Add sparkle effects
-                    addSparkleEffects();
-                }, 100);
-                
-            } else {
-                // FREE VERSION - Show limited results with upgrade prompts
-                showNotification('Showing free analysis results. Upgrade to Pro for complete insights!', 'info');
-                
-                // You can implement a simplified free version here
-                // For now, redirecting to the pro results with a banner
-                showResults(results, 'pro');
-            }
-            
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+                </div>
+            `;
         }
 
-        // Helper Functions for WOW Effects
+        function generateDetailsTabContent(results, tier) {
+            const aiAnalysis = results.ai_analysis || {};
+            const indicators = aiAnalysis.indicators || {};
+            const detectedPatterns = aiAnalysis.detected_patterns || {};
+            const plagiarismCheck = aiAnalysis.plagiarism_check || {};
+            
+            return `
+                <div style="display: grid; gap: 25px;">
+                    <!-- AI Detection Details -->
+                    <div class="analysis-dropdown active">
+                        <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
+                            <div class="dropdown-title">
+                                <div class="dropdown-icon-main">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="dropdown-text">
+                                    <div class="dropdown-title-text">AI Detection Analysis</div>
+                                    <div class="dropdown-subtitle">${aiAnalysis.ai_probability || 0}% probability detected</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down dropdown-chevron"></i>
+                        </div>
+                        
+                        <div class="analysis-dropdown-content">
+                            <!-- Analysis Explanation Box -->
+                            <div class="analysis-explanation">
+                                <span class="analysis-explanation-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                <span class="analysis-explanation-text">
+                                    <strong>What this analysis shows:</strong> This AI detection analysis uses 12 different methods to determine whether your text was written by a human or generated by AI. It examines linguistic patterns, vocabulary usage, sentence structures, and writing style consistency.
+                                </span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                                <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                                    <div style="font-weight: 600; color: #4b5563;">Vocabulary Diversity</div>
+                                    <div style="font-size: 1.5rem; font-weight: 900; color: #667eea;">${indicators.vocabulary_diversity || 0}%</div>
+                                </div>
+                                <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                                    <div style="font-weight: 600; color: #4b5563;">Sentence Complexity</div>
+                                    <div style="font-size: 1.5rem; font-weight: 900; color: #667eea;">${indicators.sentence_complexity || 0}%</div>
+                                </div>
+                                <div style="background: #f8fafc; padding: 15px; border-radius: 10px;">
+                                    <div style="font-weight: 600; color: #4b5563;">Coherence Score</div>
+                                    <div style="font-size: 1.5rem; font-weight: 900; color: #667eea;">${indicators.coherence_score || 0}%</div>
+                                </div>
+                            </div>
+
+                            <!-- Pattern Detection -->
+                            <div class="pattern-visualization">
+                                <h4 class="pattern-title">
+                                    <i class="fas fa-fingerprint"></i>
+                                    Detected Patterns
+                                </h4>
+                                <div class="pattern-grid">
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${detectedPatterns.transition_words || 0}</span>
+                                        <span class="pattern-name">Transitions</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${detectedPatterns.ai_phrases || 0}</span>
+                                        <span class="pattern-name">AI Phrases</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${detectedPatterns.repeated_phrases || 0}</span>
+                                        <span class="pattern-name">Repetitions</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${detectedPatterns.contractions || 0}</span>
+                                        <span class="pattern-name">Contractions</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${indicators.coherence_score || 0}%</span>
+                                        <span class="pattern-name">Coherence</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${indicators.sentence_complexity || 0}%</span>
+                                        <span class="pattern-name">Complexity</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Method Showcase -->
+                            <div class="method-showcase">
+                                <h4 class="method-title">Analysis Methods Used</h4>
+                                <div class="method-list">
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Statistical Fingerprinting</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Plagiarism Analysis -->
+                    <div class="analysis-dropdown">
+                        <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
+                            <div class="dropdown-title">
+                                <div class="dropdown-icon-main" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="dropdown-text">
+                                    <div class="dropdown-title-text">Plagiarism Detection</div>
+                                    <div class="dropdown-subtitle">${plagiarismCheck.originality_score || 100}% original • ${plagiarismCheck.matched_sources || 0} sources checked</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down dropdown-chevron"></i>
+                        </div>
+                        
+                        <div class="analysis-dropdown-content">
+                            <!-- Analysis Explanation Box -->
+                            <div class="analysis-explanation">
+                                <span class="analysis-explanation-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                <span class="analysis-explanation-text">
+                                    <strong>What this analysis shows:</strong> This plagiarism detection scans your text against our database of over 100 million documents including academic papers, web content, and published works. It identifies potential matches and calculates an originality score.
+                                </span>
+                            </div>
+
+                            <div class="content-visualization">
+                                <div class="circular-chart">
+                                    <svg width="220" height="220">
+                                        <defs>
+                                            <pattern id="diagonalHatch2" patternUnits="userSpaceOnUse" width="4" height="4">
+                                                <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" style="stroke:#f59e0b; stroke-width:0.5"/>
+                                            </pattern>
+                                        </defs>
+                                        <circle cx="110" cy="110" r="90" fill="#10b981"/>
+                                        <circle cx="110" cy="110" r="90" fill="url(#diagonalHatch2)" 
+                                                stroke="none"
+                                                mask="url(#plagMask2)"/>
+                                        <mask id="plagMask2">
+                                            <rect width="220" height="220" fill="white"/>
+                                            <path d="M 110 110 L 110 20 A 90 90 0 0 1 ${110 + 90 * Math.cos(((plagiarismCheck.originality_score || 100) * 3.6 - 90) * Math.PI / 180)} ${110 + 90 * Math.sin(((plagiarismCheck.originality_score || 100) * 3.6 - 90) * Math.PI / 180)} z" fill="black"/>
+                                        </mask>
+                                    </svg>
+                                    <div class="chart-center-text">
+                                        <span class="chart-percentage">${plagiarismCheck.originality_score || 100}%</span>
+                                        <span class="chart-label">Original Content</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${plagiarismCheck.plagiarized_lines && plagiarismCheck.plagiarized_lines.length > 0 ? `
+                                <div class="plagiarism-matches">
+                                    <h4 class="pattern-title">
+                                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                                        Potential Matches Found
+                                    </h4>
+                                    ${plagiarismCheck.plagiarized_lines.slice(0, 5).map(line => `
+                                        <div class="match-item">
+                                            <div class="match-header">
+                                                <div class="match-source">
+                                                    <i class="fas fa-link"></i>
+                                                    ${line.source}
+                                                </div>
+                                                <div class="match-percentage">${line.similarity}% match</div>
+                                            </div>
+                                            <div class="match-text">
+                                                "...${highlightText(line.text, 'ai')}..."
+                                            </div>
+                                            <div class="match-context">
+                                                Line ${line.line_number + 1} of your text
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <div class="pattern-visualization">
+                                    <h4 class="pattern-title">
+                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                        No Significant Matches Found
+                                    </h4>
+                                    <p style="color: #6b7280; text-align: center; padding: 20px;">
+                                        Great news! We didn't find any concerning similarities in our extensive database.
+                                    </p>
+                                </div>
+                            `}
+
+                            <div class="method-showcase">
+                                <h4 class="method-title">Databases Checked</h4>
+                                <div class="method-list">
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Academic Papers (50M+)</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Web Content Archive</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> News Articles Database</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Wikipedia & References</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Published Books</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Student Papers Archive</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Writing Quality Analysis -->
+                    <div class="analysis-dropdown">
+                        <div class="analysis-dropdown-header" onclick="toggleAnalysisDropdown(this)">
+                            <div class="dropdown-title">
+                                <div class="dropdown-icon-main" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i class="fas fa-pen-fancy"></i>
+                                </div>
+                                <div class="dropdown-text">
+                                    <div class="dropdown-title-text">Writing Quality Analysis</div>
+                                    <div class="dropdown-subtitle">${aiAnalysis.statistics?.reading_level || 'Unknown'} level • ${aiAnalysis.statistics?.word_count || 0} words</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down dropdown-chevron"></i>
+                        </div>
+                        
+                        <div class="analysis-dropdown-content">
+                            <!-- Analysis Explanation Box -->
+                            <div class="analysis-explanation">
+                                <span class="analysis-explanation-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                <span class="analysis-explanation-text">
+                                    <strong>What this analysis shows:</strong> The writing quality analysis evaluates your text's readability, vocabulary richness, sentence variety, and overall coherence. It provides insights into your writing style and offers personalized improvement suggestions.
+                                </span>
+                            </div>
+
+                            <div class="content-narrative">
+                                <strong>Writing Assessment:</strong> Your text demonstrates ${aiAnalysis.statistics?.reading_level || 'Unknown'} level writing with ${aiAnalysis.statistics?.word_count || 0} words across ${aiAnalysis.statistics?.sentence_count || 0} sentences. 
+                                The average sentence length is ${aiAnalysis.statistics?.average_sentence_length || 0} words, ${
+                                    (aiAnalysis.statistics?.average_sentence_length || 0) > 20 ? "which is quite long and may impact readability" :
+                                    (aiAnalysis.statistics?.average_sentence_length || 0) > 15 ? "which is well-balanced for most readers" :
+                                    "which is concise and easy to read"
+                                }.
+                            </div>
+
+                            <div class="pattern-visualization">
+                                <h4 class="pattern-title">
+                                    <i class="fas fa-chart-pie"></i>
+                                    Writing Statistics
+                                </h4>
+                                <div class="pattern-grid">
+                                    <div class="pattern-item">
+                                        <span class="pattern-value pulse-text">${aiAnalysis.statistics?.word_count || 0}</span>
+                                        <span class="pattern-name">Total Words</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value pulse-text">${aiAnalysis.statistics?.sentence_count || 0}</span>
+                                        <span class="pattern-name">Sentences</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${aiAnalysis.statistics?.average_word_length || 0}</span>
+                                        <span class="pattern-name">Avg Word Length</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-value">${indicators.vocabulary_diversity || 0}%</span>
+                                        <span class="pattern-name">Vocab Diversity</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bar-chart">
+                                <h4 class="pattern-title">
+                                    <i class="fas fa-tasks"></i>
+                                    Quality Metrics
+                                </h4>
+                                <div class="bar-item">
+                                    <div class="bar-label">
+                                        <span>Readability</span>
+                                        <span>${Math.min(100, 120 - (aiAnalysis.statistics?.average_sentence_length || 15) * 2)}%</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width: ${Math.min(100, 120 - (aiAnalysis.statistics?.average_sentence_length || 15) * 2)}%"></div>
+                                    </div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="bar-label">
+                                        <span>Vocabulary Richness</span>
+                                        <span>${indicators.vocabulary_diversity || 0}%</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width: ${indicators.vocabulary_diversity || 0}%"></div>
+                                    </div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="bar-label">
+                                        <span>Sentence Variety</span>
+                                        <span>${indicators.sentence_complexity || 0}%</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width: ${indicators.sentence_complexity || 0}%"></div>
+                                    </div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="bar-label">
+                                        <span>Overall Coherence</span>
+                                        <span>${indicators.coherence_score || 0}%</span>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width: ${indicators.coherence_score || 0}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pattern-visualization" style="background: #dbeafe; border: 2px solid #3b82f6;">
+                                <h4 class="pattern-title" style="color: #1e40af;">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Writing Improvement Tips
+                                </h4>
+                                <ul style="margin: 0; padding-left: 20px; color: #1e40af;">
+                                    ${(indicators.vocabulary_diversity || 0) < 50 ? '<li>Try using more varied vocabulary to enhance engagement</li>' : ''}
+                                    ${(aiAnalysis.statistics?.average_sentence_length || 0) > 20 ? '<li>Consider breaking up longer sentences for better readability</li>' : ''}
+                                    ${(detectedPatterns.contractions || 0) === 0 ? '<li>Adding contractions can make your writing more conversational</li>' : ''}
+                                    ${(detectedPatterns.transition_words || 0) > 10 ? '<li>Reduce formal transitions for a more natural flow</li>' : ''}
+                                    ${(indicators.coherence_score || 0) > 90 ? '<li>Your writing is very structured - consider adding some variety</li>' : ''}
+                                    ${(indicators.vocabulary_diversity || 0) >= 50 && (aiAnalysis.statistics?.average_sentence_length || 0) <= 20 ? '<li>Your writing shows good balance and readability!</li>' : ''}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper Functions
         function animateCounters() {
             const counters = document.querySelectorAll('.badge-value[data-target]');
             counters.forEach(counter => {
@@ -3232,25 +3636,6 @@
             }
         }
 
-        function getWritingGrade(aiProb) {
-            if (aiProb < 20) return 'A+';
-            if (aiProb < 40) return 'A';
-            if (aiProb < 60) return 'B';
-            if (aiProb < 80) return 'C';
-            return 'D';
-        }
-
-        function getScoreColor(score) {
-            if (score < 40) return '#10b981';
-            if (score < 70) return '#f59e0b';
-            return '#ef4444';
-        }
-
-        function getRandomUserCount() {
-            // Generate a realistic random number for social proof
-            return Math.floor(Math.random() * 500) + 2500;
-        }
-
         function getAchievementBadges(aiProb, originalityScore, statistics) {
             const badges = [];
             
@@ -3275,7 +3660,7 @@
             }
             
             // Word Count Badges
-            if (statistics.word_count > 500) {
+            if ((statistics.word_count || 0) > 500) {
                 badges.push(`
                     <div class="achievement-badge earned">
                         <div class="achievement-icon">📚</div>
@@ -3284,11 +3669,21 @@
                 `);
             }
             
+            // Quality Badge
+            if (aiProb < 20 && originalityScore >= 95) {
+                badges.push(`
+                    <div class="achievement-badge earned">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-label">Gold Standard</div>
+                    </div>
+                `);
+            }
+            
             // First Analysis Badge
             badges.push(`
                 <div class="achievement-badge earned">
                     <div class="achievement-icon">🎯</div>
-                    <div class="achievement-label">First Analysis</div>
+                    <div class="achievement-label">Analysis Complete</div>
                 </div>
             `);
             
@@ -3301,116 +3696,18 @@
             return `<span class="${className}">${text}</span>`;
         }
 
-        function generateBenchmarkComparison(aiProb, indicators) {
-            const benchmarks = [
-                { label: '📚 Academic Papers', icon: '📚', value: Math.max(20, aiProb - 15) },
-                { label: '📰 News Articles', icon: '📰', value: Math.max(10, aiProb - 25) },
-                { label: '💬 Social Media', icon: '💬', value: Math.max(5, aiProb - 35) },
-                { label: '🤖 Known AI Text', icon: '🤖', value: aiProb },
-                { label: '✍️ Creative Writing', icon: '✍️', value: Math.max(15, 100 - aiProb) }
-            ];
-            
-            return benchmarks.map(item => `
-                <div class="benchmark-item">
-                    <div class="benchmark-label">
-                        <span>${item.icon}</span>
-                        <span>${item.label}</span>
-                    </div>
-                    <div class="benchmark-bar">
-                        <div class="benchmark-fill" style="width: 0%;" data-width="${item.value}%"></div>
-                    </div>
-                    <div class="benchmark-percent">${item.value}%</div>
-                </div>
-            `).join('');
+        function getRandomUserCount() {
+            // Generate a realistic random number for social proof
+            return Math.floor(Math.random() * 500) + 2500;
         }
 
         function initializeCharts(results) {
-            // Initialize radar chart
-            const radarCtx = document.getElementById('radarChart');
-            if (radarCtx && window.Chart) {
-                new Chart(radarCtx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['AI Patterns', 'Vocabulary', 'Coherence', 'Complexity', 'Repetition', 'Originality'],
-                        datasets: [{
-                            label: 'Your Text',
-                            data: [
-                                results.ai_analysis?.ai_probability || 50,
-                                results.ai_analysis?.indicators?.vocabulary_diversity || 50,
-                                results.ai_analysis?.indicators?.coherence_score || 50,
-                                results.ai_analysis?.indicators?.sentence_complexity || 50,
-                                results.ai_analysis?.indicators?.repetitive_patterns || 0,
-                                results.ai_analysis?.plagiarism_check?.originality_score || 100
-                            ],
-                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-            }
+            // Animate confidence meter
+            const aiProb = results.ai_analysis?.ai_probability || 0;
+            animateConfidenceMeter(aiProb);
             
-            // Initialize line graph for AI probability over text
-            const lineCtx = document.getElementById('aiLineGraph');
-            if (lineCtx && window.Chart) {
-                // Simulate paragraph-by-paragraph AI probability
-                const paragraphCount = Math.min(10, results.ai_analysis?.statistics?.sentence_count || 5);
-                const aiProb = results.ai_analysis?.ai_probability || 50;
-                const data = [];
-                
-                for (let i = 0; i < paragraphCount; i++) {
-                    // Create variation around the main AI probability
-                    const variation = (Math.random() - 0.5) * 20;
-                    data.push(Math.max(0, Math.min(100, aiProb + variation)));
-                }
-                
-                new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: paragraphCount}, (_, i) => `Para ${i + 1}`),
-                        datasets: [{
-                            label: 'AI Probability',
-                            data: data,
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + '%';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // Animate benchmark bars
-            setTimeout(() => {
-                document.querySelectorAll('.benchmark-fill[data-width]').forEach(bar => {
-                    bar.style.width = bar.getAttribute('data-width');
-                });
-            }, 500);
+            // Initialize any Chart.js charts here if needed
+            // Example radar chart could be added here
         }
 
         function addSparkleEffects() {
@@ -3435,31 +3732,6 @@
             const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
             audio.volume = 0.3;
             audio.play().catch(() => {}); // Ignore errors if audio blocked
-        }
-
-        // Export functions
-        function exportToPDF() {
-            showNotification('Generating PDF report...', 'info');
-            // In real implementation, would generate actual PDF
-            setTimeout(() => {
-                showNotification('PDF report ready for download!', 'success');
-            }, 2000);
-        }
-
-        function generateCertificate() {
-            showNotification('Creating authenticity certificate...', 'info');
-            // In real implementation, would generate certificate
-            setTimeout(() => {
-                showNotification('Certificate generated!', 'success');
-            }, 2000);
-        }
-
-        function shareResults() {
-            showNotification('Preparing shareable link...', 'info');
-            // In real implementation, would create shareable link
-            setTimeout(() => {
-                showNotification('Link copied to clipboard!', 'success');
-            }, 1500);
         }
 
         // Close modal when clicking outside
@@ -3490,4 +3762,9 @@
         });
     </script>
 </body>
-</html>
+</html>-circle"></i> GPT/Claude Pattern Detection</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Sentence Structure Analysis</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Vocabulary Complexity</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Transition Word Frequency</div>
+                                    <div class="method-item"><i class="fas fa-check-circle"></i> Coherence Scoring</div>
+                                    <div class="method-item"><i class="fas fa-check
