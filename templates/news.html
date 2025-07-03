@@ -3168,13 +3168,19 @@
                 resultsDiv.appendChild(findingsSection);
             }
             
-            // Track completion
-            trackNewsEvent('news_results_displayed', {
-                tier: tier,
-                credibility_score: credibilityScore,
-                bias: biasLabel,
-                sections_shown: tier === 'pro' ? 10 : 6
-            });
+            // Show download buttons after results are displayed
+        const downloadButtons = document.getElementById('downloadButtons');
+        if (downloadButtons) {
+            downloadButtons.style.display = 'flex';
+        }
+        
+        // Track completion
+        trackNewsEvent('news_results_displayed', {
+            tier: tier,
+            credibility_score: credibilityScore,
+            bias: biasLabel,
+            sections_shown: tier === 'pro' ? 10 : 6
+        });
         }
 
         // NEW Enhanced temporal analysis function with WOW factor
@@ -4102,13 +4108,14 @@
 
         // Reset form
         function resetForm() {
-            document.getElementById('news-text').value = '';
-            document.getElementById('news-url').value = '';
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('results').innerHTML = '';
-            currentAnalysisData = null;
-            showNotification('Form reset successfully', 'success');
-        }
+    document.getElementById('news-text').value = '';
+    document.getElementById('news-url').value = '';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('downloadButtons').style.display = 'none';
+    currentAnalysisData = null;
+    showNotification('Form reset successfully', 'success');
+}
 
         // Update progress stages
         function updateProgressStages(stage) {
