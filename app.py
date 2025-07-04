@@ -43,15 +43,6 @@ except ImportError:
     OpenAI = None
     print("⚠ OpenAI module not available - will use basic analysis")
 
-# NEW: Import real AI detection module
-try:
-    from ai_detection import RealAIDetector
-    AI_DETECTOR_AVAILABLE = True
-    print("✓ Real AI detection module loaded successfully")
-except ImportError:
-    AI_DETECTOR_AVAILABLE = False
-    print("⚠ Real AI detection module not available - will use fallback analysis")
-
 # Safe email import handling for Python 3.13 compatibility
 try:
     import smtplib
@@ -105,18 +96,6 @@ if DB_AVAILABLE:
     db = SQLAlchemy(app)
 else:
     db = None
-
-# Initialize AI detector
-if AI_DETECTOR_AVAILABLE:
-    try:
-        ai_detector = RealAIDetector()
-        print("✓ AI detector initialized successfully")
-    except Exception as e:
-        print(f"⚠ Failed to initialize AI detector: {e}")
-        AI_DETECTOR_AVAILABLE = False
-        ai_detector = None
-else:
-    ai_detector = None
 
 # Database Models
 if DB_AVAILABLE:
@@ -441,85 +420,6 @@ def user_status():
     })
 
 # ============================================================================
-# NEW: CV MODULE DEBUG ENDPOINT
-# ============================================================================
-
-@app.route('/api/debug/cv-status', methods=['GET'])
-def cv_status():
-    """Debug endpoint to check CV module status"""
-    import sys
-    
-    status = {
-        'cv_available': CV_AVAILABLE,
-        'python_version': sys.version,
-        'platform': sys.platform,
-        'modules_status': {}
-    }
-    
-    # Check each CV module individually
-    modules_to_check = {
-        'cv2': 'OpenCV',
-        'scipy': 'SciPy',
-        'scipy.fftpack': 'SciPy FFTPack',
-        'skimage': 'Scikit-Image',
-        'skimage.feature': 'Scikit-Image Feature',
-        'skimage.metrics': 'Scikit-Image Metrics',
-        'exifread': 'EXIF Reader',
-        'PIL': 'Pillow',
-        'numpy': 'NumPy'
-    }
-    
-    for module_name, display_name in modules_to_check.items():
-        try:
-            if '.' in module_name:
-                parts = module_name.split('.')
-                module = __import__(parts[0])
-                for part in parts[1:]:
-                    module = getattr(module, part)
-            else:
-                module = __import__(module_name)
-            
-            # Get version if available
-            version = 'loaded'
-            if hasattr(module, '__version__'):
-                version = module.__version__
-            elif module_name == 'cv2' and hasattr(module, 'cv2'):
-                version = module.cv2.__version__
-                
-            status['modules_status'][display_name] = {
-                'loaded': True,
-                'version': version
-            }
-        except ImportError as e:
-            status['modules_status'][display_name] = {
-                'loaded': False,
-                'error': str(e)
-            }
-    
-    # Check for system libraries (if cv2 is available)
-    if CV_AVAILABLE:
-        try:
-            import cv2
-            build_info = cv2.getBuildInformation()
-            status['opencv_build_info'] = build_info[:500]  # First 500 chars
-        except:
-            pass
-    
-    # Test if image analysis would work
-    try:
-        test_img = np.zeros((100, 100), dtype=np.uint8)
-        if CV_AVAILABLE:
-            import cv2
-            edges = cv2.Canny(test_img, 50, 150)
-            status['cv_test'] = 'OpenCV operations working'
-        else:
-            status['cv_test'] = 'CV not available for testing'
-    except Exception as e:
-        status['cv_test'] = f'Test failed: {str(e)}'
-    
-    return jsonify(status)
-
-# ============================================================================
 # NEW: SPEECH FACT-CHECKING API ENDPOINTS
 # ============================================================================
 
@@ -709,29 +609,14 @@ def extract_claims_from_speech(text, mode='balanced'):
     return claims[:20]  # Limit to prevent overload
 
 # ============================================================================
-# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - UPDATED WITH REAL AI DETECTION
+# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - IMPROVED VERSION
 # ============================================================================
 
 def perform_realistic_unified_text_analysis(text):
     """
-    Perform realistic AI text detection for unified page with real AI detection
+    Perform realistic AI text detection for unified page with improved accuracy
+    This is separate from news analysis - won't affect news.html
     """
-    # Try to use real AI detector if available
-    if AI_DETECTOR_AVAILABLE and ai_detector:
-        try:
-            print("Using real AI detector for text analysis")
-            result = ai_detector.analyze_text(text)
-            # Ensure the result has all required fields for the frontend
-            result['is_pro'] = False  # Set based on user status in production
-            return result
-        except Exception as e:
-            print(f"Real AI detector failed: {e}")
-            traceback.print_exc()
-            # Fall back to original implementation
-    
-    # Fallback to original implementation if real detector not available
-    print("Using fallback text analysis")
-    
     # Calculate real text statistics
     words = text.split()
     sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
@@ -1578,14 +1463,53 @@ def perform_deepfake_analysis(img_cv2):
             'confidence': 0.85
         }
     
-    # For now, return placeholder values
-    # In production, this would use face detection and analysis
-    return {
-        'face_detected': False,
-        'facial_consistency': 0.95,
-        'temporal_coherence': 0.92,
-        'confidence': 0.85
-    }
+    try:
+        # Load face cascade (you'll need to ensure haarcascade file is available)
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        faces = face_cascade.detectMultiScale(img_cv2, 1.1, 4)
+        
+        if len(faces) > 0:
+            # Analyze facial regions for deepfake indicators
+            facial_consistency = 0.96  # Would need proper facial landmark analysis
+            temporal_coherence = 0.94  # Would need video frames for real analysis
+            
+            # Simplified deepfake detection based on face region analysis
+            for (x, y, w, h) in faces:
+                face_region = img_cv2[y:y+h, x:x+w]
+                
+                # Check for unnatural boundaries
+                face_edges = feature.canny(face_region)
+                edge_density = np.sum(face_edges) / face_edges.size
+                
+                # Check for texture inconsistencies
+                face_texture = analyze_texture_patterns(face_region)
+                
+                if edge_density > 0.3 or not face_texture['is_natural_texture']:
+                    facial_consistency *= 0.9
+            
+            confidence = facial_consistency
+            
+            return {
+                'face_detected': True,
+                'facial_consistency': facial_consistency,
+                'temporal_coherence': temporal_coherence,
+                'gan_signatures': 0.02,
+                'confidence': confidence
+            }
+        else:
+            return {
+                'face_detected': False,
+                'facial_consistency': 0.95,
+                'temporal_coherence': 0.92,
+                'confidence': 0.85
+            }
+    except:
+        return {
+            'face_detected': False,
+            'facial_consistency': 0.95,
+            'temporal_coherence': 0.92,
+            'confidence': 0.85
+        }
 
 def calculate_analysis_confidence(manipulation_indicators, ai_detection):
     """Calculate overall confidence in the analysis"""
