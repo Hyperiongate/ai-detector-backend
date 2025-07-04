@@ -361,6 +361,7 @@ def pricingplan():
     return render_template('pricingplan.html', user=get_current_user())
 
 # NEW: Speech fact-check page route
+@app.route('/speech')
 @app.route('/speechcheck')
 def speechcheck():
     """Speech fact-check page route"""
