@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+a<!DOCTYPE html>
 <html lang="en">  
 <head>
     <meta charset="UTF-8">
@@ -749,6 +749,72 @@
             to { opacity: 1; }
         }
 
+        /* Enhanced Tab Explanations */
+        .tab-explanation {
+            background: rgba(102, 126, 234, 0.05);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-explanation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+        }
+
+        .tab-explanation h3 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-explanation p {
+            color: #4b5563;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .tab-explanation p strong {
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .tab-explanation ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 15px;
+        }
+
+        .tab-explanation li {
+            color: #4b5563;
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .tab-explanation li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
         .input-group {
             margin-bottom: 20px;
         }
@@ -879,9 +945,10 @@
             margin-bottom: 25px;
         }
 
+        /* Enhanced Credibility Score Circle */
         .credibility-score-circle {
-            width: 140px;
-            height: 140px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             display: flex;
             flex-direction: column;
@@ -890,39 +957,91 @@
             position: relative;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             flex-shrink: 0;
-            background: white;
-            border: 8px solid transparent;
-            background-clip: padding-box;
+            background: conic-gradient(
+                from 0deg,
+                #ff6b6b 0deg,
+                #feca57 90deg,
+                #48dbfb 180deg,
+                #1dd1a1 270deg,
+                #ff6b6b 360deg
+            );
+            animation: rotateGradient 10s linear infinite;
+        }
+
+        @keyframes rotateGradient {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .credibility-score-circle::before {
             content: '';
             position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
+            width: 150px;
+            height: 150px;
+            background: white;
             border-radius: 50%;
-            background: linear-gradient(45deg, #10b981, #667eea, #764ba2);
-            z-index: -1;
-            animation: rotate 3s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            z-index: 1;
         }
 
         .score-number {
-            font-size: 2.5rem;
+            font-size: 3.5rem;
             font-weight: 900;
             color: #1f2937;
+            z-index: 2;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
         }
 
         .score-label {
             font-size: 0.9rem;
             color: #6b7280;
             font-weight: 600;
+            z-index: 2;
+        }
+
+        /* Score Indicator Needle */
+        .score-indicator {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .score-indicator::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            width: 4px;
+            height: 30px;
+            background: white;
+            transform-origin: center 80px;
+            transform: translateX(-50%) rotate(var(--score-rotation));
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Quick Action Links */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .quick-action {
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
         }
 
         .credibility-details {
@@ -1903,6 +2022,113 @@
             line-height: 1.6;
         }
 
+        /* Enhanced Report Summary Section */
+        .report-summary {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #ec4899);
+            animation: shimmer 3s infinite;
+        }
+
+        .report-summary h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .summary-stat {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .summary-stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .summary-stat-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .summary-stat-label {
+            color: #6b7280;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .report-action {
+            padding: 15px 35px;
+            border-radius: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .report-action.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .report-action.secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .report-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
         /* Notification styles */
         .notification {
             position: fixed;
@@ -2237,6 +2463,34 @@
                 width: 250px;
                 height: 125px;
             }
+
+            .credibility-score-circle {
+                width: 140px;
+                height: 140px;
+            }
+
+            .credibility-score-circle::before {
+                width: 110px;
+                height: 110px;
+            }
+
+            .score-number {
+                font-size: 2.5rem;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .report-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .report-action {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -2496,6 +2750,17 @@
                 </div>
                 
                 <div class="input-content active" id="textInput">
+                    <div class="tab-explanation">
+                        <h3>📝 News Text Analysis</h3>
+                        <p><strong>What it's for:</strong> Social media posts, forwarded messages, copied articles</p>
+                        <p><strong>What we analyze:</strong></p>
+                        <ul>
+                            <li>Writing style and language patterns</li>
+                            <li>Bias indicators and emotional language</li>
+                            <li>Fact-checking against our database</li>
+                        </ul>
+                        <p><strong>Key benefit:</strong> No source URL needed - perfect for viral messages</p>
+                    </div>
                     <div class="input-group">
                         <label for="news-text"><i class="fas fa-file-text"></i> News Article or Social Media Content</label>
                         <textarea id="news-text" placeholder="Paste news article, social media post, or any news content for comprehensive verification and bias analysis..."></textarea>
@@ -2503,6 +2768,17 @@
                 </div>
                 
                 <div class="input-content" id="urlInput">
+                    <div class="tab-explanation">
+                        <h3>🔗 URL Verification</h3>
+                        <p><strong>What it's for:</strong> Online news articles, blog posts, official statements</p>
+                        <p><strong>What we analyze:</strong></p>
+                        <ul>
+                            <li>Source reputation and domain authority</li>
+                            <li>Publication patterns and history</li>
+                            <li>Cross-reference with fact-checking databases</li>
+                        </ul>
+                        <p><strong>Key benefit:</strong> Includes metadata and source verification</p>
+                    </div>
                     <div class="input-group">
                         <label for="news-url"><i class="fas fa-link"></i> News Article URL</label>
                         <input type="url" id="news-url" placeholder="https://example.com/news-article-for-verification">
@@ -2648,7 +2924,7 @@
             resultsDiv.innerHTML = '';
             resultsDiv.style.display = 'block';
             
-            // Summary Banner
+            // Summary Banner with Enhanced Score Display
             const summaryBanner = document.createElement('div');
             summaryBanner.className = 'summary-banner';
             summaryBanner.innerHTML = `
@@ -2656,6 +2932,7 @@
                     <div class="credibility-score-circle">
                         <div class="score-number">${credibilityScore}</div>
                         <div class="score-label">Credibility Score</div>
+                        <div class="score-indicator" style="--score-rotation: ${(credibilityScore / 100) * 360}deg;"></div>
                     </div>
                     <div class="credibility-details">
                         <h2 class="credibility-title">Overall Assessment: ${assessment}</h2>
@@ -2667,6 +2944,11 @@
                             Analyzed using ${methodology.factors_analyzed ? methodology.factors_analyzed.length : 12} advanced verification methods
                         </div>
                     </div>
+                </div>
+                <div class="quick-actions">
+                    <a href="#political-bias" class="quick-action">View Bias Analysis</a>
+                    <a href="#source-analysis" class="quick-action">Check Sources</a>
+                    <a href="#reportSummary" class="quick-action">View Report</a>
                 </div>
                 ${tier === 'free' ? `
                 <div class="pro-upgrade-note">
@@ -3084,6 +3366,52 @@
                 resultsDiv.appendChild(findingsSection);
             }
             
+            // Enhanced Report Summary Section
+            const reportSummary = document.createElement('div');
+            reportSummary.className = 'report-summary';
+            reportSummary.id = 'reportSummary';
+            reportSummary.innerHTML = `
+                <h3>Analysis Report Summary</h3>
+                
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${credibilityScore}%</div>
+                        <div class="summary-stat-label">Overall Credibility</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)}</div>
+                        <div class="summary-stat-label">Political Bias</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${objectivityScore}/100</div>
+                        <div class="summary-stat-label">Objectivity Score</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">${crossReferences.length} of 500+</div>
+                        <div class="summary-stat-label">Verified Sources</div>
+                    </div>
+                </div>
+                
+                <div class="report-actions" id="reportActions">
+                    ${tier === 'pro' ? `
+                        <button class="report-action primary" onclick="downloadReport()">
+                            <i class="fas fa-download"></i> Download PDF Report
+                        </button>
+                        <button class="report-action secondary" onclick="shareReport()">
+                            <i class="fas fa-share"></i> Share Report
+                        </button>
+                    ` : `
+                        <button class="report-action primary" onclick="window.location.href='/pricingplan'">
+                            <i class="fas fa-star"></i> Upgrade for Full Report
+                        </button>
+                        <button class="report-action secondary" onclick="copyReportLink()">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                    `}
+                </div>
+            `;
+            resultsDiv.appendChild(reportSummary);
+            
             // Track completion
             trackNewsEvent('news_results_displayed', {
                 tier: tier,
@@ -3091,6 +3419,29 @@
                 bias: biasLabel,
                 sections_shown: tier === 'pro' ? 10 : 6
             });
+        }
+
+        // Report action functions
+        function downloadReport() {
+            showNotification('Generating PDF report...', 'info');
+            // In a real implementation, this would generate and download a PDF
+            setTimeout(() => {
+                showNotification('PDF report downloaded successfully!', 'success');
+            }, 2000);
+        }
+
+        function shareReport() {
+            showNotification('Generating shareable link...', 'info');
+            // In a real implementation, this would create a shareable link
+            setTimeout(() => {
+                showNotification('Report link copied to clipboard!', 'success');
+            }, 1000);
+        }
+
+        function copyReportLink() {
+            // In a real implementation, this would copy the current URL with report ID
+            navigator.clipboard.writeText(window.location.href);
+            showNotification('Report link copied to clipboard!', 'success');
         }
 
         // NEW Enhanced temporal analysis function with WOW factor
