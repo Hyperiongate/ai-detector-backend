@@ -1535,6 +1535,15 @@ def calculate_manipulation_indicators(compression, noise, frequency, edges, meta
 def perform_deepfake_analysis(img_cv2):
     """Perform deepfake analysis if faces are detected"""
     if not CV_AVAILABLE:
+        return {
+            'face_detected': False,
+            'facial_consistency': 0.95,
+            'temporal_coherence': 0.92,
+            'confidence': 0.85
+        }
+    
+    # For now, return placeholder values
+    # In production, this would use face detection and analysis
     return {
         'face_detected': False,
         'facial_consistency': 0.95,
