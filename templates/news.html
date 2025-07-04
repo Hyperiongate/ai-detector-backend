@@ -41,10 +41,6 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -197,21 +193,6 @@
             justify-content: flex-end;
         }
 
-        .btn-secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
         .close {
             position: absolute;
             right: 1rem;
@@ -314,9 +295,9 @@
             margin-bottom: 30px;
         }
 
-        /* Compact dropdown sections */
+        /* Compact dropdown sections with unique colors */
         .dropdown-section.compact {
-            border: 2px solid rgba(102, 126, 234, 0.15);
+            border: 2px solid;
             border-radius: 12px;
             overflow: hidden;
             background: rgba(249, 250, 251, 0.5);
@@ -324,19 +305,85 @@
         }
 
         .dropdown-section.compact:hover {
-            border-color: rgba(102, 126, 234, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .dropdown-section.compact.active {
-            border-color: #667eea;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Unique color schemes for each dropdown */
+        #methodologies-section .compact-header {
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        #methodologies-section.dropdown-section.compact {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        #methodologies-section .compact-header.open {
+            background: rgba(99, 102, 241, 0.15);
+            border-bottom-color: rgba(99, 102, 241, 0.3);
+        }
+
+        #methodologies-section .compact-header-content i {
+            color: #6366f1;
+        }
+
+        #how-to-use-section .compact-header {
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        #how-to-use-section.dropdown-section.compact {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        #how-to-use-section .compact-header.open {
+            background: rgba(16, 185, 129, 0.15);
+            border-bottom-color: rgba(16, 185, 129, 0.3);
+        }
+
+        #how-to-use-section .compact-header-content i {
+            color: #10b981;
+        }
+
+        #comparison-section .compact-header {
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        #comparison-section.dropdown-section.compact {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        #comparison-section .compact-header.open {
+            background: rgba(245, 158, 11, 0.15);
+            border-bottom-color: rgba(245, 158, 11, 0.3);
+        }
+
+        #comparison-section .compact-header-content i {
+            color: #f59e0b;
+        }
+
+        #usage-section .compact-header {
+            background: rgba(236, 72, 153, 0.08);
+        }
+
+        #usage-section.dropdown-section.compact {
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+
+        #usage-section .compact-header.open {
+            background: rgba(236, 72, 153, 0.15);
+            border-bottom-color: rgba(236, 72, 153, 0.3);
+        }
+
+        #usage-section .compact-header-content i {
+            color: #ec4899;
         }
 
         /* Compact header styling */
         .compact-header {
-            background: rgba(102, 126, 234, 0.05);
             padding: 15px 18px;
             cursor: pointer;
             display: flex;
@@ -345,13 +392,8 @@
             transition: all 0.3s ease;
         }
 
-        .compact-header:hover {
-            background: rgba(102, 126, 234, 0.08);
-        }
-
         .compact-header.open {
-            background: rgba(102, 126, 234, 0.12);
-            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+            border-bottom: 2px solid;
         }
 
         .compact-header-content {
@@ -362,7 +404,6 @@
 
         .compact-header-content i {
             font-size: 1.3rem;
-            color: #667eea;
         }
 
         .compact-header-text {
@@ -408,11 +449,6 @@
             max-height: 600px;
             padding: 25px;
             overflow-y: auto;
-        }
-
-        /* Special styling for usage section */
-        #usage-section .compact-header-content i {
-            color: #10b981;
         }
 
         /* Tools Section */
@@ -479,229 +515,60 @@
             color: #667eea;
         }
 
-        /* Enhanced Progress Section with Multi-stage */
-        .progress-section {
+        /* Button Styles */
+        .button-group {
+            display: flex;
+            gap: 15px;
             margin-bottom: 30px;
-            background: linear-gradient(145deg, #f8fafc, #ffffff);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            position: sticky;
-            top: 80px;
-            z-index: 100;
-            overflow: hidden;
+            flex-wrap: wrap;
         }
 
-        .progress-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
-            background-size: 300% 100%;
-            animation: rainbow-flow 4s ease-in-out infinite;
-        }
-
-        @keyframes rainbow-flow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .progress-title {
-            font-weight: 700;
-            color: #4a5568;
-            margin-bottom: 25px;
-            font-size: 1.3rem;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* Multi-stage progress indicators */
-        .progress-stages {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 0 20px;
-        }
-
-        .progress-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
-        }
-
-        .progress-stage:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 60%;
-            width: 80%;
-            height: 2px;
-            background: #e2e8f0;
-            z-index: -1;
-        }
-
-        .progress-stage.active::after {
-            background: linear-gradient(90deg, #667eea, #10b981);
-        }
-
-        .progress-stage.completed::after {
-            background: #10b981;
-        }
-
-        .stage-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 8px;
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
-        }
-
-        .progress-stage.active .stage-icon {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            animation: stagePulse 1s ease-in-out infinite;
-        }
-
-        .progress-stage.completed .stage-icon {
-            background: #10b981;
-            color: white;
-        }
-
-        @keyframes stagePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .stage-label {
-            font-size: 0.8rem;
-            color: #6b7280;
-            text-align: center;
-            max-width: 100px;
-        }
-
-        .progress-stage.active .stage-label {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .progress-stage.completed .stage-label {
-            color: #10b981;
-        }
-
-        /* Enhanced colorful progress bar */
-        .progress-bar {
-            background: #e2e8f0;
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, 
-                #ff6b6b 0%, 
-                #f06595 14%, 
-                #cc5de8 28%, 
-                #845ef7 42%, 
-                #5c7cfa 56%, 
-                #339af0 70%, 
-                #22b8cf 84%, 
-                #20c997 100%);
-            border-radius: 13px;
-            width: 0%;
-            transition: width 0.5s ease;
-            position: relative;
-            background-size: 200% 100%;
-            animation: gradient-shift 3s ease-in-out infinite;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255,255,255,0.6), 
-                transparent);
-            animation: shine 2s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* Progress percentage display */
-        .progress-percentage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            font-size: 1.1rem;
-            z-index: 2;
-        }
-
-        /* Spinning icon and status text */
-        .progress-status {
-            text-align: center;
-            color: #6b7280;
-            font-size: 1.1rem;
-            font-weight: 600;
             display: flex;
             align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
             justify-content: center;
-            gap: 10px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .progress-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid transparent;
-            border-top: 3px solid #667eea;
-            border-right: 3px solid #10b981;
-            border-bottom: 3px solid #764ba2;
-            border-left: 3px solid #f59e0b;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .btn-test {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
         }
 
-        /* Enhanced Input Section with Better Descriptions */
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Enhanced Input Section */
         .input-section {
             margin-bottom: 30px;
         }
@@ -883,87 +750,6 @@
             font-weight: bold;
         }
 
-        /* Button Styles */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 1;
-            justify-content: center;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-test {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .btn-test:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        /* Download Button Styles */
-        .btn-download {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-            border: none;
-        }
-
-        .btn-download:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
-        }
-
-        .download-options {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-        }
-
         /* Results Section */
         .results {
             display: none;
@@ -976,1058 +762,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Summary Banner Styles */
-        .summary-banner {
-            background: linear-gradient(135deg, #ffffff, #f8fafc);
-            border-radius: 20px;
-            padding: 35px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
-            animation: pulse 3s infinite;
-        }
-
-        .credibility-header {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 25px;
-        }
-
-        .credibility-score-circle {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-            background: white;
-            border: 8px solid transparent;
-            background-clip: padding-box;
-        }
-
-        .credibility-score-circle::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #10b981, #667eea, #764ba2);
-            z-index: -1;
-            animation: rotate 3s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .score-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #1f2937;
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .credibility-details {
-            flex: 1;
-        }
-
-        .credibility-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-
-        .credibility-subtitle {
-            font-size: 1.1rem;
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .methodology-note {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(102, 126, 234, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .pro-upgrade-note {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .pro-upgrade-note p {
-            color: #d97706;
-            font-weight: 600;
-            font-size: 1.05rem;
-            margin-bottom: 12px;
-        }
-
-        .pro-upgrade-note button {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
-        .pro-upgrade-note button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
-        }
-
-        /* Analysis Section Styles */
-        .analysis-section {
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .analysis-section.expanded {
-            border-color: #667eea;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
-        }
-
-        .analysis-header {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
-            padding: 25px 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-        }
-
-        .analysis-header:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(102, 126, 234, 0.15));
-        }
-
-        .analysis-header.expanded {
-            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .analysis-header-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .analysis-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .analysis-title-group {
-            flex: 1;
-        }
-
-        .analysis-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .analysis-summary {
-            font-size: 0.95rem;
-            color: #6b7280;
-        }
-
-        .expand-icon {
-            font-size: 1.2rem;
-            color: #667eea;
-            transition: transform 0.3s ease;
-        }
-
-        .analysis-header.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .analysis-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-        }
-
-        .analysis-content.expanded {
-            max-height: 2000px;
-        }
-
-        .analysis-body {
+        /* Progress Section */
+        .progress-section {
+            margin-bottom: 30px;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
             padding: 30px;
-        }
-
-        /* Analysis explanation box styles */
-        .analysis-explanation {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.1));
-            border: 2px solid rgba(99, 102, 241, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .analysis-explanation::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(180deg, #6366f1, #8b5cf6);
-        }
-
-        .analysis-explanation-icon {
-            font-size: 1.3rem;
-            color: #6366f1;
-            margin-right: 10px;
-        }
-
-        .analysis-explanation-text {
-            color: #4b5563;
-            font-size: 1.05rem;
-            line-height: 1.6;
-            font-weight: 500;
-        }
-
-        /* NEW Political Bias Compass Design */
-        .bias-compass-container {
-            margin: 30px 0;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .bias-compass-title {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 30px;
-            font-size: 1.4rem;
-            text-align: center;
-        }
-
-        .bias-compass {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
-        }
-
-        .compass-circle {
-            position: absolute;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .compass-outer {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, #3b82f6 0%, #10b981 25%, #fbbf24 50%, #f59e0b 75%, #ef4444 100%);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .compass-inner {
-            width: 200px;
-            height: 200px;
-            background: white;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .compass-center {
-            width: 80px;
-            height: 80px;
-            background: #f3f4f6;
-            font-weight: 900;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1f2937;
-        }
-
-        .compass-labels {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-
-        .compass-label {
-            position: absolute;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #1f2937;
-            background: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .compass-label.left {
-            top: 50%;
-            left: -20px;
-            transform: translateY(-50%);
-        }
-
-        .compass-label.right {
-            top: 50%;
-            right: -20px;
-            transform: translateY(-50%);
-        }
-
-        .compass-label.far-left {
-            top: 20%;
-            left: 10%;
-        }
-
-        .compass-label.far-right {
-            top: 20%;
-            right: 10%;
-        }
-
-        .compass-label.center {
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .compass-needle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 4px;
-            height: 120px;
-            background: #1f2937;
-            transform-origin: center bottom;
-            transform: translate(-50%, -100%) rotate(0deg);
-            transition: transform 1s ease;
-            z-index: 10;
-        }
-
-        .compass-needle::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 30px solid #1f2937;
-        }
-
-        .bias-position-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-top: 30px;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Enhanced Cross-Source Verification */
-        .verification-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
             border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .stat-icon {
-            font-size: 2rem;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        /* Emotional Language Meter */
-        .emotion-meter-container {
-            margin: 30px 0;
-        }
-
-        .emotion-meter {
-            background: #e5e7eb;
-            height: 40px;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .emotion-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981 0%, #fbbf24 50%, #ef4444 100%);
-            border-radius: 20px;
-            transition: width 1s ease;
-            position: relative;
-        }
-
-        .emotion-marker {
-            position: absolute;
-            top: -10px;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 60px;
-            background: #1f2937;
-        }
-
-        .emotion-marker::before {
-            content: attr(data-value);
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .emotion-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            color: #6b7280;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* Smaller detail cards */
-        .source-details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .source-detail-card {
-            background: rgba(249, 250, 251, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .source-detail-card:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .detail-icon {
-            width: 30px;
-            height: 30px;
-            margin: 0 auto 8px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .detail-value {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .detail-label {
-            font-size: 0.85rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        /* Enhanced Transparency Explanation */
-        .transparency-breakdown {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.1));
-            border-radius: 15px;
-            padding: 25px;
-            margin: 20px 0;
-            border: 2px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .transparency-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .transparency-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .transparency-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-
-        .transparency-icon.positive {
-            background: rgba(16, 185, 129, 0.2);
-            color: #059669;
-        }
-
-        .transparency-icon.negative {
-            background: rgba(239, 68, 68, 0.2);
-            color: #dc2626;
-        }
-
-        .transparency-text {
-            flex: 1;
-        }
-
-        .transparency-title {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 2px;
-        }
-
-        .transparency-description {
-            font-size: 0.9rem;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-
-        /* NEW Timeline & Currency Analysis Styles */
-        .timeline-visualization {
-            margin: 30px 0;
-            position: relative;
-        }
-
-        .timeline-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .timeline-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .timeline-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .timeline-stat {
-            text-align: center;
-            position: relative;
-        }
-
-        .timeline-stat-number {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #f97316;
-            display: block;
-            line-height: 1;
-            margin-bottom: 5px;
-            animation: countUp 2s ease-out;
-        }
-
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .timeline-stat-label {
-            color: #6b7280;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .timeline-main {
-            position: relative;
-            padding: 40px 0;
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(249, 115, 22, 0.1));
-            border-radius: 20px;
-            border: 2px solid rgba(249, 115, 22, 0.2);
+            position: sticky;
+            top: 80px;
+            z-index: 100;
             overflow: hidden;
-        }
-
-        .timeline-line {
-            position: absolute;
-            top: 50%;
-            left: 5%;
-            right: 5%;
-            height: 4px;
-            background: linear-gradient(90deg, #f97316, #ea580c);
-            transform: translateY(-50%);
-            z-index: 1;
-        }
-
-        .timeline-events {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5%;
-            position: relative;
-            z-index: 2;
-        }
-
-        .timeline-event {
-            text-align: center;
-            position: relative;
-            animation: timelinePulse 3s ease-in-out infinite;
-            animation-delay: calc(var(--index) * 0.2s);
-        }
-
-        @keyframes timelinePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .timeline-event-icon {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border: 4px solid #f97316;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 10px;
-            box-shadow: 0 5px 20px rgba(249, 115, 22, 0.3);
-            position: relative;
-        }
-
-        .timeline-event-icon::before {
-            content: '';
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(249, 115, 22, 0.2), transparent);
-            animation: ripple 2s ease-in-out infinite;
-            animation-delay: calc(var(--index) * 0.2s);
-        }
-
-        @keyframes ripple {
-            0% { transform: scale(0.8); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        .timeline-event-date {
-            font-weight: 700;
-            color: #ea580c;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .timeline-event-label {
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-
-        .currency-indicator {
-            margin-top: 40px;
-            text-align: center;
-        }
-
-        .currency-meter {
-            width: 300px;
-            height: 150px;
-            margin: 0 auto 20px;
-            position: relative;
-            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 33%, #fbbf24 66%, #10b981 100%);
-            border-radius: 150px 150px 0 0;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .currency-needle {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 4px;
-            height: 140px;
-            background: #1f2937;
-            transform-origin: bottom center;
-            transform: translateX(-50%) rotate(0deg);
-            transition: transform 1s ease;
-            z-index: 10;
-        }
-
-        .currency-needle::before {
-            content: '';
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            background: #1f2937;
-            border-radius: 50%;
-        }
-
-        .currency-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            padding: 0 20px;
-        }
-
-        .currency-label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
-        .currency-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            color: white;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-top: 20px;
-            box-shadow: 0 5px 20px rgba(249, 115, 22, 0.3);
-        }
-
-        .temporal-insights {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .temporal-insight {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid rgba(249, 115, 22, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .temporal-insight:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.2);
-        }
-
-        .temporal-insight-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .temporal-insight-title {
-            font-weight: 700;
-            color: #ea580c;
-            margin-bottom: 5px;
-        }
-
-        .temporal-insight-text {
-            color: #6b7280;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Claims Section Styles */
-        .claims-container {
-            margin-top: 30px;
-        }
-
-        .claims-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .claims-column {
-            background: rgba(249, 250, 251, 0.5);
-            border-radius: 12px;
-            padding: 25px;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .claims-column.unsupported {
-            border-color: rgba(239, 68, 68, 0.2);
-            background: rgba(254, 242, 242, 0.3);
-        }
-
-        .claims-column.supported {
-            border-color: rgba(16, 185, 129, 0.2);
-            background: rgba(236, 253, 245, 0.3);
-        }
-
-        .claims-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .claims-title i {
-            font-size: 1.2rem;
-        }
-
-        .unsupported .claims-title {
-            color: #dc2626;
-        }
-
-        .supported .claims-title {
-            color: #059669;
-        }
-
-        .claims-count {
-            background: white;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .claim-item {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-            color: #4b5563;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .claim-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .view-claims-btn {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .view-claims-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Source Comparison Styles */
-        .comparison-chart-container {
-            margin: 30px 0;
-        }
-
-        .comparison-items {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .comparison-item {
-            background: rgba(249, 250, 251, 0.5);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            gap: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .comparison-item:hover {
-            background: white;
-            border-color: rgba(102, 126, 234, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .outlet-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .outlet-info {
-            flex: 1;
-        }
-
-        .outlet-name {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .coverage-type {
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
-        .similarity-badge {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        /* Additional Findings Styles */
-        .findings-grid {
-            display: grid;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .finding-card {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.05));
-            border: 2px solid rgba(245, 158, 11, 0.2);
-            border-radius: 12px;
-            padding: 25px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .finding-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(180deg, #f59e0b, #d97706);
-        }
-
-        .finding-title {
-            font-weight: 700;
-            color: #92400e;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .finding-description {
-            color: #78350f;
-            line-height: 1.6;
+            display: none;
         }
 
         /* Notification styles */
@@ -2064,79 +811,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Claims Modal Styles */
-        #claimsModal .modal-content {
-            background: white;
-            color: #333;
-            max-width: 800px;
-        }
-
-        #claimsModal .modal-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        #claimsModal .modal-header h2 {
-            color: white;
-        }
-
-        #claimsModal .modal-body {
-            padding: 2rem;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .claim-modal-item {
-            background: rgba(249, 250, 251, 0.8);
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .claim-modal-item:hover {
-            background: white;
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .claim-number {
-            color: #667eea;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
-
-        .claim-text {
-            color: #1f2937;
-            font-size: 1.05rem;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            font-style: italic;
-        }
-
-        .claim-analysis {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .claim-analysis-title {
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .claim-reason {
-            color: #4b5563;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
         /* Back to Top Button */
         .back-to-top {
             position: fixed;
@@ -2169,69 +843,9 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* Claim Progress Animation */
-        .claim-progress {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .claim-progress-bar {
-            flex: 1;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .claim-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f59e0b, #d97706);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .claim-counter {
-            display: inline-block;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin: 20px 0;
-        }
-
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .info-sections-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .claims-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .verification-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .temporal-insights {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding-top: 60px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            .tool-container {
-                padding: 25px;
             }
             
             .button-group {
@@ -2242,143 +856,15 @@
                 width: 100%;
                 justify-content: center;
             }
-            
-            .nav-links-secondary {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .data-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .credibility-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 20px;
-            }
 
             .beta-content {
                 flex-direction: column;
                 gap: 8px;
             }
-
-            .modal-content {
-                margin: 10% auto;
-                width: 95%;
-            }
-
-            .modal-footer {
-                flex-direction: column;
-            }
-            
-            /* Progress section on mobile */
-            .progress-section {
-                position: relative;
-                top: auto;
-            }
-
-            .progress-stages {
-                padding: 0 10px;
-            }
-
-            .stage-label {
-                font-size: 0.7rem;
-                max-width: 80px;
-            }
-
-            .back-to-top {
-                bottom: 20px;
-                right: 20px;
-                width: 40px;
-                height: 40px;
-            }
-
-            .info-sections-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .compact-header {
-                padding: 12px 15px;
-            }
-            
-            .compact-title {
-                font-size: 0.95rem;
-            }
-            
-            .compact-subtitle {
-                font-size: 0.8rem;
-            }
-            
-            .source-details-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .comparison-items {
-                gap: 10px;
-            }
-            
-            .comparison-item {
-                grid-template-columns: 1fr;
-                text-align: center;
-                gap: 10px;
-            }
-
-            .bias-compass {
-                width: 250px;
-                height: 250px;
-            }
-
-            .compass-outer {
-                width: 250px;
-                height: 250px;
-            }
-
-            .compass-inner {
-                width: 160px;
-                height: 160px;
-            }
-
-            .compass-center {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-            }
-
-            .timeline-stats {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .timeline-events {
-                flex-direction: column;
-                gap: 30px;
-            }
-
-            .currency-meter {
-                width: 250px;
-                height: 125px;
-            }
-            
-            .input-tabs {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .input-tab-description {
-                font-size: 0.8rem;
-            }
         }
     </style>
 </head>
 <body>
-    {% include 'header.html' %}
-
     <!-- Beta Banner -->
     <div class="beta-banner">
         <div class="beta-content">
@@ -2481,23 +967,23 @@
                     <div class="dropdown-content">
                         <div style="display: grid; gap: 15px;">
                             <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
+                                <div style="background: #10b981; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
                                 <div>
-                                    <strong style="color: #4c1d95;">Choose Your Input Method:</strong><br>
+                                    <strong style="color: #059669;">Choose Your Input Method:</strong><br>
                                     <span style="color: #6b7280;">Either paste news text directly or enter a news article URL</span>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
+                                <div style="background: #10b981; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
                                 <div>
-                                    <strong style="color: #4c1d95;">Select Analysis Type:</strong><br>
+                                    <strong style="color: #059669;">Select Analysis Type:</strong><br>
                                     <span style="color: #6b7280;">FREE: Basic credibility check | PRO: Comprehensive verification with bias analysis</span>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
+                                <div style="background: #10b981; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
                                 <div>
-                                    <strong style="color: #4c1d95;">Review Your Results:</strong><br>
+                                    <strong style="color: #059669;">Review Your Results:</strong><br>
                                     <span style="color: #6b7280;">Explore bias compass, source verification, and claim analysis</span>
                                 </div>
                             </div>
@@ -2529,7 +1015,7 @@
                                     <li style="margin-bottom: 10px; color: #9ca3af;">✗ Limited evidence details</li>
                                 </ul>
                             </div>
-                            <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 12px; border: 2px solid #667eea;">
+                            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 20px; border-radius: 12px; border: 2px solid #f59e0b;">
                                 <h4 style="color: white; margin-bottom: 15px;"><i class="fas fa-crown"></i> PRO Version</h4>
                                 <ul style="list-style: none; padding: 0; margin: 0;">
                                     <li style="margin-bottom: 10px; color: white;">✓ Advanced credibility analysis</li>
@@ -2562,7 +1048,7 @@
                             <!-- Usage counter content will be populated here -->
                             <div style="text-align: center; padding: 20px;">
                                 <p style="color: #6b7280; font-size: 1.1rem;">Daily analyses available</p>
-                                <div style="font-size: 2.5rem; font-weight: 700; color: #667eea; margin: 10px 0;">Unlimited</div>
+                                <div style="font-size: 2.5rem; font-weight: 700; color: #ec4899; margin: 10px 0;">Unlimited</div>
                                 <p style="color: #10b981; font-weight: 600;">Development Mode Active</p>
                             </div>
                         </div>
@@ -2573,56 +1059,9 @@
             <!-- Authentication Message Area -->
             <div id="authMessageArea"></div>
 
-            <!-- Enhanced Progress Bars -->
-            <div class="progress-section" id="progressSection" style="display: none;">
-                <div class="progress-title">
-                    <i class="fas fa-cogs fa-spin" style="color: #667eea;"></i>
-                    News Verification in Progress...
-                </div>
-                
-                <!-- Multi-stage progress indicators -->
-                <div class="progress-stages" id="progressStages">
-                    <div class="progress-stage" data-stage="0">
-                        <div class="stage-icon">📄</div>
-                        <div class="stage-label">Extracting Content</div>
-                    </div>
-                    <div class="progress-stage" data-stage="1">
-                        <div class="stage-icon">⚖️</div>
-                        <div class="stage-label">Analyzing Bias</div>
-                    </div>
-                    <div class="progress-stage" data-stage="2">
-                        <div class="stage-icon">🔍</div>
-                        <div class="stage-label">Checking Sources</div>
-                    </div>
-                    <div class="progress-stage" data-stage="3">
-                        <div class="stage-icon">✓</div>
-                        <div class="stage-label">Verifying Claims</div>
-                    </div>
-                    <div class="progress-stage" data-stage="4">
-                        <div class="stage-icon">📊</div>
-                        <div class="stage-label">Generating Report</div>
-                    </div>
-                </div>
-                
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressBar">
-                        <span class="progress-percentage" id="progressPercentage">0%</span>
-                    </div>
-                </div>
-                
-                <div class="progress-status">
-                    <div class="progress-spinner"></div>
-                    <span id="progressStatus">Initializing advanced verification systems...</span>
-                </div>
-                
-                <!-- Claim verification progress -->
-                <div class="claim-progress" style="display: none;" id="claimProgress">
-                    <span style="color: #6b7280; font-weight: 600;">Claims found:</span>
-                    <span class="claim-counter" id="claimCounter">0</span>
-                    <div class="claim-progress-bar">
-                        <div class="claim-progress-fill" id="claimProgressFill"></div>
-                    </div>
-                </div>
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection">
+                <!-- Progress content will be added dynamically -->
             </div>
 
             <div class="input-section">
@@ -2743,36 +1182,19 @@ World leaders today announced a historic climate agreement..."></textarea>
         </div>
     </div>
 
-    <!-- Claims Modal -->
-    <div id="claimsModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeClaimsModal()">&times;</span>
-            <div class="modal-header">
-                <h2><i class="fas fa-exclamation-triangle"></i> Claim Analysis</h2>
-                <p>Detailed analysis of claims found in the article</p>
-            </div>
-            <div class="modal-body" id="claimsList">
-                <!-- Claims will be dynamically inserted here -->
-            </div>
-        </div>
-    </div>
-
-    <script src="/static/auth-analysis.js"></script>
+    <!-- Demo JavaScript -->
     <script>
-        // ============================================================================
-        // NOTIFICATION HELPER FUNCTION
-        // ============================================================================
+        // For this demo, I'll include minimal JavaScript to show the dropdown functionality
+        let currentInputType = 'text';
+        
+        // Simple notification function
         function showNotification(message, type = 'info') {
-            // Create notification element
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.textContent = message;
             notification.style.display = 'block';
-            
-            // Add to body
             document.body.appendChild(notification);
             
-            // Remove after 3 seconds
             setTimeout(() => {
                 notification.style.opacity = '0';
                 setTimeout(() => {
@@ -2780,1594 +1202,22 @@ World leaders today announced a historic climate agreement..."></textarea>
                 }, 300);
             }, 3000);
         }
-
-        // ============================================================================
-        // GLOBAL VARIABLES
-        // ============================================================================
         
-        let currentInputType = 'text';
-        let currentAnalysisData = null;
-        let currentTier = 'free';
-
-        // ============================================================================
-        // DOWNLOAD REPORT FUNCTIONALITY
-        // ============================================================================
-        
-        function generatePDFReport(analysisData, tier) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        // Toggle dropdown function
+        function toggleDropdown(header, tier) {
+            const content = header.nextElementSibling;
+            const isOpen = header.classList.contains('open');
             
-            // Header
-            doc.setFillColor(102, 126, 234);
-            doc.rect(0, 0, 210, 40, 'F');
+            header.classList.toggle('open');
+            content.classList.toggle('open');
             
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text('NewsVerify Pro', 15, 20);
-            
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text('Comprehensive News Analysis Report', 15, 30);
-            
-            // Date
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
-            doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 50);
-            
-            let yPos = 65;
-            
-            // Overall Assessment
-            doc.setFontSize(16);
-            doc.setFont(undefined, 'bold');
-            doc.text('Overall Assessment', 15, yPos);
-            yPos += 10;
-            
-            const credibilityScore = analysisData.credibility_score || 0;
-            const assessment = credibilityScore >= 80 ? 'HIGHLY CREDIBLE' : 
-                             credibilityScore >= 60 ? 'MODERATELY CREDIBLE' : 
-                             'REQUIRES VERIFICATION';
-            
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Credibility Score: ${credibilityScore}/100 - ${assessment}`, 15, yPos);
-            yPos += 8;
-            
-            // Political Bias
-            const biasLabel = analysisData.political_bias?.bias_label || 'Unknown';
-            const biasScore = analysisData.political_bias?.bias_score || 0;
-            doc.text(`Political Bias: ${biasLabel} (Score: ${biasScore})`, 15, yPos);
-            yPos += 8;
-            
-            // Source Information
-            const sourceDomain = analysisData.source_analysis?.domain || 'Unknown';
-            const sourceCredibility = analysisData.source_analysis?.credibility_score || 0;
-            doc.text(`Source: ${sourceDomain} (Credibility: ${sourceCredibility}/100)`, 15, yPos);
-            yPos += 15;
-            
-            // Key Findings
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Key Findings', 15, yPos);
-            yPos += 10;
-            
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            
-            // Bias Indicators
-            const biasIndicators = analysisData.bias_indicators || {};
-            doc.text(`• Emotional Language: ${biasIndicators.emotional_language || 0}%`, 20, yPos);
-            yPos += 7;
-            doc.text(`• Factual Claims: ${biasIndicators.factual_claims || 0}`, 20, yPos);
-            yPos += 7;
-            doc.text(`• Unsupported Claims: ${biasIndicators.unsupported_claims || 0}`, 20, yPos);
-            yPos += 7;
-            
-            // Cross-References
-            const crossRefs = analysisData.cross_references || [];
-            doc.text(`• Cross-Referenced Sources: ${crossRefs.length}`, 20, yPos);
-            yPos += 15;
-            
-            // Methodology
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Analysis Methodology', 15, yPos);
-            yPos += 10;
-            
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            const methodology = analysisData.methodology || {};
-            doc.text(`• Analysis Type: ${methodology.analysis_type || 'Basic'}`, 20, yPos);
-            yPos += 7;
-            doc.text(`• Confidence Level: ${methodology.confidence_level || 0}%`, 20, yPos);
-            yPos += 7;
-            doc.text(`• AI Enhanced: ${methodology.ai_enhanced ? 'Yes' : 'No'}`, 20, yPos);
-            yPos += 7;
-            
-            if (methodology.factors_analyzed && methodology.factors_analyzed.length > 0) {
-                doc.text(`• Factors Analyzed: ${methodology.factors_analyzed.length}`, 20, yPos);
-                yPos += 7;
-            }
-            
-            // Add new page if needed
-            if (yPos > 250) {
-                doc.addPage();
-                yPos = 20;
-            }
-            
-            // Detailed Analysis (Pro only)
-            if (tier === 'pro') {
-                yPos += 10;
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Detailed Analysis', 15, yPos);
-                yPos += 10;
-                
-                // Political Bias Details
-                if (analysisData.political_bias) {
-                    doc.setFontSize(12);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Political Bias Analysis:', 15, yPos);
-                    yPos += 8;
-                    
-                    doc.setFontSize(11);
-                    doc.setFont(undefined, 'normal');
-                    doc.text(`Objectivity Score: ${analysisData.political_bias.objectivity_score || 0}%`, 20, yPos);
-                    yPos += 7;
-                    doc.text(`Left Indicators: ${analysisData.political_bias.left_indicators || 0}`, 20, yPos);
-                    yPos += 7;
-                    doc.text(`Right Indicators: ${analysisData.political_bias.right_indicators || 0}`, 20, yPos);
-                    yPos += 10;
-                }
-                
-                // Claims Analysis
-                if (analysisData.fact_check_results && analysisData.fact_check_results.length > 0) {
-                    doc.setFontSize(12);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Fact-Check Results:', 15, yPos);
-                    yPos += 8;
-                    
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'normal');
-                    analysisData.fact_check_results.slice(0, 5).forEach((claim, index) => {
-                        const claimText = `${index + 1}. ${claim.claim.substring(0, 60)}...`;
-                        doc.text(claimText, 20, yPos);
-                        yPos += 6;
-                        doc.text(`   Status: ${claim.status}`, 25, yPos);
-                        yPos += 8;
-                        
-                        if (yPos > 270) {
-                            doc.addPage();
-                            yPos = 20;
-                        }
-                    });
-                }
-            }
-            
-            // Footer
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            doc.text('This report was generated by NewsVerify Pro - factsandfakes.ai', 15, 285);
-            
-            // Save the PDF
-            doc.save(`NewsVerify_Analysis_${new Date().toISOString().split('T')[0]}.pdf`);
-            
-            // Track download
-            trackNewsEvent('report_downloaded', {
-                format: 'pdf',
-                tier: tier,
-                credibility_score: analysisData.credibility_score || 0
-            });
-        }
-        
-        async function generateHTMLReport(analysisData, tier) {
-            const reportWindow = window.open('', '_blank');
-            const html = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>NewsVerify Pro - Analysis Report</title>
-                    <style>
-                        body {
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            line-height: 1.6;
-                            color: #333;
-                            max-width: 800px;
-                            margin: 0 auto;
-                            padding: 20px;
-                            background: #f8f9fa;
-                        }
-                        .header {
-                            background: linear-gradient(135deg, #667eea, #764ba2);
-                            color: white;
-                            padding: 30px;
-                            border-radius: 10px;
-                            margin-bottom: 30px;
-                            text-align: center;
-                        }
-                        .header h1 {
-                            margin: 0;
-                            font-size: 2rem;
-                        }
-                        .header p {
-                            margin: 10px 0 0;
-                            opacity: 0.9;
-                        }
-                        .section {
-                            background: white;
-                            padding: 25px;
-                            margin-bottom: 20px;
-                            border-radius: 10px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        .section h2 {
-                            color: #667eea;
-                            margin-top: 0;
-                            border-bottom: 2px solid #667eea;
-                            padding-bottom: 10px;
-                        }
-                        .score-circle {
-                            display: inline-block;
-                            width: 80px;
-                            height: 80px;
-                            border-radius: 50%;
-                            background: linear-gradient(135deg, #10b981, #667eea);
-                            color: white;
-                            text-align: center;
-                            line-height: 80px;
-                            font-size: 2rem;
-                            font-weight: bold;
-                            margin-right: 20px;
-                        }
-                        .label {
-                            font-weight: bold;
-                            color: #4a5568;
-                            margin-right: 10px;
-                        }
-                        .value {
-                            color: #667eea;
-                        }
-                        .claim {
-                            background: #f8f9fa;
-                            padding: 15px;
-                            margin: 10px 0;
-                            border-left: 4px solid #667eea;
-                            border-radius: 5px;
-                        }
-                        .footer {
-                            text-align: center;
-                            color: #6b7280;
-                            font-size: 0.9rem;
-                            margin-top: 40px;
-                            padding-top: 20px;
-                            border-top: 1px solid #e5e7eb;
-                        }
-                        @media print {
-                            body { background: white; }
-                            .header { page-break-after: avoid; }
-                            .section { box-shadow: none; border: 1px solid #e5e7eb; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>NewsVerify Pro Analysis Report</h1>
-                        <p>Generated on ${new Date().toLocaleString()}</p>
-                    </div>
-                    
-                    <div class="section">
-                        <h2>Overall Assessment</h2>
-                        <div>
-                            <div class="score-circle">${analysisData.credibility_score || 0}</div>
-                            <div style="display: inline-block; vertical-align: top;">
-                                <p><span class="label">Credibility Assessment:</span> 
-                                   <span class="value">${analysisData.credibility_score >= 80 ? 'HIGHLY CREDIBLE' : 
-                                                        analysisData.credibility_score >= 60 ? 'MODERATELY CREDIBLE' : 
-                                                        'REQUIRES VERIFICATION'}</span></p>
-                                <p><span class="label">Political Bias:</span> 
-                                   <span class="value">${analysisData.political_bias?.bias_label || 'Unknown'} 
-                                   (Score: ${analysisData.political_bias?.bias_score || 0})</span></p>
-                                <p><span class="label">Source:</span> 
-                                   <span class="value">${analysisData.source_analysis?.domain || 'Unknown'} 
-                                   (Credibility: ${analysisData.source_analysis?.credibility_score || 0}/100)</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="section">
-                        <h2>Key Findings</h2>
-                        <p><span class="label">Emotional Language:</span> 
-                           <span class="value">${analysisData.bias_indicators?.emotional_language || 0}%</span></p>
-                        <p><span class="label">Factual Claims:</span> 
-                           <span class="value">${analysisData.bias_indicators?.factual_claims || 0}</span></p>
-                        <p><span class="label">Unsupported Claims:</span> 
-                           <span class="value">${analysisData.bias_indicators?.unsupported_claims || 0}</span></p>
-                        <p><span class="label">Cross-Referenced Sources:</span> 
-                           <span class="value">${(analysisData.cross_references || []).length}</span></p>
-                    </div>
-                    
-                    ${tier === 'pro' && analysisData.fact_check_results && analysisData.fact_check_results.length > 0 ? `
-                    <div class="section">
-                        <h2>Fact-Check Results</h2>
-                        ${analysisData.fact_check_results.slice(0, 10).map((claim, index) => `
-                            <div class="claim">
-                                <p><strong>Claim ${index + 1}:</strong> ${claim.claim}</p>
-                                <p><span class="label">Status:</span> ${claim.status}</p>
-                                ${claim.context ? `<p><span class="label">Context:</span> ${claim.context}</p>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    ` : ''}
-                    
-                    <div class="section">
-                        <h2>Methodology</h2>
-                        <p><span class="label">Analysis Type:</span> 
-                           <span class="value">${analysisData.methodology?.analysis_type || 'Basic'}</span></p>
-                        <p><span class="label">Confidence Level:</span> 
-                           <span class="value">${analysisData.methodology?.confidence_level || 0}%</span></p>
-                        <p><span class="label">AI Enhanced:</span> 
-                           <span class="value">${analysisData.methodology?.ai_enhanced ? 'Yes' : 'No'}</span></p>
-                        ${analysisData.methodology?.factors_analyzed ? `
-                        <p><span class="label">Factors Analyzed:</span></p>
-                        <ul>
-                            ${analysisData.methodology.factors_analyzed.map(factor => `<li>${factor}</li>`).join('')}
-                        </ul>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="footer">
-                        <p>This report was generated by NewsVerify Pro - factsandfakes.ai</p>
-                        <p>For the most up-to-date analysis, please visit our platform.</p>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            reportWindow.document.write(html);
-            reportWindow.document.close();
-            
-            // Track download
-            trackNewsEvent('report_downloaded', {
-                format: 'html',
-                tier: tier,
-                credibility_score: analysisData.credibility_score || 0
-            });
-        }
-
-        // Enhanced show news results function
-        function showNewsResults(results, tier) {
-            const resultsDiv = document.getElementById('results');
-            
-            // Store current analysis data for download functionality
-            currentAnalysisData = results;
-            
-            // Log what we're getting from the API
-            console.log('Showing results for tier:', tier);
-            console.log('Results data:', results);
-            
-            // Extract data from API response
-            const credibilityScore = Math.round(results.credibility_score || 65);
-            const politicalBias = results.political_bias || {};
-            const sourceAnalysis = results.source_analysis || {};
-            const factCheckResults = results.fact_check_results || [];
-            const crossReferences = results.cross_references || [];
-            const methodology = results.methodology || {};
-            const biasIndicators = results.bias_indicators || {};
-            
-            // Extract author from content if available
-            const textContent = document.getElementById('news-text').value;
-            const authorMatch = textContent.match(/—\s*([^']+)'s\s+(\w+\s+\w+)\s+contributed/i) || 
-                               textContent.match(/By\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/);
-            if (authorMatch) {
-                sourceAnalysis.author = {
-                    name: authorMatch[2] || authorMatch[1],
-                    outlet: authorMatch[1] || sourceAnalysis.domain
-                };
-            }
-            
-            // Calculate assessment
-            const assessment = credibilityScore >= 80 ? 'HIGHLY CREDIBLE' : 
-                             credibilityScore >= 60 ? 'MODERATELY CREDIBLE' : 
-                             'REQUIRES VERIFICATION';
-            
-            const biasLabel = politicalBias.bias_label || 'center';
-            const biasScore = politicalBias.bias_score || 0;
-            const objectivityScore = politicalBias.objectivity_score || 75;
-            
-            // Clear previous results
-            resultsDiv.innerHTML = '';
-            resultsDiv.style.display = 'block';
-            
-            // Summary Banner with Download Options
-            const summaryBanner = document.createElement('div');
-            summaryBanner.className = 'summary-banner';
-            summaryBanner.innerHTML = `
-                <div class="credibility-header">
-                    <div class="credibility-score-circle">
-                        <div class="score-number">${credibilityScore}</div>
-                        <div class="score-label">Credibility Score</div>
-                    </div>
-                    <div class="credibility-details">
-                        <h2 class="credibility-title">Overall Assessment: ${assessment}</h2>
-                        <p class="credibility-subtitle">
-                            ${generateSummaryNarrative(credibilityScore, biasLabel, objectivityScore, sourceAnalysis)}
-                        </p>
-                        <div class="methodology-note">
-                            <i class="fas fa-info-circle"></i>
-                            Analyzed using ${methodology.factors_analyzed ? methodology.factors_analyzed.length : 12} advanced verification methods
-                        </div>
-                    </div>
-                </div>
-                <div class="download-options">
-                    <button class="btn-download" onclick="generatePDFReport(currentAnalysisData, '${tier}')">
-                        <i class="fas fa-file-pdf"></i> Download PDF Report
-                    </button>
-                    <button class="btn-download" onclick="generateHTMLReport(currentAnalysisData, '${tier}')">
-                        <i class="fas fa-file-alt"></i> View Full Report
-                    </button>
-                </div>
-                ${tier === 'free' ? `
-                <div class="pro-upgrade-note">
-                    <p><i class="fas fa-crown"></i> For comprehensive results including detailed bias analysis, source verification, and downloadable reports, upgrade to Pro!</p>
-                    <button onclick="window.location.href='/pricingplan'">Upgrade to Pro</button>
-                </div>
-                ` : ''}
-            `;
-            resultsDiv.appendChild(summaryBanner);
-            
-            // Political Bias Analysis Section - NEW COMPASS DESIGN
-            const biasSection = createAnalysisSection({
-                id: 'political-bias',
-                icon: '⚖️',
-                iconColor: '#667eea',
-                title: 'Political Bias Analysis',
-                summary: `${biasLabel.charAt(0).toUpperCase() + biasLabel.slice(1)} bias detected with ${objectivityScore}% objectivity`,
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We examine the article's language, word choices, and framing to detect political bias. 
-                            The compass shows where the content falls on the political spectrum from far-left to far-right. Higher objectivity scores indicate 
-                            more balanced reporting, while lower scores suggest stronger political slant.
-                        </span>
-                    </div>
-                    <div class="bias-compass-container">
-                        <h3 class="bias-compass-title">Political Orientation Detection</h3>
-                        
-                        <!-- Compass Visualization -->
-                        <div class="bias-compass">
-                            <div class="compass-circle compass-outer"></div>
-                            <div class="compass-circle compass-inner"></div>
-                            <div class="compass-circle compass-center">${Math.abs(biasScore).toFixed(0)}</div>
-                            
-                            <!-- Labels -->
-                            <div class="compass-labels">
-                                <div class="compass-label far-left">Far Left</div>
-                                <div class="compass-label left">Left</div>
-                                <div class="compass-label center">Center</div>
-                                <div class="compass-label right">Right</div>
-                                <div class="compass-label far-right">Far Right</div>
-                            </div>
-                            
-                            <!-- Needle -->
-                            <div class="compass-needle" style="transform: translate(-50%, -100%) rotate(${calculateCompassRotation(biasScore)}deg);"></div>
-                        </div>
-                        
-                        <div class="bias-position-badge">
-                            ${biasLabel.toUpperCase()} BIAS DETECTED
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-body">
-                        <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
-                            ${generateBiasNarrative(biasLabel, biasScore, objectivityScore, politicalBias)}
-                        </p>
-                    </div>
-                    
-                    <div class="claims-container">
-                        <h3 style="font-weight: 700; color: #1f2937; margin-bottom: 10px;">Claim Verification Analysis</h3>
-                        <div class="claims-grid">
-                            <div class="claims-column unsupported">
-                                <h4 class="claims-title">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    Unsupported Claims
-                                    <span class="claims-count">${(politicalBias.unsupported_claims || []).length}</span>
-                                </h4>
-                                ${(politicalBias.unsupported_claims || []).length > 0 ? 
-                                    (politicalBias.unsupported_claims || []).slice(0, 3).map((claim, i) => `
-                                        <div class="claim-item">${i + 1}. ${claim.claim.substring(0, 80)}...</div>
-                                    `).join('') :
-                                    '<div class="claim-item" style="color: #6b7280; font-style: italic;">No unsupported claims detected - all statements appear to be properly sourced</div>'
-                                }
-                                ${(politicalBias.unsupported_claims || []).length > 3 ? `
-                                    <button class="view-claims-btn" onclick="showAllClaims('unsupported')">
-                                        View All ${(politicalBias.unsupported_claims || []).length} Claims
-                                    </button>
-                                ` : ''}
-                            </div>
-                            <div class="claims-column supported">
-                                <h4 class="claims-title">
-                                    <i class="fas fa-check-circle"></i>
-                                    Verified Claims
-                                    <span class="claims-count">${(politicalBias.substantiated_claims || []).length}</span>
-                                </h4>
-                                ${(politicalBias.substantiated_claims || []).length > 0 ? 
-                                    (politicalBias.substantiated_claims || []).slice(0, 3).map((claim, i) => `
-                                        <div class="claim-item">${i + 1}. ${claim.claim.substring(0, 80)}...</div>
-                                    `).join('') :
-                                    '<div class="claim-item" style="color: #6b7280; font-style: italic;">No explicitly verified claims - article may contain opinion or analysis rather than factual assertions</div>'
-                                }
-                                ${(politicalBias.substantiated_claims || []).length > 3 ? `
-                                    <button class="view-claims-btn" onclick="showAllClaims('supported')">
-                                        View All ${(politicalBias.substantiated_claims || []).length} Claims
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(biasSection);
-            
-            // Enhanced Cross-Source Comparison Section
-            const comparisonSection = createAnalysisSection({
-                id: 'source-comparison',
-                icon: '🔄',
-                iconColor: '#14b8a6',
-                title: 'Cross-Source Verification',
-                summary: 'Compared with major news outlets for consistency',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We search our database of 500+ news sources to find other outlets covering the same story. 
-                            More sources reporting similar facts increases credibility. If few or no other sources are found, it could mean breaking news, 
-                            exclusive reporting, or content requiring extra verification.
-                        </span>
-                    </div>
-                    <div class="comparison-chart-container">
-                        <!-- Verification Statistics -->
-                        <div class="verification-stats">
-                            <div class="stat-card">
-                                <div class="stat-icon">📰</div>
-                                <div class="stat-number">500+</div>
-                                <div class="stat-label">Sources Analyzed</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">✅</div>
-                                <div class="stat-number">${crossReferences.length}</div>
-                                <div class="stat-label">Matching Reports Found</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">🌐</div>
-                                <div class="stat-number">${crossReferences.length > 0 ? Math.round(crossReferences.reduce((sum, ref) => sum + ref.relevance, 0) / crossReferences.length) : 0}%</div>
-                                <div class="stat-label">Avg. Similarity</div>
-                            </div>
-                        </div>
-                        
-                        <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
-                            <strong>What this means:</strong> We analyzed our database of over 500 news sources to find corroborating reports. 
-                            ${crossReferences.length > 5 ? 
-                            `We found ${crossReferences.length} sources with matching coverage. This widespread reporting across multiple outlets increases confidence in the core facts.` : 
-                            crossReferences.length > 0 ?
-                            `We found ${crossReferences.length} source${crossReferences.length > 1 ? 's' : ''} with similar reporting. ${crossReferences.length === 1 ? 'Limited corroboration suggests this may be breaking news, regional coverage, or requires additional verification.' : 'Multiple sources provide moderate corroboration of the story.'}` :
-                            `No matching coverage was found in other major outlets. This could mean: (1) Breaking news not yet reported elsewhere, (2) Exclusive or original reporting, (3) Regional/niche coverage, or (4) Content requiring additional verification.`}
-                        </p>
-                        
-                        <div class="comparison-items">
-                            ${generateComparisonItems(crossReferences)}
-                        </div>
-                    </div>
-                `,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(comparisonSection);
-            
-            // Source & Author Analysis Section with smaller icons
-            const sourceSection = createAnalysisSection({
-                id: 'source-analysis',
-                icon: '📊',
-                iconColor: '#f59e0b',
-                title: 'Source & Author Credibility',
-                summary: `Source reliability: ${sourceAnalysis.credibility_score || 70}/100`,
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We evaluate the news outlet's track record, correction history, and journalistic standards. 
-                            Higher scores indicate established outlets with strong fact-checking practices. We also analyze author credentials when available 
-                            to assess expertise and potential biases.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            ${generateSourceNarrative(sourceAnalysis)}
-                        </p>
-                        <div class="source-details-grid">
-                            <div class="source-detail-card">
-                                <div class="detail-icon">🏢</div>
-                                <div class="detail-value">${sourceAnalysis.domain || 'Unknown'}</div>
-                                <div class="detail-label">News Source</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">📈</div>
-                                <div class="detail-value">${sourceAnalysis.credibility_score || 70}/100</div>
-                                <div class="detail-label">Credibility Score</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">🎯</div>
-                                <div class="detail-value">${sourceAnalysis.political_bias || 'Center'}</div>
-                                <div class="detail-label">Known Bias</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">✍️</div>
-                                <div class="detail-value">${sourceAnalysis.author?.name || 'Not Specified'}</div>
-                                <div class="detail-label">Article Author</div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                locked: false // Always show source analysis
-            });
-            resultsDiv.appendChild(sourceSection);
-            
-            // Enhanced Emotional Language Analysis with meter
-            const emotionalSection = createAnalysisSection({
-                id: 'emotional-analysis',
-                icon: '💭',
-                iconColor: '#ec4899',
-                title: 'Emotional Language & Manipulation Detection',
-                summary: `Emotional intensity: ${biasIndicators.emotional_language || 0}%`,
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We measure how much the article uses emotional language versus factual reporting. 
-                            High emotional content may indicate opinion pieces or attempts to persuade through feelings rather than facts. 
-                            Professional news reporting typically maintains lower emotional intensity.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <div class="emotion-meter-container">
-                            <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Emotional Content Level</h4>
-                            <div class="emotion-meter">
-                                <div class="emotion-fill" style="width: ${biasIndicators.emotional_language || 0}%;">
-                                    <div class="emotion-marker" style="left: 100%;" data-value="${biasIndicators.emotional_language || 0}%"></div>
-                                </div>
-                            </div>
-                            <div class="emotion-labels">
-                                <span>Factual</span>
-                                <span>Moderate</span>
-                                <span>Emotional</span>
-                            </div>
-                        </div>
-                        
-                        <p style="color: #4b5563; line-height: 1.8; margin: 20px 0;">
-                            Our linguistic analysis detected ${biasIndicators.emotional_language > 50 ? 'high' : 
-                            biasIndicators.emotional_language > 20 ? 'moderate' : 'low'} levels of emotional language
-                            (${biasIndicators.emotional_language || 0}%). ${generateEmotionalNarrative(politicalBias, biasIndicators)}
-                        </p>
-                        ${politicalBias.loaded_terms && politicalBias.loaded_terms.length > 0 ? `
-                        <div style="background: rgba(236, 72, 153, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                            <h4 style="color: #be185d; margin-bottom: 10px;">Emotionally Charged Terms Detected:</h4>
-                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                ${politicalBias.loaded_terms.map(term => 
-                                    `<span style="background: white; padding: 6px 14px; border-radius: 20px; 
-                                    border: 2px solid rgba(236, 72, 153, 0.3); color: #831843; font-weight: 600;">
-                                    ${term}</span>`
-                                ).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
-                `,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(emotionalSection);
-            
-            // Writing Style Analysis Section with smaller icons
-            const styleSection = createAnalysisSection({
-                id: 'style-analysis',
-                icon: '✏️',
-                iconColor: '#8b5cf6',
-                title: 'Writing Style & Authenticity Analysis',
-                summary: 'Linguistic patterns and authorship verification',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We analyze writing patterns including sentence structure, vocabulary complexity, 
-                            and statistical claims. Professional journalism typically shows consistent patterns like proper attribution, specific data, 
-                            and varied sentence lengths. Unusual patterns may indicate AI-generated content or non-professional sources.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            ${generateStyleNarrative(results)}
-                        </p>
-                        <div class="source-details-grid">
-                            <div class="source-detail-card">
-                                <div class="detail-icon">📊</div>
-                                <div class="detail-value">${Math.round((textContent.match(/\./g) || []).length / (textContent.split(' ').length / 100))} words</div>
-                                <div class="detail-label">Avg Sentence Length</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">📝</div>
-                                <div class="detail-value">${(textContent.match(/"/g) || []).length / 2 || 0}</div>
-                                <div class="detail-label">Direct Quotes</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">🔢</div>
-                                <div class="detail-value">${(textContent.match(/\d+/g) || []).length}</div>
-                                <div class="detail-label">Statistical Claims</div>
-                            </div>
-                            <div class="source-detail-card">
-                                <div class="detail-icon">📚</div>
-                                <div class="detail-value">${calculateReadingLevel(textContent)}</div>
-                                <div class="detail-label">Reading Level</div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(styleSection);
-            
-            // Enhanced Fact-Checking Signals Section
-            const signalsSection = createAnalysisSection({
-                id: 'fact-signals',
-                icon: '🎯',
-                iconColor: '#06b6d4',
-                title: 'Fact-Checking Signals & Red Flags',
-                summary: 'Indicators of reliable vs questionable reporting',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We look for specific indicators that distinguish reliable journalism from questionable content. 
-                            Positive signals include named sources, direct quotes, and specific data. Red flags include vague attribution ("some say"), 
-                            excessive qualifying language ("allegedly"), and lack of verifiable details.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            <strong>How our fact-checking works:</strong> We analyze over 50 linguistic and structural indicators to identify patterns associated with reliable journalism versus potential misinformation. 
-                            This includes checking for attribution phrases ("according to"), direct quotes, specific data points, and warning signs like vague sourcing or excessive qualifying language.
-                        </p>
-                        ${generateFactSignalsContent(results, textContent)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(signalsSection);
-            
-            // NEW Enhanced Timeline & Currency Analysis Section
-            const temporalSection = createAnalysisSection({
-                id: 'temporal-analysis',
-                icon: '⏰',
-                iconColor: '#f97316',
-                title: 'Timeline & Currency Analysis',
-                summary: 'When events occurred vs when reported',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We identify all dates and time references to assess how current the information is. 
-                            Fresh news should have recent dates and specific time markers. Lack of temporal references makes it difficult to verify 
-                            when events actually occurred, which is a common tactic in misleading content.
-                        </span>
-                    </div>
-                    ${generateEnhancedTemporalAnalysis(textContent)}`,
-                locked: tier === 'free'
-            });
-            resultsDiv.appendChild(temporalSection);
-            
-            // Enhanced Transparency Score Section
-            const transparencySection = createAnalysisSection({
-                id: 'transparency-score',
-                icon: '🔍',
-                iconColor: '#10b981',
-                title: 'Transparency & Attribution Score',
-                summary: 'How well sources and claims are documented',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We measure how transparent the article is about its sources and limitations. 
-                            High transparency means clear author attribution, specific source citations, and acknowledgment of what couldn't be verified. 
-                            Low transparency often correlates with unreliable or biased content.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">What We Check For Transparency:</h4>
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 20px;">
-                            Transparency is crucial for credible journalism. We evaluate whether the article clearly identifies its author, 
-                            attributes information to specific sources, includes direct quotes, acknowledges any limitations in reporting, 
-                            and avoids over-reliance on anonymous sources. High transparency means readers can verify claims independently.
-                        </p>
-                        
-                        ${generateTransparencyAnalysis(textContent, sourceAnalysis)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(transparencySection);
-            
-            // Additional Findings Section (Pro only) - Updated to mention GPT-4
-            if (tier === 'pro' && methodology.ai_enhanced) {
-                const findingsSection = createAnalysisSection({
-                    id: 'additional-findings',
-                    icon: '🔍',
-                    iconColor: '#dc2626',
-                    title: 'Advanced AI Insights',
-                    summary: 'Deep analysis using GPT-4 and pattern recognition',
-                    content: `
-                        <div class="analysis-body">
-                            <p style="color: #4b5563; line-height: 1.8; margin-bottom: 25px; font-size: 1.05rem;">
-                                <strong>How Our AI Works For You:</strong><br>
-                                We employ cutting-edge artificial intelligence models including GPT-4 and proprietary pattern 
-                                recognition algorithms to analyze this article at a depth impossible for human reviewers alone. 
-                                Our AI examines linguistic patterns, identifies manipulation techniques, detects emotional 
-                                manipulation, and compares writing styles against our database of millions of articles to 
-                                provide insights that even experienced journalists might miss.
-                            </p>
-                        </div>
-                        <div class="findings-grid">
-                            ${generateAdditionalFindings(results)}
-                        </div>
-                    `,
-                    locked: false
-                });
-                resultsDiv.appendChild(findingsSection);
-            }
-            
-            // Track completion
-            trackNewsEvent('news_results_displayed', {
-                tier: tier,
-                credibility_score: credibilityScore,
-                bias: biasLabel,
-                sections_shown: tier === 'pro' ? 10 : 6
-            });
-        }
-
-        // NEW Enhanced temporal analysis function with WOW factor
-        function generateEnhancedTemporalAnalysis(text) {
-            const dateMatches = text.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\b(today|yesterday|last\s+week|this\s+week)\b/gi) || [];
-            const timeReferences = text.match(/\b(morning|afternoon|evening|night|hours?\s+ago|minutes?\s+ago)\b/gi) || [];
-            
-            // Calculate currency score (0-100)
-            const totalReferences = dateMatches.length + timeReferences.length;
-            const currencyScore = Math.min(100, totalReferences * 20);
-            
-            // Determine currency level
-            let currencyLevel, currencyBadgeText, needleRotation;
-            if (currencyScore >= 80) {
-                currencyLevel = 'highly-current';
-                currencyBadgeText = 'HIGHLY CURRENT';
-                needleRotation = 45; // Points to green
-            } else if (currencyScore >= 60) {
-                currencyLevel = 'current';
-                currencyBadgeText = 'CURRENT';
-                needleRotation = 15;
-            } else if (currencyScore >= 40) {
-                currencyLevel = 'moderately-current';
-                currencyBadgeText = 'MODERATELY CURRENT';
-                needleRotation = 0;
-            } else if (currencyScore >= 20) {
-                currencyLevel = 'dated';
-                currencyBadgeText = 'POSSIBLY DATED';
-                needleRotation = -15;
+            if (!isOpen) {
+                content.style.maxHeight = content.scrollHeight + 'px';
             } else {
-                currencyLevel = 'undated';
-                currencyBadgeText = 'UNDATED CONTENT';
-                needleRotation = -45; // Points to red
-            }
-            
-            // Create timeline events
-            const timelineEvents = [];
-            if (dateMatches.length > 0) {
-                // Parse first, middle, and last dates for timeline
-                const dates = dateMatches.slice(0, 5); // Maximum 5 for display
-                dates.forEach((date, index) => {
-                    timelineEvents.push({
-                        icon: index === 0 ? '📅' : index === dates.length - 1 ? '📍' : '📌',
-                        date: date,
-                        label: index === 0 ? 'First Reference' : index === dates.length - 1 ? 'Latest Reference' : 'Event Date'
-                    });
-                });
-            } else {
-                timelineEvents.push({
-                    icon: '❓',
-                    date: 'No Dates',
-                    label: 'Temporal void'
-                });
-            }
-            
-            return `
-                <div class="analysis-body">
-                    <div class="timeline-visualization">
-                        <div class="timeline-header">
-                            <h2 class="timeline-title">Temporal Intelligence Report</h2>
-                        </div>
-                        
-                        <!-- Statistics -->
-                        <div class="timeline-stats">
-                            <div class="timeline-stat">
-                                <span class="timeline-stat-number">${dateMatches.length}</span>
-                                <span class="timeline-stat-label">Date References</span>
-                            </div>
-                            <div class="timeline-stat">
-                                <span class="timeline-stat-number">${timeReferences.length}</span>
-                                <span class="timeline-stat-label">Time Indicators</span>
-                            </div>
-                            <div class="timeline-stat">
-                                <span class="timeline-stat-number">${totalReferences}</span>
-                                <span class="timeline-stat-label">Total Markers</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Timeline Visualization -->
-                        ${timelineEvents.length > 1 ? `
-                        <div class="timeline-main">
-                            <div class="timeline-line"></div>
-                            <div class="timeline-events">
-                                ${timelineEvents.map((event, index) => `
-                                    <div class="timeline-event" style="--index: ${index};">
-                                        <div class="timeline-event-icon">
-                                            ${event.icon}
-                                        </div>
-                                        <div class="timeline-event-date">${event.date}</div>
-                                        <div class="timeline-event-label">${event.label}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-                        
-                        <!-- Currency Meter -->
-                        <div class="currency-indicator">
-                            <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">Content Currency Assessment</h4>
-                            <div class="currency-meter">
-                                <div class="currency-needle" style="transform: translateX(-50%) rotate(${needleRotation}deg);"></div>
-                            </div>
-                            <div class="currency-labels">
-                                <span class="currency-label">Outdated</span>
-                                <span class="currency-label">Dated</span>
-                                <span class="currency-label">Current</span>
-                                <span class="currency-label">Fresh</span>
-                            </div>
-                            <div class="currency-badge">${currencyBadgeText}</div>
-                        </div>
-                        
-                        <!-- Temporal Insights -->
-                        <div class="temporal-insights">
-                            <div class="temporal-insight">
-                                <div class="temporal-insight-icon">📊</div>
-                                <div class="temporal-insight-title">Temporal Density</div>
-                                <div class="temporal-insight-text">
-                                    ${totalReferences > 5 ? 'High density of temporal markers indicates detailed event reporting' :
-                                      totalReferences > 2 ? 'Moderate temporal markers suggest standard news coverage' :
-                                      totalReferences > 0 ? 'Low temporal density may indicate general or evergreen content' :
-                                      'No temporal markers detected - verification of timing impossible'}
-                                </div>
-                            </div>
-                            <div class="temporal-insight">
-                                <div class="temporal-insight-icon">🎯</div>
-                                <div class="temporal-insight-title">Verification Impact</div>
-                                <div class="temporal-insight-text">
-                                    ${dateMatches.length > 0 ? 
-                                      'Specific dates enable independent verification of events' :
-                                      'Lack of dates makes temporal verification challenging'}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Detailed References -->
-                        ${dateMatches.length > 0 || timeReferences.length > 0 ? `
-                        <div style="background: rgba(249, 115, 22, 0.1); padding: 20px; border-radius: 12px; margin-top: 30px;">
-                            <h4 style="color: #ea580c; margin-bottom: 15px;">Temporal References Detected:</h4>
-                            ${dateMatches.length > 0 ? 
-                                `<div style="margin-bottom: 15px;">
-                                    <strong style="color: #f97316;">📅 Date References:</strong>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                                        ${dateMatches.map(date => 
-                                            `<span style="background: white; padding: 4px 12px; border-radius: 15px; 
-                                            border: 2px solid rgba(249, 115, 22, 0.3); color: #ea580c; font-weight: 600; font-size: 0.9rem;">
-                                            ${date}</span>`
-                                        ).join('')}
-                                    </div>
-                                </div>` : ''}
-                            ${timeReferences.length > 0 ? 
-                                `<div>
-                                    <strong style="color: #f97316;">⏱️ Time References:</strong>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
-                                        ${timeReferences.map(time => 
-                                            `<span style="background: white; padding: 4px 12px; border-radius: 15px; 
-                                            border: 2px solid rgba(249, 115, 22, 0.3); color: #ea580c; font-weight: 600; font-size: 0.9rem;">
-                                            ${time}</span>`
-                                        ).join('')}
-                                    </div>
-                                </div>` : ''}
-                        </div>
-                        ` : `
-                        <div style="background: rgba(239, 68, 68, 0.1); padding: 20px; border-radius: 12px; margin-top: 30px; text-align: center;">
-                            <h4 style="color: #dc2626; margin-bottom: 10px;">⚠️ No Temporal References Found</h4>
-                            <p style="color: #7f1d1d;">This content lacks specific dates or time references, making it impossible to verify when events occurred. This could indicate evergreen content, but it also raises questions about the timeliness and verifiability of the information.</p>
-                        </div>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Helper function to calculate compass rotation
-        function calculateCompassRotation(biasScore) {
-            // Convert bias score (-10 to +10) to rotation angle
-            // -10 = -90deg (far left), 0 = 0deg (center), +10 = 90deg (far right)
-            return (biasScore / 10) * 90;
-        }
-        
-        // Calculate reading level
-        function calculateReadingLevel(text) {
-            const words = text.split(' ').length;
-            const sentences = (text.match(/[.!?]/g) || []).length;
-            const avgWordsPerSentence = words / Math.max(sentences, 1);
-            
-            if (avgWordsPerSentence > 25) return "Graduate";
-            if (avgWordsPerSentence > 20) return "College";
-            if (avgWordsPerSentence > 15) return "High School";
-            return "Middle School";
-        }
-        
-        // Generate emotional narrative
-        function generateEmotionalNarrative(politicalBias, biasIndicators) {
-            const emotionalScore = biasIndicators.emotional_language || 0;
-            const loadedTerms = politicalBias.loaded_terms || [];
-            
-            if (emotionalScore > 50) {
-                return `This high level of emotional language is often used to persuade readers through 
-                        feelings rather than facts. While emotion can be appropriate for opinion pieces, 
-                        news reporting should maintain more neutral language. The presence of 
-                        ${loadedTerms.length} emotionally charged terms suggests potential bias.`;
-            } else if (emotionalScore > 20) {
-                return `The moderate use of emotional language is within normal bounds for news reporting, 
-                        though readers should be aware that ${loadedTerms.length} loaded terms were detected. 
-                        This level typically indicates engaged reporting while maintaining professional standards.`;
-            } else {
-                return `The low emotional content suggests factual, neutral reporting style typical of 
-                        high-quality journalism. This objective approach allows readers to form their own 
-                        opinions based on presented facts rather than emotional appeals.`;
+                content.style.maxHeight = '0';
             }
         }
         
-        // Generate style narrative
-        function generateStyleNarrative(results) {
-            const hasQuotes = document.getElementById('news-text').value.includes('"');
-            const hasNumbers = (document.getElementById('news-text').value.match(/\d+/g) || []).length > 2;
-            
-            return `This article exhibits ${hasQuotes ? 'professional journalistic' : 'editorial'} style writing 
-                    with ${hasQuotes ? 'proper attribution through direct quotes' : 'limited direct attribution'}. 
-                    The presence of ${hasNumbers ? 'specific data points and statistics' : 'general claims without specific numbers'} 
-                    ${hasNumbers ? 'strengthens' : 'weakens'} the factual foundation. Writing patterns suggest 
-                    ${results.methodology?.ai_enhanced ? 'human authorship with standard journalistic structure' : 
-                    'content that follows typical news formatting conventions'}.`;
-        }
-        
-        // Generate fact signals content
-        function generateFactSignalsContent(results, text) {
-            const signals = {
-                positive: [],
-                negative: []
-            };
-            
-            // Check for positive signals
-            if (text.includes('according to')) signals.positive.push('Uses attribution phrases');
-            if ((text.match(/"/g) || []).length >= 4) signals.positive.push('Includes direct quotes');
-            if ((text.match(/\d{4}/g) || []).length > 0) signals.positive.push('Provides specific dates');
-            if (text.match(/\$[\d,]+/g)) signals.positive.push('Includes specific financial figures');
-            
-            // Check for negative signals
-            if (text.includes('allegedly') || text.includes('reportedly')) signals.negative.push('Heavy use of qualifying language');
-            if (!text.match(/[A-Z][a-z]+ [A-Z][a-z]+/g)) signals.negative.push('Lacks named sources');
-            if (text.includes('some say') || text.includes('many believe')) signals.negative.push('Vague attribution');
-            
-            return `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #059669; margin-bottom: 15px;">
-                            <i class="fas fa-check-circle"></i> Positive Signals (${signals.positive.length})
-                        </h4>
-                        ${signals.positive.length > 0 ? 
-                            signals.positive.map(signal => `<div style="margin-bottom: 8px;">• ${signal}</div>`).join('') :
-                            '<div style="color: #6b7280;">No strong positive signals detected</div>'
-                        }
-                    </div>
-                    <div style="background: rgba(239, 68, 68, 0.1); padding: 20px; border-radius: 12px;">
-                        <h4 style="color: #dc2626; margin-bottom: 15px;">
-                            <i class="fas fa-exclamation-triangle"></i> Red Flags (${signals.negative.length})
-                        </h4>
-                        ${signals.negative.length > 0 ? 
-                            signals.negative.map(signal => `<div style="margin-bottom: 8px;">• ${signal}</div>`).join('') :
-                            '<div style="color: #6b7280;">No major red flags detected</div>'
-                        }
-                    </div>
-                </div>
-                <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
-                    <strong>What this means:</strong> ${signals.positive.length > signals.negative.length ? 
-                    'The article shows more positive indicators of reliable journalism than red flags. This suggests adherence to professional standards, though readers should still verify key claims.' :
-                    signals.negative.length > signals.positive.length ?
-                    'The article shows more warning signs than positive indicators. Exercise caution and seek additional sources to verify the information presented.' :
-                    'The article shows a balance of positive and negative indicators. Cross-reference important claims with other sources for verification.'}
-                </p>
-            `;
-        }
-        
-        // Enhanced transparency analysis with breakdown
-        function generateTransparencyAnalysis(text, sourceAnalysis) {
-            let transparencyScore = 50; // Base score
-            const factors = [];
-            
-            // Check various transparency factors
-            if (sourceAnalysis.author?.name && sourceAnalysis.author.name !== 'Not Specified') {
-                transparencyScore += 15;
-                factors.push({ 
-                    positive: true, 
-                    title: 'Clear Author Attribution',
-                    description: 'The article identifies its author, allowing readers to research their credentials and previous work.'
-                });
-            } else {
-                factors.push({ 
-                    positive: false, 
-                    title: 'No Author Attribution',
-                    description: 'No author is identified, making it difficult to assess credibility or potential biases.'
-                });
-            }
-            
-            if ((text.match(/according to/gi) || []).length > 0) {
-                transparencyScore += 10;
-                factors.push({ 
-                    positive: true, 
-                    title: 'Uses Source Attribution',
-                    description: 'Information is attributed to specific sources, allowing verification.'
-                });
-            }
-            
-            if ((text.match(/"/g) || []).length >= 4) {
-                transparencyScore += 10;
-                factors.push({ 
-                    positive: true, 
-                    title: 'Includes Direct Quotes',
-                    description: 'Direct quotes provide transparency about what sources actually said.'
-                });
-            }
-            
-            if (text.includes('could not be reached') || text.includes('declined to comment')) {
-                transparencyScore += 5;
-                factors.push({ 
-                    positive: true, 
-                    title: 'Acknowledges Reporting Limitations',
-                    description: 'The article transparently notes when sources were unavailable for comment.'
-                });
-            }
-            
-            if (text.includes('anonymous') || text.includes('unnamed source')) {
-                transparencyScore -= 10;
-                factors.push({ 
-                    positive: false, 
-                    title: 'Uses Anonymous Sources',
-                    description: 'Anonymous sources reduce transparency and make verification difficult.'
-                });
-            }
-            
-            return `
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="display: inline-block; position: relative;">
-                        <div style="width: 120px; height: 120px; border-radius: 50%; 
-                            background: conic-gradient(#10b981 0% ${transparencyScore}%, #e5e7eb ${transparencyScore}% 100%);
-                            display: flex; align-items: center; justify-content: center;">
-                            <div style="width: 90px; height: 90px; background: white; border-radius: 50%;
-                                display: flex; align-items: center; justify-content: center; font-size: 2rem;
-                                font-weight: 900; color: #1f2937;">
-                                ${transparencyScore}%
-                            </div>
-                        </div>
-                    </div>
-                    <h4 style="margin-top: 15px; color: #4b5563;">Overall Transparency Score</h4>
-                </div>
-                
-                <div class="transparency-breakdown">
-                    ${factors.map(factor => `
-                        <div class="transparency-item">
-                            <div class="transparency-icon ${factor.positive ? 'positive' : 'negative'}">
-                                <i class="fas fa-${factor.positive ? 'check' : 'times'}"></i>
-                            </div>
-                            <div class="transparency-text">
-                                <div class="transparency-title">${factor.title}</div>
-                                <div class="transparency-description">${factor.description}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
-                    <strong>Bottom line:</strong> ${transparencyScore >= 70 ? 
-                    'This article demonstrates high transparency, making it easier for readers to verify claims and assess credibility.' :
-                    transparencyScore >= 50 ?
-                    'This article shows moderate transparency. Some information can be verified, but certain aspects lack clear attribution.' :
-                    'This article has low transparency, making independent verification difficult. Seek additional sources for important claims.'}
-                </p>
-            `;
-        }
-
-        // Generate narrative functions
-        function generateSummaryNarrative(credibilityScore, biasLabel, objectivityScore, sourceAnalysis) {
-            const sourceCredibility = sourceAnalysis.credibility_score || 70;
-            
-            if (credibilityScore >= 80) {
-                return `This article demonstrates strong journalistic integrity with a credibility score of ${credibilityScore}/100. 
-                        The content shows ${biasLabel} political orientation with ${objectivityScore}% objective reporting. 
-                        Published by ${sourceAnalysis.domain || 'the source'} (credibility: ${sourceCredibility}/100), 
-                        the article meets high standards for factual accuracy and balanced reporting.`;
-            } else if (credibilityScore >= 60) {
-                return `This article shows moderate credibility (${credibilityScore}/100) with some areas requiring verification. 
-                        A ${biasLabel} political lean is evident with ${objectivityScore}% objectivity maintained. 
-                        The source ${sourceAnalysis.domain || 'outlet'} has a credibility rating of ${sourceCredibility}/100. 
-                        We recommend cross-referencing key claims with additional sources.`;
-            } else {
-                return `This article requires careful verification with a credibility score of ${credibilityScore}/100. 
-                        Strong ${biasLabel} bias detected with only ${objectivityScore}% objective content. 
-                        The source credibility (${sourceCredibility}/100) raises concerns. 
-                        Multiple unsupported claims were identified. Verify all information independently.`;
-            }
-        }
-
-        function generateBiasNarrative(biasLabel, biasScore, objectivityScore, politicalBias) {
-            const loadedTerms = politicalBias.loaded_terms || [];
-            const leftIndicators = politicalBias.left_indicators || 0;
-            const rightIndicators = politicalBias.right_indicators || 0;
-            
-            let narrative = `Our advanced bias detection algorithms identified a ${biasLabel} political orientation 
-                           with a bias score of ${biasScore > 0 ? '+' : ''}${biasScore.toFixed(1)} on our scale. `;
-            
-            if (leftIndicators > 0 || rightIndicators > 0) {
-                narrative += `We detected ${leftIndicators} left-leaning indicators and ${rightIndicators} right-leaning indicators. `;
-            }
-            
-            if (loadedTerms.length > 0) {
-                narrative += `Emotionally charged language includes terms like "${loadedTerms.slice(0, 3).join('", "')}"${loadedTerms.length > 3 ? ' and others' : ''}. `;
-            }
-            
-            narrative += `The article maintains ${objectivityScore}% objectivity, ${
-                objectivityScore >= 80 ? 'indicating professional journalistic standards' :
-                objectivityScore >= 60 ? 'showing reasonable balance despite evident bias' :
-                'suggesting significant editorial influence on the reporting'}.`;
-            
-            return narrative;
-        }
-
-        function generateSourceNarrative(sourceAnalysis) {
-            const credibility = sourceAnalysis.credibility_score || 70;
-            const domain = sourceAnalysis.domain || 'this news source';
-            const sourceType = sourceAnalysis.source_type || 'news outlet';
-            const founded = sourceAnalysis.founded || 'at an unknown date';
-            const authorInfo = sourceAnalysis.author || { name: 'Not specified', credentials: 'Unknown' };
-            
-            let narrative = `The article is published by ${domain}, `;
-            
-            if (credibility >= 80) {
-                narrative += `a highly credible ${sourceType} with an excellent reputation for accurate reporting (${credibility}/100). `;
-            } else if (credibility >= 60) {
-                narrative += `a moderately credible ${sourceType} with a reasonable track record (${credibility}/100). `;
-            } else {
-                narrative += `a ${sourceType} with questionable credibility (${credibility}/100) that requires careful verification. `;
-            }
-            
-            narrative += `Founded ${founded}, this source is known for ${sourceAnalysis.political_bias || 'varied'} political coverage. `;
-            
-            // Add author analysis
-            if (authorInfo.name !== 'Not specified') {
-                narrative += `<br><br><strong>Author Analysis:</strong> Written by ${authorInfo.name}`;
-                if (authorInfo.credentials !== 'Unknown') {
-                    narrative += `, ${authorInfo.credentials}`;
-                }
-                if (authorInfo.previous_work) {
-                    narrative += `. Our database shows ${authorInfo.previous_work} previous articles by this author, 
-                                 with an average credibility score of ${authorInfo.avg_credibility || 'N/A'}.`;
-                }
-            } else {
-                narrative += `<br><br><strong>Author Analysis:</strong> No author attribution found, which may indicate 
-                             editorial content, wire service reporting, or intentional anonymity. Articles without clear 
-                             authorship require additional scrutiny.`;
-            }
-            
-            narrative += `<br><br>Our comprehensive database tracks this source's historical accuracy, bias patterns, 
-                         corrections record, and journalistic standards to provide you with essential context for 
-                         evaluating the content.`;
-            
-            return narrative;
-        }
-
-        function generateComparisonItems(crossReferences) {
-            if (!crossReferences || crossReferences.length === 0) {
-                return `
-                    <div class="comparison-item">
-                        <div class="outlet-logo">🔍</div>
-                        <div class="outlet-info">
-                            <div class="outlet-name">No Cross-References Found</div>
-                            <div class="coverage-type">This appears to be exclusive or breaking coverage</div>
-                        </div>
-                        <div class="similarity-badge">Unique</div>
-                    </div>
-                `;
-            }
-            
-            return crossReferences.map(ref => `
-                <div class="comparison-item">
-                    <div class="outlet-logo">${getOutletIcon(ref.source)}</div>
-                    <div class="outlet-info">
-                        <div class="outlet-name">${ref.source}</div>
-                        <div class="coverage-type">${ref.title}</div>
-                    </div>
-                    <div class="similarity-badge">${ref.relevance}% Match</div>
-                </div>
-            `).join('');
-        }
-
-        function getOutletIcon(source) {
-            const icons = {
-                'Reuters': '📰',
-                'BBC': '🌍',
-                'CNN': '📺',
-                'Fox News': '🦊',
-                'NPR': '📻',
-                'AP': '📡',
-                'Default': '📄'
-            };
-            return icons[source] || icons['Default'];
-        }
-
-        function generateAdditionalFindings(results) {
-            const findings = [];
-            
-            // Add AI-enhanced insights
-            if (results.methodology?.ai_enhanced) {
-                findings.push({
-                    icon: '🤖',
-                    title: 'AI Pattern Detection',
-                    description: 'Advanced language models detected subtle patterns consistent with ' +
-                                (results.credibility_score > 70 ? 'authentic journalism' : 'potential misinformation tactics')
-                });
-            }
-            
-            // Add emotional language analysis
-            if (results.bias_indicators?.emotional_language) {
-                const emotionalScore = results.bias_indicators.emotional_language;
-                findings.push({
-                    icon: '💭',
-                    title: 'Emotional Language Analysis',
-                    description: `Detected ${emotionalScore > 50 ? 'high' : emotionalScore > 20 ? 'moderate' : 'low'} 
-                                 levels of emotional language (${emotionalScore}%), which ${emotionalScore > 50 ? 
-                                 'may indicate sensationalism' : 'suggests factual reporting'}`
-                });
-            }
-            
-            // Add source network analysis
-            if (results.source_analysis) {
-                findings.push({
-                    icon: '🌐',
-                    title: 'Source Network Analysis',
-                    description: 'This source is part of a network known for ' +
-                                (results.source_analysis.credibility_score > 70 ? 
-                                 'reliable journalism and fact-checking' : 
-                                 'mixed credibility requiring verification')
-                });
-            }
-            
-            return findings.map(finding => `
-                <div class="finding-card">
-                    <h4 class="finding-title">
-                        <span style="font-size: 1.5rem;">${finding.icon}</span>
-                        ${finding.title}
-                    </h4>
-                    <p class="finding-description">${finding.description}</p>
-                </div>
-            `).join('');
-        }
-
-        // Create analysis section helper
-        function createAnalysisSection(config) {
-            const section = document.createElement('div');
-            section.className = 'analysis-section';
-            section.id = config.id;
-            
-            const header = document.createElement('div');
-            header.className = `analysis-header ${config.locked ? 'locked' : ''}`;
-            header.onclick = () => toggleAnalysisSection(config.id);
-            
-            header.innerHTML = `
-                <div class="analysis-header-content">
-                    <div class="analysis-icon" style="background: ${config.locked ? '#e5e7eb' : `linear-gradient(135deg, ${config.iconColor}20, ${config.iconColor}30)`};">
-                        ${config.icon}
-                    </div>
-                    <div class="analysis-title-group">
-                        <h3 class="analysis-title">${config.title}</h3>
-                        <p class="analysis-summary">${config.summary}</p>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-down expand-icon"></i>
-                ${config.locked ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;">PRO ONLY</span>' : ''}
-            `;
-            
-            const content = document.createElement('div');
-            content.className = 'analysis-content';
-            
-            const body = document.createElement('div');
-            body.className = 'analysis-body';
-            
-            if (config.locked) {
-                body.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
-                        <i class="fas fa-lock" style="font-size: 3rem; color: #9ca3af; margin-bottom: 20px;"></i>
-                        <h4 style="color: #4b5563; margin-bottom: 10px;">This analysis is available in Pro</h4>
-                        <p>Upgrade to access detailed ${config.title.toLowerCase()}, advanced insights, and downloadable reports.</p>
-                        <button onclick="window.location.href='/pricingplan'" style="margin-top: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer;">
-                            Upgrade to Pro
-                        </button>
-                    </div>
-                `;
-            } else {
-                body.innerHTML = config.content;
-            }
-            
-            content.appendChild(body);
-            section.appendChild(header);
-            section.appendChild(content);
-            
-            return section;
-        }
-
-        // Toggle analysis section
-        function toggleAnalysisSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            const header = section.querySelector('.analysis-header');
-            const content = section.querySelector('.analysis-content');
-            
-            if (header.classList.contains('locked') && currentTier === 'free') {
-                showNotification('Upgrade to Pro to access this analysis', 'info');
-                return;
-            }
-            
-            const isExpanded = section.classList.contains('expanded');
-            
-            if (isExpanded) {
-                section.classList.remove('expanded');
-                header.classList.remove('expanded');
-                content.classList.remove('expanded');
-            } else {
-                section.classList.add('expanded');
-                header.classList.add('expanded');
-                content.classList.add('expanded');
-            }
-            
-            trackNewsEvent('analysis_section_toggled', {
-                section: sectionId,
-                action: isExpanded ? 'collapsed' : 'expanded'
-            });
-        }
-
-        // Show all claims in modal
-        function showAllClaims(claimType) {
-            if (!currentAnalysisData || !currentAnalysisData.political_bias) {
-                return;
-            }
-
-            const modal = document.getElementById('claimsModal');
-            const claimsList = document.getElementById('claimsList');
-            const modalHeader = modal.querySelector('.modal-header h2');
-            
-            let claims;
-            let headerText;
-            let headerIcon;
-            
-            if (claimType === 'unsupported') {
-                claims = currentAnalysisData.political_bias.unsupported_claims || [];
-                headerText = 'Unsupported Claims Analysis';
-                headerIcon = 'fas fa-exclamation-triangle';
-            } else {
-                claims = currentAnalysisData.political_bias.substantiated_claims || [];
-                headerText = 'Verified Claims Analysis';
-                headerIcon = 'fas fa-check-circle';
-            }
-            
-            // Update modal header
-            modalHeader.innerHTML = `<i class="${headerIcon}"></i> ${headerText}`;
-            
-            // Clear existing content
-            claimsList.innerHTML = '';
-
-            // Add each claim with detailed analysis
-            claims.forEach((item, index) => {
-                const claimDiv = document.createElement('div');
-                claimDiv.className = 'claim-modal-item';
-                
-                if (claimType === 'unsupported') {
-                    claimDiv.innerHTML = `
-                        <div class="claim-number">Claim ${index + 1}</div>
-                        <div class="claim-text">"${item.claim}"</div>
-                        <div class="claim-analysis">
-                            <div class="claim-analysis-title">Why This Needs Verification:</div>
-                            <div class="claim-reason">${item.reason}</div>
-                        </div>
-                    `;
-                } else {
-                    claimDiv.style.borderLeftColor = '#10b981';
-                    claimDiv.innerHTML = `
-                        <div class="claim-number" style="color: #10b981;">Verified Claim ${index + 1}</div>
-                        <div class="claim-text">"${item.claim}"</div>
-                        <div class="claim-analysis">
-                            <div class="claim-analysis-title" style="color: #10b981;">Supporting Evidence:</div>
-                            <div class="claim-reason">${item.support}</div>
-                        </div>
-                    `;
-                }
-                claimsList.appendChild(claimDiv);
-            });
-
-            // Show modal
-            modal.style.display = 'block';
-
-            // Track event
-            trackNewsEvent(`${claimType}_claims_viewed`, {
-                count: claims.length,
-                tier: currentTier
-            });
-        }
-
-        // Modal close functions
-        function closeClaimsModal() {
-            document.getElementById('claimsModal').style.display = 'none';
-        }
-
-        function closeBetaModal() {
-            document.getElementById('betaModal').style.display = 'none';
-        }
-
-        function openBetaModal() {
-            document.getElementById('betaModal').style.display = 'block';
-        }
-
-        function submitBetaSignup() {
-            const email = document.getElementById('betaEmail').value;
-            const name = document.getElementById('betaName').value;
-
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-
-            // Submit to backend
-            fetch('/api/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email, password: 'BetaUser2025!' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('🎉 Welcome to the beta! Check your email for access details.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            })
-            .catch(error => {
-                console.log('Demo mode: Beta signup for', email);
-                alert('🎉 Thanks for your interest! Beta signup recorded.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            });
-        }
-
         // Input switching
         function switchInputType(type) {
             currentInputType = type;
@@ -4388,7 +1238,7 @@ World leaders today announced a historic climate agreement..."></textarea>
                 targetContent.classList.add('active');
             }
         }
-
+        
         // Load test data
         function loadTestData() {
             const testContent = "Breaking: Infrastructure Bill Passes Senate with Bipartisan Support. The Department of Transportation announced today the allocation of $2.3 billion for highway improvements across 15 states, according to officials who state this initiative will create approximately 45,000 jobs over the next 18 months. The announcement comes following congressional support for the infrastructure bill passed last quarter. Sources close to the administration suggest this represents the largest single infrastructure investment in recent history. Industry experts predict significant economic impact in rural communities, though some critics question the timeline for implementation.";
@@ -4398,181 +1248,41 @@ World leaders today announced a historic climate agreement..."></textarea>
             
             showNotification('Sample news content loaded successfully!', 'success');
         }
-
+        
         // Reset form
         function resetForm() {
             document.getElementById('news-text').value = '';
             document.getElementById('news-url').value = '';
             document.getElementById('results').style.display = 'none';
             document.getElementById('results').innerHTML = '';
-            currentAnalysisData = null;
             showNotification('Form reset successfully', 'success');
         }
-
-        // Update progress stages
-        function updateProgressStages(stage) {
-            const stages = document.querySelectorAll('.progress-stage');
-            stages.forEach((stageEl, index) => {
-                if (index < stage) {
-                    stageEl.classList.add('completed');
-                    stageEl.classList.remove('active');
-                } else if (index === stage) {
-                    stageEl.classList.add('active');
-                    stageEl.classList.remove('completed');
-                } else {
-                    stageEl.classList.remove('active', 'completed');
-                }
-            });
+        
+        // Run analysis (demo only)
+        function runAnalysis(tier) {
+            showNotification(`${tier.charAt(0).toUpperCase() + tier.slice(1)} analysis would start here. Full functionality requires backend integration.`, 'info');
         }
-
-        // Main analysis function
-        async function runAnalysis(tier) {
-            tier = tier || 'free';
-            currentTier = tier;
-            
-            // Validate input
-            const textInput = document.getElementById('news-text').value.trim();
-            const urlInput = document.getElementById('news-url').value.trim();
-            
-            if (currentInputType === 'text') {
-                if (!textInput) {
-                    showNotification('Please enter news content to analyze.', 'error');
-                    return;
-                }
-                if (textInput.length < 50) {
-                    showNotification('Please enter at least 50 characters for comprehensive news analysis.', 'error');
-                    return;
-                }
-            }
-            
-            if (currentInputType === 'url') {
-                if (!urlInput) {
-                    showNotification('Please enter a news URL to analyze.', 'error');
-                    return;
-                }
-                try {
-                    new URL(urlInput);
-                } catch (e) {
-                    showNotification('Please enter a valid news URL (e.g., https://example.com/article).', 'error');
-                    return;
-                }
-            }
-            
-            // Show progress section
-            const progressSection = document.getElementById('progressSection');
-            const progressBar = document.getElementById('progressBar');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const progressStatus = document.getElementById('progressStatus');
-            
-            progressSection.style.display = 'block';
-            
-            // Reset progress
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            updateProgressStages(0);
-            
-            // Enhanced progress messages with stages
-            const progressStages = [
-                { message: 'Extracting article content...', stage: 0 },
-                { message: 'Analyzing political bias indicators...', stage: 1 },
-                { message: 'Checking 500+ news sources database...', stage: 2 },
-                { message: 'Verifying claims and statements...', stage: 3 },
-                { message: 'Generating comprehensive report...', stage: 4 }
-            ];
-            
-            let currentProgress = 0;
-            let stageIndex = 0;
-            let progressInterval = null;
-            
-            // Animate progress with stages
-            progressInterval = setInterval(() => {
-                currentProgress += 20;
-                progressBar.style.width = currentProgress + '%';
-                progressPercentage.textContent = currentProgress + '%';
-                
-                if (stageIndex < progressStages.length) {
-                    const stage = progressStages[stageIndex];
-                    progressStatus.textContent = stage.message;
-                    updateProgressStages(stage.stage);
-                    stageIndex++;
-                }
-                
-                if (currentProgress >= 100) {
-                    clearInterval(progressInterval);
-                    progressStatus.textContent = 'Analysis complete! Preparing your results...';
-                    updateProgressStages(4);
-                }
-            }, 800);
-            
-            try {
-                // Prepare data for API call
-                const requestData = {};
-                if (currentInputType === 'text') {
-                    requestData.content = textInput;
-                } else {
-                    requestData.content = urlInput;
-                }
-                
-                // Add analysis type
-                requestData.is_pro = tier === 'pro';
-                
-                console.log('Sending request to /api/analyze-news with data:', requestData);
-                
-                // Make API call to backend
-                const response = await fetch('/api/analyze-news', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-                
-                if (!response.ok) {
-                    clearInterval(progressInterval);
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    throw new Error(errorData.error || 'Analysis failed with status ' + response.status);
-                }
-                
-                const results = await response.json();
-                clearInterval(progressInterval);
-                
-                // Log the actual results to see what we're getting
-                console.log('API Response:', results);
-                
-                // Store for modal functionality
-                currentAnalysisData = results;
-                
-                // Complete progress bar
-                progressBar.style.width = '100%';
-                progressPercentage.textContent = '100%';
-                progressStatus.textContent = 'Analysis complete! Preparing your results...';
-                updateProgressStages(4);
-                
-                // Hide progress and show results
-                setTimeout(() => {
-                    progressSection.style.display = 'none';
-                    showNewsResults(results, tier);
-                }, 1000);
-
-                trackNewsEvent('news_analysis_completed', {
-                    tier: tier,
-                    credibility_score: results.credibility_score || 0,
-                    political_bias: results.political_bias && results.political_bias.bias_label || 'unknown'
-                });
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                if (progressInterval) clearInterval(progressInterval);
-                progressSection.style.display = 'none';
-                showNotification('Analysis failed: ' + error.message + '. Please try again.', 'error');
-                
-                trackNewsEvent('news_analysis_failed', {
-                    tier: tier,
-                    error: error.message
-                });
-            }
+        
+        // Modal functions
+        function openBetaModal() {
+            document.getElementById('betaModal').style.display = 'block';
         }
-
+        
+        function closeBetaModal() {
+            document.getElementById('betaModal').style.display = 'none';
+        }
+        
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            showNotification('🎉 Thanks for your interest! Beta signup recorded.', 'success');
+            closeBetaModal();
+            document.getElementById('betaSignupForm').reset();
+        }
+        
         // Scroll to top
         function scrollToTop() {
             window.scrollTo({
@@ -4580,7 +1290,7 @@ World leaders today announced a historic climate agreement..."></textarea>
                 behavior: 'smooth'
             });
         }
-
+        
         // Show/hide back to top button
         window.addEventListener('scroll', () => {
             const backToTop = document.getElementById('backToTop');
@@ -4590,43 +1300,19 @@ World leaders today announced a historic climate agreement..."></textarea>
                 backToTop.classList.remove('visible');
             }
         });
-
-        // Enhanced dropdown toggle
-        function toggleDropdown(header, tier) {
-            const content = header.nextElementSibling;
-            const isOpen = header.classList.contains('open');
-            
-            header.classList.toggle('open');
-            content.classList.toggle('open');
-            
-            if (!isOpen) {
-                content.style.maxHeight = content.scrollHeight + 'px';
-            } else {
-                content.style.maxHeight = '0';
-            }
-        }
-
+        
         // Close modal when clicking outside
         window.onclick = function(event) {
             const betaModal = document.getElementById('betaModal');
-            const claimsModal = document.getElementById('claimsModal');
             if (event.target === betaModal) {
                 closeBetaModal();
             }
-            if (event.target === claimsModal) {
-                closeClaimsModal();
-            }
         };
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track page load
-            trackNewsEvent('news_verification_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: screen.width + 'x' + screen.height,
-                referrer: document.referrer
-            });
-        });
+        
+        // Simple stub for tracking (would normally connect to analytics)
+        function trackNewsEvent(eventName, eventData) {
+            console.log('Track event:', eventName, eventData);
+        }
     </script>
 </body>
 </html>
