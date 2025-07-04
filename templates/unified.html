@@ -1,3 +1,4 @@
+<!-- SECTION 1 of 3: DOCTYPE through CSS styles (Lines 1-1562) -->
 <!DOCTYPE html>
 <html lang="en">  
 <head>
@@ -656,6 +657,56 @@
             to { opacity: 1; }
         }
 
+        /* NEW: Input Explanation Box */
+        .input-explanation {
+            background: linear-gradient(135deg, #f0f4ff, #e5edff);
+            border: 1px solid #cbd5f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .input-explanation::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: linear-gradient(180deg, #6366f1, #4f46e5);
+        }
+
+        .input-explanation-icon {
+            color: #6366f1;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        .input-explanation-title {
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-explanation-text {
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .input-explanation ul {
+            margin: 10px 0 0 20px;
+            color: #4b5563;
+        }
+
+        .input-explanation li {
+            margin-bottom: 5px;
+        }
+
         .input-group {
             margin-bottom: 20px;
         }
@@ -855,7 +906,9 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+<!-- END OF SECTION 1 -->
 
+<!-- SECTION 2 of 3: More CSS styles and start of HTML body (Lines 1563-2607) -->
         /* NEW SPECTACULAR RESULTS STYLES */
         
         /* Summary Banner */
@@ -1489,7 +1542,7 @@
             100% { background-position: -100% 0; }
         }
 
-        /* Export Buttons */
+        /* NEW: Export Buttons */
         .export-section {
             display: flex;
             justify-content: center;
@@ -1518,6 +1571,11 @@
 
         .export-btn.certificate {
             background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+
+        .export-btn.json {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
             color: white;
         }
 
@@ -1552,42 +1610,6 @@
             border-radius: 15px;
             padding: 20px;
             overflow: hidden;
-        }
-
-        /* Social Proof Banner */
-        .social-proof-banner {
-            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .social-proof-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        .social-proof-text {
-            position: relative;
-            z-index: 2;
-            font-size: 1.1rem;
-            color: #4c1d95;
-            font-weight: 600;
-        }
-
-        .social-proof-number {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #5b21b6;
         }
 
         /* Writing Score Display */
@@ -1973,6 +1995,15 @@
             .method-list {
                 grid-template-columns: 1fr;
             }
+
+            .export-section {
+                flex-direction: column;
+            }
+
+            .export-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -2157,6 +2188,23 @@
                 </div>
                 
                 <div class="input-content active" id="textInput">
+                    <!-- NEW: Text Analysis Explanation Box -->
+                    <div class="input-explanation">
+                        <h3 class="input-explanation-title">
+                            <span class="input-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                            How to Use Text Analysis
+                        </h3>
+                        <div class="input-explanation-text">
+                            This mode allows you to directly paste or type text for AI detection analysis.
+                            <ul>
+                                <li>Paste your text content in the textarea below</li>
+                                <li>Minimum 50 words recommended for accurate analysis</li>
+                                <li>Supports multiple paragraphs and formatting</li>
+                                <li>Use the sample buttons to load example texts</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
                     <div class="input-group">
                         <label for="content-text"><i class="fas fa-file-text"></i> Enter Text for Analysis</label>
                         <textarea id="content-text" placeholder="Paste your text here for AI detection, plagiarism check, and writing analysis..."></textarea>
@@ -2172,6 +2220,23 @@
                 </div>
                 
                 <div class="input-content" id="fileInput">
+                    <!-- NEW: File Upload Explanation Box -->
+                    <div class="input-explanation">
+                        <h3 class="input-explanation-title">
+                            <span class="input-explanation-icon"><i class="fas fa-info-circle"></i></span>
+                            How to Use File Upload
+                        </h3>
+                        <div class="input-explanation-text">
+                            Upload documents for comprehensive AI content analysis.
+                            <ul>
+                                <li>Supported formats: PDF, DOC, DOCX, TXT, RTF</li>
+                                <li>Maximum file size: 10MB</li>
+                                <li>Drag & drop or click to browse files</li>
+                                <li>Files are processed securely and deleted after analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
                     <div class="file-upload-section" id="fileUploadSection">
                         <input type="file" id="file-input" class="file-input" accept=".txt,.pdf,.doc,.docx">
                         <label for="file-input" class="file-upload-label">
@@ -2229,7 +2294,9 @@
             </div>
         </div>
     </div>
+<!-- END OF SECTION 2 -->
 
+<!-- SECTION 3 of 3: JavaScript Code (Lines 2608-3826) -->
     <script src="/static/auth-analysis.js"></script>
     <script>
         // Global variables
@@ -2612,13 +2679,6 @@
                             </div>
                         </div>
                         
-                        <!-- Social Proof Banner -->
-                        <div class="social-proof-banner">
-                            <div class="social-proof-text">
-                                You're among <span class="social-proof-number">${getRandomUserCount()}</span> users who analyzed content today
-                            </div>
-                        </div>
-                        
                         <div class="summary-footnote">
                             📌 For comprehensive results including downloadable reports and advanced pattern analysis, upgrade to our Pro version.
                         </div>
@@ -2873,7 +2933,7 @@
                             <strong>How we checked:</strong> We compared your text against our database of over 100 million documents including academic papers, web content, news articles, and published works. Our analysis uses advanced fingerprinting to detect both exact matches and paraphrased content.
                         </div>
                         
-                        <!-- Export Options -->
+                        <!-- NEW: Export Options -->
                         <div class="export-section">
                             <button class="export-btn pdf" onclick="exportToPDF()">
                                 <i class="fas fa-file-pdf"></i>
@@ -2882,6 +2942,10 @@
                             <button class="export-btn certificate" onclick="generateCertificate()">
                                 <i class="fas fa-certificate"></i>
                                 Get Certificate
+                            </button>
+                            <button class="export-btn json" onclick="exportJSON()">
+                                <i class="fas fa-file-code"></i>
+                                Export JSON
                             </button>
                             <button class="export-btn share" onclick="shareResults()">
                                 <i class="fas fa-share-alt"></i>
@@ -3440,6 +3504,7 @@
         // Export functions
         function exportToPDF() {
             showNotification('Generating PDF report...', 'info');
+            trackAIEvent('export_pdf_clicked');
             // In real implementation, would generate actual PDF
             setTimeout(() => {
                 showNotification('PDF report ready for download!', 'success');
@@ -3448,18 +3513,70 @@
 
         function generateCertificate() {
             showNotification('Creating authenticity certificate...', 'info');
+            trackAIEvent('export_certificate_clicked');
             // In real implementation, would generate certificate
             setTimeout(() => {
                 showNotification('Certificate generated!', 'success');
             }, 2000);
         }
 
+        function exportJSON() {
+            if (!currentAnalysisData) {
+                showNotification('No analysis data available', 'error');
+                return;
+            }
+            
+            trackAIEvent('export_json_clicked');
+            
+            const dataStr = JSON.stringify(currentAnalysisData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `ai-detection-analysis-${new Date().toISOString().slice(0, 10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('JSON data exported successfully!', 'success');
+        }
+
         function shareResults() {
-            showNotification('Preparing shareable link...', 'info');
-            // In real implementation, would create shareable link
-            setTimeout(() => {
-                showNotification('Link copied to clipboard!', 'success');
-            }, 1500);
+            if (!currentAnalysisData) {
+                showNotification('No analysis data available', 'error');
+                return;
+            }
+            
+            trackAIEvent('share_results_clicked');
+            
+            const aiProb = currentAnalysisData.ai_analysis?.ai_probability || 0;
+            const originalityScore = currentAnalysisData.ai_analysis?.plagiarism_check?.originality_score || 100;
+            
+            const shareText = `AI Detection Analysis Results:\n\nAI Probability: ${aiProb}%\nHuman Probability: ${100 - aiProb}%\nOriginality Score: ${originalityScore}%\n\nAnalyzed with AI Detection Pro`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI Detection Analysis Results',
+                    text: shareText,
+                    url: window.location.href
+                }).then(() => {
+                    showNotification('Results shared successfully!', 'success');
+                }).catch(() => {
+                    // Fallback to clipboard
+                    copyToClipboard(shareText);
+                });
+            } else {
+                // Fallback to clipboard
+                copyToClipboard(shareText);
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Results copied to clipboard!', 'success');
+            }).catch(() => {
+                showNotification('Could not copy results', 'error');
+            });
         }
 
         // Close modal when clicking outside
@@ -3491,3 +3608,4 @@
     </script>
 </body>
 </html>
+<!-- END OF SECTION 3 - COMPLETE FILE -->
