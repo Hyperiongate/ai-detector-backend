@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_cors import CORS
 import os
 from datetime import datetime, timedelta
@@ -19,7 +19,6 @@ import io
 from PIL import Image
 import numpy as np
 import hashlib
-import sys
 
 # Computer Vision imports for enhanced image analysis
 try:
@@ -197,7 +196,6 @@ CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'contact@factsandfakes.ai')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY', '')
-PLAGIARISM_API_KEY = os.environ.get('PLAGIARISM_API_KEY', '')  # Add this to your Render env vars if you get an API
 
 # Configure OpenAI if available - Updated for v1.0+ API
 client = None
@@ -413,88 +411,6 @@ def user_status():
             'analyses_today': 0,
             'can_analyze': True
         }
-    })
-
-# WordPress cleanup routes - FIX #1
-@app.route('/wp-login.php', methods=['GET', 'POST'])
-@app.route('/wp-admin/', methods=['GET', 'POST'])
-@app.route('/wp-admin/<path:path>', methods=['GET', 'POST'])
-@app.route('/wp-cron.php', methods=['GET', 'POST'])
-@app.route('/xmlrpc.php', methods=['GET', 'POST'])
-@app.route('/wp-includes/<path:path>', methods=['GET', 'POST'])
-@app.route('/wp-content/<path:path>', methods=['GET', 'POST'])
-@app.route('/.env', methods=['GET', 'POST'])  # Security: block .env access
-@app.route('/.git/<path:path>', methods=['GET', 'POST'])  # Security: block git access
-def wordpress_gone(path=None):
-    """Handle old WordPress URLs and common attack vectors"""
-    return jsonify({
-        'error': 'Content no longer available',
-        'message': 'This is now an AI analysis platform',
-        'redirect': 'https://factsandfakes.ai'
-    }), 410  # 410 Gone status
-
-# Add robots.txt route - FIX #1
-@app.route('/robots.txt')
-def robots():
-    robots_content = """User-agent: *
-Disallow: /wp-admin/
-Disallow: /wp-includes/
-Disallow: /wp-content/
-Disallow: /wp-login.php
-Disallow: /xmlrpc.php
-Disallow: /wp-cron.php
-Disallow: /.env
-Disallow: /.git/
-Disallow: /api/debug-status
-Disallow: /api/system-status
-
-Allow: /
-Allow: /news
-Allow: /unified
-Allow: /imageanalysis
-Allow: /contact
-Allow: /missionstatement
-Allow: /pricingplan
-
-Sitemap: https://factsandfakes.ai/sitemap.xml"""
-    
-    return robots_content, 200, {'Content-Type': 'text/plain'}
-
-# Add a system status endpoint for checking what's working - FIX #3
-@app.route('/api/system-status', methods=['GET'])
-def system_status():
-    """Check system components status"""
-    import sys
-    
-    # Check Python version
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    
-    # Check module availability
-    modules_status = {}
-    for module in ['cv2', 'openai', 'scipy', 'skimage', 'numpy', 'PIL', 'exifread']:
-        try:
-            __import__(module)
-            modules_status[module] = True
-        except ImportError:
-            modules_status[module] = False
-    
-    return jsonify({
-        'python_version': python_version,
-        'features': {
-            'cv_available': CV_AVAILABLE,
-            'openai_available': OPENAI_AVAILABLE and bool(OPENAI_API_KEY),
-            'database_available': DB_AVAILABLE,
-            'email_available': EMAIL_AVAILABLE
-        },
-        'api_keys_configured': {
-            'openai': bool(OPENAI_API_KEY),
-            'news_api': bool(NEWS_API_KEY),
-            'google_fact_check': bool(GOOGLE_FACT_CHECK_API_KEY),
-            'smtp_password': bool(SMTP_PASSWORD),
-            'plagiarism_api': bool(PLAGIARISM_API_KEY)
-        },
-        'modules': modules_status,
-        'environment': 'production' if not app.debug else 'development'
     })
 
 # ============================================================================
