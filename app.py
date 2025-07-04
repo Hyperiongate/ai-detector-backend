@@ -1535,12 +1535,12 @@ def calculate_manipulation_indicators(compression, noise, frequency, edges, meta
 def perform_deepfake_analysis(img_cv2):
     """Perform deepfake analysis if faces are detected"""
     if not CV_AVAILABLE:
-        return {
-            'face_detected': False,
-            'facial_consistency': 0.95,
-            'temporal_coherence': 0.92,
-            'confidence': 0.85
-        }
+    return {
+        'face_detected': False,
+        'facial_consistency': 0.95,
+        'temporal_coherence': 0.92,
+        'confidence': 0.85
+    }
 
 def calculate_analysis_confidence(manipulation_indicators, ai_detection):
     """Calculate overall confidence in the analysis"""
@@ -2649,51 +2649,3 @@ def server_error(e):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=False)
-    
-    try:
-        # Load face cascade (you'll need to ensure haarcascade file is available)
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        faces = face_cascade.detectMultiScale(img_cv2, 1.1, 4)
-        
-        if len(faces) > 0:
-            # Analyze facial regions for deepfake indicators
-            facial_consistency = 0.96  # Would need proper facial landmark analysis
-            temporal_coherence = 0.94  # Would need video frames for real analysis
-            
-            # Simplified deepfake detection based on face region analysis
-            for (x, y, w, h) in faces:
-                face_region = img_cv2[y:y+h, x:x+w]
-                
-                # Check for unnatural boundaries
-                face_edges = feature.canny(face_region)
-                edge_density = np.sum(face_edges) / face_edges.size
-                
-                # Check for texture inconsistencies
-                face_texture = analyze_texture_patterns(face_region)
-                
-                if edge_density > 0.3 or not face_texture['is_natural_texture']:
-                    facial_consistency *= 0.9
-            
-            confidence = facial_consistency
-            
-            return {
-                'face_detected': True,
-                'facial_consistency': facial_consistency,
-                'temporal_coherence': temporal_coherence,
-                'gan_signatures': 0.02,
-                'confidence': confidence
-            }
-        else:
-            return {
-                'face_detected': False,
-                'facial_consistency': 0.95,
-                'temporal_coherence': 0.92,
-                'confidence': 0.85
-            }
-    except:
-        return {
-            'face_detected': False,
-            'facial_consistency': 0.95,
-            'temporal_coherence': 0.92,
-            'confidence': 0.85
-        }
