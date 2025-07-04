@@ -21,24 +21,70 @@ import numpy as np
 import hashlib
 
 # Computer Vision imports for enhanced image analysis
-try:
-    import cv2
-    from scipy import fftpack
-    from skimage import feature, filters, morphology, exposure
-    from skimage.metrics import structural_similarity
-    import exifread
-    from collections import Counter
-    import scipy.stats as stats
+CV_AVAILABLE = False
+cv2 = None
+scipy = None
+skimage = None
+
+# Add delay and retry logic for module loading
+for attempt in range(3):
+    try:
+        # Import numpy first if not already imported
+        import numpy as np
+        
+        # Try importing CV modules with explicit error handling
+        import cv2
+        from scipy import fftpack
+        import scipy.stats as stats
+        from skimage import feature, filters, morphology, exposure
+        from skimage.metrics import structural_similarity
+        import exifread
+        from collections import Counter
+        
+        # Verify opencv is actually working by running a simple operation
+        test_array = np.zeros((10, 10), dtype=np.uint8)
+        test_result = cv2.Laplacian(test_array, cv2.CV_64F)
+        
+        # Verify scipy works
+        test_fft = fftpack.fft2(test_array)
+        
+        # Verify skimage works
+        test_edges = feature.canny(test_array)
+        
+        CV_AVAILABLE = True
+        print(f"✓ Computer vision modules loaded successfully (attempt {attempt + 1})")
+        print(f"  - OpenCV version: {cv2.__version__}")
+        print(f"  - All modules verified and working")
+        break
+        
+    except ImportError as e:
+        print(f"⚠ CV import error (attempt {attempt + 1}): {str(e)}")
+        print(f"  - Missing module: {e.name if hasattr(e, 'name') else 'unknown'}")
+        if attempt < 2:
+            import time as time_module
+            time_module.sleep(1.0)  # Wait 1 second before retry
+            
+    except Exception as e:
+        print(f"⚠ CV runtime error (attempt {attempt + 1}): {type(e).__name__}: {str(e)}")
+        if attempt < 2:
+            import time as time_module
+            time_module.sleep(1.0)
+            
+if not CV_AVAILABLE:
+    print("⚠ Computer vision modules not available after 3 attempts - will use basic image analysis")
+    print("  - This may be due to missing system dependencies or incomplete installation")
     
-    # Add this small delay to ensure modules are fully loaded
-    import time as time_module
-    time_module.sleep(0.1)
-    
-    CV_AVAILABLE = True
-    print("✓ Computer vision modules loaded successfully")
-except ImportError:
-    CV_AVAILABLE = False
-    print("⚠ Computer vision modules not available - will use basic image analysis")
+    # Set module variables to None for safety
+    cv2 = None
+    scipy = None
+    feature = None
+    filters = None
+    morphology = None
+    exposure = None
+    structural_similarity = None
+    fftpack = None
+    stats = None
+    exifread = None
 
 # OpenAI import for Phase 2 - Updated for v1.0+ API
 try:
@@ -1061,7 +1107,7 @@ def prepare_image_for_analysis(image_data):
     
     # Convert to grayscale for OpenCV operations
     if len(img_array.shape) == 3:
-        img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY) if CV_AVAILABLE and cv2 else img_array
     else:
         img_cv2 = img_array
     
@@ -1273,8 +1319,8 @@ def analyze_color_distribution(img_array):
             channel_stats.append({
                 'mean': np.mean(channel),
                 'std': np.std(channel),
-                'skew': stats.skew(channel.flatten()) if CV_AVAILABLE else 0,
-                'kurtosis': stats.kurtosis(channel.flatten()) if CV_AVAILABLE else 0
+                'skew': stats.skew(channel.flatten()) if CV_AVAILABLE and stats else 0,
+                'kurtosis': stats.kurtosis(channel.flatten()) if CV_AVAILABLE and stats else 0
             })
         
         # Check for color banding (AI artifact)
@@ -1393,7 +1439,7 @@ def detect_ai_generation_patterns(img_gray, compression, noise, frequency, edges
     
     # Model agreement
     scores = list(model_scores.values())
-    model_agreement = 100 - np.std(scores) if CV_AVAILABLE else 85
+    model_agreement = 100 - np.std(scores) if CV_AVAILABLE and stats else 85
     
     # Confidence calculation
     if overall_probability > 70 or overall_probability < 30:
@@ -2615,11 +2661,11 @@ def cv_status():
     """Debug endpoint to check CV module status"""
     return jsonify({
         'cv_available': CV_AVAILABLE,
-        'opencv_version': cv2.__version__ if CV_AVAILABLE else 'Not available',
+        'opencv_version': cv2.__version__ if CV_AVAILABLE and cv2 else 'Not available',
         'modules_loaded': {
-            'cv2': 'cv2' in globals(),
-            'scipy': 'scipy' in globals(),
-            'skimage': 'skimage' in globals()
+            'cv2': cv2 is not None,
+            'scipy': 'fftpack' in globals() or scipy is not None,
+            'skimage': 'feature' in globals() or skimage is not None
         }
     })
 
