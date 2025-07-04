@@ -414,428 +414,359 @@ def user_status():
     })
 
 # ============================================================================
-# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - IMPROVED VERSION
+# REAL UNIFIED ANALYSIS FUNCTION - Using actual APIs
 # ============================================================================
 
-def perform_realistic_unified_text_analysis(text):
+def perform_real_unified_analysis(content, analysis_type='all'):
     """
-    Perform realistic AI text detection for unified page with improved accuracy
-    This is separate from news analysis - won't affect news.html
+    Perform REAL unified content analysis using actual AI APIs and analysis methods
+    Leverages OpenAI API (GPT-4o) and existing analysis functions
     """
-    # Calculate real text statistics
-    words = text.split()
-    sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
-    word_count = len(words)
-    sentence_count = len(sentences)
-    char_count = len(text)
+    results = {
+        'timestamp': datetime.utcnow().isoformat(),
+        'analysis_complete': True,
+        'is_pro': True
+    }
     
-    # Calculate vocabulary diversity
-    unique_words = len(set(word.lower() for word in words))
-    vocabulary_diversity = int((unique_words / max(word_count, 1)) * 100)
+    # ============================================================================
+    # AI DETECTION ANALYSIS - Using OpenAI GPT-4o
+    # ============================================================================
     
-    # Calculate average sentence length variance
-    if sentences:
-        sentence_lengths = [len(s.split()) for s in sentences]
-        avg_length = sum(sentence_lengths) / len(sentence_lengths)
-        variance = sum((l - avg_length) ** 2 for l in sentence_lengths) / len(sentence_lengths)
-        sentence_complexity = max(0, min(100, 70 - variance))
-    else:
-        sentence_complexity = 50
-        avg_length = 0
-    
-    # Look for AI patterns
-    ai_indicators = 0
-    human_indicators = 0
-    
-    # Check for repetitive phrases (AI tendency)
-    bigrams = {}
-    for i in range(len(words) - 1):
-        bigram = f"{words[i].lower()} {words[i+1].lower()}"
-        bigrams[bigram] = bigrams.get(bigram, 0) + 1
-    
-    repeated_bigrams = sum(1 for count in bigrams.values() if count > 2)
-    if repeated_bigrams > 5:
-        ai_indicators += 20
-    
-    # Check for transition words (AI loves these)
-    transitions = ['however', 'therefore', 'moreover', 'furthermore', 'additionally',
-                  'consequently', 'nevertheless', 'thus', 'hence', 'accordingly',
-                  'in conclusion', 'in summary', 'to summarize', 'notably', 'significantly',
-                  'it is important to note', 'it should be noted', 'one must consider']
-    
-    transition_count = 0
-    text_lower = text.lower()
-    for trans in transitions:
-        transition_count += text_lower.count(trans)
-    
-    if transition_count > sentence_count * 0.3:
-        ai_indicators += 25
-    elif transition_count > sentence_count * 0.2:
-        ai_indicators += 15
-    
-    # Check for AI phrase patterns
-    ai_phrases = [
-        'it is important to', 'it should be noted', 'one must consider',
-        'in today\'s world', 'in modern society', 'throughout history',
-        'since the dawn of', 'as we navigate', 'in the realm of',
-        'the intersection of', 'the landscape of', 'the fabric of',
-        'delve into', 'shed light on', 'paint a picture',
-        'crucial to understand', 'essential to recognize',
-        'it is worth noting', 'it goes without saying', 'needless to say',
-        'at the end of the day', 'when all is said and done',
-        'the fact of the matter is', 'truth be told'
-    ]
-    
-    ai_phrase_count = sum(1 for phrase in ai_phrases if phrase in text_lower)
-    if ai_phrase_count > 3:
-        ai_indicators += 20
-    elif ai_phrase_count > 1:
-        ai_indicators += 10
-    
-    # Check for perfect grammar and structure (AI indicator)
-    # Look for consistent paragraph lengths
-    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
-    if len(paragraphs) > 2:
-        para_lengths = [len(p.split()) for p in paragraphs]
-        para_variance = sum((l - sum(para_lengths)/len(para_lengths)) ** 2 for l in para_lengths) / len(para_lengths)
-        if para_variance < 100:  # Very consistent paragraph lengths
-            ai_indicators += 15
-    
-    # Check for human indicators
-    # Contractions (humans use these more)
-    contractions = ["don't", "won't", "can't", "isn't", "aren't", "hasn't", "haven't",
-                   "wouldn't", "couldn't", "shouldn't", "i'm", "you're", "we're", "they're",
-                   "it's", "that's", "what's", "here's", "there's", "i've", "we've", "they've",
-                   "i'll", "we'll", "they'll", "i'd", "we'd", "they'd"]
-    contraction_count = sum(1 for word in text.lower().split() if word in contractions)
-    if contraction_count > word_count * 0.01:
-        human_indicators += 15
-    elif contraction_count > 0:
-        human_indicators += 8
-    
-    # Informal language (human indicator)
-    informal = ['kinda', 'gonna', 'wanna', 'gotta', 'yeah', 'yep', 'nope', 'ok', 'okay',
-                'like', 'you know', 'i mean', 'actually', 'basically', 'literally', 'um', 'uh']
-    informal_count = sum(1 for word in text.lower().split() if word in informal)
-    if informal_count > 2:
-        human_indicators += 15
-    elif informal_count > 0:
-        human_indicators += 8
-    
-    # Personal pronouns (humans use more)
-    personal_pronouns = ['i', 'me', 'my', 'mine', 'we', 'us', 'our']
-    pronoun_count = sum(1 for word in text.lower().split() if word in personal_pronouns)
-    if pronoun_count > word_count * 0.02:
-        human_indicators += 10
-    
-    # Check for quotes (AI often uses famous quotes)
-    quote_count = text.count('"')
-    if quote_count >= 4:  # At least 2 quoted sections
-        ai_indicators += 10
+    if analysis_type in ['text', 'ai', 'all']:
+        # Use the advanced text analysis which includes basic metrics
+        ai_results = perform_advanced_text_analysis(content)
         
-    # Famous quote detection - expanded list
-    famous_quotes = [
-        # Steve Jobs quotes
-        "the only way to do great work is to love what you do",
-        "innovation distinguishes between a leader and a follower",
-        "your time is limited",
-        "stay hungry, stay foolish",
-        "think different",
-        "being the richest man in the cemetery",
-        "connecting the dots",
-        
-        # Classic philosophy
-        "the journey of a thousand miles begins with a single step",
-        "to be or not to be",
-        "i think therefore i am",
-        "the unexamined life is not worth living",
-        "know thyself",
-        "the only thing i know is that i know nothing",
-        
-        # Political/Historical
-        "the only thing we have to fear is fear itself",
-        "ask not what your country can do for you",
-        "i have a dream",
-        "that's one small step for man",
-        "give me liberty or give me death",
-        "all men are created equal",
-        "power tends to corrupt",
-        "the buck stops here",
-        "tear down this wall",
-        
-        # Gandhi/MLK/Inspirational
-        "be the change you wish to see",
-        "an eye for an eye",
-        "injustice anywhere is a threat to justice everywhere",
-        "darkness cannot drive out darkness",
-        "the arc of the moral universe",
-        
-        # Literary
-        "all that glitters is not gold",
-        "to thine own self be true",
-        "it was the best of times",
-        "call me ishmael",
-        "all animals are equal",
-        "big brother is watching",
-        
-        # Einstein
-        "imagination is more important than knowledge",
-        "god does not play dice",
-        "e=mc2",
-        "insanity is doing the same thing",
-        
-        # Business/Success
-        "fail fast",
-        "move fast and break things",
-        "the customer is always right",
-        "location, location, location",
-        "time is money",
-        "work smarter not harder",
-        
-        # Common wisdom
-        "actions speak louder than words",
-        "the early bird catches the worm",
-        "practice makes perfect",
-        "knowledge is power",
-        "fortune favors the bold"
-    ]
-    
-    # Calculate final probabilities
-    base_ai_prob = 40  # Start with neutral-ish
-    
-    # Adjust based on indicators
-    ai_adjustment = ai_indicators
-    human_adjustment = human_indicators
-    
-    # Vocabulary diversity factor
-    if vocabulary_diversity > 90:
-        ai_adjustment += 10
-    elif vocabulary_diversity < 30:
-        human_adjustment += 10
-    
-    # Sentence consistency factor
-    if sentence_complexity > 80:
-        ai_adjustment += 15
-    
-    # Calculate final probabilities
-    ai_probability = max(5, min(95, base_ai_prob + ai_adjustment - (human_adjustment * 0.7)))
-    human_probability = 100 - ai_probability
-    
-    # Calculate repetitive patterns score
-    repetitive_patterns = min(100, (repeated_bigrams / max(len(bigrams), 1)) * 500)
-    
-    # Calculate coherence based on structure
-    coherence_score = min(100, 50 + (transition_count * 10) + (sentence_count * 2))
-    
-    # IMPROVED PLAGIARISM DETECTION WITH ACTUAL LINE IDENTIFICATION
-    plagiarized_lines = []
-    matched_sources = 0
-    highest_match = 0
-    
-    # Check each sentence for plagiarism
-    for i, sentence in enumerate(sentences):
-        sentence_lower = sentence.lower().strip()
-        
-        # Skip very short sentences
-        if len(sentence.split()) < 5:
-            continue
-            
-        # Check against famous quotes
-        for quote in famous_quotes:
-            # Check for partial matches too
-            if quote in sentence_lower or (len(quote) > 20 and any(part in sentence_lower for part in quote.split() if len(part) > 10)):
-                similarity = 95
-                if quote in sentence_lower:
-                    similarity = 99
+        # Enhance with real OpenAI AI detection
+        if OPENAI_API_KEY and OPENAI_AVAILABLE and client:
+            try:
+                # Use OpenAI to detect AI-generated content
+                ai_detection_prompt = f"""Analyze this text to determine if it was written by AI or a human. 
                 
-                plagiarized_lines.append({
-                    'line_number': i,
-                    'text': sentence[:150] + '...' if len(sentence) > 150 else sentence,
-                    'similarity': similarity,
-                    'source': 'Famous Quotes Database'
-                })
-                matched_sources = max(matched_sources, 1)
-                highest_match = max(highest_match, similarity)
-                break
-        
-        # Check for common academic phrases that might be plagiarized
-        academic_phrases = [
-            "studies have shown that",
-            "research indicates that",
-            "according to recent studies",
-            "it has been demonstrated that",
-            "evidence suggests that",
-            "scholars argue that",
-            "it is widely accepted that",
-            "the literature reveals",
-            "empirical evidence shows",
-            "data indicates that",
-            "findings suggest that",
-            "analysis reveals that",
-            "experts believe that",
-            "scientists have discovered"
-        ]
-        
-        for phrase in academic_phrases:
-            if phrase in sentence_lower and len(sentence.split()) > 15:
-                # Longer sentences with academic phrases are suspicious
-                if random.random() < 0.6:  # 60% chance if it's a long academic sentence
-                    similarity = random.randint(75, 89)
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:150] + '...' if len(sentence) > 150 else sentence,
-                        'similarity': similarity,
-                        'source': f'Academic Database {random.randint(1, 5)}'
-                    })
-                    matched_sources += 1
-                    highest_match = max(highest_match, similarity)
-                    break
-        
-        # Check for Wikipedia-style sentences
-        wiki_patterns = [
-            r'\(\d{4}\)',  # Years in parentheses
-            r'is a \w+ \w+ that',  # Definition pattern
-            r'was a \w+ \w+ who',  # Biography pattern
-            r'refers to',  # Definition pattern
-            r'is defined as',  # Definition pattern
-            r'is known for',  # Biography pattern
-            r'is considered',  # Encyclopedia pattern
-            r'is regarded as'  # Encyclopedia pattern
-        ]
-        
-        for pattern in wiki_patterns:
-            if re.search(pattern, sentence):
-                if random.random() < 0.4:  # 40% chance for wiki-style
-                    similarity = random.randint(70, 85)
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:150] + '...' if len(sentence) > 150 else sentence,
-                        'similarity': similarity,
-                        'source': 'Wikipedia'
-                    })
-                    matched_sources += 1
-                    highest_match = max(highest_match, similarity)
-                    break
-        
-        # Check for news-style opening sentences
-        news_patterns = [
-            r'^[A-Z\s]+ - ',  # "WASHINGTON - " style
-            r'^\w+, \w+ \d+',  # Date at beginning
-            r'announced today',
-            r'said in a statement',
-            r'according to sources',
-            r'officials said'
-        ]
-        
-        for pattern in news_patterns:
-            if re.search(pattern, sentence):
-                if random.random() < 0.3:  # 30% chance for news style
-                    similarity = random.randint(65, 80)
-                    plagiarized_lines.append({
-                        'line_number': i,
-                        'text': sentence[:150] + '...' if len(sentence) > 150 else sentence,
-                        'similarity': similarity,
-                        'source': 'News Archive Database'
-                    })
-                    matched_sources += 1
-                    highest_match = max(highest_match, similarity)
-                    break
-    
-    # If we found quoted text but no plagiarism yet, mark quotes as potential plagiarism
-    if quote_count >= 4 and len(plagiarized_lines) == 0:
-        # Find sentences with quotes
-        for i, sentence in enumerate(sentences):
-            if '"' in sentence:
-                # Extract the quoted part
-                quote_match = re.search(r'"([^"]+)"', sentence)
-                if quote_match:
-                    quoted_text = quote_match.group(1)
-                    # Check if it's a substantial quote
-                    if len(quoted_text.split()) > 5:
-                        plagiarized_lines.append({
-                            'line_number': i,
-                            'text': sentence[:150] + '...' if len(sentence) > 150 else sentence,
-                            'similarity': random.randint(85, 95),
-                            'source': 'Quotation Database'
-                        })
-                        matched_sources += 1
-                        if len(plagiarized_lines) >= 3:
-                            break
-    
-    # Update matched sources count
-    matched_sources = max(matched_sources, len(set(line['source'] for line in plagiarized_lines)))
-    
-    # Calculate originality score based on plagiarized content
-    if len(sentences) > 0:
-        plagiarized_sentence_count = len(plagiarized_lines)
-        originality_score = max(0, 100 - (plagiarized_sentence_count / len(sentences) * 100))
-        originality_score = int(originality_score)
-    else:
-        originality_score = 94
-    
-    # Ensure consistency
-    if matched_sources == 0:
-        highest_match = 0
-        originality_score = max(85, originality_score)
-    else:
-        # If we found matches, ensure originality isn't too high
-        originality_score = min(originality_score, 100 - (matched_sources * 5))
-    
-    return {
-        'ai_probability': int(ai_probability),
-        'human_probability': int(human_probability),
-        'indicators': {
-            'repetitive_patterns': int(repetitive_patterns),
-            'vocabulary_diversity': vocabulary_diversity,
-            'sentence_complexity': int(sentence_complexity),
-            'coherence_score': int(coherence_score)
-        },
-        'plagiarism_check': {
-            'originality_score': originality_score,
-            'matched_sources': matched_sources,
-            'highest_match': highest_match,
-            'plagiarized_lines': plagiarized_lines[:8]  # Limit to 8 lines
-        },
-        'statistics': {
-            'word_count': word_count,
-            'character_count': char_count,
-            'average_word_length': round(char_count / max(word_count, 1), 1),
-            'sentence_count': sentence_count,
-            'average_sentence_length': round(word_count / max(sentence_count, 1), 1),
-            'reading_level': 'College' if avg_length > 20 else 'High School' if avg_length > 15 else 'Middle School'
-        },
-        'detected_patterns': {
-            'transition_words': transition_count,
-            'contractions': contraction_count,
-            'personal_pronouns': pronoun_count,
-            'repeated_phrases': repeated_bigrams,
-            'quotes_found': quote_count // 2,
-            'ai_phrases': ai_phrase_count
-        },
-        'is_pro': False
-    }
+Text: {content[:3000]}  # Limit for token management
 
-def perform_realistic_unified_news_check(content):
-    """
-    Perform realistic news verification for unified page
-    Reuses existing news analysis but adds unified-specific features
-    """
-    # Use the existing news analysis functions (won't break them)
-    basic_news = perform_basic_news_analysis(content)
+Provide a detailed analysis in JSON format with these exact fields:
+{{
+    "ai_probability": 0-100 (percentage likelihood this is AI-generated),
+    "human_probability": 0-100 (percentage likelihood this is human-written),
+    "ai_model_detected": "GPT/Claude/Gemini/Unknown/None",
+    "confidence": 0-100,
+    "ai_indicators": ["list of specific AI patterns found"],
+    "human_indicators": ["list of specific human patterns found"],
+    "writing_analysis": {{
+        "consistency": "high/medium/low",
+        "natural_flow": true/false,
+        "personal_voice": true/false,
+        "emotional_authenticity": true/false
+    }},
+    "explanation": "detailed reasoning for the assessment"
+}}
+
+Be precise and analytical. Return ONLY valid JSON."""
+
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are an expert at detecting AI-generated content. Always return valid JSON only."},
+                        {"role": "user", "content": ai_detection_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=800,
+                    timeout=30
+                )
+                
+                # Parse OpenAI response
+                result_text = response.choices[0].message.content.strip()
+                
+                # Extract JSON
+                if "```json" in result_text:
+                    result_text = result_text.split("```json")[1].split("```")[0].strip()
+                elif "```" in result_text:
+                    result_text = result_text.split("```")[1].split("```")[0].strip()
+                
+                # Parse JSON
+                try:
+                    ai_analysis = json.loads(result_text)
+                    
+                    # Update results with real AI analysis
+                    ai_results['ai_probability'] = ai_analysis.get('ai_probability', ai_results.get('ai_probability', 50))
+                    ai_results['human_probability'] = ai_analysis.get('human_probability', ai_results.get('human_probability', 50))
+                    ai_results['ai_detection_confidence'] = ai_analysis.get('confidence', 85)
+                    ai_results['ai_model_signatures'] = {
+                        'model_detected': ai_analysis.get('ai_model_detected', 'Unknown'),
+                        'detection_explanation': ai_analysis.get('explanation', ''),
+                        'ai_indicators': ai_analysis.get('ai_indicators', []),
+                        'human_indicators': ai_analysis.get('human_indicators', [])
+                    }
+                    ai_results['writing_analysis'] = ai_analysis.get('writing_analysis', {})
+                    ai_results['openai_enhanced'] = True
+                    
+                except json.JSONDecodeError:
+                    print("Failed to parse OpenAI AI detection response")
+                    ai_results['openai_enhanced'] = False
+                    
+            except Exception as e:
+                print(f"OpenAI AI detection error: {e}")
+                ai_results['openai_enhanced'] = False
+        
+        # Real plagiarism check using OpenAI
+        if OPENAI_API_KEY and OPENAI_AVAILABLE and client:
+            try:
+                plagiarism_prompt = f"""Analyze this text for potential plagiarism or unoriginal content.
+
+Text: {content[:2000]}
+
+Identify any phrases, sentences, or sections that appear to be:
+1. Direct quotes from famous sources
+2. Common academic or Wikipedia-style language
+3. Potentially copied from other sources
+
+Return JSON with:
+{{
+    "originality_score": 0-100,
+    "potential_sources": ["list of potential source types"],
+    "suspicious_phrases": [
+        {{
+            "text": "the suspicious phrase",
+            "reason": "why it seems unoriginal",
+            "likely_source": "where it might be from"
+        }}
+    ]
+}}
+
+Return ONLY valid JSON."""
+
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are an expert plagiarism detector. Return only valid JSON."},
+                        {"role": "user", "content": plagiarism_prompt}
+                    ],
+                    temperature=0.2,
+                    max_tokens=600,
+                    timeout=20
+                )
+                
+                result_text = response.choices[0].message.content.strip()
+                if "```json" in result_text:
+                    result_text = result_text.split("```json")[1].split("```")[0].strip()
+                
+                try:
+                    plagiarism_analysis = json.loads(result_text)
+                    
+                    # Update plagiarism results
+                    if 'plagiarism_check' not in ai_results:
+                        ai_results['plagiarism_check'] = {
+                            'originality_score': 90,
+                            'matched_sources': 0,
+                            'highest_match': 0,
+                            'plagiarized_lines': []
+                        }
+                    
+                    ai_results['plagiarism_check']['originality_score'] = plagiarism_analysis.get('originality_score', 90)
+                    ai_results['plagiarism_check']['ai_detected_sources'] = plagiarism_analysis.get('potential_sources', [])
+                    
+                    # Add suspicious phrases as plagiarized lines
+                    for phrase in plagiarism_analysis.get('suspicious_phrases', [])[:5]:
+                        ai_results['plagiarism_check']['plagiarized_lines'].append({
+                            'text': phrase['text'][:150],
+                            'similarity': 85,
+                            'source': phrase.get('likely_source', 'Unknown Source'),
+                            'reason': phrase.get('reason', '')
+                        })
+                    
+                    ai_results['plagiarism_check']['matched_sources'] = len(plagiarism_analysis.get('suspicious_phrases', []))
+                    
+                except json.JSONDecodeError:
+                    print("Failed to parse plagiarism analysis")
+                    
+            except Exception as e:
+                print(f"Plagiarism detection error: {e}")
+        
+        results['ai_analysis'] = ai_results
     
-    # Add unified-specific enhancements
-    basic_news['unified_summary'] = {
-        'is_news_content': True,
-        'news_indicators': {
-            'has_quotes': content.count('"') >= 2,
-            'has_dates': bool(re.search(r'\b\d{4}\b|\b\d{1,2}/\d{1,2}\b', content)),
-            'has_sources': 'according to' in content.lower() or 'reported' in content.lower(),
-            'journalistic_style': basic_news['credibility_score'] > 70
-        },
-        'recommended_action': 'Verify with multiple sources' if basic_news['credibility_score'] < 80 else 'Appears credible'
+    # ============================================================================
+    # NEWS VERIFICATION ANALYSIS - Using existing advanced function with OpenAI
+    # ============================================================================
+    
+    if analysis_type in ['news', 'all']:
+        # Use the existing advanced news analysis which already uses OpenAI
+        news_results = perform_advanced_news_analysis(content)
+        
+        # Additional real API enhancements
+        if GOOGLE_FACT_CHECK_API_KEY and content:
+            try:
+                # Extract key claims for fact checking
+                claims_to_check = []
+                sentences = [s.strip() for s in re.split(r'[.!?]+', content) if s.strip()]
+                
+                for sentence in sentences[:10]:  # Check first 10 sentences
+                    if any(indicator in sentence.lower() for indicator in ['percent', '%', 'million', 'billion', 'according to']):
+                        claims_to_check.append(sentence)
+                
+                # Make fact check API calls
+                real_fact_checks = []
+                for claim in claims_to_check[:3]:  # Limit to 3 for API rate limits
+                    try:
+                        response = requests.get(
+                            'https://factchecktools.googleapis.com/v1alpha1/claims:search',
+                            params={
+                                'key': GOOGLE_FACT_CHECK_API_KEY,
+                                'query': claim[:100],
+                                'languageCode': 'en'
+                            },
+                            timeout=5
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            if 'claims' in data:
+                                for claim_data in data['claims'][:1]:  # Take first result
+                                    real_fact_checks.append({
+                                        'claim': claim[:100],
+                                        'claim_review': claim_data.get('claimReview', [{}])[0].get('textualRating', 'Unknown'),
+                                        'publisher': claim_data.get('claimReview', [{}])[0].get('publisher', {}).get('name', 'Unknown'),
+                                        'url': claim_data.get('claimReview', [{}])[0].get('url', ''),
+                                        'status': 'Verified by fact-checker',
+                                        'api_verified': True
+                                    })
+                                    
+                    except Exception as e:
+                        print(f"Google Fact Check API error: {e}")
+                
+                # Add real fact check results
+                if real_fact_checks:
+                    news_results['fact_check_results'] = real_fact_checks + news_results.get('fact_check_results', [])
+                    news_results['google_fact_check_used'] = True
+                    
+            except Exception as e:
+                print(f"Fact checking error: {e}")
+        
+        # Real cross-references using News API
+        if NEWS_API_KEY and content:
+            try:
+                # Extract key terms for news search
+                important_words = [word for word in content.split() if len(word) > 6 and word[0].isupper()][:5]
+                search_query = ' '.join(important_words[:3])
+                
+                if search_query:
+                    response = requests.get(
+                        'https://newsapi.org/v2/everything',
+                        params={
+                            'apiKey': NEWS_API_KEY,
+                            'q': search_query,
+                            'language': 'en',
+                            'sortBy': 'relevancy',
+                            'pageSize': 5
+                        },
+                        timeout=5
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        real_cross_refs = []
+                        
+                        for article in data.get('articles', [])[:5]:
+                            real_cross_refs.append({
+                                'source': article['source']['name'],
+                                'title': article['title'],
+                                'url': article['url'],
+                                'publishedAt': article['publishedAt'],
+                                'relevance': 85,
+                                'real_source': True
+                            })
+                        
+                        if real_cross_refs:
+                            news_results['cross_references'] = real_cross_refs
+                            news_results['real_cross_references'] = True
+                            
+            except Exception as e:
+                print(f"News API error: {e}")
+        
+        # Add unified enhancements
+        news_results['unified_summary'] = {
+            'is_news_content': True,
+            'news_indicators': {
+                'has_quotes': content.count('"') >= 2,
+                'has_dates': bool(re.search(r'\b\d{4}\b|\b\d{1,2}/\d{1,2}\b', content)),
+                'has_sources': 'according to' in content.lower() or 'reported' in content.lower(),
+                'journalistic_style': news_results.get('credibility_score', 0) > 70
+            },
+            'recommended_action': 'Verify with multiple sources' if news_results.get('credibility_score', 0) < 80 else 'Appears credible'
+        }
+        
+        results['news_analysis'] = news_results
+    
+    # ============================================================================
+    # COMBINED INSIGHTS - Real AI-powered summary using GPT-4o
+    # ============================================================================
+    
+    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and analysis_type == 'all':
+        try:
+            combined_prompt = f"""Based on the comprehensive analysis of this content, provide a final unified assessment.
+
+Content: {content[:1500]}
+
+Analysis results:
+- AI Detection: {results.get('ai_analysis', {}).get('ai_probability', 'N/A')}% AI probability
+- News Credibility: {results.get('news_analysis', {}).get('credibility_score', 'N/A')}/100
+- Political Bias: {results.get('news_analysis', {}).get('political_bias', {}).get('bias_label', 'N/A')}
+
+Provide a unified assessment in JSON:
+{{
+    "overall_trustworthiness": 0-100,
+    "content_type": "news/opinion/blog/academic/other",
+    "key_concerns": ["list of main issues found"],
+    "key_strengths": ["list of positive indicators"],
+    "recommendation": "trust/verify/caution/avoid",
+    "summary": "2-3 sentence executive summary"
+}}
+
+Return ONLY valid JSON."""
+
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are an expert content analyst providing final assessments."},
+                    {"role": "user", "content": combined_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=400,
+                timeout=15
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+                
+            try:
+                unified_assessment = json.loads(result_text)
+                results['unified_assessment'] = unified_assessment
+                results['ai_powered_summary'] = True
+            except json.JSONDecodeError:
+                print("Failed to parse unified assessment")
+                
+        except Exception as e:
+            print(f"Unified assessment error: {e}")
+    
+    # Add metadata about what real APIs were used
+    results['analysis_metadata'] = {
+        'openai_used': OPENAI_API_KEY and OPENAI_AVAILABLE and results.get('ai_analysis', {}).get('openai_enhanced', False),
+        'google_fact_check_used': GOOGLE_FACT_CHECK_API_KEY and results.get('news_analysis', {}).get('google_fact_check_used', False),
+        'news_api_used': NEWS_API_KEY and results.get('news_analysis', {}).get('real_cross_references', False),
+        'analysis_timestamp': datetime.utcnow().isoformat(),
+        'api_calls_made': [],
+        'model_used': 'gpt-4o'
     }
     
-    return basic_news
+    # Track which APIs were actually called
+    if results['analysis_metadata']['openai_used']:
+        results['analysis_metadata']['api_calls_made'].append('OpenAI GPT-4o')
+    if results['analysis_metadata']['google_fact_check_used']:
+        results['analysis_metadata']['api_calls_made'].append('Google Fact Check')
+    if results['analysis_metadata']['news_api_used']:
+        results['analysis_metadata']['api_calls_made'].append('News API')
+    
+    return results
 
 # ============================================================================
 # ENHANCED IMAGE ANALYSIS FUNCTIONS - Real Implementation
@@ -1448,21 +1379,14 @@ def analyze_unified():
         if not text and not content:
             return jsonify({'error': 'No content provided'}), 400
         
-        result = {}
+        # Use the new REAL unified analysis function
+        result = perform_real_unified_analysis(text, analysis_type)
         
-        # Perform different types of analysis based on request
-        if analysis_type in ['text', 'ai', 'all']:
-            # Use the new realistic analysis for unified page
-            result['ai_analysis'] = perform_realistic_unified_text_analysis(text)
-        
-        if analysis_type in ['news', 'all']:
-            # Use enhanced news check that doesn't break existing news analysis
-            result['news_analysis'] = perform_realistic_unified_news_check(text)
-        
+        # Handle image analysis if requested
         if analysis_type in ['image'] and data.get('image'):
-            result['image_analysis'] = perform_basic_image_analysis(data.get('image'))  # Safer
+            result['image_analysis'] = perform_realistic_image_analysis(data.get('image'), is_pro=True)
         
-        # Add metadata
+        # Ensure all expected fields are present
         result['analysis_complete'] = True
         result['timestamp'] = datetime.utcnow().isoformat()
         result['is_pro'] = True  # Development mode
@@ -1753,7 +1677,7 @@ Be objective and specific in your analysis. Return ONLY valid JSON, no additiona
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "You are an expert news analyst. Always return valid JSON only, no markdown or extra text."},
                         {"role": "user", "content": prompt}
@@ -1852,7 +1776,7 @@ Return a JSON array of claims, each with:
 Focus on concrete, verifiable claims. Limit to the 5 most important claims. Return ONLY valid JSON."""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a fact-checking expert who identifies specific claims that can be verified. Return only valid JSON."},
                 {"role": "user", "content": prompt}
@@ -1962,7 +1886,7 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
         
         # Update methodology to reflect AI enhancement
         basic_results['methodology']['ai_enhanced'] = True
-        basic_results['methodology']['models_used'] = ['GPT-3.5-turbo', 'Pattern matching']
+        basic_results['methodology']['models_used'] = ['GPT-4o', 'Pattern matching']
         basic_results['methodology']['confidence_level'] = 90 if is_pro else 85
         
         print("✓ Successfully enhanced analysis with OpenAI")
