@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import traceback
 import json
 import requests
-from urllib.parse import urlparse 
+from urllib.parse import urlparse
 import re
 from functools import wraps
 import secrets
@@ -358,7 +358,7 @@ def pricingplan():
 @app.route('/speechcheck')
 def speechcheck():
     """Speech fact-check page route"""
-    return render_template('speechcheck.html', user=get_current_user())
+    return render_template('speech.html', user=get_current_user())
 
 # Authentication Routes
 @app.route('/login')
