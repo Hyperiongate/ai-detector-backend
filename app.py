@@ -420,6 +420,85 @@ def user_status():
     })
 
 # ============================================================================
+# NEW: CV MODULE DEBUG ENDPOINT
+# ============================================================================
+
+@app.route('/api/debug/cv-status', methods=['GET'])
+def cv_status():
+    """Debug endpoint to check CV module status"""
+    import sys
+    
+    status = {
+        'cv_available': CV_AVAILABLE,
+        'python_version': sys.version,
+        'platform': sys.platform,
+        'modules_status': {}
+    }
+    
+    # Check each CV module individually
+    modules_to_check = {
+        'cv2': 'OpenCV',
+        'scipy': 'SciPy',
+        'scipy.fftpack': 'SciPy FFTPack',
+        'skimage': 'Scikit-Image',
+        'skimage.feature': 'Scikit-Image Feature',
+        'skimage.metrics': 'Scikit-Image Metrics',
+        'exifread': 'EXIF Reader',
+        'PIL': 'Pillow',
+        'numpy': 'NumPy'
+    }
+    
+    for module_name, display_name in modules_to_check.items():
+        try:
+            if '.' in module_name:
+                parts = module_name.split('.')
+                module = __import__(parts[0])
+                for part in parts[1:]:
+                    module = getattr(module, part)
+            else:
+                module = __import__(module_name)
+            
+            # Get version if available
+            version = 'loaded'
+            if hasattr(module, '__version__'):
+                version = module.__version__
+            elif module_name == 'cv2' and hasattr(module, 'cv2'):
+                version = module.cv2.__version__
+                
+            status['modules_status'][display_name] = {
+                'loaded': True,
+                'version': version
+            }
+        except ImportError as e:
+            status['modules_status'][display_name] = {
+                'loaded': False,
+                'error': str(e)
+            }
+    
+    # Check for system libraries (if cv2 is available)
+    if CV_AVAILABLE:
+        try:
+            import cv2
+            build_info = cv2.getBuildInformation()
+            status['opencv_build_info'] = build_info[:500]  # First 500 chars
+        except:
+            pass
+    
+    # Test if image analysis would work
+    try:
+        test_img = np.zeros((100, 100), dtype=np.uint8)
+        if CV_AVAILABLE:
+            import cv2
+            edges = cv2.Canny(test_img, 50, 150)
+            status['cv_test'] = 'OpenCV operations working'
+        else:
+            status['cv_test'] = 'CV not available for testing'
+    except Exception as e:
+        status['cv_test'] = f'Test failed: {str(e)}'
+    
+    return jsonify(status)
+
+# ============================================================================
 # NEW: SPEECH FACT-CHECKING API ENDPOINTS
 # ============================================================================
 
@@ -1456,54 +1535,6 @@ def calculate_manipulation_indicators(compression, noise, frequency, edges, meta
 def perform_deepfake_analysis(img_cv2):
     """Perform deepfake analysis if faces are detected"""
     if not CV_AVAILABLE:
-        return {
-            'face_detected': False,
-            'facial_consistency': 0.95,
-            'temporal_coherence': 0.92,
-            'confidence': 0.85
-        }
-    
-    try:
-        # Load face cascade (you'll need to ensure haarcascade file is available)
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        faces = face_cascade.detectMultiScale(img_cv2, 1.1, 4)
-        
-        if len(faces) > 0:
-            # Analyze facial regions for deepfake indicators
-            facial_consistency = 0.96  # Would need proper facial landmark analysis
-            temporal_coherence = 0.94  # Would need video frames for real analysis
-            
-            # Simplified deepfake detection based on face region analysis
-            for (x, y, w, h) in faces:
-                face_region = img_cv2[y:y+h, x:x+w]
-                
-                # Check for unnatural boundaries
-                face_edges = feature.canny(face_region)
-                edge_density = np.sum(face_edges) / face_edges.size
-                
-                # Check for texture inconsistencies
-                face_texture = analyze_texture_patterns(face_region)
-                
-                if edge_density > 0.3 or not face_texture['is_natural_texture']:
-                    facial_consistency *= 0.9
-            
-            confidence = facial_consistency
-            
-            return {
-                'face_detected': True,
-                'facial_consistency': facial_consistency,
-                'temporal_coherence': temporal_coherence,
-                'gan_signatures': 0.02,
-                'confidence': confidence
-            }
-        else:
-            return {
-                'face_detected': False,
-                'facial_consistency': 0.95,
-                'temporal_coherence': 0.92,
-                'confidence': 0.85
-            }
-    except:
         return {
             'face_detected': False,
             'facial_consistency': 0.95,
@@ -2618,3 +2649,51 @@ def server_error(e):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=False)
+    
+    try:
+        # Load face cascade (you'll need to ensure haarcascade file is available)
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        faces = face_cascade.detectMultiScale(img_cv2, 1.1, 4)
+        
+        if len(faces) > 0:
+            # Analyze facial regions for deepfake indicators
+            facial_consistency = 0.96  # Would need proper facial landmark analysis
+            temporal_coherence = 0.94  # Would need video frames for real analysis
+            
+            # Simplified deepfake detection based on face region analysis
+            for (x, y, w, h) in faces:
+                face_region = img_cv2[y:y+h, x:x+w]
+                
+                # Check for unnatural boundaries
+                face_edges = feature.canny(face_region)
+                edge_density = np.sum(face_edges) / face_edges.size
+                
+                # Check for texture inconsistencies
+                face_texture = analyze_texture_patterns(face_region)
+                
+                if edge_density > 0.3 or not face_texture['is_natural_texture']:
+                    facial_consistency *= 0.9
+            
+            confidence = facial_consistency
+            
+            return {
+                'face_detected': True,
+                'facial_consistency': facial_consistency,
+                'temporal_coherence': temporal_coherence,
+                'gan_signatures': 0.02,
+                'confidence': confidence
+            }
+        else:
+            return {
+                'face_detected': False,
+                'facial_consistency': 0.95,
+                'temporal_coherence': 0.92,
+                'confidence': 0.85
+            }
+    except:
+        return {
+            'face_detected': False,
+            'facial_consistency': 0.95,
+            'temporal_coherence': 0.92,
+            'confidence': 0.85
+        }
