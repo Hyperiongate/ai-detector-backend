@@ -20,6 +20,15 @@ from PIL import Image
 import numpy as np
 import hashlib
 
+# YouTube transcript import
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    YOUTUBE_TRANSCRIPT_AVAILABLE = True
+except ImportError:
+    YOUTUBE_TRANSCRIPT_AVAILABLE = False
+    YouTubeTranscriptApi = None
+    print("⚠ YouTube transcript API not available - YouTube features disabled")
+
 # Computer Vision imports for enhanced image analysis
 CV_AVAILABLE = False
 cv2 = None
@@ -471,6 +480,106 @@ def user_status():
             'can_analyze': True
         }
     })
+
+# ============================================================================
+# NEW: YOUTUBE TRANSCRIPT ENDPOINT
+# ============================================================================
+
+@app.route('/api/youtube-transcript', methods=['POST'])
+def youtube_transcript():
+    """
+    Extract transcript from YouTube video
+    """
+    if not YOUTUBE_TRANSCRIPT_AVAILABLE:
+        return jsonify({
+            'error': 'YouTube transcript API not available. Please install youtube-transcript-api.'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        video_url = data.get('url', '')
+        
+        if not video_url:
+            return jsonify({'error': 'No video URL provided'}), 400
+        
+        # Extract video ID from URL
+        video_id = None
+        
+        # Handle different YouTube URL formats
+        if 'youtube.com/watch?v=' in video_url:
+            video_id = video_url.split('v=')[1].split('&')[0]
+        elif 'youtu.be/' in video_url:
+            video_id = video_url.split('youtu.be/')[1].split('?')[0]
+        elif 'youtube.com/embed/' in video_url:
+            video_id = video_url.split('embed/')[1].split('?')[0]
+        
+        if not video_id:
+            return jsonify({'error': 'Invalid YouTube URL format'}), 400
+        
+        print(f"Fetching transcript for video ID: {video_id}")
+        
+        # Get transcript
+        try:
+            transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+            
+            # Combine all transcript segments
+            full_transcript = ' '.join([entry['text'] for entry in transcript_list])
+            
+            # Get video metadata (simplified)
+            metadata = {
+                'video_id': video_id,
+                'url': f'https://www.youtube.com/watch?v={video_id}',
+                'duration': transcript_list[-1]['start'] + transcript_list[-1]['duration'] if transcript_list else 0,
+                'segment_count': len(transcript_list)
+            }
+            
+            # Format duration
+            duration_seconds = metadata['duration']
+            hours = int(duration_seconds // 3600)
+            minutes = int((duration_seconds % 3600) // 60)
+            seconds = int(duration_seconds % 60)
+            
+            if hours > 0:
+                duration_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            else:
+                duration_formatted = f"{minutes:02d}:{seconds:02d}"
+            
+            return jsonify({
+                'success': True,
+                'transcript': full_transcript,
+                'metadata': {
+                    'video_id': video_id,
+                    'title': f'YouTube Video {video_id}',  # Would need YouTube API for actual title
+                    'channel': 'YouTube Channel',  # Would need YouTube API for actual channel
+                    'duration': duration_formatted,
+                    'url': metadata['url']
+                },
+                'segments': transcript_list[:10] if len(transcript_list) > 10 else transcript_list  # Sample segments
+            })
+            
+        except Exception as e:
+            error_message = str(e)
+            if 'disabled' in error_message.lower():
+                return jsonify({
+                    'error': 'Subtitles are disabled for this video',
+                    'details': 'The video owner has disabled subtitles/captions'
+                }), 403
+            elif 'not found' in error_message.lower():
+                return jsonify({
+                    'error': 'No transcript available',
+                    'details': 'This video does not have captions or auto-generated subtitles'
+                }), 404
+            else:
+                print(f"YouTube API error: {e}")
+                return jsonify({
+                    'error': 'Failed to fetch transcript',
+                    'details': error_message
+                }), 500
+                
+    except Exception as e:
+        print(f"YouTube transcript error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to process YouTube URL'}), 500
 
 # ============================================================================
 # NEW: SPEECH FACT-CHECKING API ENDPOINTS
