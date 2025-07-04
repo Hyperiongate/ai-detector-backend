@@ -39,6 +39,12 @@
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.5); }
         }
 
         .header p {
@@ -95,30 +101,375 @@
             overflow: hidden;
         }
 
-        .tool-container::before {
+        /* Active Mode Banner */
+        .active-mode-banner {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .active-mode-banner i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .mode-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Instructions Alert */
+        .instructions-alert {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+            border: 2px solid #6366f1;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .instructions-alert::before {
             content: '';
             position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #667eea, #764ba2, #f59e0b, #10b981, #667eea);
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #6366f1;
+        }
+
+        .instructions-alert h3 {
+            color: #4f46e5;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .instructions-list {
+            display: grid;
+            gap: 12px;
+            margin-left: 10px;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .instruction-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateX(5px);
+        }
+
+        .instruction-number {
+            background: #6366f1;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Input Section */
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: rgba(102, 126, 234, 0.05);
+            padding: 8px;
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .input-tab {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .input-tab-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-tab-icon {
+            font-size: 2rem;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .input-tab-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #4a5568;
+        }
+
+        .input-tab-description {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 400;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .input-tab:hover {
+            background: rgba(102, 126, 234, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .input-tab:hover .input-tab-icon {
+            transform: scale(1.1);
+        }
+
+        .input-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .input-tab.active .input-tab-title {
+            color: #667eea;
+        }
+
+        .input-tab.active::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #10b981;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Transcript Container */
+        .transcript-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .transcript-container.recording-mode {
+            border-color: #ef4444;
+            animation: recordingPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+
+        #transcript {
+            background: rgba(249, 250, 251, 0.8);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 1rem;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        #transcript:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #transcript:empty::before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* Recording Status */
+        .recording-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
             border-radius: 20px;
-            opacity: 0;
-            z-index: -1;
-            transition: opacity 0.3s ease;
-            background-size: 300% 300%;
-            animation: gradientShift 8s ease infinite;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .recording-status.active {
+            display: flex;
         }
 
-        .tool-container:hover::before {
-            opacity: 0.3;
+        .recording-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* Button States */
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-group-hint {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-style: italic;
         }
 
         /* Info Sections Grid */
@@ -145,6 +496,10 @@
             align-items: center;
             justify-content: space-between;
             transition: all 0.3s ease;
+        }
+
+        .dropdown-header:hover {
+            background: rgba(255, 255, 255, 0.8);
         }
 
         .dropdown-header.open {
@@ -252,156 +607,6 @@
             color: #ec4899;
         }
 
-        /* Input Section */
-        .input-section {
-            margin-bottom: 30px;
-        }
-
-        .input-tabs {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            background: rgba(102, 126, 234, 0.05);
-            padding: 8px;
-            border-radius: 15px;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .input-tab {
-            flex: 1;
-            padding: 16px 24px;
-            border: none;
-            background: transparent;
-            color: #6b7280;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .input-tab-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .input-tab-icon {
-            font-size: 1.8rem;
-            margin-bottom: 4px;
-        }
-
-        .input-tab-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #4a5568;
-        }
-
-        .input-tab-description {
-            font-size: 0.85rem;
-            color: #6b7280;
-            font-weight: 400;
-            text-align: center;
-            line-height: 1.3;
-        }
-
-        .input-tab:hover {
-            background: rgba(102, 126, 234, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .input-tab.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-
-        .input-tab.active .input-tab-title {
-            color: #667eea;
-        }
-
-        /* Transcript Container */
-        .transcript-container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            margin-bottom: 20px;
-        }
-
-        #transcript {
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 200px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-size: 1rem;
-            line-height: 1.6;
-            transition: all 0.3s ease;
-            color: #333;
-        }
-
-        #transcript:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        #transcript:empty::before {
-            content: 'Your speech will appear here as you speak, or paste/type text to analyze...';
-            color: #9ca3af;
-            font-style: italic;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
         /* Results Grid */
         .results-grid {
             display: grid;
@@ -416,6 +621,7 @@
             padding: 30px;
             border-radius: 15px;
             border: 2px solid rgba(102, 126, 234, 0.1);
+            animation: fadeInUp 0.5s ease;
         }
 
         .stats-grid {
@@ -431,6 +637,12 @@
             border-radius: 12px;
             text-align: center;
             border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
         }
 
         .stat-number {
@@ -453,6 +665,8 @@
             border: 2px solid rgba(102, 126, 234, 0.1);
             position: relative;
             overflow: hidden;
+            animation: fadeInUp 0.5s ease 0.2s;
+            animation-fill-mode: both;
         }
 
         .fact-check-card::after {
@@ -482,6 +696,8 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+            animation-fill-mode: both;
         }
 
         .fact-check-item::before {
@@ -543,6 +759,8 @@
             border: 2px solid rgba(102, 126, 234, 0.1);
             margin-top: 20px;
             grid-column: 1 / -1;
+            animation: fadeInUp 0.5s ease 0.4s;
+            animation-fill-mode: both;
         }
 
         .accuracy-meter {
@@ -595,32 +813,9 @@
             }
         }
 
-        /* Real-time indicator */
-        .live-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #dc2626;
-            margin-left: 20px;
-        }
-
-        .live-indicator::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: #ef4444;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         /* Loading */
@@ -658,6 +853,7 @@
             border-radius: 20px;
             text-align: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease;
         }
 
         .processing-content h3 {
@@ -743,6 +939,113 @@
         </nav>
 
         <div class="tool-container">
+            <!-- Active Mode Banner -->
+            <div class="active-mode-banner" id="modeBanner">
+                <div style="display: flex; align-items: center;">
+                    <i class="fas fa-microphone" id="modeIcon"></i>
+                    <span id="modeText">Live Recording Mode - Ready to record your speech</span>
+                </div>
+                <div class="mode-status">
+                    <span class="status-dot"></span>
+                    <span id="modeStatus">Active</span>
+                </div>
+            </div>
+
+            <!-- Instructions Alert -->
+            <div class="instructions-alert" id="instructionsAlert">
+                <h3><i class="fas fa-info-circle"></i> How to Use <span id="modeNameInstructions">Live Recording</span></h3>
+                <div class="instructions-list" id="instructionsList">
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div>
+                            <strong>Start Recording:</strong> Click the "Start Recording" button below (microphone access required)
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div>
+                            <strong>Speak Clearly:</strong> Your words will appear in real-time in the transcript box
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div>
+                            <strong>Stop Recording:</strong> Click "Stop Recording" when you're finished speaking
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div>
+                            <strong>Check Facts:</strong> Click "Check Facts" to analyze all claims in your speech
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="selectSource('microphone')">
+                        <div class="input-tab-content">
+                            <div class="input-tab-icon">🎤</div>
+                            <div class="input-tab-title">Live Recording</div>
+                            <div class="input-tab-description">Record speeches in real-time</div>
+                        </div>
+                    </button>
+                    <button class="input-tab" onclick="selectSource('text')">
+                        <div class="input-tab-content">
+                            <div class="input-tab-icon">📝</div>
+                            <div class="input-tab-title">Text Input</div>
+                            <div class="input-tab-description">Paste or type text to analyze</div>
+                        </div>
+                    </button>
+                    <button class="input-tab" onclick="selectSource('demo')">
+                        <div class="input-tab-content">
+                            <div class="input-tab-icon">▶️</div>
+                            <div class="input-tab-title">Try Demo</div>
+                            <div class="input-tab-description">See it in action instantly</div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Transcript Area -->
+                <div class="transcript-container" id="transcriptContainer">
+                    <div class="recording-status" id="recordingStatus">
+                        RECORDING
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <h3 style="color: #4a5568; margin: 0;">
+                            <i class="fas fa-file-alt"></i> Transcript
+                        </h3>
+                        <div style="color: #6b7280; font-size: 0.9rem;">
+                            <span id="wordCountDisplay">0</span> words
+                        </div>
+                    </div>
+                    <div id="transcript" 
+                         contenteditable="true" 
+                         spellcheck="false"
+                         data-placeholder="Your speech will appear here as you speak, or paste/type text to analyze..."></div>
+                    
+                    <div class="button-group">
+                        <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
+                            <i class="fas fa-microphone"></i> Start Recording
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop Recording
+                        </button>
+                        <button id="checkFactsBtn" class="btn btn-success" onclick="checkFacts()">
+                            <i class="fas fa-search"></i> Check Facts
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAll()">
+                            <i class="fas fa-trash"></i> Clear All & Reset
+                        </button>
+                    </div>
+                    <div class="btn-group-hint" id="buttonHint">
+                        <span id="hintText">Click "Start Recording" to begin capturing speech</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Info Sections -->
             <div class="info-sections-grid">
                 <div class="dropdown-section" id="how-it-works-section">
@@ -909,61 +1212,6 @@
                 </div>
             </div>
 
-            <!-- Input Section -->
-            <div class="input-section">
-                <div class="input-tabs">
-                    <button class="input-tab active" onclick="selectSource('microphone')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">🎤</div>
-                            <div class="input-tab-title">Live Recording</div>
-                            <div class="input-tab-description">Record speeches in real-time</div>
-                        </div>
-                    </button>
-                    <button class="input-tab" onclick="selectSource('text')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">📝</div>
-                            <div class="input-tab-title">Text Input</div>
-                            <div class="input-tab-description">Paste or type text to analyze</div>
-                        </div>
-                    </button>
-                    <button class="input-tab" onclick="selectSource('demo')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">▶️</div>
-                            <div class="input-tab-title">Try Demo</div>
-                            <div class="input-tab-description">See it in action instantly</div>
-                        </div>
-                    </button>
-                </div>
-
-                <!-- Transcript Area -->
-                <div class="transcript-container">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                        <h3 style="color: #4a5568; margin: 0;">
-                            <i class="fas fa-file-alt"></i> Transcript
-                        </h3>
-                        <div class="live-indicator" id="liveIndicator" style="display: none;">
-                            LIVE Recording
-                        </div>
-                    </div>
-                    <div id="transcript" contenteditable="true" spellcheck="false"></div>
-                    
-                    <div class="button-group">
-                        <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
-                            <i class="fas fa-microphone"></i> Start Recording
-                        </button>
-                        <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" style="display: none;">
-                            <i class="fas fa-stop"></i> Stop Recording
-                        </button>
-                        <button class="btn btn-success" onclick="checkFacts()">
-                            <i class="fas fa-search"></i> Check Facts
-                        </button>
-                        <button class="btn btn-secondary" onclick="clearAll()">
-                            <i class="fas fa-trash"></i> Clear
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Results Section -->
             <div class="results-grid" id="resultsSection" style="display: none;">
                 <!-- Statistics -->
@@ -1053,16 +1301,18 @@
                     isRecording = true;
                     document.getElementById('startBtn').style.display = 'none';
                     document.getElementById('stopBtn').style.display = 'inline-flex';
-                    document.getElementById('transcript').style.borderColor = '#10b981';
-                    document.getElementById('liveIndicator').style.display = 'inline-flex';
+                    document.getElementById('transcriptContainer').classList.add('recording-mode');
+                    document.getElementById('recordingStatus').classList.add('active');
+                    document.getElementById('hintText').textContent = 'Recording in progress... Speak clearly into your microphone';
                 };
                 
                 recognition.onend = () => {
                     isRecording = false;
                     document.getElementById('startBtn').style.display = 'inline-flex';
                     document.getElementById('stopBtn').style.display = 'none';
-                    document.getElementById('transcript').style.borderColor = '#e2e8f0';
-                    document.getElementById('liveIndicator').style.display = 'none';
+                    document.getElementById('transcriptContainer').classList.remove('recording-mode');
+                    document.getElementById('recordingStatus').classList.remove('active');
+                    document.getElementById('hintText').textContent = 'Recording stopped. Click "Check Facts" to analyze';
                 };
                 
                 recognition.onresult = (event) => {
@@ -1082,10 +1332,19 @@
                 };
                 
                 recognition.onerror = (event) => {
-                    if (event.error !== 'no-speech') {
+                    if (event.error === 'no-speech') {
+                        // Ignore no-speech errors
+                        return;
+                    }
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        alert('Microphone access denied. Please allow microphone access in your browser settings.');
+                    } else {
                         alert('Speech recognition error: ' + event.error);
                     }
                 };
+            } else {
+                alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
             }
         }
 
@@ -1103,32 +1362,132 @@
             // Update tabs
             document.querySelectorAll('.input-tab').forEach(tab => tab.classList.remove('active'));
             
+            // Update UI elements
+            const modeBanner = document.getElementById('modeBanner');
+            const modeIcon = document.getElementById('modeIcon');
+            const modeText = document.getElementById('modeText');
+            const instructionsList = document.getElementById('instructionsList');
+            const modeNameInstructions = document.getElementById('modeNameInstructions');
+            const startBtn = document.getElementById('startBtn');
+            const transcript = document.getElementById('transcript');
+            const hintText = document.getElementById('hintText');
+            
             if (source === 'microphone') {
                 document.querySelectorAll('.input-tab')[0].classList.add('active');
+                modeIcon.className = 'fas fa-microphone';
+                modeText.textContent = 'Live Recording Mode - Ready to record your speech';
+                modeNameInstructions.textContent = 'Live Recording';
+                startBtn.style.display = 'inline-flex';
+                transcript.setAttribute('data-placeholder', 'Your speech will appear here as you speak...');
+                transcript.contentEditable = 'false';
+                hintText.textContent = 'Click "Start Recording" to begin capturing speech';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div>
+                            <strong>Start Recording:</strong> Click the "Start Recording" button below (microphone access required)
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div>
+                            <strong>Speak Clearly:</strong> Your words will appear in real-time in the transcript box
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div>
+                            <strong>Stop Recording:</strong> Click "Stop Recording" when you're finished speaking
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div>
+                            <strong>Check Facts:</strong> Click "Check Facts" to analyze all claims in your speech
+                        </div>
+                    </div>
+                `;
             } else if (source === 'text') {
                 document.querySelectorAll('.input-tab')[1].classList.add('active');
-                document.getElementById('transcript').focus();
+                modeIcon.className = 'fas fa-keyboard';
+                modeText.textContent = 'Text Input Mode - Type or paste your text';
+                modeNameInstructions.textContent = 'Text Input';
+                startBtn.style.display = 'none';
+                transcript.setAttribute('data-placeholder', 'Type or paste your text here...');
+                transcript.contentEditable = 'true';
+                transcript.focus();
+                hintText.textContent = 'Type or paste text, then click "Check Facts" to analyze';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div>
+                            <strong>Enter Text:</strong> Click in the transcript box below
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div>
+                            <strong>Type or Paste:</strong> Enter your text manually or paste from clipboard (Ctrl+V)
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div>
+                            <strong>Auto-Analysis:</strong> For pasted text, fact-checking starts automatically
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div>
+                            <strong>Manual Check:</strong> Or click "Check Facts" when ready to analyze
+                        </div>
+                    </div>
+                `;
             } else if (source === 'demo') {
                 document.querySelectorAll('.input-tab')[2].classList.add('active');
+                modeIcon.className = 'fas fa-play-circle';
+                modeText.textContent = 'Demo Mode - Sample speech loaded';
+                modeNameInstructions.textContent = 'Demo';
+                startBtn.style.display = 'none';
+                transcript.contentEditable = 'false';
+                hintText.textContent = 'Demo text loaded. Click "Check Facts" to see results';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">✨</div>
+                        <div>
+                            <strong>Demo Loaded:</strong> Sample speech with factual claims has been loaded
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">👀</div>
+                        <div>
+                            <strong>Review Text:</strong> See the example speech in the transcript box
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">🚀</div>
+                        <div>
+                            <strong>Run Analysis:</strong> Click "Check Facts" to see how verification works
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">💡</div>
+                        <div>
+                            <strong>Try Your Own:</strong> Switch to Recording or Text mode for custom content
+                        </div>
+                    </div>
+                `;
+                
                 loadDemo();
             }
-        }
-
-        // Load demo
-        function loadDemo() {
-            const demoText = `Good evening, everyone. I want to share some important facts about our world today.
-
-The global population has now exceeded 8 billion people, with China and India being the most populous nations. Climate change continues to be a pressing issue, with global temperatures rising by 1.1 degrees Celsius since pre-industrial times.
-
-In the United States, the unemployment rate currently stands at 3.5 percent, near historic lows. The federal minimum wage remains at $7.25 per hour, unchanged since 2009.
-
-Renewable energy is growing rapidly. Solar and wind power now account for over 12% of global electricity generation. Electric vehicle sales increased by 60% in 2022 compared to the previous year.
-
-Thank you for your attention to these facts.`;
             
-            document.getElementById('transcript').textContent = demoText;
-            updateWordCount();
-            checkFacts();
+            // Update mode banner color
+            modeBanner.style.background = source === 'microphone' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                                         source === 'text' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
+                                         'linear-gradient(135deg, #10b981, #059669)';
         }
 
         // Start recording
@@ -1324,13 +1683,42 @@ Thank you for your attention to these facts.`;
         function updateWordCount() {
             const text = document.getElementById('transcript').textContent;
             const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-            document.getElementById('wordCount').textContent = words.length;
+            document.getElementById('wordCountDisplay').textContent = words.length;
+            
+            // Also update in stats if visible
+            if (document.getElementById('resultsSection').style.display !== 'none') {
+                document.getElementById('wordCount').textContent = words.length;
+            }
         }
 
         // Clear all
         function clearAll() {
             document.getElementById('transcript').textContent = '';
             document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('hintText').textContent = selectedSource === 'microphone' ? 
+                'Click "Start Recording" to begin capturing speech' : 
+                'Type or paste text, then click "Check Facts" to analyze';
+            updateWordCount();
+            
+            // Stop recording if active
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+        }
+
+        // Load demo
+        function loadDemo() {
+            const demoText = `Good evening, everyone. I want to share some important facts about our world today.
+
+The global population has now exceeded 8 billion people, with China and India being the most populous nations. Climate change continues to be a pressing issue, with global temperatures rising by 1.1 degrees Celsius since pre-industrial times.
+
+In the United States, the unemployment rate currently stands at 3.5 percent, near historic lows. The federal minimum wage remains at $7.25 per hour, unchanged since 2009.
+
+Renewable energy is growing rapidly. Solar and wind power now account for over 12% of global electricity generation. Electric vehicle sales increased by 60% in 2022 compared to the previous year.
+
+Thank you for your attention to these facts.`;
+            
+            document.getElementById('transcript').textContent = demoText;
             updateWordCount();
         }
 
@@ -1386,12 +1774,14 @@ ${i + 1}. ${result.claim}
             
             // Handle paste
             document.getElementById('transcript').addEventListener('paste', () => {
-                setTimeout(() => {
-                    updateWordCount();
-                    if (document.getElementById('transcript').textContent.length > 50) {
-                        checkFacts();
-                    }
-                }, 100);
+                if (selectedSource === 'text') {
+                    setTimeout(() => {
+                        updateWordCount();
+                        if (document.getElementById('transcript').textContent.length > 50) {
+                            checkFacts();
+                        }
+                    }, 100);
+                }
             });
             
             // Handle typing
@@ -1399,12 +1789,18 @@ ${i + 1}. ${result.claim}
             document.getElementById('transcript').addEventListener('input', () => {
                 clearTimeout(typingTimer);
                 updateWordCount();
-                typingTimer = setTimeout(() => {
-                    if (document.getElementById('transcript').textContent.length > 50) {
-                        checkFacts();
-                    }
-                }, 2000);
+                
+                if (selectedSource === 'text') {
+                    typingTimer = setTimeout(() => {
+                        if (document.getElementById('transcript').textContent.length > 50) {
+                            document.getElementById('hintText').textContent = 'Text ready. Click "Check Facts" to analyze';
+                        }
+                    }, 1000);
+                }
             });
+            
+            // Set initial placeholder based on mode
+            selectSource('microphone');
         });
     </script>
 </body>
