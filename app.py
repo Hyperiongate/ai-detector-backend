@@ -29,7 +29,13 @@ try:
     import exifread
     from collections import Counter
     import scipy.stats as stats
+    
+    # Add this small delay to ensure modules are fully loaded
+    import time as time_module
+    time_module.sleep(0.1)
+    
     CV_AVAILABLE = True
+    print("✓ Computer vision modules loaded successfully")
 except ImportError:
     CV_AVAILABLE = False
     print("⚠ Computer vision modules not available - will use basic image analysis")
@@ -2601,6 +2607,20 @@ def beta_signup():
 def api_register():
     """Alternative register endpoint for unified.html"""
     return beta_signup()
+
+# NEW: Debug endpoint to check CV module status
+@app.route('/api/debug/cv-status', methods=['GET'])
+def cv_status():
+    """Debug endpoint to check CV module status"""
+    return jsonify({
+        'cv_available': CV_AVAILABLE,
+        'opencv_version': cv2.__version__ if CV_AVAILABLE else 'Not available',
+        'modules_loaded': {
+            'cv2': 'cv2' in globals(),
+            'scipy': 'scipy' in globals(),
+            'skimage': 'skimage' in globals()
+        }
+    })
 
 # Error handlers
 @app.errorhandler(404)
