@@ -101,6 +101,71 @@
             overflow: hidden;
         }
 
+        /* Compact Mode Tabs */
+        .compact-tab {
+            padding: 15px 25px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 140px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .compact-tab::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            transition: all 0.5s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .compact-tab:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .compact-tab:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .compact-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .compact-tab.active::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: white;
+            color: #667eea;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
         /* Active Mode Banner */
         .active-mode-banner {
             background: linear-gradient(135deg, #10b981, #059669);
@@ -939,8 +1004,35 @@
         </nav>
 
         <div class="tool-container">
+            <!-- Mode Selection Header -->
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(124, 58, 237, 0.1)); border: 2px solid #667eea; border-radius: 15px; padding: 20px; margin-bottom: 25px; text-align: center;">
+                <h2 style="color: #4f46e5; margin-bottom: 10px; font-size: 1.5rem;">
+                    <i class="fas fa-hand-point-down"></i> Step 1: Choose Your Input Method
+                </h2>
+                <p style="color: #6b7280; margin-bottom: 20px;">Select how you want to provide the speech content</p>
+                
+                <!-- Compact Input Tabs -->
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="compact-tab active" onclick="selectSource('microphone')" data-mode="microphone">
+                        <i class="fas fa-microphone" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                        <div style="font-weight: 600;">Live Recording</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Speak into mic</div>
+                    </button>
+                    <button class="compact-tab" onclick="selectSource('text')" data-mode="text">
+                        <i class="fas fa-keyboard" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                        <div style="font-weight: 600;">Text Input</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Type or paste</div>
+                    </button>
+                    <button class="compact-tab" onclick="selectSource('demo')" data-mode="demo">
+                        <i class="fas fa-play-circle" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                        <div style="font-weight: 600;">Try Demo</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">See example</div>
+                    </button>
+                </div>
+            </div>
+
             <!-- Active Mode Banner -->
-            <div class="active-mode-banner" id="modeBanner">
+            <div class="active-mode-banner" id="modeBanner" style="margin-bottom: 20px;">
                 <div style="display: flex; align-items: center;">
                     <i class="fas fa-microphone" id="modeIcon"></i>
                     <span id="modeText">Live Recording Mode - Ready to record your speech</span>
@@ -984,30 +1076,6 @@
 
             <!-- Input Section -->
             <div class="input-section">
-                <div class="input-tabs">
-                    <button class="input-tab active" onclick="selectSource('microphone')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">🎤</div>
-                            <div class="input-tab-title">Live Recording</div>
-                            <div class="input-tab-description">Record speeches in real-time</div>
-                        </div>
-                    </button>
-                    <button class="input-tab" onclick="selectSource('text')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">📝</div>
-                            <div class="input-tab-title">Text Input</div>
-                            <div class="input-tab-description">Paste or type text to analyze</div>
-                        </div>
-                    </button>
-                    <button class="input-tab" onclick="selectSource('demo')">
-                        <div class="input-tab-content">
-                            <div class="input-tab-icon">▶️</div>
-                            <div class="input-tab-title">Try Demo</div>
-                            <div class="input-tab-description">See it in action instantly</div>
-                        </div>
-                    </button>
-                </div>
-
                 <!-- Transcript Area -->
                 <div class="transcript-container" id="transcriptContainer">
                     <div class="recording-status" id="recordingStatus">
@@ -1360,7 +1428,8 @@
             selectedSource = source;
             
             // Update tabs
-            document.querySelectorAll('.input-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.compact-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-mode="${source}"]`).classList.add('active');
             
             // Update UI elements
             const modeBanner = document.getElementById('modeBanner');
@@ -1372,8 +1441,8 @@
             const transcript = document.getElementById('transcript');
             const hintText = document.getElementById('hintText');
             
+            
             if (source === 'microphone') {
-                document.querySelectorAll('.input-tab')[0].classList.add('active');
                 modeIcon.className = 'fas fa-microphone';
                 modeText.textContent = 'Live Recording Mode - Ready to record your speech';
                 modeNameInstructions.textContent = 'Live Recording';
@@ -1381,6 +1450,7 @@
                 transcript.setAttribute('data-placeholder', 'Your speech will appear here as you speak...');
                 transcript.contentEditable = 'false';
                 hintText.textContent = 'Click "Start Recording" to begin capturing speech';
+                modeBanner.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
                 
                 instructionsList.innerHTML = `
                     <div class="instruction-item">
@@ -1409,7 +1479,6 @@
                     </div>
                 `;
             } else if (source === 'text') {
-                document.querySelectorAll('.input-tab')[1].classList.add('active');
                 modeIcon.className = 'fas fa-keyboard';
                 modeText.textContent = 'Text Input Mode - Type or paste your text';
                 modeNameInstructions.textContent = 'Text Input';
@@ -1418,6 +1487,7 @@
                 transcript.contentEditable = 'true';
                 transcript.focus();
                 hintText.textContent = 'Type or paste text, then click "Check Facts" to analyze';
+                modeBanner.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
                 
                 instructionsList.innerHTML = `
                     <div class="instruction-item">
@@ -1446,13 +1516,13 @@
                     </div>
                 `;
             } else if (source === 'demo') {
-                document.querySelectorAll('.input-tab')[2].classList.add('active');
                 modeIcon.className = 'fas fa-play-circle';
                 modeText.textContent = 'Demo Mode - Sample speech loaded';
                 modeNameInstructions.textContent = 'Demo';
                 startBtn.style.display = 'none';
                 transcript.contentEditable = 'false';
                 hintText.textContent = 'Demo text loaded. Click "Check Facts" to see results';
+                modeBanner.style.background = 'linear-gradient(135deg, #10b981, #059669)';
                 
                 instructionsList.innerHTML = `
                     <div class="instruction-item">
