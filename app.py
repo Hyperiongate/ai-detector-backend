@@ -43,6 +43,15 @@ except ImportError:
     OpenAI = None
     print("⚠ OpenAI module not available - will use basic analysis")
 
+# NEW: Import real AI detection module
+try:
+    from ai_detection import RealAIDetector
+    AI_DETECTOR_AVAILABLE = True
+    print("✓ Real AI detection module loaded successfully")
+except ImportError:
+    AI_DETECTOR_AVAILABLE = False
+    print("⚠ Real AI detection module not available - will use fallback analysis")
+
 # Safe email import handling for Python 3.13 compatibility
 try:
     import smtplib
@@ -96,6 +105,18 @@ if DB_AVAILABLE:
     db = SQLAlchemy(app)
 else:
     db = None
+
+# Initialize AI detector
+if AI_DETECTOR_AVAILABLE:
+    try:
+        ai_detector = RealAIDetector()
+        print("✓ AI detector initialized successfully")
+    except Exception as e:
+        print(f"⚠ Failed to initialize AI detector: {e}")
+        AI_DETECTOR_AVAILABLE = False
+        ai_detector = None
+else:
+    ai_detector = None
 
 # Database Models
 if DB_AVAILABLE:
@@ -688,14 +709,29 @@ def extract_claims_from_speech(text, mode='balanced'):
     return claims[:20]  # Limit to prevent overload
 
 # ============================================================================
-# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - IMPROVED VERSION
+# NEW REALISTIC ANALYSIS FUNCTIONS FOR UNIFIED PAGE - UPDATED WITH REAL AI DETECTION
 # ============================================================================
 
 def perform_realistic_unified_text_analysis(text):
     """
-    Perform realistic AI text detection for unified page with improved accuracy
-    This is separate from news analysis - won't affect news.html
+    Perform realistic AI text detection for unified page with real AI detection
     """
+    # Try to use real AI detector if available
+    if AI_DETECTOR_AVAILABLE and ai_detector:
+        try:
+            print("Using real AI detector for text analysis")
+            result = ai_detector.analyze_text(text)
+            # Ensure the result has all required fields for the frontend
+            result['is_pro'] = False  # Set based on user status in production
+            return result
+        except Exception as e:
+            print(f"Real AI detector failed: {e}")
+            traceback.print_exc()
+            # Fall back to original implementation
+    
+    # Fallback to original implementation if real detector not available
+    print("Using fallback text analysis")
+    
     # Calculate real text statistics
     words = text.split()
     sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
