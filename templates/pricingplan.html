@@ -304,49 +304,102 @@
             margin-top: 0.5rem;
         }
 
-        .plan-features {
-            list-style: none;
+        /* Tool Features with Dropdowns */
+        .tool-features-container {
             margin-bottom: 2rem;
         }
 
-        .plan-features li {
-            padding: 0.5rem 0;
+        .tool-feature-item {
+            margin-bottom: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .tool-feature-header {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
             display: flex;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .tool-feature-header:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .tool-feature-title {
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .tool-feature-icon {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .tool-feature-toggle {
+            color: #667eea;
+            transition: transform 0.3s ease;
             font-size: 0.9rem;
         }
 
-        .feature-icon {
+        .tool-feature-item.active .tool-feature-toggle {
+            transform: rotate(180deg);
+        }
+
+        .tool-feature-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .tool-feature-item.active .tool-feature-details {
+            max-height: 400px;
+        }
+
+        .tool-feature-content {
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .tool-feature-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tool-feature-list li {
+            padding: 0.25rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .tool-feature-list .check-icon {
             color: #4CAF50;
-            font-size: 1rem;
-            min-width: 16px;
+            font-size: 0.9rem;
             margin-top: 2px;
         }
 
-        .feature-icon.premium {
-            color: #667eea;
-        }
-
-        .feature-icon.limited {
+        .tool-feature-list .limit-icon {
             color: #ff9800;
+            font-size: 0.9rem;
+            margin-top: 2px;
         }
 
-        .feature-text {
-            color: #555;
-            line-height: 1.4;
-        }
-
-        .feature-highlight {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .feature-limit {
+        .feature-limit-text {
             font-size: 0.8rem;
             color: #888;
-            display: block;
-            margin-top: 2px;
+            font-style: italic;
         }
 
         .plan-button {
@@ -660,19 +713,31 @@
             transform: translateY(-2px);
         }
 
+        /* Fixed ProTip Highlight Box - Better Readability */
         .highlight-box {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            background: rgba(255, 255, 255, 0.95);
             border: 2px solid #667eea;
             border-radius: 15px;
             padding: 1.5rem;
             margin: 2rem 0;
             text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
         }
 
         .highlight-box h3 {
             color: #667eea;
             margin-bottom: 0.5rem;
             font-weight: 600;
+        }
+
+        .highlight-box p {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .highlight-box strong {
+            color: #667eea;
+            font-weight: 700;
         }
 
         /* Icons */
@@ -857,6 +922,10 @@
             .features-table th.plan-column {
                 width: 100px;
             }
+
+            .tool-feature-details {
+                max-height: 600px;
+            }
         }
     </style>
 </head>
@@ -915,55 +984,117 @@
                     <div class="savings-text">No credit card required</div>
                 </div>
                 
-                <ul class="plan-features">
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">News Verification</span>
-                            <span class="feature-limit">5 articles/day</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Speech Fact-Checking</span>
-                            <span class="feature-limit">3 speeches/day (max 5 min each)</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">AI Content Detection</span>
-                            <span class="feature-limit">10 texts/day (max 1,000 words)</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Image Analysis</span>
-                            <span class="feature-limit">5 images/day</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Plagiarism Checking</span>
-                            <span class="feature-limit">5 documents/day</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">Basic AI models</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">View-only reports</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">Community support</span>
-                    </li>
-                </ul>
+                <div class="tool-features-container">
+                    <!-- News Verification Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-newspaper tool-feature-icon"></i>
+                                <span>News Verification</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 5 articles per day</li>
+                                    <li><i class="fas fa-check check-icon"></i> Real-time fact checking</li>
+                                    <li><i class="fas fa-check check-icon"></i> Source credibility scores</li>
+                                    <li><i class="fas fa-check check-icon"></i> Basic bias detection</li>
+                                    <li><i class="fas fa-exclamation-circle limit-icon"></i> <span class="feature-limit-text">Limited to mainstream sources</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Speech Fact-Checking Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-microphone tool-feature-icon"></i>
+                                <span>Speech Fact-Checking</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 3 speeches per day</li>
+                                    <li><i class="fas fa-check check-icon"></i> Max 5 minutes per speech</li>
+                                    <li><i class="fas fa-check check-icon"></i> Basic transcription accuracy</li>
+                                    <li><i class="fas fa-check check-icon"></i> Claim extraction</li>
+                                    <li><i class="fas fa-exclamation-circle limit-icon"></i> <span class="feature-limit-text">Standard processing speed</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Content Detection Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-robot tool-feature-icon"></i>
+                                <span>AI Content Detection</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 10 texts per day</li>
+                                    <li><i class="fas fa-check check-icon"></i> Max 1,000 words per text</li>
+                                    <li><i class="fas fa-check check-icon"></i> GPT & Claude detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Basic probability scores</li>
+                                    <li><i class="fas fa-exclamation-circle limit-icon"></i> <span class="feature-limit-text">Limited AI model coverage</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Analysis Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-image tool-feature-icon"></i>
+                                <span>Image Analysis</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 5 images per day</li>
+                                    <li><i class="fas fa-check check-icon"></i> Basic deepfake detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Metadata checking</li>
+                                    <li><i class="fas fa-check check-icon"></i> Manipulation detection</li>
+                                    <li><i class="fas fa-exclamation-circle limit-icon"></i> <span class="feature-limit-text">Single image processing only</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plagiarism Checking Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-copy tool-feature-icon"></i>
+                                <span>Plagiarism Checking</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 5 documents per day</li>
+                                    <li><i class="fas fa-check check-icon"></i> Basic similarity detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Percentage match scores</li>
+                                    <li><i class="fas fa-check check-icon"></i> Common source checking</li>
+                                    <li><i class="fas fa-exclamation-circle limit-icon"></i> <span class="feature-limit-text">No source citations provided</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <a href="news.html" class="plan-button secondary">Start Free Now</a>
             </div>
@@ -981,69 +1112,156 @@
                 
                 <div class="plan-price">
                     <div class="price-display">
-                        <span class="price-currency">$</span>9.50
+                        <span class="price-currency">$</span>14.50
                         <span class="price-period">/month</span>
                     </div>
-                    <div class="savings-text">Save 20% with annual billing ($91.20/year)</div>
+                    <div class="savings-text">Save 20% with annual billing ($139.20/year)</div>
                 </div>
                 
-                <ul class="plan-features">
-                    <li>
-                        <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Unlimited News Verification</span>
-                            <span class="feature-limit">No daily limits</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Unlimited Speech Analysis</span>
-                            <span class="feature-limit">Videos up to 2 hours</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Unlimited AI Detection</span>
-                            <span class="feature-limit">Documents up to 50,000 words</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Unlimited Image Analysis</span>
-                            <span class="feature-limit">Batch processing available</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text">
-                            <span class="feature-highlight">Advanced Plagiarism Check</span>
-                            <span class="feature-limit">With source citations</span>
-                        </span>
-                    </li>
-                    <li>
-                        <i class="fas fa-brain feature-icon premium"></i>
-                        <span class="feature-text">Premium AI models (99.9% accuracy)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-download feature-icon premium"></i>
-                        <span class="feature-text">Export reports (PDF, CSV, JSON)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-code feature-icon premium"></i>
-                        <span class="feature-text">API access (1,000 calls/month)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-bolt feature-icon premium"></i>
-                        <span class="feature-text">Priority processing (3x faster)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-headset feature-icon premium"></i>
-                        <span class="feature-text">Priority email support</span>
-                    </li>
-                </ul>
+                <div class="tool-features-container">
+                    <!-- News Verification Pro Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-newspaper tool-feature-icon"></i>
+                                <span>News Verification Pro</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-infinity check-icon"></i> Unlimited articles</li>
+                                    <li><i class="fas fa-check check-icon"></i> Advanced bias detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Cross-reference checking</li>
+                                    <li><i class="fas fa-check check-icon"></i> Historical fact database</li>
+                                    <li><i class="fas fa-check check-icon"></i> Expert source verification</li>
+                                    <li><i class="fas fa-check check-icon"></i> Export detailed reports</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Speech Analysis Pro Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-microphone tool-feature-icon"></i>
+                                <span>Speech Analysis Pro</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-infinity check-icon"></i> Unlimited speeches</li>
+                                    <li><i class="fas fa-check check-icon"></i> Videos up to 2 hours</li>
+                                    <li><i class="fas fa-check check-icon"></i> Premium transcription (99% accuracy)</li>
+                                    <li><i class="fas fa-check check-icon"></i> Real-time processing</li>
+                                    <li><i class="fas fa-check check-icon"></i> Speaker identification</li>
+                                    <li><i class="fas fa-check check-icon"></i> Timestamp mapping</li>
+                                    <li><i class="fas fa-check check-icon"></i> Batch video processing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Detection Pro Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-robot tool-feature-icon"></i>
+                                <span>AI Detection Pro</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-infinity check-icon"></i> Unlimited texts</li>
+                                    <li><i class="fas fa-check check-icon"></i> Documents up to 50,000 words</li>
+                                    <li><i class="fas fa-check check-icon"></i> All AI models detected</li>
+                                    <li><i class="fas fa-check check-icon"></i> Sentence-level analysis</li>
+                                    <li><i class="fas fa-check check-icon"></i> Mixed content detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Paraphrase detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Writing style analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Forensics Pro Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-image tool-feature-icon"></i>
+                                <span>Image Forensics Pro</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-infinity check-icon"></i> Unlimited images</li>
+                                    <li><i class="fas fa-check check-icon"></i> Advanced deepfake detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Pixel-level manipulation analysis</li>
+                                    <li><i class="fas fa-check check-icon"></i> GAN fingerprinting</li>
+                                    <li><i class="fas fa-check check-icon"></i> Error level analysis</li>
+                                    <li><i class="fas fa-check check-icon"></i> Batch processing (up to 100)</li>
+                                    <li><i class="fas fa-check check-icon"></i> Forensic reports</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plagiarism Pro Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-copy tool-feature-icon"></i>
+                                <span>Plagiarism Pro</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-infinity check-icon"></i> Unlimited documents</li>
+                                    <li><i class="fas fa-check check-icon"></i> Academic database access</li>
+                                    <li><i class="fas fa-check check-icon"></i> Source citations provided</li>
+                                    <li><i class="fas fa-check check-icon"></i> Paraphrase detection</li>
+                                    <li><i class="fas fa-check check-icon"></i> Multi-language support</li>
+                                    <li><i class="fas fa-check check-icon"></i> Similarity reports</li>
+                                    <li><i class="fas fa-check check-icon"></i> API integration</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Platform Features Dropdown -->
+                    <div class="tool-feature-item">
+                        <div class="tool-feature-header" onclick="toggleToolFeature(this)">
+                            <div class="tool-feature-title">
+                                <i class="fas fa-cog tool-feature-icon"></i>
+                                <span>Platform Features</span>
+                            </div>
+                            <i class="fas fa-chevron-down tool-feature-toggle"></i>
+                        </div>
+                        <div class="tool-feature-details">
+                            <div class="tool-feature-content">
+                                <ul class="tool-feature-list">
+                                    <li><i class="fas fa-check check-icon"></i> 3x faster processing</li>
+                                    <li><i class="fas fa-check check-icon"></i> Priority queue access</li>
+                                    <li><i class="fas fa-check check-icon"></i> Export to PDF/CSV/JSON</li>
+                                    <li><i class="fas fa-check check-icon"></i> API access (1,000 calls/month)</li>
+                                    <li><i class="fas fa-check check-icon"></i> Custom webhooks</li>
+                                    <li><i class="fas fa-check check-icon"></i> Priority email support</li>
+                                    <li><i class="fas fa-check check-icon"></i> Early access to new features</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <button class="plan-button primary" onclick="startProTrial()">Start 14-Day Free Trial</button>
             </div>
@@ -1231,7 +1449,7 @@
                         <li><i class="fas fa-check check-icon"></i> Unified interface</li>
                         <li><i class="fas fa-check check-icon"></i> Cross-verification</li>
                     </ul>
-                    <div class="comparison-price">$9.50/month</div>
+                    <div class="comparison-price">$14.50/month</div>
                 </div>
 
                 <div class="comparison-card">
@@ -1280,7 +1498,7 @@
             <div class="highlight-box">
                 <h3>💡 The Math is Simple</h3>
                 <p><strong>5 tools × $15 average = $75/month elsewhere</strong><br>
-                Get everything for just $9.50/month with us!</p>
+                Get everything for just $14.50/month with us!</p>
             </div>
         </div>
 
@@ -1334,7 +1552,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Yes! Pay annually and save 20%. That's just $91.20/year instead of $114 - getting 2.4 months free! Annual subscribers also get early access to new features and priority support.
+                            Yes! Pay annually and save 20%. That's just $139.20/year instead of $174 - getting 2.4 months free! Annual subscribers also get early access to new features and priority support.
                         </div>
                     </div>
                 </div>
@@ -1502,6 +1720,18 @@
                 });
             });
 
+            // Track tool feature dropdown interactions
+            document.querySelectorAll('.tool-feature-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const toolName = this.querySelector('.tool-feature-title span').textContent;
+                    const isOpening = !this.parentElement.classList.contains('active');
+                    trackPricingEvent('tool_feature_toggled', {
+                        tool: toolName,
+                        action: isOpening ? 'expand' : 'collapse'
+                    });
+                });
+            });
+
             // Track scroll depth
             let maxScroll = 0;
             let sectionsViewed = new Set();
@@ -1625,6 +1855,19 @@
                     action: 'outside_click'
                 });
                 closeBetaModal();
+            }
+        }
+
+        // Tool Feature Dropdown Functionality
+        function toggleToolFeature(element) {
+            const featureItem = element.parentElement;
+            const isActive = featureItem.classList.contains('active');
+            
+            // Toggle current item
+            if (isActive) {
+                featureItem.classList.remove('active');
+            } else {
+                featureItem.classList.add('active');
             }
         }
 
