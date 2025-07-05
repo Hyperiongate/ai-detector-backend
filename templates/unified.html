@@ -42,6 +42,273 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Facts & Fakes AI Navigation Header Styles -->
+    <style>
+        /* Reset any conflicting styles */
+        .ff-nav * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main navigation bar */
+        .ff-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            height: 60px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .ff-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        /* Logo */
+        .ff-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .ff-nav-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .ff-nav-logo i {
+            font-size: 1.4rem;
+        }
+
+        /* Navigation links */
+        .ff-nav-links {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .ff-nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ff-nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-link.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .ff-nav-link i {
+            font-size: 0.9rem;
+        }
+
+        /* Auth buttons */
+        .ff-nav-auth {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+        }
+
+        .ff-nav-login, .ff-nav-signup {
+            padding: 8px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .ff-nav-login {
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .ff-nav-login:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .ff-nav-signup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid transparent;
+        }
+
+        .ff-nav-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Beta balloon */
+        .ff-beta-balloon {
+            position: absolute;
+            top: -35px;
+            right: 50px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            animation: ff-bounce 2s infinite;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .ff-beta-balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #f7931e;
+        }
+
+        @keyframes ff-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* User menu */
+        .ff-user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .ff-user-menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ff-user-menu-toggle:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .ff-user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .ff-user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Mobile menu button */
+        .ff-mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #4a5568;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .ff-mobile-menu-btn:hover {
+            color: #667eea;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .ff-nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                border-top: 1px solid #e2e8f0;
+            }
+            
+            .ff-nav-links.active {
+                display: flex;
+            }
+            
+            .ff-nav-link {
+                width: 100%;
+                padding: 12px 20px;
+            }
+            
+            .ff-mobile-menu-btn {
+                display: block;
+            }
+            
+            .ff-nav-auth {
+                display: none;
+            }
+            
+            .ff-user-menu {
+                display: none !important;
+            }
+            
+            .ff-beta-balloon {
+                display: none;
+            }
+        }
+    </style>
+    
+    <!-- Original AI Detection Pro Styles -->
     <style>
         * {
             margin: 0;
@@ -1976,6 +2243,65 @@
     </style>
 </head>
 <body>
+    <!-- Facts & Fakes AI Navigation Header -->
+    <nav class="ff-nav">
+        <div class="ff-nav-container">
+            <a href="/" class="ff-nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Facts & Fakes AI</span>
+            </a>
+            
+            <div class="ff-nav-links" id="ffNavLinks">
+                <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+                <a href="/speech" class="ff-nav-link"><i class="fas fa-microphone"></i> Speech Check</a>
+                <a href="/unified" class="ff-nav-link active"><i class="fas fa-search"></i> Content Check</a>
+                <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+                <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+                <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+            
+            <div class="ff-nav-auth" id="ffNavAuth">
+                <a href="/login" class="ff-nav-login">Login</a>
+                <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+                <div class="ff-beta-balloon">
+                    sign up now to start your free trial
+                </div>
+            </div>
+            
+            <div class="ff-user-menu" id="ffUserMenu">
+                <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                    <span id="ffUserEmail">user@example.com</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="ff-user-dropdown" id="ffUserDropdown">
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                    </div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                    </div>
+                    <div style="padding: 10px 0;">
+                        <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                        <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                        <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                        <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
     <!-- Beta Banner -->
     <div class="beta-banner">
         <div class="beta-content">
@@ -2228,6 +2554,80 @@
     </div>
 
     <script>
+        // Navigation header functions
+        window.ffNav = {
+            checkAuthStatus: async function() {
+                try {
+                    const response = await fetch('/api/user/status');
+                    const data = await response.json();
+                    
+                    if (data.authenticated) {
+                        document.getElementById('ffNavAuth').style.display = 'none';
+                        document.getElementById('ffUserMenu').style.display = 'block';
+                        
+                        document.getElementById('ffUserEmail').textContent = data.email || 'User';
+                        document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
+                        document.getElementById('ffUserPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+                        
+                        const usagePercent = (data.usage_today / data.daily_limit) * 100;
+                        document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                        document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
+                    }
+                } catch (error) {
+                    console.log('Auth check failed:', error);
+                }
+            },
+            
+            init: function() {
+                this.checkAuthStatus();
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    const userMenu = document.querySelector('.ff-user-menu');
+                    if (userMenu && !userMenu.contains(event.target)) {
+                        document.getElementById('ffUserDropdown').classList.remove('active');
+                    }
+                });
+                
+                // Add active class to current page
+                const currentPath = window.location.pathname;
+                document.querySelectorAll('.ff-nav-link').forEach(link => {
+                    if (link.getAttribute('href') === currentPath) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        };
+
+        // Global functions for onclick handlers
+        function ffToggleMobileMenu() {
+            const navLinks = document.getElementById('ffNavLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        function ffToggleUserDropdown() {
+            const dropdown = document.getElementById('ffUserDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        async function ffLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        // Initialize navigation when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                window.ffNav.init();
+            });
+        } else {
+            window.ffNav.init();
+        }
+
         // Global variables
         let currentInputType = 'text';
         let currentAnalysisData = null;
@@ -2947,24 +3347,6 @@
                             </h4>
                             <div class="bar-item">
                                 <div class="bar-label">
-                                    <span>Pattern Recognition</span>
-                                    <span>${Math.min(100, aiProb + 10)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 10)}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
-                                    <span>Linguistic Analysis</span>
-                                    <span>${Math.min(100, aiProb + 5)}%</span>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 5)}%"></div>
-                                </div>
-                            </div>
-                            <div class="bar-item">
-                                <div class="bar-label">
                                     <span>Neural Network</span>
                                     <span>${aiProb}%</span>
                                 </div>
@@ -3392,4 +3774,22 @@
         }
     </script>
 </body>
-</html>
+</html>">
+                                <div class="bar-label">
+                                    <span>Pattern Recognition</span>
+                                    <span>${Math.min(100, aiProb + 10)}%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 10)}%"></div>
+                                </div>
+                            </div>
+                            <div class="bar-item">
+                                <div class="bar-label">
+                                    <span>Linguistic Analysis</span>
+                                    <span>${Math.min(100, aiProb + 5)}%</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: ${Math.min(100, aiProb + 5)}%"></div>
+                                </div>
+                            </div>
+                            <div class="bar-item
