@@ -6,6 +6,61 @@
     <title>Speech Fact-Checker - Real-Time Verification Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎤%3C/text%3E%3C/svg%3E">
+    
+    <!-- Load Chart.js first -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Define critical functions immediately -->
+    <script>
+        // Define selectSource immediately to prevent errors
+        window.selectSource = function(source) {
+            console.log('Temporary selectSource called for:', source);
+            
+            // Basic UI update while waiting for full script
+            document.querySelectorAll('.source-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            const clickedCard = document.querySelector(`[data-mode="${source}"]`);
+            if (clickedCard) {
+                clickedCard.classList.add('active');
+            }
+            
+            // Update status
+            const status = document.getElementById('status');
+            if (status) {
+                status.textContent = 'Loading ' + source + ' mode...';
+                status.classList.add('active');
+                status.style.display = 'block';
+            }
+            
+            // Store the selection for when the full script loads
+            window.pendingSourceSelection = source;
+        };
+        
+        // Define other critical functions
+        window.processYouTube = function() {
+            console.log('Waiting for scripts to load...');
+            const status = document.getElementById('status');
+            if (status) {
+                status.textContent = 'Loading YouTube functionality...';
+                status.classList.add('active');
+            }
+        };
+        
+        window.toggleRecording = function() {
+            console.log('Waiting for scripts to load...');
+            const status = document.getElementById('status');
+            if (status) {
+                status.textContent = 'Loading recording functionality...';
+                status.classList.add('active');
+            }
+        };
+    </script>
+    
+    <!-- Load the main speech-checker.js -->
+    <script src="{{ url_for('static', filename='js/speech-checker.js') }}?v=8" defer></script>
+    
     <style>
         * {
             margin: 0;
