@@ -5,62 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech Fact-Checker - Real-Time Verification Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎤%3C/text%3E%3C/svg%3E">
-    
-    <!-- Load Chart.js first -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Define critical functions immediately -->
-    <script>
-        // Define selectSource immediately to prevent errors
-        window.selectSource = function(source) {
-            console.log('Temporary selectSource called for:', source);
-            
-            // Basic UI update while waiting for full script
-            document.querySelectorAll('.source-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            
-            const clickedCard = document.querySelector(`[data-mode="${source}"]`);
-            if (clickedCard) {
-                clickedCard.classList.add('active');
-            }
-            
-            // Update status
-            const status = document.getElementById('status');
-            if (status) {
-                status.textContent = 'Loading ' + source + ' mode...';
-                status.classList.add('active');
-                status.style.display = 'block';
-            }
-            
-            // Store the selection for when the full script loads
-            window.pendingSourceSelection = source;
-        };
-        
-        // Define other critical functions
-        window.processYouTube = function() {
-            console.log('Waiting for scripts to load...');
-            const status = document.getElementById('status');
-            if (status) {
-                status.textContent = 'Loading YouTube functionality...';
-                status.classList.add('active');
-            }
-        };
-        
-        window.toggleRecording = function() {
-            console.log('Waiting for scripts to load...');
-            const status = document.getElementById('status');
-            if (status) {
-                status.textContent = 'Loading recording functionality...';
-                status.classList.add('active');
-            }
-        };
-    </script>
-    
-    <!-- Load the main speech-checker.js -->
-    <script src="{{ url_for('static', filename='js/speech-checker.js') }}?v=8" defer></script>
-    
     <style>
         * {
             margin: 0;
@@ -107,42 +51,6 @@
             font-size: 1.1rem;
             opacity: 0.9;
             margin-bottom: 20px;
-        }
-
-        /* Navigation Bar */
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .nav-links a.active {
-            background: rgba(255, 255, 255, 0.3);
-            font-weight: 600;
         }
 
         /* Tool Container */
@@ -220,74 +128,6 @@
             font-size: 0.8rem;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Source Card */
-        .source-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        /* Source input sections */
-        .source-input {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(249, 250, 251, 0.8);
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-        }
-
-        /* YouTube specific styles */
-        #youtube-input input {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-        }
-
-        #youtube-input input:focus {
-            outline: none;
-            border-color: #ff0000;
-            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
-        }
-
-        #youtube-btn {
-            background: #ff0000;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #youtube-btn:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
-        }
-
-        #youtube-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .video-info {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            border-left: 4px solid #ff0000;
         }
 
         /* Active Mode Banner */
@@ -529,9 +369,6 @@
             line-height: 1.6;
             transition: all 0.3s ease;
             color: #333;
-            white-space: pre-wrap;
-            width: 100%;
-            resize: vertical;
         }
 
         #transcript:focus {
@@ -647,12 +484,6 @@
         .btn-secondary {
             background: #6b7280;
             color: white;
-        }
-
-        /* Recording button states */
-        .btn.recording {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: pulse 1.5s ease-in-out infinite;
         }
 
         /* Button States */
@@ -921,14 +752,6 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
         }
 
-        .verdict {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
         .verdict-badge {
             display: inline-block;
             padding: 6px 16px;
@@ -955,30 +778,6 @@
             background: rgba(245, 158, 11, 0.1);
             color: #d97706;
             border: 1px solid #f59e0b;
-        }
-
-        .score-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-        }
-
-        .score-high {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-
-        .score-medium {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .score-low {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
         }
 
         /* Summary Section */
@@ -1029,22 +828,6 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Status message */
-        #status {
-            text-align: center;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 8px;
-            font-weight: 500;
-            background: rgba(102, 126, 234, 0.1);
-            color: #4f46e5;
-            display: none;
-        }
-
-        #status.active {
-            display: block;
         }
 
         /* Animations */
@@ -1167,22 +950,15 @@
     </style>
 </head>
 <body>
+    <!-- Include the header -->
+    <div w3-include-html="/static/header.html"></div>
+
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-microphone-alt"></i> Speech Fact-Checker</h1>
             <p>Real-time fact verification for speeches, presentations, and conversations</p>
-            <p style="font-size: 0.95rem; opacity: 0.8;">Powered by GPT-4 AI • Cross-references 12+ verification methods • Export detailed reports</p>
+            <p style="font-size: 0.95rem; opacity: 0.8;">Powered by AI • Cross-references 12+ verification methods • Export detailed reports</p>
         </div>
-
-        <nav class="nav-bar">
-            <div class="nav-links">
-                <a href="/"><i class="fas fa-home"></i> Home</a>
-                <a href="/news"><i class="fas fa-newspaper"></i> News Verification</a>
-                <a href="/speech" class="active"><i class="fas fa-microphone"></i> Speech Check</a>
-                <a href="/imageanalysis"><i class="fas fa-image"></i> Image Analysis</a>
-                <a href="/unified"><i class="fas fa-search"></i> Content Check</a>
-            </div>
-        </nav>
 
         <div class="tool-container">
             <!-- Mode Selection Header -->
@@ -1194,22 +970,17 @@
                 
                 <!-- Compact Input Tabs -->
                 <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    <button class="compact-tab source-card active" onclick="selectSource('microphone')" data-mode="microphone">
+                    <button class="compact-tab active" onclick="selectSource('microphone')" data-mode="microphone">
                         <i class="fas fa-microphone" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
                         <div style="font-weight: 600;">Live Recording</div>
                         <div style="font-size: 0.8rem; opacity: 0.8;">Speak into mic</div>
                     </button>
-                    <button class="compact-tab source-card" onclick="selectSource('text')" data-mode="text">
+                    <button class="compact-tab" onclick="selectSource('text')" data-mode="text">
                         <i class="fas fa-keyboard" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
                         <div style="font-weight: 600;">Text Input</div>
                         <div style="font-size: 0.8rem; opacity: 0.8;">Type or paste</div>
                     </button>
-                    <button class="compact-tab source-card" onclick="selectSource('youtube')" data-mode="youtube">
-                        <i class="fab fa-youtube" style="font-size: 1.5rem; margin-bottom: 5px; color: #ff0000;"></i>
-                        <div style="font-weight: 600;">YouTube Video</div>
-                        <div style="font-size: 0.8rem; opacity: 0.8;">Analyze video</div>
-                    </button>
-                    <button class="compact-tab source-card" onclick="selectSource('demo')" data-mode="demo">
+                    <button class="compact-tab" onclick="selectSource('demo')" data-mode="demo">
                         <i class="fas fa-play-circle" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
                         <div style="font-weight: 600;">Try Demo</div>
                         <div style="font-size: 0.8rem; opacity: 0.8;">See example</div>
@@ -1260,44 +1031,8 @@
                 </div>
             </div>
 
-            <!-- Status message -->
-            <div id="status"></div>
-
             <!-- Input Section -->
             <div class="input-section">
-                <!-- Microphone Input -->
-                <div id="microphone-input" class="source-input" style="display: block;">
-                    <!-- This is handled by the transcript container below -->
-                </div>
-
-                <!-- Text Input -->
-                <div id="text-input" class="source-input">
-                    <div style="padding: 20px; background: #f0f9ff; border-radius: 10px; margin-bottom: 20px;">
-                        <h4 style="color: #3b82f6; margin-bottom: 10px;">
-                            <i class="fas fa-keyboard"></i> Text Input Mode Active
-                        </h4>
-                        <p style="color: #64748b; margin: 0;">
-                            Type or paste your text directly in the transcript box below, then click "Check Facts"
-                        </p>
-                    </div>
-                </div>
-
-                <!-- YouTube Input -->
-                <div id="youtube-input" class="source-input">
-                    <div style="padding: 20px; background: #fef2f2; border-radius: 10px; margin-bottom: 20px;">
-                        <h4 style="color: #dc2626; margin-bottom: 10px;">
-                            <i class="fab fa-youtube"></i> YouTube Mode Active
-                        </h4>
-                        <p style="color: #64748b; margin-bottom: 15px;">
-                            Enter a YouTube URL to extract and analyze the video's transcript
-                        </p>
-                        <input type="text" id="youtube-url" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=...)" />
-                        <button id="youtube-btn" onclick="processYouTube()">
-                            <i class="fab fa-youtube"></i> Get Transcript
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Transcript Area -->
                 <div class="transcript-container" id="transcriptContainer">
                     <div class="recording-status" id="recordingStatus">
@@ -1308,23 +1043,26 @@
                             <i class="fas fa-file-alt"></i> Transcript
                         </h3>
                         <div style="color: #6b7280; font-size: 0.9rem;">
-                            <span id="word-count">0</span> words
+                            <span id="wordCountDisplay">0</span> words
                         </div>
                     </div>
-                    <textarea id="transcript" placeholder="Your speech will appear here as you speak, or paste/type text to analyze..."></textarea>
+                    <div id="transcript" 
+                         contenteditable="true" 
+                         spellcheck="false"
+                         data-placeholder="Your speech will appear here as you speak, or paste/type text to analyze..."></div>
                     
                     <div class="button-group">
-                        <button id="record-btn" class="btn btn-primary" onclick="toggleRecording()">
+                        <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
                             <i class="fas fa-microphone"></i> Start Recording
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop Recording
                         </button>
                         <button id="checkFactsBtn" class="btn btn-success" onclick="checkFacts()">
                             <i class="fas fa-search"></i> Check Facts
                         </button>
                         <button class="btn btn-secondary" onclick="clearAll()">
-                            <i class="fas fa-trash"></i> Clear All
-                        </button>
-                        <button class="btn btn-secondary" onclick="exportReport()">
-                            <i class="fas fa-download"></i> Export Report
+                            <i class="fas fa-trash"></i> Clear All & Reset
                         </button>
                     </div>
                     <div class="btn-group-hint" id="buttonHint">
@@ -1333,89 +1071,7 @@
                 </div>
             </div>
 
-            <!-- Results Grid -->
-            <div class="results-grid" id="resultsSection" style="display: none;">
-                <!-- Statistics -->
-                <div class="stats-card">
-                    <h3 style="margin-bottom: 20px; color: #4a5568;">
-                        <i class="fas fa-chart-bar"></i> Statistics
-                    </h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-number" id="word-count-stat">0</div>
-                            <div class="stat-label">Words</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="claims-checked">0</div>
-                            <div class="stat-label">Claims Checked</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="true-count">0</div>
-                            <div class="stat-label">True</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="false-count">0</div>
-                            <div class="stat-label">False</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <canvas id="resultsChart" width="200" height="200"></canvas>
-                    </div>
-                </div>
-
-                <!-- Fact Check Results -->
-                <div class="fact-check-card">
-                    <h3 style="margin-bottom: 20px; color: #4a5568;">
-                        <i class="fas fa-check-circle"></i> Fact Check Results
-                    </h3>
-                    <div id="fact-check-results">
-                        <p class="text-muted">No fact-checks yet. Start speaking or load content to begin.</p>
-                    </div>
-                </div>
-
-                <!-- Summary -->
-                <div class="summary-card" id="summaryCard" style="display: none;">
-                    <h3 style="margin-bottom: 20px; color: #4a5568;">
-                        <i class="fas fa-clipboard-check"></i> Summary Report
-                    </h3>
-                    <div class="accuracy-meter">
-                        <div class="accuracy-bar" id="accuracy-rate"></div>
-                    </div>
-                    <p style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #4a5568; margin: 20px 0;">
-                        Accuracy: <span id="accuracy-percent">0</span>%
-                    </p>
-                    
-                    <!-- New Education Level Gauge -->
-                    <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f3f4f6, #ffffff); border-radius: 15px;">
-                        <h4 style="color: #4a5568; margin-bottom: 20px; text-align: center;">
-                            <i class="fas fa-graduation-cap"></i> Educational Level of Speech
-                        </h4>
-                        <div style="position: relative; height: 60px; background: linear-gradient(90deg, #f87171, #fbbf24, #34d399, #60a5fa, #818cf8); border-radius: 30px; overflow: hidden;">
-                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; color: white; font-weight: 600; font-size: 0.8rem;">
-                                <span>Elementary</span>
-                                <span>High School</span>
-                                <span>College</span>
-                                <span>Graduate</span>
-                                <span>PhD</span>
-                            </div>
-                            <div id="education-pointer" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #1f2937; transition: left 1s ease;">
-                                <div style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 5px 10px; border-radius: 5px; white-space: nowrap; font-weight: 600;">
-                                    <span id="education-level-text">Analyzing...</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 10px;">
-                            <p style="margin: 0; color: #4c1d95; font-weight: 500;">
-                                <i class="fas fa-info-circle"></i> <span id="education-analysis">
-                                    This analysis considers vocabulary complexity, sentence structure, conceptual depth, and specialized terminology usage.
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Info Sections Grid -->
+            <!-- Info Sections -->
             <div class="info-sections-grid">
                 <div class="dropdown-section" id="how-it-works-section">
                     <div class="dropdown-header" onclick="toggleDropdown(this)">
@@ -1434,7 +1090,7 @@
                                 <div style="background: #6366f1; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
                                 <div>
                                     <strong>Choose Your Input:</strong><br>
-                                    <span style="color: #6b7280;">Record live speech, paste text, YouTube video, or load a demo</span>
+                                    <span style="color: #6b7280;">Record live speech, paste text, or load a demo</span>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: start; gap: 15px;">
@@ -1488,7 +1144,7 @@
                             <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
                                 <i class="fab fa-youtube" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
                                 <h4 style="margin-bottom: 5px;">YouTube</h4>
-                                <p style="font-size: 0.9rem; color: #6b7280;">Extract video transcripts</p>
+                                <p style="font-size: 0.9rem; color: #6b7280;">Coming soon</p>
                             </div>
                             <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
                                 <i class="fas fa-play-circle" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
@@ -1514,7 +1170,7 @@
                         <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(236, 72, 153, 0.1)); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                             <h4 style="color: #f59e0b; margin-bottom: 10px;">🤖 AI Technologies Used:</h4>
                             <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="margin-bottom: 8px;"><strong>GPT-4 Language Model:</strong> Advanced claim extraction & context understanding</li>
+                                <li style="margin-bottom: 8px;"><strong>AI Language Model:</strong> Advanced claim extraction & context understanding</li>
                                 <li style="margin-bottom: 8px;"><strong>Neural Pattern Recognition:</strong> Identifies statistical claims & factual statements</li>
                                 <li style="margin-bottom: 8px;"><strong>WebKit Speech Recognition:</strong> Real-time speech-to-text conversion</li>
                                 <li><strong>Multi-Model Consensus:</strong> Cross-validates results for accuracy</li>
@@ -1580,6 +1236,64 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Results Section -->
+            <div class="results-grid" id="resultsSection" style="display: none;">
+                <!-- Statistics -->
+                <div class="stats-card">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">
+                        <i class="fas fa-chart-bar"></i> Statistics
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="wordCount">0</div>
+                            <div class="stat-label">Words</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="claimsCount">0</div>
+                            <div class="stat-label">Claims Checked</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="trueCount">0</div>
+                            <div class="stat-label">True</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="falseCount">0</div>
+                            <div class="stat-label">False</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fact Check Results -->
+                <div class="fact-check-card">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">
+                        <i class="fas fa-check-circle"></i> Fact Check Results
+                    </h3>
+                    <div id="factCheckResults">
+                        <p style="text-align: center; color: #6b7280;">
+                            <span class="loading-spinner"></span> Analyzing claims...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-card" id="summaryCard" style="display: none;">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">
+                        <i class="fas fa-clipboard-check"></i> Summary Report
+                    </h3>
+                    <div class="accuracy-meter">
+                        <div class="accuracy-bar" id="accuracyBar"></div>
+                    </div>
+                    <p style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #4a5568; margin: 20px 0;">
+                        Accuracy: <span id="accuracyPercent">0</span>%
+                    </p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="downloadReport()">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1593,22 +1307,72 @@
         </div>
     </div>
 
-    <!-- Remove duplicate script tags since we moved them to head -->
     <script>
-        // Wait for speech-checker.js to fully load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if we have a pending source selection
-            setTimeout(function() {
-                if (window.pendingSourceSelection && window.selectSource) {
-                    console.log('Applying pending source selection:', window.pendingSourceSelection);
-                    window.selectSource(window.pendingSourceSelection);
-                    window.pendingSourceSelection = null;
-                }
-            }, 100);
-        });
+        // Global variables
+        let recognition;
+        let isRecording = false;
+        let factCheckResults = [];
+        let selectedSource = 'microphone';
         
-        // Additional inline functions that work with speech-checker.js
-        
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                recognition.onstart = () => {
+                    isRecording = true;
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('stopBtn').style.display = 'inline-flex';
+                    document.getElementById('transcriptContainer').classList.add('recording-mode');
+                    document.getElementById('recordingStatus').classList.add('active');
+                    document.getElementById('hintText').textContent = 'Recording in progress... Speak clearly into your microphone';
+                };
+                
+                recognition.onend = () => {
+                    isRecording = false;
+                    document.getElementById('startBtn').style.display = 'inline-flex';
+                    document.getElementById('stopBtn').style.display = 'none';
+                    document.getElementById('transcriptContainer').classList.remove('recording-mode');
+                    document.getElementById('recordingStatus').classList.remove('active');
+                    document.getElementById('hintText').textContent = 'Recording stopped. Click "Check Facts" to analyze';
+                };
+                
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript + ' ';
+                        }
+                    }
+                    
+                    if (finalTranscript) {
+                        const transcript = document.getElementById('transcript');
+                        transcript.textContent += finalTranscript;
+                        updateWordCount();
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    if (event.error === 'no-speech') {
+                        // Ignore no-speech errors
+                        return;
+                    }
+                    console.error('Speech recognition error:', event.error);
+                    if (event.error === 'not-allowed') {
+                        alert('Microphone access denied. Please allow microphone access in your browser settings.');
+                    } else {
+                        alert('Speech recognition error: ' + event.error);
+                    }
+                };
+            } else {
+                alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+            }
+        }
+
         // Toggle dropdown
         function toggleDropdown(header) {
             const content = header.nextElementSibling;
@@ -1616,9 +1380,157 @@
             content.classList.toggle('open');
         }
 
+        // Select source
+        function selectSource(source) {
+            selectedSource = source;
+            
+            // Update tabs
+            document.querySelectorAll('.compact-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-mode="${source}"]`).classList.add('active');
+            
+            // Update UI elements
+            const modeBanner = document.getElementById('modeBanner');
+            const modeIcon = document.getElementById('modeIcon');
+            const modeText = document.getElementById('modeText');
+            const instructionsList = document.getElementById('instructionsList');
+            const modeNameInstructions = document.getElementById('modeNameInstructions');
+            const startBtn = document.getElementById('startBtn');
+            const transcript = document.getElementById('transcript');
+            const hintText = document.getElementById('hintText');
+            
+            
+            if (source === 'microphone') {
+                modeIcon.className = 'fas fa-microphone';
+                modeText.textContent = 'Live Recording Mode - Ready to record your speech';
+                modeNameInstructions.textContent = 'Live Recording';
+                startBtn.style.display = 'inline-flex';
+                transcript.setAttribute('data-placeholder', 'Your speech will appear here as you speak...');
+                transcript.contentEditable = 'false';
+                hintText.textContent = 'Click "Start Recording" to begin capturing speech';
+                modeBanner.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div>
+                            <strong>Start Recording:</strong> Click the "Start Recording" button below (microphone access required)
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div>
+                            <strong>Speak Clearly:</strong> Your words will appear in real-time in the transcript box
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div>
+                            <strong>Stop Recording:</strong> Click "Stop Recording" when you're finished speaking
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div>
+                            <strong>Check Facts:</strong> Click "Check Facts" to analyze all claims in your speech
+                        </div>
+                    </div>
+                `;
+            } else if (source === 'text') {
+                modeIcon.className = 'fas fa-keyboard';
+                modeText.textContent = 'Text Input Mode - Type or paste your text';
+                modeNameInstructions.textContent = 'Text Input';
+                startBtn.style.display = 'none';
+                transcript.setAttribute('data-placeholder', 'Type or paste your text here...');
+                transcript.contentEditable = 'true';
+                transcript.focus();
+                hintText.textContent = 'Type or paste text, then click "Check Facts" to analyze';
+                modeBanner.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">1</div>
+                        <div>
+                            <strong>Enter Text:</strong> Click in the transcript box below
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2</div>
+                        <div>
+                            <strong>Type or Paste:</strong> Enter your text manually or paste from clipboard (Ctrl+V)
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3</div>
+                        <div>
+                            <strong>Auto-Analysis:</strong> For pasted text, fact-checking starts automatically
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">4</div>
+                        <div>
+                            <strong>Manual Check:</strong> Or click "Check Facts" when ready to analyze
+                        </div>
+                    </div>
+                `;
+            } else if (source === 'demo') {
+                modeIcon.className = 'fas fa-play-circle';
+                modeText.textContent = 'Demo Mode - Sample speech loaded';
+                modeNameInstructions.textContent = 'Demo';
+                startBtn.style.display = 'none';
+                transcript.contentEditable = 'false';
+                hintText.textContent = 'Demo text loaded. Click "Check Facts" to see results';
+                modeBanner.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                instructionsList.innerHTML = `
+                    <div class="instruction-item">
+                        <div class="instruction-number">✨</div>
+                        <div>
+                            <strong>Demo Loaded:</strong> Sample speech with factual claims has been loaded
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">👀</div>
+                        <div>
+                            <strong>Review Text:</strong> See the example speech in the transcript box
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">🚀</div>
+                        <div>
+                            <strong>Run Analysis:</strong> Click "Check Facts" to see how verification works
+                        </div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">💡</div>
+                        <div>
+                            <strong>Try Your Own:</strong> Switch to Recording or Text mode for custom content
+                        </div>
+                    </div>
+                `;
+                
+                loadDemo();
+            }
+            
+            // Update mode banner color
+            modeBanner.style.background = source === 'microphone' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                                         source === 'text' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
+                                         'linear-gradient(135deg, #10b981, #059669)';
+        }
+
+        // Start recording
+        function startRecording() {
+            if (!recognition) initSpeechRecognition();
+            if (recognition) recognition.start();
+        }
+
+        // Stop recording
+        function stopRecording() {
+            if (recognition) recognition.stop();
+        }
+
         // Check facts
         async function checkFacts() {
-            const text = document.getElementById('transcript').value;
+            const text = document.getElementById('transcript').textContent;
             if (!text.trim()) {
                 alert('Please enter or record some text to fact-check');
                 return;
@@ -1630,110 +1542,333 @@
             // Show results section
             document.getElementById('resultsSection').style.display = 'grid';
             
-            // Process transcript
-            if (window.processTranscript) {
-                window.processTranscript(text);
-            } else {
-                console.error('processTranscript not available');
-                // Fallback
+            // Extract claims
+            const claims = extractClaims(text);
+            
+            // Update word count in results
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+            document.getElementById('wordCount').textContent = words.length;
+            
+            if (claims.length === 0) {
                 document.getElementById('processingOverlay').style.display = 'none';
-                alert('Error: JavaScript not fully loaded. Please refresh the page.');
+                document.getElementById('factCheckResults').innerHTML = 
+                    '<p style="text-align: center; color: #6b7280;">No factual claims detected in the text.</p>';
+                return;
             }
             
-            // Calculate education level
-            setTimeout(() => {
-                calculateEducationLevel(text);
-            }, 2000);
+            try {
+                const response = await fetch('/api/batch-factcheck', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ claims: claims })
+                });
+                
+                const data = await response.json();
+                
+                // Hide processing overlay
+                setTimeout(() => {
+                    document.getElementById('processingOverlay').style.display = 'none';
+                    
+                    if (data.success && data.results) {
+                        displayResults(data.results);
+                    }
+                }, 1500); // Show processing for at least 1.5 seconds for effect
+                
+            } catch (error) {
+                console.error('Fact-checking error:', error);
+                document.getElementById('processingOverlay').style.display = 'none';
+                document.getElementById('factCheckResults').innerHTML = 
+                    '<p style="color: #ef4444;">Error during fact-checking. Please try again.</p>';
+            }
         }
-        
-        // Calculate education level based on text complexity
-        function calculateEducationLevel(text) {
-            // Simple readability analysis
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            const words = text.split(/\s+/).filter(w => w.length > 0);
-            const syllables = words.reduce((count, word) => {
-                // Simple syllable counting (not perfect but good enough)
-                return count + word.toLowerCase().replace(/[^aeiou]/g, '').length || 1;
-            }, 0);
+
+        // Extract claims
+        function extractClaims(text) {
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+            const claims = [];
             
-            // Average sentence length
-            const avgSentenceLength = words.length / Math.max(sentences.length, 1);
+            const patterns = [
+                /\d+\.?\d*\s*(percent|%)/i,
+                /\d+\.?\d*\s*(million|billion|trillion)/i,
+                /(is|are|was|were)\s+(now\s+)?\d+/i,
+                /currently\s+stands?\s+at/i,
+                /increased\s+by\s+\d+/i,
+                /decreased\s+by\s+\d+/i,
+                /has\s+(now\s+)?exceeded\s+\d+/i,
+                /remains?\s+at\s+\d+/i,
+                /account\s+for\s+(over\s+)?\d+/i,
+                /since\s+\d{4}/i,
+                /in\s+\d{4}/i,
+                /historic\s+(low|high)/i,
+                /unchanged\s+since/i
+            ];
             
-            // Average syllables per word
-            const avgSyllablesPerWord = syllables / Math.max(words.length, 1);
+            sentences.forEach(sentence => {
+                const trimmed = sentence.trim();
+                for (const pattern of patterns) {
+                    if (pattern.test(trimmed)) {
+                        claims.push(trimmed);
+                        break;
+                    }
+                }
+            });
             
-            // Complex word count (words with 3+ syllables)
-            const complexWords = words.filter(word => {
-                const syllableCount = word.toLowerCase().replace(/[^aeiou]/g, '').length;
-                return syllableCount >= 3;
-            }).length;
+            return claims.slice(0, 10);
+        }
+
+        // Display results
+        function displayResults(results) {
+            factCheckResults = results;
             
-            // Flesch-Kincaid Grade Level (simplified)
-            const fleschKincaid = 0.39 * avgSentenceLength + 11.8 * avgSyllablesPerWord - 15.59;
+            // Update stats with animation
+            animateNumber('claimsCount', 0, results.length);
+            animateNumber('trueCount', 0, results.filter(r => r.verdict === 'true').length);
+            animateNumber('falseCount', 0, results.filter(r => r.verdict === 'false').length);
             
-            // Vocabulary diversity
-            const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
-            const vocabDiversity = uniqueWords / Math.max(words.length, 1);
+            // Display fact checks with staggered animation
+            let html = '';
+            results.forEach((result, index) => {
+                const confidence = Math.round(result.confidence * 100);
+                const verdictIcon = result.verdict === 'true' ? '✓' : result.verdict === 'false' ? '✗' : '?';
+                
+                html += `
+                    <div class="fact-check-item" onclick="toggleSources(${index})" style="animation: fadeInUp 0.5s ease ${index * 0.1}s forwards; opacity: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <span class="verdict-badge verdict-${result.verdict}">
+                                ${verdictIcon} ${result.verdict.toUpperCase()}
+                            </span>
+                            <div style="text-align: right;">
+                                <div style="color: #6b7280; font-size: 0.9rem;">Confidence</div>
+                                <div style="font-weight: 600; color: #4a5568;">${confidence}%</div>
+                            </div>
+                        </div>
+                        <p style="margin-bottom: 10px; font-size: 1.05rem; line-height: 1.6;">${highlightClaim(result.claim)}</p>
+                        <div id="sources-${index}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                            <strong style="color: #4a5568;">Verification Sources:</strong><br>
+                            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;">
+                                ${result.sources.map(s => 
+                                    `<a href="#" class="source-chip" onclick="event.preventDefault(); showSourceDetail('${s.source || s}')">
+                                        <i class="fas fa-external-link-alt"></i> ${s.source || s}
+                                    </a>`
+                                ).join('')}
+                            </div>
+                            ${result.credibility_score ? `
+                                <div style="margin-top: 15px; padding: 10px; background: rgba(102, 126, 234, 0.05); border-radius: 8px;">
+                                    <strong>AI Analysis:</strong> Credibility Score: ${result.credibility_score}/100
+                                    ${result.bias ? `<br><strong>Bias:</strong> ${result.bias}` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
             
-            // Calculate education level (0-100 scale)
-            let educationScore = 0;
-            let levelText = '';
-            let analysis = '';
+            document.getElementById('factCheckResults').innerHTML = html;
             
-            if (fleschKincaid < 6) {
-                educationScore = 10;
-                levelText = 'Elementary';
-                analysis = 'Simple vocabulary and short sentences suitable for elementary education.';
-            } else if (fleschKincaid < 9) {
-                educationScore = 25;
-                levelText = 'Middle School';
-                analysis = 'Clear language with moderate complexity, appropriate for middle school level.';
-            } else if (fleschKincaid < 13) {
-                educationScore = 50;
-                levelText = 'High School';
-                analysis = 'Well-structured content with good vocabulary, matching high school standards.';
-            } else if (fleschKincaid < 16) {
-                educationScore = 70;
-                levelText = 'College';
-                analysis = 'Advanced vocabulary and complex sentence structures typical of college-level discourse.';
-            } else if (fleschKincaid < 18) {
-                educationScore = 85;
-                levelText = 'Graduate';
-                analysis = 'Sophisticated language with specialized terminology, suitable for graduate-level work.';
-            } else {
-                educationScore = 95;
-                levelText = 'PhD Level';
-                analysis = 'Highly complex academic language with extensive specialized vocabulary and intricate concepts.';
-            }
+            // Show summary
+            showSummary(results);
+        }
+
+        // Animate numbers
+        function animateNumber(id, start, end) {
+            const element = document.getElementById(id);
+            const duration = 1000;
+            const steps = 30;
+            const increment = (end - start) / steps;
+            let current = start;
+            let step = 0;
             
-            // Adjust based on vocabulary diversity
-            if (vocabDiversity > 0.7) {
-                educationScore = Math.min(100, educationScore + 5);
-            }
+            const timer = setInterval(() => {
+                current += increment;
+                step++;
+                
+                if (step >= steps) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                
+                element.textContent = Math.round(current);
+            }, duration / steps);
+        }
+
+        // Highlight key parts of claims
+        function highlightClaim(claim) {
+            // Highlight numbers and percentages
+            return claim.replace(/(\d+\.?\d*\s*(?:percent|%|million|billion|trillion)?)/gi, '<strong style="color: #667eea;">$1</strong>');
+        }
+
+        // Show source detail
+        function showSourceDetail(source) {
+            alert(`Source: ${source}\n\nIn a full implementation, this would open a detailed view showing:\n- Source credibility rating\n- Publication date\n- Author information\n- Related articles\n- Fact-check methodology`);
+        }
+
+        // Toggle sources
+        function toggleSources(index) {
+            const sources = document.getElementById(`sources-${index}`);
+            sources.style.display = sources.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Show summary
+        function showSummary(results) {
+            const trueCount = results.filter(r => r.verdict === 'true').length;
+            const accuracy = results.length > 0 ? Math.round((trueCount / results.length) * 100) : 0;
             
-            // Update the gauge
-            const pointer = document.getElementById('education-pointer');
-            const levelTextEl = document.getElementById('education-level-text');
-            const analysisEl = document.getElementById('education-analysis');
+            document.getElementById('summaryCard').style.display = 'block';
+            document.getElementById('accuracyBar').style.width = accuracy + '%';
+            document.getElementById('accuracyPercent').textContent = accuracy;
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const text = document.getElementById('transcript').textContent;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+            document.getElementById('wordCountDisplay').textContent = words.length;
             
-            if (pointer && levelTextEl && analysisEl) {
-                pointer.style.left = educationScore + '%';
-                levelTextEl.textContent = levelText;
-                analysisEl.innerHTML = `<i class="fas fa-info-circle"></i> ${analysis} (Flesch-Kincaid: ${fleschKincaid.toFixed(1)}, Vocabulary Diversity: ${(vocabDiversity * 100).toFixed(1)}%)`;
+            // Also update in stats if visible
+            if (document.getElementById('resultsSection').style.display !== 'none') {
+                document.getElementById('wordCount').textContent = words.length;
             }
         }
 
         // Clear all
         function clearAll() {
-            document.getElementById('transcript').value = '';
+            document.getElementById('transcript').textContent = '';
             document.getElementById('resultsSection').style.display = 'none';
-            document.getElementById('word-count').textContent = '0';
+            document.getElementById('hintText').textContent = selectedSource === 'microphone' ? 
+                'Click "Start Recording" to begin capturing speech' : 
+                'Type or paste text, then click "Check Facts" to analyze';
+            updateWordCount();
             
-            // Reset to default mode
-            if (window.selectSource) {
-                window.selectSource('microphone');
+            // Stop recording if active
+            if (isRecording && recognition) {
+                recognition.stop();
             }
         }
+
+        // Load demo
+        function loadDemo() {
+            const demoText = `Good evening, everyone. I want to share some important facts about our world today.
+
+The global population has now exceeded 8 billion people, with China and India being the most populous nations. Climate change continues to be a pressing issue, with global temperatures rising by 1.1 degrees Celsius since pre-industrial times.
+
+In the United States, the unemployment rate currently stands at 3.5 percent, near historic lows. The federal minimum wage remains at $7.25 per hour, unchanged since 2009.
+
+Renewable energy is growing rapidly. Solar and wind power now account for over 12% of global electricity generation. Electric vehicle sales increased by 60% in 2022 compared to the previous year.
+
+Thank you for your attention to these facts.`;
+            
+            document.getElementById('transcript').textContent = demoText;
+            updateWordCount();
+        }
+
+        // Download report
+        function downloadReport() {
+            const transcript = document.getElementById('transcript').textContent;
+            const stats = {
+                words: document.getElementById('wordCount').textContent,
+                claims: document.getElementById('claimsCount').textContent,
+                true: document.getElementById('trueCount').textContent,
+                false: document.getElementById('falseCount').textContent,
+                accuracy: document.getElementById('accuracyPercent').textContent
+            };
+            
+            let report = `SPEECH FACT-CHECK REPORT
+Generated: ${new Date().toLocaleString()}
+=====================================
+
+TRANSCRIPT:
+${transcript}
+
+STATISTICS:
+- Total Words: ${stats.words}
+- Claims Checked: ${stats.claims}
+- True Claims: ${stats.true}
+- False Claims: ${stats.false}
+- Accuracy Rate: ${stats.accuracy}%
+
+DETAILED FACT-CHECKS:
+`;
+
+            factCheckResults.forEach((result, i) => {
+                report += `
+${i + 1}. ${result.claim}
+   Verdict: ${result.verdict.toUpperCase()}
+   Confidence: ${Math.round(result.confidence * 100)}%
+   Sources: ${result.sources.map(s => s.source || s).join(', ')}
+`;
+            });
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `speech-fact-check-${new Date().toISOString().slice(0, 10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Include HTML function
+        function includeHTML() {
+            var z, i, elmnt, file, xhttp;
+            z = document.getElementsByTagName("*");
+            for (i = 0; i < z.length; i++) {
+                elmnt = z[i];
+                file = elmnt.getAttribute("w3-include-html");
+                if (file) {
+                    xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = function() {
+                        if (this.readyState == 4) {
+                            if (this.status == 200) {elmnt.innerHTML = this.responseText;}
+                            if (this.status == 404) {elmnt.innerHTML = "Page not found.";}
+                            elmnt.removeAttribute("w3-include-html");
+                            includeHTML();
+                        }
+                    }      
+                    xhttp.open("GET", file, true);
+                    xhttp.send();
+                    return;
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Include header
+            includeHTML();
+            
+            // Initialize speech recognition
+            initSpeechRecognition();
+            
+            // Handle paste
+            document.getElementById('transcript').addEventListener('paste', () => {
+                if (selectedSource === 'text') {
+                    setTimeout(() => {
+                        updateWordCount();
+                        if (document.getElementById('transcript').textContent.length > 50) {
+                            checkFacts();
+                        }
+                    }, 100);
+                }
+            });
+            
+            // Handle typing
+            let typingTimer;
+            document.getElementById('transcript').addEventListener('input', () => {
+                clearTimeout(typingTimer);
+                updateWordCount();
+                
+                if (selectedSource === 'text') {
+                    typingTimer = setTimeout(() => {
+                        if (document.getElementById('transcript').textContent.length > 50) {
+                            document.getElementById('hintText').textContent = 'Text ready. Click "Check Facts" to analyze';
+                        }
+                    }, 1000);
+                }
+            });
+            
+            // Set initial placeholder based on mode
+            selectSource('microphone');
+        });
     </script>
 </body>
 </html>
