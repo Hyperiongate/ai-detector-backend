@@ -1272,15 +1272,30 @@
 
                 <!-- Text Input -->
                 <div id="text-input" class="source-input">
-                    <!-- This is handled by the transcript container below -->
+                    <div style="padding: 20px; background: #f0f9ff; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="color: #3b82f6; margin-bottom: 10px;">
+                            <i class="fas fa-keyboard"></i> Text Input Mode Active
+                        </h4>
+                        <p style="color: #64748b; margin: 0;">
+                            Type or paste your text directly in the transcript box below, then click "Check Facts"
+                        </p>
+                    </div>
                 </div>
 
                 <!-- YouTube Input -->
                 <div id="youtube-input" class="source-input">
-                    <input type="text" id="youtube-url" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=...)" />
-                    <button id="youtube-btn" onclick="processYouTube()">
-                        <i class="fab fa-youtube"></i> Get Transcript
-                    </button>
+                    <div style="padding: 20px; background: #fef2f2; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="color: #dc2626; margin-bottom: 10px;">
+                            <i class="fab fa-youtube"></i> YouTube Mode Active
+                        </h4>
+                        <p style="color: #64748b; margin-bottom: 15px;">
+                            Enter a YouTube URL to extract and analyze the video's transcript
+                        </p>
+                        <input type="text" id="youtube-url" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=...)" />
+                        <button id="youtube-btn" onclick="processYouTube()">
+                            <i class="fab fa-youtube"></i> Get Transcript
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Transcript Area -->
@@ -1369,6 +1384,34 @@
                     <p style="text-align: center; font-size: 1.5rem; font-weight: 700; color: #4a5568; margin: 20px 0;">
                         Accuracy: <span id="accuracy-percent">0</span>%
                     </p>
+                    
+                    <!-- New Education Level Gauge -->
+                    <div style="margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f3f4f6, #ffffff); border-radius: 15px;">
+                        <h4 style="color: #4a5568; margin-bottom: 20px; text-align: center;">
+                            <i class="fas fa-graduation-cap"></i> Educational Level of Speech
+                        </h4>
+                        <div style="position: relative; height: 60px; background: linear-gradient(90deg, #f87171, #fbbf24, #34d399, #60a5fa, #818cf8); border-radius: 30px; overflow: hidden;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; color: white; font-weight: 600; font-size: 0.8rem;">
+                                <span>Elementary</span>
+                                <span>High School</span>
+                                <span>College</span>
+                                <span>Graduate</span>
+                                <span>PhD</span>
+                            </div>
+                            <div id="education-pointer" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #1f2937; transition: left 1s ease;">
+                                <div style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 5px 10px; border-radius: 5px; white-space: nowrap; font-weight: 600;">
+                                    <span id="education-level-text">Analyzing...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 10px;">
+                            <p style="margin: 0; color: #4c1d95; font-weight: 500;">
+                                <i class="fas fa-info-circle"></i> <span id="education-analysis">
+                                    This analysis considers vocabulary complexity, sentence structure, conceptual depth, and specialized terminology usage.
+                                </span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1550,15 +1593,20 @@
         </div>
     </div>
 
-    <!-- Add favicon to prevent 404 -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎤%3C/text%3E%3C/svg%3E">
-    
-    <!-- Include Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Include the speech-checker.js file -->
-    <script src="{{ url_for('static', filename='js/speech-checker.js') }}?v=7"></script>
-    
+    <!-- Remove duplicate script tags since we moved them to head -->
     <script>
+        // Wait for speech-checker.js to fully load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have a pending source selection
+            setTimeout(function() {
+                if (window.pendingSourceSelection && window.selectSource) {
+                    console.log('Applying pending source selection:', window.pendingSourceSelection);
+                    window.selectSource(window.pendingSourceSelection);
+                    window.pendingSourceSelection = null;
+                }
+            }, 100);
+        });
+        
         // Additional inline functions that work with speech-checker.js
         
         // Toggle dropdown
@@ -1591,6 +1639,88 @@
                 document.getElementById('processingOverlay').style.display = 'none';
                 alert('Error: JavaScript not fully loaded. Please refresh the page.');
             }
+            
+            // Calculate education level
+            setTimeout(() => {
+                calculateEducationLevel(text);
+            }, 2000);
+        }
+        
+        // Calculate education level based on text complexity
+        function calculateEducationLevel(text) {
+            // Simple readability analysis
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            const syllables = words.reduce((count, word) => {
+                // Simple syllable counting (not perfect but good enough)
+                return count + word.toLowerCase().replace(/[^aeiou]/g, '').length || 1;
+            }, 0);
+            
+            // Average sentence length
+            const avgSentenceLength = words.length / Math.max(sentences.length, 1);
+            
+            // Average syllables per word
+            const avgSyllablesPerWord = syllables / Math.max(words.length, 1);
+            
+            // Complex word count (words with 3+ syllables)
+            const complexWords = words.filter(word => {
+                const syllableCount = word.toLowerCase().replace(/[^aeiou]/g, '').length;
+                return syllableCount >= 3;
+            }).length;
+            
+            // Flesch-Kincaid Grade Level (simplified)
+            const fleschKincaid = 0.39 * avgSentenceLength + 11.8 * avgSyllablesPerWord - 15.59;
+            
+            // Vocabulary diversity
+            const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
+            const vocabDiversity = uniqueWords / Math.max(words.length, 1);
+            
+            // Calculate education level (0-100 scale)
+            let educationScore = 0;
+            let levelText = '';
+            let analysis = '';
+            
+            if (fleschKincaid < 6) {
+                educationScore = 10;
+                levelText = 'Elementary';
+                analysis = 'Simple vocabulary and short sentences suitable for elementary education.';
+            } else if (fleschKincaid < 9) {
+                educationScore = 25;
+                levelText = 'Middle School';
+                analysis = 'Clear language with moderate complexity, appropriate for middle school level.';
+            } else if (fleschKincaid < 13) {
+                educationScore = 50;
+                levelText = 'High School';
+                analysis = 'Well-structured content with good vocabulary, matching high school standards.';
+            } else if (fleschKincaid < 16) {
+                educationScore = 70;
+                levelText = 'College';
+                analysis = 'Advanced vocabulary and complex sentence structures typical of college-level discourse.';
+            } else if (fleschKincaid < 18) {
+                educationScore = 85;
+                levelText = 'Graduate';
+                analysis = 'Sophisticated language with specialized terminology, suitable for graduate-level work.';
+            } else {
+                educationScore = 95;
+                levelText = 'PhD Level';
+                analysis = 'Highly complex academic language with extensive specialized vocabulary and intricate concepts.';
+            }
+            
+            // Adjust based on vocabulary diversity
+            if (vocabDiversity > 0.7) {
+                educationScore = Math.min(100, educationScore + 5);
+            }
+            
+            // Update the gauge
+            const pointer = document.getElementById('education-pointer');
+            const levelTextEl = document.getElementById('education-level-text');
+            const analysisEl = document.getElementById('education-analysis');
+            
+            if (pointer && levelTextEl && analysisEl) {
+                pointer.style.left = educationScore + '%';
+                levelTextEl.textContent = levelText;
+                analysisEl.innerHTML = `<i class="fas fa-info-circle"></i> ${analysis} (Flesch-Kincaid: ${fleschKincaid.toFixed(1)}, Vocabulary Diversity: ${(vocabDiversity * 100).toFixed(1)}%)`;
+            }
         }
 
         // Clear all
@@ -1604,52 +1734,6 @@
                 window.selectSource('microphone');
             }
         }
-        
-        // Ensure functions are available after page load
-        window.addEventListener('load', function() {
-            // Check if speech-checker.js loaded properly
-            if (typeof selectSource === 'undefined') {
-                console.error('speech-checker.js did not load properly');
-                
-                // Define fallback for selectSource
-                window.selectSource = function(source) {
-                    console.log('Fallback selectSource:', source);
-                    // Update UI to show selected source
-                    document.querySelectorAll('.source-card').forEach(card => {
-                        card.classList.remove('active');
-                    });
-                    document.querySelector(`[data-mode="${source}"]`).classList.add('active');
-                    
-                    // Show/hide YouTube input
-                    const youtubeInput = document.getElementById('youtube-input');
-                    if (youtubeInput) {
-                        youtubeInput.style.display = source === 'youtube' ? 'block' : 'none';
-                    }
-                    
-                    // Update status
-                    const status = document.getElementById('status');
-                    if (status) {
-                        status.textContent = source + ' mode selected';
-                        status.classList.add('active');
-                    }
-                };
-                
-                // Define other critical functions
-                window.processYouTube = function() {
-                    alert('JavaScript not fully loaded. Please refresh the page and try again.');
-                };
-                
-                window.toggleRecording = function() {
-                    alert('JavaScript not fully loaded. Please refresh the page and try again.');
-                };
-                
-                window.exportReport = function() {
-                    alert('JavaScript not fully loaded. Please refresh the page and try again.');
-                };
-            } else {
-                console.log('speech-checker.js loaded successfully');
-            }
-        });
     </script>
 </body>
 </html>
