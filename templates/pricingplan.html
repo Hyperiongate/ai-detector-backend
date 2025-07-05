@@ -312,7 +312,7 @@
         .plan-features li {
             padding: 0.5rem 0;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.75rem;
             font-size: 0.9rem;
         }
@@ -321,6 +321,7 @@
             color: #4CAF50;
             font-size: 1rem;
             min-width: 16px;
+            margin-top: 2px;
         }
 
         .feature-icon.premium {
@@ -339,6 +340,13 @@
         .feature-highlight {
             font-weight: 600;
             color: #333;
+        }
+
+        .feature-limit {
+            font-size: 0.8rem;
+            color: #888;
+            display: block;
+            margin-top: 2px;
         }
 
         .plan-button {
@@ -376,6 +384,64 @@
             background: #667eea;
             color: white;
             transform: translateY(-2px);
+        }
+
+        /* Detailed Features Table */
+        .features-table-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .features-table-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .features-table-header h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .features-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .features-table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .features-table th.plan-column {
+            text-align: center;
+            width: 150px;
+        }
+
+        .features-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .features-table td.center {
+            text-align: center;
+        }
+
+        .features-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .feature-category {
+            background: #f0f0f0;
+            font-weight: 600;
+            color: #667eea;
         }
 
         /* Competitive Comparison - Compact */
@@ -534,7 +600,7 @@
         }
 
         .faq-item.active .faq-answer {
-            max-height: 150px;
+            max-height: 300px;
         }
 
         .faq-answer-content {
@@ -783,6 +849,14 @@
             .modal-footer {
                 flex-direction: column;
             }
+
+            .features-table {
+                font-size: 0.8rem;
+            }
+
+            .features-table th.plan-column {
+                width: 100px;
+            }
         }
     </style>
 </head>
@@ -817,8 +891,8 @@
     <div class="main-content">
         <!-- Hero Section -->
         <div class="hero-section">
-            <h1>💰 Simple, Honest Pricing</h1>
-            <p class="subtitle">5-in-1 Platform • Start Free • Upgrade When You Need More</p>
+            <h1>💰 Simple, Transparent Pricing</h1>
+            <p class="subtitle">5 Professional AI Tools in One Platform • Start Free • Upgrade When Ready</p>
         </div>
 
         <!-- Plans Comparison -->
@@ -844,23 +918,46 @@
                 <ul class="plan-features">
                     <li>
                         <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text"><span class="feature-highlight">All 5 tools included</span></span>
-                    </li>
-                    <li>
-                        <i class="fas fa-clock feature-icon limited"></i>
-                        <span class="feature-text">Daily usage limits</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">Standard analysis models</span>
+                        <span class="feature-text">
+                            <span class="feature-highlight">News Verification</span>
+                            <span class="feature-limit">5 articles/day</span>
+                        </span>
                     </li>
                     <li>
                         <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">Basic reports (view only)</span>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Speech Fact-Checking</span>
+                            <span class="feature-limit">3 speeches/day (max 5 min each)</span>
+                        </span>
                     </li>
                     <li>
                         <i class="fas fa-check feature-icon"></i>
-                        <span class="feature-text">File upload support</span>
+                        <span class="feature-text">
+                            <span class="feature-highlight">AI Content Detection</span>
+                            <span class="feature-limit">10 texts/day (max 1,000 words)</span>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check feature-icon"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Image Analysis</span>
+                            <span class="feature-limit">5 images/day</span>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check feature-icon"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Plagiarism Checking</span>
+                            <span class="feature-limit">5 documents/day</span>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check feature-icon"></i>
+                        <span class="feature-text">Basic AI models</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check feature-icon"></i>
+                        <span class="feature-text">View-only reports</span>
                     </li>
                     <li>
                         <i class="fas fa-check feature-icon"></i>
@@ -873,47 +970,74 @@
 
             <!-- Professional Plan -->
             <div class="plan-card featured">
-                <div class="popular-badge">Recommended</div>
+                <div class="popular-badge">Best Value</div>
                 <div class="plan-header">
                     <div class="plan-icon paid">
                         <i class="fas fa-crown"></i>
                     </div>
                     <h3 class="plan-name">Professional</h3>
-                    <p class="plan-description">Everything in Free, plus advanced features for professionals</p>
+                    <p class="plan-description">Unlimited access to all tools with premium features</p>
                 </div>
                 
                 <div class="plan-price">
                     <div class="price-display">
-                        <span class="price-currency">$</span>19.99
+                        <span class="price-currency">$</span>9.50
                         <span class="price-period">/month</span>
                     </div>
-                    <div class="savings-text">Save 20% with annual billing</div>
+                    <div class="savings-text">Save 20% with annual billing ($91.20/year)</div>
                 </div>
                 
                 <ul class="plan-features">
                     <li>
-                        <i class="fas fa-check feature-icon premium"></i>
-                        <span class="feature-text"><span class="feature-highlight">Everything in Free</span></span>
+                        <i class="fas fa-infinity feature-icon premium"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Unlimited News Verification</span>
+                            <span class="feature-limit">No daily limits</span>
+                        </span>
                     </li>
                     <li>
                         <i class="fas fa-infinity feature-icon premium"></i>
-                        <span class="feature-text"><span class="feature-highlight">Higher usage limits</span></span>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Unlimited Speech Analysis</span>
+                            <span class="feature-limit">Videos up to 2 hours</span>
+                        </span>
                     </li>
                     <li>
-                        <i class="fas fa-rocket feature-icon premium"></i>
-                        <span class="feature-text">Priority processing speed</span>
+                        <i class="fas fa-infinity feature-icon premium"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Unlimited AI Detection</span>
+                            <span class="feature-limit">Documents up to 50,000 words</span>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fas fa-infinity feature-icon premium"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Unlimited Image Analysis</span>
+                            <span class="feature-limit">Batch processing available</span>
+                        </span>
+                    </li>
+                    <li>
+                        <i class="fas fa-infinity feature-icon premium"></i>
+                        <span class="feature-text">
+                            <span class="feature-highlight">Advanced Plagiarism Check</span>
+                            <span class="feature-limit">With source citations</span>
+                        </span>
                     </li>
                     <li>
                         <i class="fas fa-brain feature-icon premium"></i>
-                        <span class="feature-text">Advanced AI detection models</span>
+                        <span class="feature-text">Premium AI models (99.9% accuracy)</span>
                     </li>
                     <li>
                         <i class="fas fa-download feature-icon premium"></i>
-                        <span class="feature-text">Export reports (PDF, CSV)</span>
+                        <span class="feature-text">Export reports (PDF, CSV, JSON)</span>
                     </li>
                     <li>
                         <i class="fas fa-code feature-icon premium"></i>
-                        <span class="feature-text">API access included</span>
+                        <span class="feature-text">API access (1,000 calls/month)</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-bolt feature-icon premium"></i>
+                        <span class="feature-text">Priority processing (3x faster)</span>
                     </li>
                     <li>
                         <i class="fas fa-headset feature-icon premium"></i>
@@ -925,16 +1049,173 @@
             </div>
         </div>
 
+        <!-- Detailed Features Table -->
+        <div class="features-table-section">
+            <div class="features-table-header">
+                <h2>📋 Detailed Feature Comparison</h2>
+            </div>
+            
+            <table class="features-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th class="plan-column">Free</th>
+                        <th class="plan-column">Professional</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="feature-category">
+                        <td colspan="3">📰 News Verification</td>
+                    </tr>
+                    <tr>
+                        <td>Daily article limit</td>
+                        <td class="center">5</td>
+                        <td class="center">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Real-time fact checking</td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Source credibility analysis</td>
+                        <td class="center">Basic</td>
+                        <td class="center">Advanced</td>
+                    </tr>
+                    <tr>
+                        <td>Bias detection</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    
+                    <tr class="feature-category">
+                        <td colspan="3">🎤 Speech Fact-Checking</td>
+                    </tr>
+                    <tr>
+                        <td>Daily speech limit</td>
+                        <td class="center">3</td>
+                        <td class="center">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Maximum video length</td>
+                        <td class="center">5 minutes</td>
+                        <td class="center">2 hours</td>
+                    </tr>
+                    <tr>
+                        <td>Transcription accuracy</td>
+                        <td class="center">Standard</td>
+                        <td class="center">Premium</td>
+                    </tr>
+                    <tr>
+                        <td>Real-time processing</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    
+                    <tr class="feature-category">
+                        <td colspan="3">🤖 AI Content Detection</td>
+                    </tr>
+                    <tr>
+                        <td>Daily text limit</td>
+                        <td class="center">10</td>
+                        <td class="center">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Maximum word count</td>
+                        <td class="center">1,000</td>
+                        <td class="center">50,000</td>
+                    </tr>
+                    <tr>
+                        <td>Detection models</td>
+                        <td class="center">Basic (GPT, Claude)</td>
+                        <td class="center">All models</td>
+                    </tr>
+                    <tr>
+                        <td>Detailed AI probability</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    
+                    <tr class="feature-category">
+                        <td colspan="3">🖼️ Image Analysis</td>
+                    </tr>
+                    <tr>
+                        <td>Daily image limit</td>
+                        <td class="center">5</td>
+                        <td class="center">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Deepfake detection</td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Metadata analysis</td>
+                        <td class="center">Basic</td>
+                        <td class="center">Advanced</td>
+                    </tr>
+                    <tr>
+                        <td>Batch processing</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    
+                    <tr class="feature-category">
+                        <td colspan="3">📄 Plagiarism Checking</td>
+                    </tr>
+                    <tr>
+                        <td>Daily document limit</td>
+                        <td class="center">5</td>
+                        <td class="center">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Source citations</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Academic database access</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center"><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                    
+                    <tr class="feature-category">
+                        <td colspan="3">⚙️ Platform Features</td>
+                    </tr>
+                    <tr>
+                        <td>Processing speed</td>
+                        <td class="center">Standard</td>
+                        <td class="center">3x Faster</td>
+                    </tr>
+                    <tr>
+                        <td>Report export</td>
+                        <td class="center">View only</td>
+                        <td class="center">PDF, CSV, JSON</td>
+                    </tr>
+                    <tr>
+                        <td>API access</td>
+                        <td class="center"><i class="fas fa-times cross-icon"></i></td>
+                        <td class="center">1,000 calls/month</td>
+                    </tr>
+                    <tr>
+                        <td>Support</td>
+                        <td class="center">Community</td>
+                        <td class="center">Priority Email</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <div class="highlight-box">
-            <h3>🚀 Upgrade Anytime</h3>
-            <p>Start free and upgrade when you need more. No contracts, cancel anytime.</p>
+            <h3>🚀 Pro Tip: Start with Free</h3>
+            <p>Try all our tools with the free plan. When you hit the limits, upgrade instantly to Professional for unlimited access!</p>
         </div>
 
         <!-- Competitive Comparison -->
         <div class="competitive-section">
             <div class="competitive-header">
                 <h2>📊 Why Choose Our Platform?</h2>
-                <p>Compare our 5-in-1 solution vs. buying separate tools</p>
+                <p>5 professional tools for less than the price of one competitor</p>
             </div>
             
             <div class="comparison-grid">
@@ -950,7 +1231,7 @@
                         <li><i class="fas fa-check check-icon"></i> Unified interface</li>
                         <li><i class="fas fa-check check-icon"></i> Cross-verification</li>
                     </ul>
-                    <div class="comparison-price">$19.99/month</div>
+                    <div class="comparison-price">$9.50/month</div>
                 </div>
 
                 <div class="comparison-card">
@@ -997,62 +1278,87 @@
             </div>
 
             <div class="highlight-box">
-                <h3>💡 The Smart Choice</h3>
-                <p><strong>Get 5 professional tools in one platform with unified reporting and cross-verification capabilities.</strong></p>
+                <h3>💡 The Math is Simple</h3>
+                <p><strong>5 tools × $15 average = $75/month elsewhere</strong><br>
+                Get everything for just $9.50/month with us!</p>
             </div>
         </div>
 
         <!-- FAQ -->
         <div class="faq-section">
             <div class="faq-header">
-                <h2>❓ Quick Questions</h2>
+                <h2>❓ Frequently Asked Questions</h2>
             </div>
             
             <div class="faq-container">
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFAQ(this)">
-                        <h4>What's included in the free plan?</h4>
+                        <h4>What exactly is included in the free plan?</h4>
                         <i class="fas fa-chevron-down faq-icon"></i>
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Access to all 5 tools (News Verification, Speech Fact-Checker, AI Content Detection, Image Analysis, and Plagiarism Checking) with daily usage limits. Perfect for trying our platform and light verification needs.
+                            The free plan includes access to all 5 tools with daily limits: 5 news articles, 3 speeches (max 5 min), 10 AI content checks (max 1,000 words), 5 images, and 5 plagiarism checks per day. You get basic AI models and can view reports but not export them. Perfect for personal use and trying out our platform!
                         </div>
                     </div>
                 </div>
 
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFAQ(this)">
-                        <h4>Can I upgrade or cancel anytime?</h4>
+                        <h4>What are the main benefits of upgrading to Professional?</h4>
                         <i class="fas fa-chevron-down faq-icon"></i>
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Yes! Upgrade to Professional anytime for higher limits and advanced features. Cancel anytime with no penalties.
+                            Professional removes all daily limits, extends maximum file sizes (50,000 words for text, 2-hour videos), gives you our premium AI models with 99.9% accuracy, 3x faster processing, ability to export reports in multiple formats, API access with 1,000 calls/month, and priority email support. Plus batch processing for handling multiple files at once!
                         </div>
                     </div>
                 </div>
 
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFAQ(this)">
-                        <h4>Is my content secure?</h4>
+                        <h4>Can I upgrade or downgrade anytime?</h4>
                         <i class="fas fa-chevron-down faq-icon"></i>
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Yes. We use secure processing with encryption and do not permanently store your content after analysis.
+                            Yes! You can upgrade to Professional instantly when you need more capacity. Downgrades take effect at the end of your billing period. No contracts, no cancellation fees. We believe in earning your subscription every month.
                         </div>
                     </div>
                 </div>
 
                 <div class="faq-item">
                     <div class="faq-question" onclick="toggleFAQ(this)">
-                        <h4>How do I get started?</h4>
+                        <h4>Do you offer discounts for annual billing?</h4>
                         <i class="fas fa-chevron-down faq-icon"></i>
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            Just click "Start Free Now" - no credit card required. Try all our tools immediately.
+                            Yes! Pay annually and save 20%. That's just $91.20/year instead of $114 - getting 2.4 months free! Annual subscribers also get early access to new features and priority support.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>What's your refund policy?</h4>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            We offer a 30-day money-back guarantee for new Professional subscribers. If you're not satisfied, just contact support within 30 days for a full refund. Plus, try Professional free for 14 days before any payment!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <h4>How secure is my content?</h4>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Very secure! We use end-to-end encryption for all uploads, process everything in isolated environments, and automatically delete your content after analysis (unless you save reports). We're SOC 2 Type II certified and GDPR compliant. Your content is never used for training or shared with third parties.
                         </div>
                     </div>
                 </div>
@@ -1061,15 +1367,15 @@
 
         <!-- Final CTA -->
         <div class="final-cta-section">
-            <h2>🚀 Ready to Start?</h2>
-            <p>Try our comprehensive content verification platform today</p>
+            <h2>🚀 Ready to Fight Misinformation?</h2>
+            <p>Join thousands using our AI-powered verification platform</p>
             
             <div class="final-cta-buttons">
                 <a href="news.html" class="final-cta-btn primary">
                     Start Free Now
                 </a>
                 <button class="final-cta-btn secondary" onclick="startProTrial()">
-                    Try Pro (14 Days Free)
+                    Try Pro Free for 14 Days
                 </button>
             </div>
         </div>
@@ -1212,7 +1518,7 @@
                 }
 
                 // Track which sections come into view
-                const sections = document.querySelectorAll('.hero-section, .plans-comparison, .competitive-section, .faq-section, .final-cta-section');
+                const sections = document.querySelectorAll('.hero-section, .plans-comparison, .features-table-section, .competitive-section, .faq-section, .final-cta-section');
                 sections.forEach(section => {
                     const rect = section.getBoundingClientRect();
                     if (rect.top < window.innerHeight && rect.bottom > 0) {
@@ -1347,11 +1653,11 @@
 
             alert(`🚀 Starting your 14-day Professional trial...
 
-✓ Higher usage limits
-✓ Priority processing speed  
-✓ Advanced AI detection models
-✓ Export reports (PDF, CSV)
-✓ API access included
+✓ Unlimited access to all 5 tools
+✓ Premium AI models (99.9% accuracy)
+✓ 3x faster processing speed  
+✓ Export reports (PDF, CSV, JSON)
+✓ API access (1,000 calls/month)
 ✓ Priority email support
 
 No credit card required for trial!
@@ -1393,6 +1699,20 @@ Click OK to begin...`);
                     plan: planName,
                     feature: featureText
                 });
+            });
+        });
+
+        // Track features table interactions
+        document.querySelectorAll('.features-table tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('feature-category')) {
+                    const featureName = this.querySelector('td:first-child')?.textContent;
+                    if (featureName) {
+                        trackPricingEvent('feature_table_row_hovered', {
+                            feature: featureName
+                        });
+                    }
+                }
             });
         });
     </script>
