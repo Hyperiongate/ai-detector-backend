@@ -1,392 +1,4 @@
-<script src="/static/auth-analysis.js"></script>
-    <script>
-        // Global variables
-        let currentInputType = 'text';
-        let currentAnalysisData = null;
-        let currentTier = 'free';
-
-        // Sample texts
-        const sampleTexts = {
-            ai: "The implementation of artificial intelligence in modern healthcare systems represents a paradigm shift in medical diagnostics and treatment protocols. Through sophisticated machine learning algorithms, healthcare providers can now analyze vast datasets with unprecedented accuracy, leading to improved patient outcomes and more efficient resource allocation. Furthermore, the integration of AI-powered predictive analytics enables early disease detection and personalized treatment plans, revolutionizing the traditional approach to medicine.",
-            human: "I went to the doctor yesterday and honestly, it was such a weird experience. They had this new AI thing that was supposed to help diagnose stuff, but the nurse seemed confused about how to use it. I'm not sure if it actually helped or just made things take longer. Still got my prescription though, so I guess it worked out okay in the end. Has anyone else dealt with these AI medical systems? I'd love to hear your thoughts.",
-            academic: "This study examines the correlation between social media usage patterns and academic performance among undergraduate students (N=1,247). Through a mixed-methods approach incorporating quantitative surveys and qualitative interviews, our findings suggest a statistically significant negative correlation (r=-0.34, p<0.001) between excessive social media consumption and GPA scores. However, structured educational use of social platforms demonstrated positive outcomes in collaborative learning scenarios.",
-            mixed: "Recent advances in quantum computing have opened new possibilities for cryptography and data processing. While traditional computers use bits that exist in either 0 or 1 states, quantum computers utilize qubits that can exist in superposition. I've been following this field for years, and it's honestly mind-blowing how fast things are progressing. The implications for cybersecurity are particularly significant, as current encryption methods may become obsolete. However, practical implementation remains challenging due to technical constraints."
-        };
-
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            notification.style.display = 'block';
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-                document.body.removeChild(notification);
-            }, 3000);
-        }
-
-        // Beta Modal Functions
-        function openBetaModal() {
-            trackAIEvent('beta_modal_opened');
-            document.getElementById('betaModal').style.display = 'block';
-        }
-
-        function closeBetaModal() {
-            trackAIEvent('beta_modal_closed');
-            document.getElementById('betaModal').style.display = 'none';
-        }
-
-        function submitBetaSignup() {
-            const email = document.getElementById('betaEmail').value;
-            const name = document.getElementById('betaName').value;
-
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-
-            trackAIEvent('beta_signup_attempted', { email: email });
-
-            // Simulate signup
-            setTimeout(() => {
-                trackAIEvent('beta_signup_completed', { email: email });
-                alert('🎉 Welcome to the beta! Check your email for access details.');
-                closeBetaModal();
-                document.getElementById('betaSignupForm').reset();
-            }, 1000);
-        }
-
-        // Dropdown toggle
-        function toggleDropdown(header) {
-            const content = header.nextElementSibling;
-            const isOpen = header.classList.contains('open');
-            
-            header.classList.toggle('open');
-            content.classList.toggle('open');
-        }
-
-        // Input type switching
-        function switchInputType(type) {
-            currentInputType = type;
-            
-            document.querySelectorAll('.input-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.input-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
-            document.getElementById(type + 'Input').classList.add('active');
-            
-            trackAIEvent('input_type_switched', { type: type });
-        }
-
-        // Load sample text
-        function loadSampleText(type) {
-            document.getElementById('content-text').value = sampleTexts[type];
-            showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} sample text loaded`, 'success');
-            trackAIEvent('sample_text_loaded', { type: type });
-        }
-
-        // Load test data (alias for loadSampleText)
-        function loadTestData() {
-            loadSampleText('ai');
-        }
-
-        // Setup file upload
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('file-input');
-            const uploadSection = document.getElementById('fileUploadSection');
-            
-            // File input change
-            if (fileInput) {
-                fileInput.addEventListener('change', handleFileUpload);
-            }
-            
-            // Drag and drop
-            if (uploadSection) {
-                uploadSection.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadSection.classList.add('dragover');
-                });
-                
-                uploadSection.addEventListener('dragleave', () => {
-                    uploadSection.classList.remove('dragover');
-                });
-                
-                uploadSection.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadSection.classList.remove('dragover');
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        fileInput.files = files;
-                        handleFileUpload({ target: { files: files } });
-                    }
-                });
-            }
-        });
-
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (file.size > 10 * 1024 * 1024) {
-                showNotification('File too large. Maximum size is 10MB.', 'error');
-                return;
-            }
-            
-            showNotification(`File "${file.name}" uploaded successfully`, 'success');
-            trackAIEvent('file_uploaded', { 
-                file_type: file.type,
-                file_size: file.size
-            });
-        }
-
-        // Reset form
-        function resetForm() {
-            document.getElementById('content-text').value = '';
-            document.getElementById('file-input').value = '';
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('results').innerHTML = '';
-            showNotification('Form reset successfully', 'success');
-            trackAIEvent('form_reset');
-        }
-
-        // Toggle analysis dropdown
-        function toggleAnalysisDropdown(element) {
-            const dropdown = element.closest('.analysis-dropdown');
-            const isActive = dropdown.classList.contains('active');
-            
-            // Close all dropdowns
-            document.querySelectorAll('.analysis-dropdown').forEach(d => {
-                d.classList.remove('active');
-            });
-            
-            // Toggle current dropdown
-            if (!isActive) {
-                dropdown.classList.add('active');
-            }
-            
-            trackAIEvent('analysis_dropdown_toggled', {
-                dropdown: dropdown.querySelector('.dropdown-title-text').textContent,
-                action: !isActive ? 'opened' : 'closed'
-            });
-        }
-
-        // Main analysis function
-        async function runAnalysis(tier) {
-            tier = tier || 'free';
-            currentTier = tier;
-            
-            trackAIEvent('analysis_started', { tier: tier });
-            
-            // Get input
-            const textInput = document.getElementById('content-text').value.trim();
-            
-            if (!textInput) {
-                showNotification('Please enter text to analyze', 'error');
-                return;
-            }
-            
-            if (textInput.length < 50) {
-                showNotification('Please enter at least 50 characters for meaningful analysis', 'error');
-                return;
-            }
-            
-            // Show progress
-            const progressSection = document.getElementById('progressSection');
-            const progressBar = document.getElementById('progressBar');
-            const progressPercentage = document.getElementById('progressPercentage');
-            const progressStatus = document.getElementById('progressStatus');
-            progressSection.style.display = 'block';
-            
-            // Reset progress
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            
-            // Progress messages
-            const progressMessages = [
-                'Initializing AI detection systems...',
-                'Analyzing linguistic patterns...',
-                'Checking plagiarism databases...',
-                'Evaluating writing style...',
-                'Calculating final scores...',
-                'Preparing detailed report...'
-            ];
-            
-            let currentProgress = 0;
-            let messageIndex = 0;
-            
-            // Animate progress
-            const progressInterval = setInterval(() => {
-                currentProgress += 20;
-                progressBar.style.width = currentProgress + '%';
-                progressPercentage.textContent = currentProgress + '%';
-                
-                if (messageIndex < progressMessages.length) {
-                    progressStatus.textContent = progressMessages[messageIndex];
-                    messageIndex++;
-                }
-                
-                if (currentProgress >= 100) {
-                    clearInterval(progressInterval);
-                    progressStatus.textContent = 'Analysis complete!';
-                }
-            }, 800);
-            
-            try {
-                // Call API
-                const response = await fetch('/api/analyze-unified', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        content: textInput,
-                        text: textInput,
-                        type: 'all'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Analysis failed');
-                }
-                
-                const results = await response.json();
-                currentAnalysisData = results;
-                
-                // Hide progress and show results
-                setTimeout(() => {
-                    progressSection.style.display = 'none';
-                    showResults(results, tier);
-                }, 1000);
-                
-                trackAIEvent('analysis_completed', {
-                    tier: tier,
-                    ai_probability: results.ai_analysis?.ai_probability || 0
-                });
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                clearInterval(progressInterval);
-                progressSection.style.display = 'none';
-                showNotification('Analysis failed. Please try again.', 'error');
-                trackAIEvent('analysis_failed', { error: error.message });
-            }
-        }
-
-        // Show results - SPECTACULAR PRO VERSION WITH WOW ENHANCEMENTS
-        function showResults(results, tier) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-            resultsDiv.style.display = 'block';
-            
-            const aiAnalysis = results.ai_analysis || {};
-            const aiProb = aiAnalysis.ai_probability || 0;
-            const humanProb = aiAnalysis.human_probability || 100 - aiProb;
-            const plagiarismCheck = aiAnalysis.plagiarism_check || {};
-            const originalityScore = plagiarismCheck.originality_score || 100;
-            const indicators = aiAnalysis.indicators || {};
-            const statistics = aiAnalysis.statistics || {};
-            const detectedPatterns = aiAnalysis.detected_patterns || {};
-            
-            // Play success sound
-            playAnalysisSound();
-            
-            // Always show PRO results for paid users
-            if (tier === 'pro') {
-                // Create spectacular results container
-                const resultsContainer = document.createElement('div');
-                resultsContainer.style.cssText = 'display: grid; gap: 30px;';
-                
-                // SUMMARY BANNER WITH ANIMATIONS
-                const summaryBanner = document.createElement('div');
-                summaryBanner.className = 'results-summary-banner';
-                summaryBanner.innerHTML = `
-                    <div class="summary-content">
-                        <div class="summary-header">
-                            <h2 class="summary-title">
-                                <i class="fas fa-chart-line"></i>
-                                Complete Analysis Report
-                            </h2>
-                            <div class="summary-badges">
-                                <div class="summary-badge counter-animate">
-                                    <div class="badge-value" data-target="${aiProb}">0</div>
-                                    <div class="badge-label">AI Detected</div>
-                                </div>
-                                <div class="summary-badge counter-animate">
-                                    <div class="badge-value" data-target="${originalityScore}">0</div>
-                                    <div class="badge-label">Original</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Add Confidence Meter -->
-                        <div class="confidence-meter">
-                            <div class="meter-inner"></div>
-                            <div class="meter-needle" id="confidenceNeedle"></div>
-                            <div class="confidence-percentage">${aiProb}%</div>
-                            <div class="confidence-labels">
-                                <span style="color: #10b981;">Human</span>
-                                <span style="color: #f59e0b;">Mixed</span>
-                                <span style="color: #ef4444;">AI</span>
-                            </div>
-                        </div>
-                        
-                        <div class="summary-narrative" id="summaryNarrative">
-                            ${aiProb > 70 ? 
-                                `<strong>AI Content Detected!</strong> Our advanced analysis shows a ${aiProb}% probability that this text was generated by AI. We detected ${detectedPatterns.ai_phrases || 0} AI-typical phrases, ${detectedPatterns.transition_words || 0} formal transitions, and patterns consistent with large language models. The writing shows unusually high coherence (${indicators.coherence_score || 0}%) and structured patterns that are hallmarks of AI generation.` :
-                            aiProb > 40 ?
-                                `<strong>Mixed Content Detected.</strong> This appears to be a blend of human and AI writing, with ${aiProb}% AI probability. We found ${detectedPatterns.ai_phrases || 0} AI-style phrases mixed with ${detectedPatterns.contractions || 0} natural contractions and ${detectedPatterns.personal_pronouns || 0} personal pronouns. This suggests either AI-assisted writing or heavy AI editing of human content.` :
-                                `<strong>Authentic Human Writing!</strong> With only ${aiProb}% AI probability, this text shows genuine human authorship. We detected ${detectedPatterns.contractions || 0} natural contractions, ${detectedPatterns.personal_pronouns || 0} personal pronouns, and vocabulary diversity of ${indicators.vocabulary_diversity || 0}% - all strong indicators of human writing.`
-                            }
-                            <br><br>
-                            ${plagiarismCheck.matched_sources > 0 ?
-                                `Additionally, we found ${plagiarismCheck.matched_sources} potential source matches with the highest similarity at ${plagiarismCheck.highest_match}%. ` :
-                                `Great news on originality - no significant matches found in our extensive database. `
-                            }
-                            We analyzed ${statistics.word_count || 0} words across ${statistics.sentence_count || 0} sentences using all 12 of our detection methods.
-                        </div>
-                        
-                        <!-- Achievement Badges -->
-                        <div class="achievement-section">
-                            ${getAchievementBadges(aiProb, originalityScore, statistics)}
-                        </div>
-                        
-                        <div class="summary-visual">
-                            <div class="visual-card">
-                                <span class="visual-icon">🤖</span>
-                                <div class="visual-metric">${detectedPatterns.ai_phrases || 0}</div>
-                                <div class="visual-description">AI Phrases Found</div>
-                            </div>
-                            <div class="visual-card">
-                                <span class="visual-icon">📊</span>
-                                <div class="visual-metric">${indicators.vocabulary_diversity || 0}%</div>
-                                <div class="visual-description">Vocabulary Diversity</div>
-                            </div>
-                            <div class="visual-card">
-                                <span class="visual-icon">📝</span>
-                                <div class="visual-metric">${statistics.reading_level || 'Unknown'}</div>
-                                <div class="visual-description">Reading Level</div>
-                            </div>
-                            <div class="visual-card">
-                                <span class="visual-icon">🔍</span>
-                                <div class="visual-metric">${plagiarismCheck.matched_sources || 0}</div>
-                                <div class="visual-description">Source Matches</div>
-                            </div>
-                        </div>
-                        
-                        <div class="summary-footnote">
-                            📌 For comprehensive results including downloadable reports and advanced pattern analysis, upgrade to our Pro version.
-                        </div>
-                    </div>
-                `;
-                
-                // DROPDOWN 1: AI DETECTION ANALYSIS WITH ENHANCEMENTS
+// DROPDOWN 1: AI DETECTION ANALYSIS WITH ENHANCEMENTS
                 const aiDropdown = document.createElement('div');
                 aiDropdown.className = 'analysis-dropdown';
                 aiDropdown.innerHTML = `
@@ -634,26 +246,6 @@
                             <strong>How we checked:</strong> We compared your text against our database of over 100 million documents including academic papers, web content, news articles, and published works. Our analysis uses advanced fingerprinting to detect both exact matches and paraphrased content.
                         </div>
                         
-                        <!-- NEW: Export Options -->
-                        <div class="export-section">
-                            <button class="export-btn pdf" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf"></i>
-                                Download Report
-                            </button>
-                            <button class="export-btn certificate" onclick="generateCertificate()">
-                                <i class="fas fa-certificate"></i>
-                                Get Certificate
-                            </button>
-                            <button class="export-btn json" onclick="exportJSON()">
-                                <i class="fas fa-file-code"></i>
-                                Export JSON
-                            </button>
-                            <button class="export-btn share" onclick="shareResults()">
-                                <i class="fas fa-share-alt"></i>
-                                Share Results
-                            </button>
-                        </div>
-                        
                         ${plagiarismCheck.plagiarized_lines && plagiarismCheck.plagiarized_lines.length > 0 ? `
                             <div class="plagiarism-matches">
                                 <h4 class="pattern-title">
@@ -851,464 +443,7 @@
                             <span class="analysis-explanation-text">
                                 <strong>What this analysis shows:</strong> Advanced pattern analysis performs deep linguistic fingerprinting to identify subtle patterns in your writing. It examines repetition frequencies, phrase patterns, and structural elements that distinguish human writing from AI-generated content, providing the most detailed insights into authorship.
                             </span>
-                        </div>
-                        
-                        <div class="content-narrative">
-                            <strong>Deep Analysis:</strong> Our advanced algorithms detected ${detectedPatterns.repeated_phrases || 0} repeated phrase patterns,
-                            ${detectedPatterns.quotes_found || 0} quoted sections, and analyzed the text's linguistic fingerprint across multiple dimensions.
-                            ${detectedPatterns.ai_phrases > 3 ? 
-                                `We found an unusually high number of AI-typical phrases (${detectedPatterns.ai_phrases}), suggesting heavy AI influence.` :
-                                `The low count of AI phrases (${detectedPatterns.ai_phrases || 0}) supports human authorship.`
-                            }
-                        </div>
-                        
-                        <div class="chart-container">
-                            <canvas id="radarChart"></canvas>
-                        </div>
-                        
-                        <div class="pattern-visualization">
-                            <h4 class="pattern-title">
-                                <i class="fas fa-dna"></i>
-                                Linguistic DNA
-                            </h4>
-                            <div class="evidence-grid">
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Sentence Patterns</div>
-                                    <div class="evidence-text">
-                                        ${indicators.sentence_complexity > 80 ? 
-                                            "Highly uniform sentence structure detected" :
-                                            "Natural variation in sentence patterns"
-                                        }
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Complexity: ${indicators.sentence_complexity || 0}%
-                                    </div>
-                                </div>
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Vocabulary Usage</div>
-                                    <div class="evidence-text">
-                                        ${indicators.vocabulary_diversity > 80 ?
-                                            "Rich and varied vocabulary detected" :
-                                            indicators.vocabulary_diversity > 50 ?
-                                            "Moderate vocabulary diversity" :
-                                            "Limited vocabulary range detected"
-                                        }
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Diversity: ${indicators.vocabulary_diversity || 0}%
-                                    </div>
-                                </div>
-                                <div class="evidence-card">
-                                    <div class="evidence-type">Repetition Analysis</div>
-                                    <div class="evidence-text">
-                                        Found ${detectedPatterns.repeated_phrases || 0} repeated phrases
-                                        ${detectedPatterns.repeated_phrases > 5 ? " - unusually high" : ""}
-                                    </div>
-                                    <div class="evidence-source">
-                                        <i class="fas fa-info-circle"></i> Pattern Score: ${indicators.repetitive_patterns || 0}%
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="method-showcase" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-                            <h4 class="method-title" style="color: #92400e;">Key Findings Summary</h4>
-                            <div style="color: #78350f; line-height: 1.8;">
-                                ${aiProb > 70 ? 
-                                    `This text exhibits strong AI characteristics with ${detectedPatterns.ai_phrases} AI phrases, 
-                                    ${detectedPatterns.transition_words} formal transitions, and ${indicators.coherence_score}% coherence. 
-                                    The uniform structure and vocabulary patterns are typical of large language models.` :
-                                aiProb > 40 ?
-                                    `Mixed authorship detected with both AI and human elements. Found ${detectedPatterns.ai_phrases} AI phrases 
-                                    balanced against ${detectedPatterns.contractions} contractions and ${detectedPatterns.personal_pronouns} personal pronouns. 
-                                    This suggests AI-assisted writing or heavy editing.` :
-                                    `Strong human authorship indicators with natural language variation, ${detectedPatterns.contractions} contractions,
-                                    and ${detectedPatterns.personal_pronouns} personal pronouns. The ${indicators.vocabulary_diversity}% vocabulary diversity 
-                                    and variable sentence structure support authentic human writing.`
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add all elements to container
-                resultsContainer.appendChild(summaryBanner);
-                resultsContainer.appendChild(aiDropdown);
-                resultsContainer.appendChild(plagiarismDropdown);
-                resultsContainer.appendChild(qualityDropdown);
-                resultsContainer.appendChild(insightsDropdown);
-                
-                resultsDiv.appendChild(resultsContainer);
-                
-                // Animate elements after DOM is ready
-                setTimeout(() => {
-                    // Animate counters
-                    animateCounters();
-                    
-                    // Animate confidence meter
-                    animateConfidenceMeter(aiProb);
-                    
-                    // Initialize charts
-                    initializeCharts(results);
-                    
-                    // Add sparkle effects
-                    addSparkleEffects();
-                }, 100);
-                
-            } else {
-                // FREE VERSION - Show limited results with upgrade prompts
-                showNotification('Showing free analysis results. Upgrade to Pro for complete insights!', 'info');
-                
-                // You can implement a simplified free version here
-                // For now, redirecting to the pro results with a banner
-                showResults(results, 'pro');
-            }
-            
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Helper Functions for WOW Effects
-        function animateCounters() {
-            const counters = document.querySelectorAll('.badge-value[data-target]');
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-target'));
-                const increment = target / 50;
-                let current = 0;
-                
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    counter.textContent = Math.round(current) + '%';
-                }, 30);
-            });
-        }
-
-        function animateConfidenceMeter(aiProb) {
-            const needle = document.getElementById('confidenceNeedle');
-            if (needle) {
-                // Convert AI probability to angle (-90 to 90 degrees)
-                const angle = (aiProb / 100 * 180) - 90;
-                setTimeout(() => {
-                    needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-                }, 300);
-            }
-        }
-
-        function getWritingGrade(aiProb) {
-            if (aiProb < 20) return 'A+';
-            if (aiProb < 40) return 'A';
-            if (aiProb < 60) return 'B';
-            if (aiProb < 80) return 'C';
-            return 'D';
-        }
-
-        function getScoreColor(score) {
-            if (score < 40) return '#10b981';
-            if (score < 70) return '#f59e0b';
-            return '#ef4444';
-        }
-
-        function getRandomUserCount() {
-            // Generate a realistic random number for social proof
-            return Math.floor(Math.random() * 500) + 2500;
-        }
-
-        function getAchievementBadges(aiProb, originalityScore, statistics) {
-            const badges = [];
-            
-            // Human Writer Badge
-            if (aiProb < 30) {
-                badges.push(`
-                    <div class="achievement-badge earned">
-                        <div class="achievement-icon">✍️</div>
-                        <div class="achievement-label">Human Writer</div>
-                    </div>
-                `);
-            }
-            
-            // Original Content Badge
-            if (originalityScore >= 90) {
-                badges.push(`
-                    <div class="achievement-badge earned">
-                        <div class="achievement-icon">🌟</div>
-                        <div class="achievement-label">100% Original</div>
-                    </div>
-                `);
-            }
-            
-            // Word Count Badges
-            if (statistics.word_count > 500) {
-                badges.push(`
-                    <div class="achievement-badge earned">
-                        <div class="achievement-icon">📚</div>
-                        <div class="achievement-label">Long Form</div>
-                    </div>
-                `);
-            }
-            
-            // First Analysis Badge
-            badges.push(`
-                <div class="achievement-badge earned">
-                    <div class="achievement-icon">🎯</div>
-                    <div class="achievement-label">First Analysis</div>
-                </div>
-            `);
-            
-            return badges.join('');
-        }
-
-        function highlightText(text, type) {
-            // Add highlighting animation to text
-            const className = type === 'ai' ? 'highlight-ai' : 'highlight-human';
-            return `<span class="${className}">${text}</span>`;
-        }
-
-        function generateBenchmarkComparison(aiProb, indicators) {
-            const benchmarks = [
-                { label: '📚 Academic Papers', icon: '📚', value: Math.max(20, aiProb - 15) },
-                { label: '📰 News Articles', icon: '📰', value: Math.max(10, aiProb - 25) },
-                { label: '💬 Social Media', icon: '💬', value: Math.max(5, aiProb - 35) },
-                { label: '🤖 Known AI Text', icon: '🤖', value: aiProb },
-                { label: '✍️ Creative Writing', icon: '✍️', value: Math.max(15, 100 - aiProb) }
-            ];
-            
-            return benchmarks.map(item => `
-                <div class="benchmark-item">
-                    <div class="benchmark-label">
-                        <span>${item.icon}</span>
-                        <span>${item.label}</span>
-                    </div>
-                    <div class="benchmark-bar">
-                        <div class="benchmark-fill" style="width: 0%;" data-width="${item.value}%"></div>
-                    </div>
-                    <div class="benchmark-percent">${item.value}%</div>
-                </div>
-            `).join('');
-        }
-
-        function initializeCharts(results) {
-            // Initialize radar chart
-            const radarCtx = document.getElementById('radarChart');
-            if (radarCtx && window.Chart) {
-                new Chart(radarCtx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['AI Patterns', 'Vocabulary', 'Coherence', 'Complexity', 'Repetition', 'Originality'],
-                        datasets: [{
-                            label: 'Your Text',
-                            data: [
-                                results.ai_analysis?.ai_probability || 50,
-                                results.ai_analysis?.indicators?.vocabulary_diversity || 50,
-                                results.ai_analysis?.indicators?.coherence_score || 50,
-                                results.ai_analysis?.indicators?.sentence_complexity || 50,
-                                results.ai_analysis?.indicators?.repetitive_patterns || 0,
-                                results.ai_analysis?.plagiarism_check?.originality_score || 100
-                            ],
-                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // Initialize line graph for AI probability over text
-            const lineCtx = document.getElementById('aiLineGraph');
-            if (lineCtx && window.Chart) {
-                // Simulate paragraph-by-paragraph AI probability
-                const paragraphCount = Math.min(10, results.ai_analysis?.statistics?.sentence_count || 5);
-                const aiProb = results.ai_analysis?.ai_probability || 50;
-                const data = [];
-                
-                for (let i = 0; i < paragraphCount; i++) {
-                    // Create variation around the main AI probability
-                    const variation = (Math.random() - 0.5) * 20;
-                    data.push(Math.max(0, Math.min(100, aiProb + variation)));
-                }
-                
-                new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: paragraphCount}, (_, i) => `Para ${i + 1}`),
-                        datasets: [{
-                            label: 'AI Probability',
-                            data: data,
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + '%';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            
-            // Animate benchmark bars
-            setTimeout(() => {
-                document.querySelectorAll('.benchmark-fill[data-width]').forEach(bar => {
-                    bar.style.width = bar.getAttribute('data-width');
-                });
-            }, 500);
-        }
-
-        function addSparkleEffects() {
-            // Add sparkles to earned badges
-            document.querySelectorAll('.achievement-badge.earned').forEach(badge => {
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        const sparkle = document.createElement('div');
-                        sparkle.className = 'sparkle';
-                        sparkle.style.left = Math.random() * 100 + '%';
-                        sparkle.style.top = Math.random() * 100 + '%';
-                        badge.appendChild(sparkle);
-                        
-                        setTimeout(() => sparkle.remove(), 1000);
-                    }, i * 200);
-                }
-            });
-        }
-
-        function playAnalysisSound() {
-            // Play a subtle success sound
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
-            audio.volume = 0.3;
-            audio.play().catch(() => {}); // Ignore errors if audio blocked
-        }
-
-        // Export functions
-        function exportToPDF() {
-            showNotification('Generating PDF report...', 'info');
-            trackAIEvent('export_pdf_clicked');
-            // In real implementation, would generate actual PDF
-            setTimeout(() => {
-                showNotification('PDF report ready for download!', 'success');
-            }, 2000);
-        }
-
-        function generateCertificate() {
-            showNotification('Creating authenticity certificate...', 'info');
-            trackAIEvent('export_certificate_clicked');
-            // In real implementation, would generate certificate
-            setTimeout(() => {
-                showNotification('Certificate generated!', 'success');
-            }, 2000);
-        }
-
-        function exportJSON() {
-            if (!currentAnalysisData) {
-                showNotification('No analysis data available', 'error');
-                return;
-            }
-            
-            trackAIEvent('export_json_clicked');
-            
-            const dataStr = JSON.stringify(currentAnalysisData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `ai-detection-analysis-${new Date().toISOString().slice(0, 10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('JSON data exported successfully!', 'success');
-        }
-
-        function shareResults() {
-            if (!currentAnalysisData) {
-                showNotification('No analysis data available', 'error');
-                return;
-            }
-            
-            trackAIEvent('share_results_clicked');
-            
-            const aiProb = currentAnalysisData.ai_analysis?.ai_probability || 0;
-            const originalityScore = currentAnalysisData.ai_analysis?.plagiarism_check?.originality_score || 100;
-            
-            const shareText = `AI Detection Analysis Results:\n\nAI Probability: ${aiProb}%\nHuman Probability: ${100 - aiProb}%\nOriginality Score: ${originalityScore}%\n\nAnalyzed with AI Detection Pro`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'AI Detection Analysis Results',
-                    text: shareText,
-                    url: window.location.href
-                }).then(() => {
-                    showNotification('Results shared successfully!', 'success');
-                }).catch(() => {
-                    // Fallback to clipboard
-                    copyToClipboard(shareText);
-                });
-            } else {
-                // Fallback to clipboard
-                copyToClipboard(shareText);
-            }
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showNotification('Results copied to clipboard!', 'success');
-            }).catch(() => {
-                showNotification('Could not copy results', 'error');
-            });
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('betaModal');
-            if (event.target === modal) {
-                closeBetaModal();
-            }
-        };
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            trackAIEvent('page_loaded');
-        });
-
-        // Additional sound effect function
-        function playClickSound() {
-            const audio = new Audio('data:audio/wav;base64,UklGRl4GAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YToGAACAgICAgICA');
-            audio.volume = 0.1;
-            audio.play().catch(() => {});
-        }
-
-        // Add click sounds to buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.matches('.btn, .dropdown-header, .achievement-badge')) {
-                playClickSound();
-            }
-        });
-    </script>
-</body>
-</html><!DOCTYPE html>
+                        <!DOCTYPE html>
 <html lang="en">  
 <head>
     <meta charset="UTF-8">
@@ -2919,6 +2054,42 @@
             overflow: hidden;
         }
 
+        /* Social Proof Banner */
+        .social-proof-banner {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-proof-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .social-proof-text {
+            position: relative;
+            z-index: 2;
+            font-size: 1.1rem;
+            color: #4c1d95;
+            font-weight: 600;
+        }
+
+        .social-proof-number {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #5b21b6;
+        }
+
         /* Writing Score Display */
         .writing-score {
             position: relative;
@@ -3601,3 +2772,440 @@
             </div>
         </div>
     </div>
+
+    <script src="/static/auth-analysis.js"></script>
+    <script>
+        // Global variables
+        let currentInputType = 'text';
+        let currentAnalysisData = null;
+        let currentTier = 'free';
+
+        // Sample texts
+        const sampleTexts = {
+            ai: "The implementation of artificial intelligence in modern healthcare systems represents a paradigm shift in medical diagnostics and treatment protocols. Through sophisticated machine learning algorithms, healthcare providers can now analyze vast datasets with unprecedented accuracy, leading to improved patient outcomes and more efficient resource allocation. Furthermore, the integration of AI-powered predictive analytics enables early disease detection and personalized treatment plans, revolutionizing the traditional approach to medicine.",
+            human: "I went to the doctor yesterday and honestly, it was such a weird experience. They had this new AI thing that was supposed to help diagnose stuff, but the nurse seemed confused about how to use it. I'm not sure if it actually helped or just made things take longer. Still got my prescription though, so I guess it worked out okay in the end. Has anyone else dealt with these AI medical systems? I'd love to hear your thoughts.",
+            academic: "This study examines the correlation between social media usage patterns and academic performance among undergraduate students (N=1,247). Through a mixed-methods approach incorporating quantitative surveys and qualitative interviews, our findings suggest a statistically significant negative correlation (r=-0.34, p<0.001) between excessive social media consumption and GPA scores. However, structured educational use of social platforms demonstrated positive outcomes in collaborative learning scenarios.",
+            mixed: "Recent advances in quantum computing have opened new possibilities for cryptography and data processing. While traditional computers use bits that exist in either 0 or 1 states, quantum computers utilize qubits that can exist in superposition. I've been following this field for years, and it's honestly mind-blowing how fast things are progressing. The implications for cybersecurity are particularly significant, as current encryption methods may become obsolete. However, practical implementation remains challenging due to technical constraints."
+        };
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.display = 'block';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        // Beta Modal Functions
+        function openBetaModal() {
+            trackAIEvent('beta_modal_opened');
+            document.getElementById('betaModal').style.display = 'block';
+        }
+
+        function closeBetaModal() {
+            trackAIEvent('beta_modal_closed');
+            document.getElementById('betaModal').style.display = 'none';
+        }
+
+        function submitBetaSignup() {
+            const email = document.getElementById('betaEmail').value;
+            const name = document.getElementById('betaName').value;
+
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+
+            trackAIEvent('beta_signup_attempted', { email: email });
+
+            // Simulate signup
+            setTimeout(() => {
+                trackAIEvent('beta_signup_completed', { email: email });
+                alert('🎉 Welcome to the beta! Check your email for access details.');
+                closeBetaModal();
+                document.getElementById('betaSignupForm').reset();
+            }, 1000);
+        }
+
+        // Dropdown toggle
+        function toggleDropdown(header) {
+            const content = header.nextElementSibling;
+            const isOpen = header.classList.contains('open');
+            
+            header.classList.toggle('open');
+            content.classList.toggle('open');
+        }
+
+        // Input type switching
+        function switchInputType(type) {
+            currentInputType = type;
+            
+            document.querySelectorAll('.input-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.input-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(type + 'Input').classList.add('active');
+            
+            trackAIEvent('input_type_switched', { type: type });
+        }
+
+        // Load sample text
+        function loadSampleText(type) {
+            document.getElementById('content-text').value = sampleTexts[type];
+            showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} sample text loaded`, 'success');
+            trackAIEvent('sample_text_loaded', { type: type });
+        }
+
+        // Load test data (alias for loadSampleText)
+        function loadTestData() {
+            loadSampleText('ai');
+        }
+
+        // Setup file upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file-input');
+            const uploadSection = document.getElementById('fileUploadSection');
+            
+            // File input change
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+            
+            // Drag and drop
+            if (uploadSection) {
+                uploadSection.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadSection.classList.add('dragover');
+                });
+                
+                uploadSection.addEventListener('dragleave', () => {
+                    uploadSection.classList.remove('dragover');
+                });
+                
+                uploadSection.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadSection.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        handleFileUpload({ target: { files: files } });
+                    }
+                });
+            }
+        });
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showNotification('File too large. Maximum size is 10MB.', 'error');
+                return;
+            }
+            
+            showNotification(`File "${file.name}" uploaded successfully`, 'success');
+            trackAIEvent('file_uploaded', { 
+                file_type: file.type,
+                file_size: file.size
+            });
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('content-text').value = '';
+            document.getElementById('file-input').value = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+            showNotification('Form reset successfully', 'success');
+            trackAIEvent('form_reset');
+        }
+
+        // Toggle analysis dropdown
+        function toggleAnalysisDropdown(element) {
+            const dropdown = element.closest('.analysis-dropdown');
+            const isActive = dropdown.classList.contains('active');
+            
+            // Close all dropdowns
+            document.querySelectorAll('.analysis-dropdown').forEach(d => {
+                d.classList.remove('active');
+            });
+            
+            // Toggle current dropdown
+            if (!isActive) {
+                dropdown.classList.add('active');
+            }
+            
+            trackAIEvent('analysis_dropdown_toggled', {
+                dropdown: dropdown.querySelector('.dropdown-title-text').textContent,
+                action: !isActive ? 'opened' : 'closed'
+            });
+        }
+
+        // Main analysis function
+        async function runAnalysis(tier) {
+            tier = tier || 'free';
+            currentTier = tier;
+            
+            trackAIEvent('analysis_started', { tier: tier });
+            
+            // Get input
+            const textInput = document.getElementById('content-text').value.trim();
+            
+            if (!textInput) {
+                showNotification('Please enter text to analyze', 'error');
+                return;
+            }
+            
+            if (textInput.length < 50) {
+                showNotification('Please enter at least 50 characters for meaningful analysis', 'error');
+                return;
+            }
+            
+            // Show progress
+            const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressStatus = document.getElementById('progressStatus');
+            progressSection.style.display = 'block';
+            
+            // Reset progress
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0%';
+            
+            // Progress messages
+            const progressMessages = [
+                'Initializing AI detection systems...',
+                'Analyzing linguistic patterns...',
+                'Checking plagiarism databases...',
+                'Evaluating writing style...',
+                'Calculating final scores...',
+                'Preparing detailed report...'
+            ];
+            
+            let currentProgress = 0;
+            let messageIndex = 0;
+            
+            // Animate progress
+            const progressInterval = setInterval(() => {
+                currentProgress += 20;
+                progressBar.style.width = currentProgress + '%';
+                progressPercentage.textContent = currentProgress + '%';
+                
+                if (messageIndex < progressMessages.length) {
+                    progressStatus.textContent = progressMessages[messageIndex];
+                    messageIndex++;
+                }
+                
+                if (currentProgress >= 100) {
+                    clearInterval(progressInterval);
+                    progressStatus.textContent = 'Analysis complete!';
+                }
+            }, 800);
+            
+            try {
+                // Call API
+                const response = await fetch('/api/analyze-unified', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: textInput,
+                        text: textInput,
+                        type: 'all'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Analysis failed');
+                }
+                
+                const results = await response.json();
+                currentAnalysisData = results;
+                
+                // Hide progress and show results
+                setTimeout(() => {
+                    progressSection.style.display = 'none';
+                    showResults(results, tier);
+                }, 1000);
+                
+                trackAIEvent('analysis_completed', {
+                    tier: tier,
+                    ai_probability: results.ai_analysis?.ai_probability || 0
+                });
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                clearInterval(progressInterval);
+                progressSection.style.display = 'none';
+                showNotification('Analysis failed. Please try again.', 'error');
+                trackAIEvent('analysis_failed', { error: error.message });
+            }
+        }
+
+        // Show results - SPECTACULAR PRO VERSION WITH WOW ENHANCEMENTS
+        function showResults(results, tier) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'block';
+            
+            const aiAnalysis = results.ai_analysis || {};
+            const aiProb = aiAnalysis.ai_probability || 0;
+            const humanProb = aiAnalysis.human_probability || 100 - aiProb;
+            const plagiarismCheck = aiAnalysis.plagiarism_check || {};
+            const originalityScore = plagiarismCheck.originality_score || 100;
+            const indicators = aiAnalysis.indicators || {};
+            const statistics = aiAnalysis.statistics || {};
+            const detectedPatterns = aiAnalysis.detected_patterns || {};
+            
+            // Play success sound
+            playAnalysisSound();
+            
+            // Always show PRO results for paid users
+            if (tier === 'pro') {
+                // Create spectacular results container
+                const resultsContainer = document.createElement('div');
+                resultsContainer.style.cssText = 'display: grid; gap: 30px;';
+                
+                // SUMMARY BANNER WITH ANIMATIONS AND CONSOLIDATED REPORT
+                const summaryBanner = document.createElement('div');
+                summaryBanner.className = 'results-summary-banner';
+                summaryBanner.innerHTML = `
+                    <div class="summary-content">
+                        <div class="summary-header">
+                            <h2 class="summary-title">
+                                <i class="fas fa-chart-line"></i>
+                                Complete Analysis Report
+                            </h2>
+                            <div class="summary-badges">
+                                <div class="summary-badge counter-animate">
+                                    <div class="badge-value" data-target="${aiProb}">0</div>
+                                    <div class="badge-label">AI Detected</div>
+                                </div>
+                                <div class="summary-badge counter-animate">
+                                    <div class="badge-value" data-target="${originalityScore}">0</div>
+                                    <div class="badge-label">Original</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Confidence Meter -->
+                        <div class="confidence-meter">
+                            <div class="meter-inner"></div>
+                            <div class="meter-needle" id="confidenceNeedle"></div>
+                            <div class="confidence-percentage">${aiProb}%</div>
+                            <div class="confidence-labels">
+                                <span style="color: #10b981;">Human</span>
+                                <span style="color: #f59e0b;">Mixed</span>
+                                <span style="color: #ef4444;">AI</span>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-narrative" id="summaryNarrative">
+                            <h3 style="color: white; margin-bottom: 15px; font-size: 1.3rem;">
+                                <i class="fas fa-file-alt"></i> Executive Summary
+                            </h3>
+                            ${aiProb > 70 ? 
+                                `<strong>AI Content Detected!</strong> Our advanced analysis shows a ${aiProb}% probability that this text was generated by AI. We detected ${detectedPatterns.ai_phrases || 0} AI-typical phrases, ${detectedPatterns.transition_words || 0} formal transitions, and patterns consistent with large language models. The writing shows unusually high coherence (${indicators.coherence_score || 0}%) and structured patterns that are hallmarks of AI generation.` :
+                            aiProb > 40 ?
+                                `<strong>Mixed Content Detected.</strong> This appears to be a blend of human and AI writing, with ${aiProb}% AI probability. We found ${detectedPatterns.ai_phrases || 0} AI-style phrases mixed with ${detectedPatterns.contractions || 0} natural contractions and ${detectedPatterns.personal_pronouns || 0} personal pronouns. This suggests either AI-assisted writing or heavy AI editing of human content.` :
+                                `<strong>Authentic Human Writing!</strong> With only ${aiProb}% AI probability, this text shows genuine human authorship. We detected ${detectedPatterns.contractions || 0} natural contractions, ${detectedPatterns.personal_pronouns || 0} personal pronouns, and vocabulary diversity of ${indicators.vocabulary_diversity || 0}% - all strong indicators of human writing.`
+                            }
+                            <br><br>
+                            <strong>Key Findings:</strong>
+                            <ul style="margin: 10px 0; padding-left: 20px; list-style-type: disc;">
+                                <li>AI Detection: ${aiProb}% probability of AI-generated content</li>
+                                <li>Originality: ${originalityScore}% unique content ${plagiarismCheck.matched_sources > 0 ? `(${plagiarismCheck.matched_sources} potential matches found)` : '(no plagiarism detected)'}</li>
+                                <li>Writing Quality: ${statistics.reading_level || 'Unknown'} reading level with ${indicators.vocabulary_diversity || 0}% vocabulary diversity</li>
+                                <li>Text Statistics: ${statistics.word_count || 0} words, ${statistics.sentence_count || 0} sentences, ${statistics.average_sentence_length || 0} average words per sentence</li>
+                            </ul>
+                            
+                            <strong>Pattern Analysis Summary:</strong>
+                            <ul style="margin: 10px 0; padding-left: 20px; list-style-type: disc;">
+                                ${detectedPatterns.ai_phrases > 0 ? `<li>Found ${detectedPatterns.ai_phrases} AI-typical phrases and expressions</li>` : ''}
+                                ${detectedPatterns.transition_words > 0 ? `<li>Detected ${detectedPatterns.transition_words} formal transition words (common in AI text)</li>` : ''}
+                                ${detectedPatterns.repeated_phrases > 0 ? `<li>Identified ${detectedPatterns.repeated_phrases} repeated phrase patterns</li>` : ''}
+                                ${detectedPatterns.contractions > 0 ? `<li>Found ${detectedPatterns.contractions} contractions (typical of human writing)</li>` : ''}
+                                ${detectedPatterns.personal_pronouns > 0 ? `<li>Detected ${detectedPatterns.personal_pronouns} personal pronouns (human indicator)</li>` : ''}
+                            </ul>
+                            
+                            <strong>Recommendation:</strong> ${
+                                aiProb > 70 ? 
+                                "This content appears to be AI-generated. Consider reviewing and editing to add human elements, personal experiences, and natural language variations." :
+                                aiProb > 40 ?
+                                "This content shows mixed authorship. Review AI-assisted sections for authenticity and ensure proper attribution where needed." :
+                                "This content appears to be authentically human-written. No significant concerns detected."
+                            }
+                        </div>
+                        
+                        <!-- Achievement Badges -->
+                        <div class="achievement-section">
+                            ${getAchievementBadges(aiProb, originalityScore, statistics)}
+                        </div>
+                        
+                        <div class="summary-visual">
+                            <div class="visual-card">
+                                <span class="visual-icon">🤖</span>
+                                <div class="visual-metric">${detectedPatterns.ai_phrases || 0}</div>
+                                <div class="visual-description">AI Phrases Found</div>
+                            </div>
+                            <div class="visual-card">
+                                <span class="visual-icon">📊</span>
+                                <div class="visual-metric">${indicators.vocabulary_diversity || 0}%</div>
+                                <div class="visual-description">Vocabulary Diversity</div>
+                            </div>
+                            <div class="visual-card">
+                                <span class="visual-icon">📝</span>
+                                <div class="visual-metric">${statistics.reading_level || 'Unknown'}</div>
+                                <div class="visual-description">Reading Level</div>
+                            </div>
+                            <div class="visual-card">
+                                <span class="visual-icon">🔍</span>
+                                <div class="visual-metric">${plagiarismCheck.matched_sources || 0}</div>
+                                <div class="visual-description">Source Matches</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Export Options - MOVED TO TOP SUMMARY -->
+                        <div class="export-section">
+                            <button class="export-btn pdf" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i>
+                                Download Full Report
+                            </button>
+                            <button class="export-btn certificate" onclick="generateCertificate()">
+                                <i class="fas fa-certificate"></i>
+                                Get Certificate
+                            </button>
+                            <button class="export-btn json" onclick="exportJSON()">
+                                <i class="fas fa-file-code"></i>
+                                Export JSON
+                            </button>
+                            <button class="export-btn share" onclick="shareResults()">
+                                <i class="fas fa-share-alt"></i>
+                                Share Results
+                            </button>
+                        </div>
+                        
+                        <!-- Social Proof Banner -->
+                        <div class="social-proof-banner">
+                            <div class="social-proof-text">
+                                You're among <span class="social-proof-number">${getRandomUserCount()}</span> users who analyzed content today
+                            </div>
+                        </div>
+                        
+                        <div class="summary-footnote">
+                            📌 This comprehensive report includes all 12 analysis methods. Expand the sections below for detailed insights.
+                        </div>
+                    </div>
+                `;
