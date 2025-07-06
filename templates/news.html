@@ -3270,109 +3270,225 @@
         let currentTier = 'free';
 
         // Enhanced function to generate author analysis
-        function generateEnhancedAuthorAnalysis(sourceAnalysis, detailedAnalysis, textContent) {
-            // Extract author information
-            const authorInfo = sourceAnalysis.author || {};
+       // Enhanced function to generate author analysis with better detection
+function generateEnhancedAuthorAnalysis(sourceAnalysis, detailedAnalysis, textContent) {
+    // Extract author information
+    const authorInfo = sourceAnalysis.author || {};
+    
+    // Try to extract author from content if not provided
+    if (!authorInfo.name || authorInfo.name === 'Not Specified') {
+        // Multiple patterns to try for author detection
+        const authorPatterns = [
+            // Standard byline patterns
+            /By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            /By:\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            /BY\s+([A-Z][A-Z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][A-Z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/,
             
-            // Try to extract author from content if not provided
-            if (!authorInfo.name || authorInfo.name === 'Not Specified') {
-                const authorMatch = textContent.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports)/);
-                if (authorMatch) {
-                    authorInfo.name = authorMatch[1];
+            // Author at beginning of line
+            /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)\s*\n/m,
+            /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)\s*$/m,
+            
+            // Written by pattern
+            /Written\s+by\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            
+            // Reported by pattern
+            /Reported\s+by\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            
+            // Author: pattern
+            /Author:\s*([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            
+            // Story by pattern
+            /Story\s+by\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            
+            // Pattern with em dash or hyphen
+            /—\s*([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/,
+            /-\s*([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/,
+            
+            // Pattern for "Name is a reporter/journalist/etc"
+            /([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)\s+is\s+a\s+(?:reporter|journalist|correspondent|writer|author|contributor)/i,
+            
+            // Pattern for names with middle initials
+            /By\s+([A-Z][a-z]+\s+[A-Z]\.\s+[A-Z][a-z]+)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/i,
+            
+            // Pattern for all caps names (some news sites)
+            /BY:\s*([A-Z]+\s+[A-Z]+(?:\s+[A-Z]+)*)(?:\s*[,\n]|\s+is\s+a|\s+reports|\s+and\s+|\s+\||$)/,
+            
+            // Pattern with parentheses
+            /By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)\s*\(/i,
+            
+            // Email pattern that might contain author name
+            /([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*?)@/,
+            
+            // Twitter handle pattern that might contain name
+            /@([A-Z][a-z]+[A-Z][a-z]+)/
+        ];
+        
+        // Try each pattern
+        for (const pattern of authorPatterns) {
+            const match = textContent.match(pattern);
+            if (match && match[1]) {
+                let authorName = match[1].trim();
+                
+                // Clean up the name
+                authorName = authorName
+                    .replace(/\s+/g, ' ')  // Normalize spaces
+                    .replace(/\.$/, '')    // Remove trailing period
+                    .trim();
+                
+                // Validate the name (should be 2-4 words, reasonable length)
+                const words = authorName.split(' ');
+                if (words.length >= 2 && words.length <= 4 && 
+                    authorName.length > 4 && authorName.length < 50 &&
+                    !authorName.match(/\d{4}/) && // No years
+                    !authorName.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/i)) { // No month names
+                    
+                    // Additional validation: check if it looks like a real name
+                    const hasValidStructure = words.every(word => 
+                        word.match(/^[A-Z][a-z]*\.?$/) || // Normal name or initial
+                        word.match(/^[A-Z]+$/) && word.length <= 3 // All caps (for some styles)
+                    );
+                    
+                    if (hasValidStructure) {
+                        authorInfo.name = authorName;
+                        console.log(`Author detected: "${authorName}" using pattern: ${pattern}`);
+                        break;
+                    }
                 }
             }
-            
-            // Mock enhanced author data (in production, this would come from your API)
-            const enhancedAuthorData = {
-                verified: authorInfo.name && authorInfo.name !== 'Not Specified',
-                credibilityScore: sourceAnalysis.author_credibility || Math.floor(Math.random() * 20) + 70,
-                yearsExperience: authorInfo.years_experience || '5+',
-                articleCount: authorInfo.article_count || '150+',
-                correctionRate: authorInfo.correction_rate || '2.1%',
-                expertiseMatch: calculateExpertiseMatch(textContent),
-                expertise: authorInfo.expertise || ['General News', 'Politics', 'Technology'],
-                hasDisclosures: true,
-                hasCorrections: true,
-                socialVerified: authorInfo.social_verified || false
-            };
-            
-            const initials = authorInfo.name && authorInfo.name !== 'Not Specified' 
-                ? authorInfo.name.split(' ').map(n => n[0]).join('')
-                : '?';
-            
-            return `
-                <div class="author-card">
-                    <div class="author-header">
-                        <div class="author-avatar">
-                            ${initials}
-                            ${enhancedAuthorData.verified ? '<div class="verified-badge"><i class="fas fa-check"></i></div>' : ''}
-                        </div>
-                        <div class="author-info">
-                            <h3 class="author-name">${authorInfo.name || 'Unknown Author'}</h3>
-                            <p class="author-outlet">${sourceAnalysis.domain || 'Unknown Outlet'}</p>
-                            ${enhancedAuthorData.verified ? '<span class="verified-text"><i class="fas fa-check-circle"></i> Verified Journalist</span>' : ''}
-                        </div>
-                        <div class="author-score">
-    <div class="score-circle" data-tooltip="Based on accuracy, experience & expertise">
-        <span class="score-number">${enhancedAuthorData.credibilityScore}</span>
-        <span class="score-label">Score</span>
-    </div>
-</div>
-                    </div>
-                    
-                    <div class="author-metrics">
-                        <div class="author-metric">
-                            <div class="metric-value">${enhancedAuthorData.yearsExperience}</div>
-                            <div class="metric-label">Years Experience</div>
-                        </div>
-                        <div class="author-metric">
-                            <div class="metric-value">${enhancedAuthorData.articleCount}</div>
-                            <div class="metric-label">Articles Written</div>
-                        </div>
-                        <div class="author-metric">
-                            <div class="metric-value">${enhancedAuthorData.correctionRate}</div>
-                            <div class="metric-label">Correction Rate</div>
-                        </div>
-                        <div class="author-metric">
-                            <div class="metric-value">${enhancedAuthorData.expertiseMatch}%</div>
-                            <div class="metric-label">Topic Match</div>
-                        </div>
-                    </div>
-                    
-                    ${enhancedAuthorData.expertise ? `
-                    <div class="author-expertise">
-                        <h4>Areas of Expertise</h4>
-                        <div class="expertise-tags">
-                            ${enhancedAuthorData.expertise.map(topic => 
-                                `<span class="expertise-tag">${topic}</span>`
-                            ).join('')}
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="author-transparency">
-                        <h4>Transparency Indicators</h4>
-                        <div class="transparency-grid">
-                            <div class="transparency-indicator ${enhancedAuthorData.hasDisclosures ? 'disclosed' : 'undisclosed'}">
-                                <i class="fas fa-${enhancedAuthorData.hasDisclosures ? 'check' : 'times'}"></i>
-                                <span>Financial Disclosures</span>
-                            </div>
-                            <div class="transparency-indicator ${enhancedAuthorData.hasCorrections ? 'disclosed' : 'undisclosed'}">
-                                <i class="fas fa-${enhancedAuthorData.hasCorrections ? 'check' : 'times'}"></i>
-                                <span>Corrections Published</span>
-                            </div>
-                            <div class="transparency-indicator ${enhancedAuthorData.socialVerified ? 'disclosed' : 'undisclosed'}">
-                                <i class="fas fa-${enhancedAuthorData.socialVerified ? 'check' : 'times'}"></i>
-                                <span>Social Media Verified</span>
-                            </div>
-                        </div>
-                    </div>
-                ${generateAuthorLinks(authorInfo, enhancedAuthorData)}
-            </div>
-            `;
         }
-
-        // Helper function to calculate expertise match
+        
+        // If still no author found, check for common news agency attributions
+        if (!authorInfo.name || authorInfo.name === 'Not Specified') {
+            const agencyPatterns = [
+                /\b(Associated Press|AP)\b/i,
+                /\b(Reuters)\b/i,
+                /\b(AFP|Agence France-Presse)\b/i,
+                /\b(Bloomberg)\b/i,
+                /\b(The \w+ Times|Times) Staff\b/i
+            ];
+            
+            for (const pattern of agencyPatterns) {
+                const match = textContent.match(pattern);
+                if (match) {
+                    authorInfo.name = match[1];
+                    authorInfo.isAgency = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // If we found an author name in all caps, convert to proper case
+    if (authorInfo.name && authorInfo.name === authorInfo.name.toUpperCase() && authorInfo.name.length > 3) {
+        authorInfo.name = authorInfo.name
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+    }
+    
+    // Mock enhanced author data (in production, this would come from your API)
+    const enhancedAuthorData = {
+        verified: authorInfo.name && authorInfo.name !== 'Not Specified' && !authorInfo.isAgency,
+        credibilityScore: sourceAnalysis.author_credibility || Math.floor(Math.random() * 20) + 70,
+        yearsExperience: authorInfo.years_experience || '5+',
+        articleCount: authorInfo.article_count || '150+',
+        correctionRate: authorInfo.correction_rate || '2.1%',
+        expertiseMatch: calculateExpertiseMatch(textContent),
+        expertise: authorInfo.expertise || ['General News', 'Politics', 'Technology'],
+        hasDisclosures: true,
+        hasCorrections: true,
+        socialVerified: authorInfo.social_verified || false,
+        isAgency: authorInfo.isAgency || false
+    };
+    
+    const initials = authorInfo.name && authorInfo.name !== 'Not Specified' && !authorInfo.isAgency
+        ? authorInfo.name.split(' ').map(n => n[0]).join('')
+        : authorInfo.isAgency ? '📰' : '?';
+    
+    // Rest of the function remains the same...
+    return `
+        <div class="author-card">
+            <div class="author-header">
+                <div class="author-avatar">
+                    ${initials}
+                    ${enhancedAuthorData.verified && !enhancedAuthorData.isAgency ? '<div class="verified-badge"><i class="fas fa-check"></i></div>' : ''}
+                </div>
+                <div class="author-info">
+                    <h3 class="author-name">${authorInfo.name || 'Unknown Author'}</h3>
+                    <p class="author-outlet">${sourceAnalysis.domain || 'Unknown Outlet'}</p>
+                    ${enhancedAuthorData.verified && !enhancedAuthorData.isAgency ? '<span class="verified-text"><i class="fas fa-check-circle"></i> Verified Journalist</span>' : ''}
+                    ${enhancedAuthorData.isAgency ? '<span class="verified-text"><i class="fas fa-building"></i> News Agency</span>' : ''}
+                </div>
+                <div class="author-score">
+                    <div class="score-circle" data-tooltip="Based on accuracy, experience & expertise">
+                        <span class="score-number">${enhancedAuthorData.credibilityScore}</span>
+                        <span class="score-label">Score</span>
+                    </div>
+                </div>
+            </div>
+            
+            ${!enhancedAuthorData.isAgency ? `
+            <div class="author-metrics">
+                <div class="author-metric">
+                    <div class="metric-value">${enhancedAuthorData.yearsExperience}</div>
+                    <div class="metric-label">Years Experience</div>
+                </div>
+                <div class="author-metric">
+                    <div class="metric-value">${enhancedAuthorData.articleCount}</div>
+                    <div class="metric-label">Articles Written</div>
+                </div>
+                <div class="author-metric">
+                    <div class="metric-value">${enhancedAuthorData.correctionRate}</div>
+                    <div class="metric-label">Correction Rate</div>
+                </div>
+                <div class="author-metric">
+                    <div class="metric-value">${enhancedAuthorData.expertiseMatch}%</div>
+                    <div class="metric-label">Topic Match</div>
+                </div>
+            </div>
+            
+            ${enhancedAuthorData.expertise ? `
+            <div class="author-expertise">
+                <h4>Areas of Expertise</h4>
+                <div class="expertise-tags">
+                    ${enhancedAuthorData.expertise.map(topic => 
+                        `<span class="expertise-tag">${topic}</span>`
+                    ).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="author-transparency">
+                <h4>Transparency Indicators</h4>
+                <div class="transparency-grid">
+                    <div class="transparency-indicator ${enhancedAuthorData.hasDisclosures ? 'disclosed' : 'undisclosed'}">
+                        <i class="fas fa-${enhancedAuthorData.hasDisclosures ? 'check' : 'times'}"></i>
+                        <span>Financial Disclosures</span>
+                    </div>
+                    <div class="transparency-indicator ${enhancedAuthorData.hasCorrections ? 'disclosed' : 'undisclosed'}">
+                        <i class="fas fa-${enhancedAuthorData.hasCorrections ? 'check' : 'times'}"></i>
+                        <span>Corrections Published</span>
+                    </div>
+                    <div class="transparency-indicator ${enhancedAuthorData.socialVerified ? 'disclosed' : 'undisclosed'}">
+                        <i class="fas fa-${enhancedAuthorData.socialVerified ? 'check' : 'times'}"></i>
+                        <span>Social Media Verified</span>
+                    </div>
+                </div>
+            </div>
+            ` : `
+            <div class="author-transparency">
+                <h4>News Agency Information</h4>
+                <p style="color: #6b7280; line-height: 1.6;">
+                    This content is from a news agency or wire service. News agencies provide content to multiple outlets
+                    and maintain high editorial standards. Individual reporter attribution may not be available for 
+                    syndicated content.
+                </p>
+            </div>
+            `}
+            ${generateAuthorLinks(authorInfo, enhancedAuthorData)}
+        </div>
+    `;
+}
         function calculateExpertiseMatch(textContent) {
             // Simple keyword-based matching (in production, use more sophisticated NLP)
             const topicKeywords = {
