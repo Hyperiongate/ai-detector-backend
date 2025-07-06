@@ -21,6 +21,9 @@ import io
 from PIL import Image
 import numpy as np
 import hashlib
+from urllib.parse import urlparse
+import requests
+from bs4 import BeautifulSoup
 
 # Computer Vision imports for enhanced image analysis
 CV_AVAILABLE = False
@@ -378,6 +381,151 @@ https://factsandfakes.ai
     """
     
     return send_email(email, subject, html_content, text_content)
+# Add this function to fetch content from URLs
+def fetch_article_from_url(url):
+    """
+    Fetch and extract article content from a URL
+    """
+    try:
+        # Parse the URL to get domain
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc.replace('www.', '')
+        
+        # Fetch the page
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Parse HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract article content based on common patterns
+        article_content = ""
+        article_title = ""
+        authors = []
+        date_published = None
+        
+        # Try to find title
+        title_tags = ['h1', 'title', 'meta[property="og:title"]', 'meta[name="twitter:title"]']
+        for tag in title_tags:
+            if tag.startswith('meta'):
+                element = soup.select_one(tag)
+                if element and element.get('content'):
+                    article_title = element['content']
+                    break
+            else:
+                element = soup.find(tag)
+                if element:
+                    article_title = element.get_text(strip=True)
+                    break
+        
+        # Try to find authors - AP specific patterns
+        author_patterns = [
+            # AP News patterns
+            soup.select('span.Page-authorBy'),
+            soup.select('div.CardHeadline-byline'),
+            soup.select('[class*="byline"]'),
+            soup.select('[class*="author"]'),
+            soup.select('span[itemprop="author"]'),
+            soup.select('meta[name="author"]'),
+            soup.select('meta[property="article:author"]'),
+            # Look for "By Name" patterns in text
+            soup.find_all(text=re.compile(r'^By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*'))
+        ]
+        
+        for pattern in author_patterns:
+            if pattern:
+                if isinstance(pattern, list):
+                    for elem in pattern:
+                        if hasattr(elem, 'get_text'):
+                            author_text = elem.get_text(strip=True)
+                        elif hasattr(elem, 'get') and elem.get('content'):
+                            author_text = elem['content']
+                        else:
+                            author_text = str(elem)
+                        
+                        # Clean up author text
+                        author_text = author_text.replace('By', '').replace('by', '').strip()
+                        if author_text and len(author_text) > 2 and len(author_text) < 100:
+                            # Split multiple authors (e.g., "John Doe and Jane Smith")
+                            if ' and ' in author_text:
+                                authors.extend([a.strip() for a in author_text.split(' and ')])
+                            elif ',' in author_text and not any(word in author_text.lower() for word in ['inc', 'llc', 'corp']):
+                                authors.extend([a.strip() for a in author_text.split(',')])
+                            else:
+                                authors.append(author_text)
+                
+                if authors:
+                    break
+        
+        # Try to find date
+        date_patterns = [
+            soup.select_one('time[datetime]'),
+            soup.select_one('meta[property="article:published_time"]'),
+            soup.select_one('meta[name="publish_date"]'),
+            soup.select_one('[class*="timestamp"]'),
+            soup.select_one('[class*="date"]'),
+            soup.select_one('[class*="published"]')
+        ]
+        
+        for pattern in date_patterns:
+            if pattern:
+                if pattern.get('datetime'):
+                    date_published = pattern['datetime']
+                elif pattern.get('content'):
+                    date_published = pattern['content']
+                else:
+                    date_published = pattern.get_text(strip=True)
+                if date_published:
+                    break
+        
+        # Extract main content
+        # Try different content selectors
+        content_selectors = [
+            'article',
+            '[class*="article-body"]',
+            '[class*="story-body"]',
+            '[class*="content-body"]',
+            'div.content',
+            'div.story',
+            'main',
+            '[role="main"]'
+        ]
+        
+        for selector in content_selectors:
+            content_elem = soup.select_one(selector)
+            if content_elem:
+                # Get all paragraphs
+                paragraphs = content_elem.find_all(['p', 'h2', 'h3'])
+                article_content = '\n\n'.join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)])
+                if len(article_content) > 200:  # Ensure we got meaningful content
+                    break
+        
+        # If still no content, try getting all paragraphs
+        if not article_content:
+            all_paragraphs = soup.find_all('p')
+            article_content = '\n\n'.join([p.get_text(strip=True) for p in all_paragraphs if len(p.get_text(strip=True)) > 30])
+        
+        # Combine title and content for analysis
+        full_content = f"{article_title}\n\n{article_content}" if article_title else article_content
+        
+        # Clean up authors list
+        authors = list(set([a for a in authors if a and not a.lower() in ['staff', 'admin', 'editor']]))[:3]  # Max 3 authors
+        
+        return {
+            'content': full_content,
+            'domain': domain,
+            'title': article_title,
+            'authors': authors,
+            'date': date_published,
+            'url': url
+        }
+        
+    except Exception as e:
+        print(f"Error fetching article from URL: {e}")
+        return None
 
 # Routes
 @app.route('/')
@@ -2996,30 +3144,69 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
 # UPDATED ANALYSIS FUNCTIONS WITH PHASE 2 INTEGRATION - UNCHANGED FOR NEWS.HTML
 # ============================================================================
 
-def perform_basic_news_analysis(content):
+# Update the perform_basic_news_analysis function
+def perform_basic_news_analysis(content, url_data=None):
     """
-    Perform basic news analysis - Phase 2 version with optional AI enhancement
+    Perform basic news analysis - Updated to handle URL data
     """
-    # First, get basic analysis from Phase 1
-    credibility_score = calculate_basic_credibility(content)
-    bias_analysis = detect_simple_bias(content)
-    emotional_score, loaded_terms = analyze_emotional_language(content)
+    # If we have URL data, extract the actual content and metadata
+    if url_data:
+        actual_content = url_data.get('content', content)
+        source_domain = url_data.get('domain', 'unknown')
+        authors = url_data.get('authors', [])
+        date_published = url_data.get('date', None)
+        article_title = url_data.get('title', '')
+    else:
+        actual_content = content
+        source_domain = "unknown"
+        authors = []
+        date_published = None
+        article_title = ''
+    
+    # First, get basic analysis from existing function
+    credibility_score = calculate_basic_credibility(actual_content)
+    bias_analysis = detect_simple_bias(actual_content)
+    emotional_score, loaded_terms = analyze_emotional_language(actual_content)
     
     # Count sentences as factual claims (simple heuristic)
-    sentence_count = len([s for s in content.split('.') if s.strip()])
+    sentence_count = len([s for s in actual_content.split('.') if s.strip()])
     
-    # Simulate source analysis (will be enhanced in Phase 3)
-    source_domain = "newsource.com"  # Placeholder
-    if "reuters" in content.lower():
-        source_domain = "reuters.com"
-        source_credibility = 90
-    elif "bbc" in content.lower():
-        source_domain = "bbc.com"
-        source_credibility = 85
-    else:
-        source_credibility = 70
+    # Enhanced source analysis based on actual domain
+    source_credibility_map = {
+        'apnews.com': 90,
+        'ap.org': 90,
+        'reuters.com': 90,
+        'bbc.com': 85,
+        'bbc.co.uk': 85,
+        'npr.org': 85,
+        'wsj.com': 80,
+        'nytimes.com': 80,
+        'washingtonpost.com': 80,
+        'cnn.com': 75,
+        'foxnews.com': 75,
+        'msnbc.com': 75,
+        'bloomberg.com': 80,
+        'ft.com': 85,
+        'economist.com': 85,
+        'theguardian.com': 75,
+        'usatoday.com': 70,
+        'politico.com': 75,
+        'thehill.com': 70,
+        'axios.com': 75
+    }
     
-    # Build basic response
+    source_credibility = source_credibility_map.get(source_domain, 65)
+    
+    # Detect topic from content
+    topic = detect_article_topic(actual_content, article_title)
+    
+    # Format authors for display
+    author_info = {
+        'name': ', '.join(authors) if authors else 'Not Specified',
+        'count': len(authors)
+    }
+    
+    # Build enhanced response
     basic_results = {
         'credibility_score': credibility_score,
         'bias_indicators': {
@@ -3041,17 +3228,14 @@ def perform_basic_news_analysis(content):
             'domain': source_domain,
             'credibility_score': source_credibility,
             'source_type': 'news outlet',
-            'political_bias': 'center',
-            'founded': 'Unknown'
+            'political_bias': get_source_bias(source_domain),
+            'founded': get_source_founded_date(source_domain),
+            'author': author_info,
+            'date_published': date_published,
+            'article_topic': topic
         },
         'fact_check_results': [],
-        'cross_references': [
-            {
-                'source': 'Reuters',
-                'title': 'Similar story coverage',
-                'relevance': 85
-            }
-        ],
+        'cross_references': generate_cross_references(source_domain, topic),
         'methodology': {
             'analysis_type': 'basic',
             'confidence_level': 75,
@@ -3060,19 +3244,20 @@ def perform_basic_news_analysis(content):
                 'text_structure',
                 'keyword_analysis', 
                 'emotional_language',
-                'basic_credibility_indicators'
+                'basic_credibility_indicators',
+                'source_metadata',
+                'author_attribution'
             ]
         }
     }
     
     # Try to enhance with AI for basic tier (limited enhancement)
-    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(content) > 100:
+    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(actual_content) > 100:
         print("Attempting basic AI enhancement...")
-        enhanced = enhance_with_openai_analysis(basic_results, content, is_pro=False)
+        enhanced = enhance_with_openai_analysis(basic_results, actual_content, is_pro=False)
         return enhanced
     
     return basic_results
-
 def perform_advanced_news_analysis(content):
     """
     Perform advanced news analysis - Phase 2 with full OpenAI integration
