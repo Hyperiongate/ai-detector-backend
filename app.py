@@ -3784,7 +3784,7 @@ def enhanced_content_analysis():
                 'title': article_data.get('title', ''),
                 'authors': article_data.get('authors', []),
                 'publish_date': article_data.get('publish_date', ''),
-                'domain': article_data.get('domain', '')
+                'domain': domain_to_name_map.get(article_data.get('domain', ''), article_data.get('domain', ''))
             },
             'enhanced_analysis': analysis_results,
             'timestamp': datetime.now().isoformat()
