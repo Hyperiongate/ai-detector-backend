@@ -498,8 +498,10 @@ def fetch_article_from_url(url):
         # Try to find authors - AP specific patterns
         author_patterns = [
             # AP News patterns
-            soup.select('span.Page-authorBy'),
-            soup.select('div.CardHeadline-byline'),
+            soup.select('div.Page-authors a span'),
+            soup.select('div[data-testid="author-name"]'),
+            soup.select('a[href*="/author/"] span'),
+            soup.select('div.Page-authors'),
             soup.select('[class*="byline"]'),
             soup.select('[class*="author"]'),
             soup.select('span[itemprop="author"]'),
