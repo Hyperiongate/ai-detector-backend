@@ -464,6 +464,7 @@ def fetch_article_from_url(url):
         # Parse the URL to get domain
         parsed_url = urlparse(url)
         domain = parsed_url.netloc.replace('www.', '')
+        print(f"DEBUG: Detected domain: {domain}")
         
         # Fetch the page
         headers = {
@@ -535,7 +536,8 @@ def fetch_article_from_url(url):
                 
                 if authors:
                     break
-        
+        print(f"DEBUG: Found authors: {authors}")
+        print(f"DEBUG: Article title: {article_title}")
         # Try to find date
         date_patterns = [
             soup.select_one('time[datetime]'),
@@ -3436,7 +3438,8 @@ def detect_article_topic(content, title=''):
         best_topic = max(topic_scores, key=topic_scores.get)
         if topic_scores[best_topic] > 0:
             return best_topic
-    
+    print(f"DEBUG: Topic scores: {topic_scores}")
+    print(f"DEBUG: Selected topic: {best_topic if topic_scores else 'current events'}")
     return 'current events'
 
 # Helper function to get source bias
