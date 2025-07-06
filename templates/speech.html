@@ -1390,42 +1390,51 @@
         }
 
         // Load from URL
-        async function loadFromURL() {
-            const url = document.getElementById('urlInput').value;
-            if (!url) {
-                alert('Please enter a URL');
-                return;
-            }
-            
-            // Show processing
-            document.getElementById('processingOverlay').style.display = 'flex';
-            
-            // Simulate loading from URL
-            setTimeout(() => {
-                document.getElementById('processingOverlay').style.display = 'none';
-                
-                if (selectedSource === 'youtube') {
-                    // Simulate YouTube transcript
-                    const demoYouTube = `Welcome to this important policy discussion. Today, I want to share some critical statistics about our economy.
-
-The unemployment rate has dropped to 3.4 percent, the lowest level in 50 years. This represents over 2 million new jobs created in the past year alone.
-
-Our GDP growth exceeded 2.5 percent last quarter, surpassing economists' predictions. Inflation has been reduced from 9 percent to under 3 percent in just 18 months.
-
-We've invested $1.2 trillion in infrastructure, creating thousands of high-paying jobs. Clean energy production has increased by 35 percent since 2020.
-
-These are not just numbers - they represent real improvements in people's lives. Thank you.`;
-                    
-                    document.getElementById('transcript').textContent = demoYouTube;
-                    updateWordCount();
-                    alert('YouTube video transcript loaded successfully!');
-                } else if (selectedSource === 'stream') {
-                    alert('Live stream connected! Real-time transcription would begin here.');
-                    // In production, this would connect to the stream
-                }
-            }, 2000);
-        }
-
+        
+// Helper function to show YouTube video info
+function showYouTubeInfo(videoData) {
+    let infoBanner = document.getElementById('youtubeInfoBanner');
+    if (!infoBanner) {
+        infoBanner = document.createElement('div');
+        infoBanner.id = 'youtubeInfoBanner';
+        infoBanner.style.cssText = `
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        `;
+        
+        const modeBanner = document.getElementById('modeBanner');
+        modeBanner.parentNode.insertBefore(infoBanner, modeBanner.nextSibling);
+    }
+    
+    infoBanner.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <i class="fab fa-youtube" style="font-size: 2rem;"></i>
+            <div>
+                <div style="font-weight: 600;">YouTube Video Loaded</div>
+                <div style="font-size: 0.9rem;">
+                    ${videoData.word_count} words • 
+                    ${formatDuration(Math.floor(videoData.duration_estimate))} • 
+                    ${videoData.language}
+                </div>
+            </div>
+        </div>
+        <a href="${videoData.video_url}" target="_blank" style="
+            background: white;
+            color: #ef4444;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+        ">Open Video</a>
+    `;
+}
         // Trigger file upload
         function triggerFileUpload() {
             document.getElementById('audioFileInput').click();
