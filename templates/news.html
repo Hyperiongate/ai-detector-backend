@@ -973,7 +973,7 @@
                 #1dd1a1 270deg,
                 #ff6b6b 360deg
             );
-            animation: rotateGradient 10s linear infinite;
+           
         }
 
         @keyframes rotateGradient {
@@ -3626,6 +3626,24 @@ function generateAuthorLinks(authorInfo, enhancedAuthorData) {
                             <i class="fas fa-info-circle"></i>
                             Analyzed using ${methodology.factors_analyzed ? methodology.factors_analyzed.length : 12} advanced verification methods
                         </div>
+                   <div style="margin-top: 20px;">
+        <button onclick="handlePDFDownload('${tier}')" style="
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        ">
+            <i class="fas fa-file-pdf"></i> Download PDF Report
+        </button>
+    </div> 
                     </div>
                 </div>
                 <div class="quick-actions">
@@ -4588,26 +4606,115 @@ function generateAuthorLinks(authorInfo, enhancedAuthorData) {
 
         // Generate narrative functions
         function generateSummaryNarrative(credibilityScore, biasLabel, objectivityScore, sourceAnalysis) {
-            const sourceCredibility = sourceAnalysis.credibility_score || 70;
-            
-            if (credibilityScore >= 80) {
-                return `This article demonstrates strong journalistic integrity with a credibility score of ${credibilityScore}/100. 
-                        The content shows ${biasLabel} political orientation with ${objectivityScore}% objective reporting. 
-                        Published by ${sourceAnalysis.domain || 'the source'} (credibility: ${sourceCredibility}/100), 
-                        the article meets high standards for factual accuracy and balanced reporting.`;
-            } else if (credibilityScore >= 60) {
-                return `This article shows moderate credibility (${credibilityScore}/100) with some areas requiring verification. 
-                        A ${biasLabel} political lean is evident with ${objectivityScore}% objectivity maintained. 
-                        The source ${sourceAnalysis.domain || 'outlet'} has a credibility rating of ${sourceCredibility}/100. 
-                        We recommend cross-referencing key claims with additional sources.`;
-            } else {
-                return `This article requires careful verification with a credibility score of ${credibilityScore}/100. 
-                        Strong ${biasLabel} bias detected with only ${objectivityScore}% objective content. 
-                        The source credibility (${sourceCredibility}/100) raises concerns. 
-                        Multiple unsupported claims were identified. Verify all information independently.`;
-            }
+    // Extract the source
+    const sourceName = sourceAnalysis.domain || 'Unknown Source';
+    
+    // Try to extract what the article is about from the content
+    const textContent = document.getElementById('news-text').value;
+    const sentences = textContent.split('.').filter(s => s.trim().length > 10);
+    const firstFewSentences = sentences.slice(0, 3).join('. ');
+    
+    // Detect topic from keywords
+    let topic = "current events";
+    const lowerContent = textContent.toLowerCase();
+    
+    if (lowerContent.includes('election') || lowerContent.includes('vote') || lowerContent.includes('campaign')) {
+        topic = "political elections";
+    } else if (lowerContent.includes('economy') || lowerContent.includes('inflation') || lowerContent.includes('market')) {
+        topic = "economic news";
+    } else if (lowerContent.includes('climate') || lowerContent.includes('environment') || lowerContent.includes('pollution')) {
+        topic = "environmental issues";
+    } else if (lowerContent.includes('technology') || lowerContent.includes('ai') || lowerContent.includes('tech')) {
+        topic = "technology developments";
+    } else if (lowerContent.includes('health') || lowerContent.includes('medical') || lowerContent.includes('disease')) {
+        topic = "health news";
+    } else if (lowerContent.includes('war') || lowerContent.includes('conflict') || lowerContent.includes('military')) {
+        topic = "international conflict";
+    } else if (lowerContent.includes('sports') || lowerContent.includes('game') || lowerContent.includes('player')) {
+        topic = "sports news";
+    }
+    
+    // Create conversational summary based on scores
+    let conversationalSummary = "";
+    
+    if (credibilityScore >= 80) {
+        conversationalSummary = `Great news! This article scores very well on our credibility scale (${credibilityScore}/100). `;
+        if (objectivityScore >= 80) {
+            conversationalSummary += `The reporting is notably objective and balanced, with minimal bias detected. `;
+        } else if (objectivityScore >= 60) {
+            conversationalSummary += `While there's a ${biasLabel} lean to the coverage, the facts appear well-supported. `;
+        } else {
+            conversationalSummary += `There's a noticeable ${biasLabel} bias, but the core information seems reliable. `;
         }
+        conversationalSummary += `You can generally trust this article, though it's always good to check multiple sources for important topics.`;
+        
+    } else if (credibilityScore >= 60) {
+        conversationalSummary = `This article has moderate credibility (${credibilityScore}/100). `;
+        if (objectivityScore >= 70) {
+            conversationalSummary += `The reporting attempts to be balanced, though some bias is present. `;
+        } else {
+            conversationalSummary += `There's a clear ${biasLabel} perspective that colors the reporting. `;
+        }
+        conversationalSummary += `We'd recommend fact-checking key claims and consulting additional sources before drawing conclusions.`;
+        
+    } else {
+        conversationalSummary = `Be cautious with this article - it scored low on credibility (${credibilityScore}/100). `;
+        conversationalSummary += `The ${biasLabel} bias is quite strong, and objectivity is limited (${objectivityScore}%). `;
+        conversationalSummary += `We strongly recommend verifying any claims made here with more reliable sources before accepting them as fact.`;
+    }
+    
+    // Build the complete narrative with all three parts
+    return `
+        <strong>1. Source:</strong> This article comes from <span style="color: #667eea; font-weight: 600;">${sourceName}</span><br><br>
+        <strong>2. Article Topic:</strong> This article appears to be about <span style="color: #667eea; font-weight: 600;">${topic}</span><br><br>
+        <strong>3. Our Assessment:</strong> ${conversationalSummary}
+    `;
+}
 
+function handlePDFDownload(tier) {
+    if (tier === 'free') {
+        // Show upgrade message for free users
+        showNotification('PDF reports are available with Pro subscription. Upgrade to download detailed analysis reports!', 'info');
+        
+        // Optional: Show a modal or redirect to pricing
+        setTimeout(() => {
+            if (confirm('Would you like to upgrade to Pro to access PDF reports and advanced features?')) {
+                window.location.href = '/pricingplan';
+            }
+        }, 500);
+    } else {
+        // Pro users - generate PDF
+        showNotification('Generating your PDF report...', 'info');
+        
+        // In a real implementation, this would call your PDF generation API
+        // For now, we'll simulate it
+        setTimeout(() => {
+            showNotification('PDF report downloaded successfully!', 'success');
+            
+            // Create a sample PDF download (in production, this would be actual PDF generation)
+            const reportData = {
+                title: 'News Verification Report',
+                date: new Date().toLocaleDateString(),
+                credibilityScore: currentAnalysisData?.credibility_score || 0,
+                source: currentAnalysisData?.source_analysis?.domain || 'Unknown',
+                bias: currentAnalysisData?.political_bias?.bias_label || 'Unknown'
+            };
+            
+            // Simulate download by creating a blob
+            const content = `News Verification Report\n\nDate: ${reportData.date}\nSource: ${reportData.source}\nCredibility: ${reportData.credibilityScore}/100\nBias: ${reportData.bias}\n\nFor full report features, this would include all analysis details.`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `news-verification-report-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 2000);
+    }
+}
+        
         function generateBiasNarrative(biasLabel, biasScore, objectivityScore, politicalBias) {
             const loadedTerms = politicalBias.loaded_terms || [];
             const leftIndicators = politicalBias.left_indicators || 0;
