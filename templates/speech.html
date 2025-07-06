@@ -1390,6 +1390,99 @@
         }
 
         // Load from URL
+      async function loadFromURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+            
+            // Show processing overlay
+            document.getElementById('processingOverlay').style.display = 'flex';
+            
+            try {
+                if (selectedSource === 'youtube') {
+                    // Extract YouTube video
+                    const response = await fetch('/api/youtube-transcript', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: url })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Display transcript
+                        document.getElementById('transcript').textContent = data.transcript;
+                        updateWordCount();
+                        
+                        // Show video info
+                        showYouTubeInfo(data);
+                        
+                        // Auto-detect claims
+                        detectClaimsInText(data.transcript);
+                        updateClaimCount();
+                        
+                        // Update hint
+                        document.getElementById('hintText').textContent = `YouTube video loaded. ${data.word_count} words extracted. Click "Check Facts" to analyze`;
+                        
+                        // Hide processing overlay
+                        document.getElementById('processingOverlay').style.display = 'none';
+                        
+                        // Optional: Auto-start fact checking for loaded content
+                        if (data.word_count > 50) {
+                            setTimeout(() => {
+                                if (confirm('Video transcript loaded. Would you like to start fact-checking now?')) {
+                                    checkFacts();
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to extract transcript');
+                    }
+                } else if (selectedSource === 'stream') {
+                    // Handle live stream
+                    const response = await fetch('/api/stream-transcript', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stream_url: url })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('processingOverlay').style.display = 'none';
+                        alert('Stream processing started. Real-time transcription will begin shortly.');
+                        // In a real implementation, this would establish a WebSocket connection
+                    } else {
+                        throw new Error(data.error || 'Failed to process stream');
+                    }
+                }
+            } catch (error) {
+                console.error('Load URL error:', error);
+                document.getElementById('processingOverlay').style.display = 'none';
+                
+                // Provide helpful error messages
+                let errorMessage = 'Failed to load content. ';
+                if (error.message.includes('404')) {
+                    errorMessage += 'The service endpoint was not found. Please ensure the server is running.';
+                } else if (error.message.includes('network')) {
+                    errorMessage += 'Network error. Please check your connection.';
+                } else if (error.message.includes('transcript')) {
+                    errorMessage += error.message;
+                } else {
+                    errorMessage += error.message || 'Please try again.';
+                }
+                
+                alert(errorMessage);
+            }
+        }
         
 // Helper function to show YouTube video info
 function showYouTubeInfo(videoData) {
