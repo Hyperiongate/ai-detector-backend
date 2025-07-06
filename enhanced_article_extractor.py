@@ -613,7 +613,7 @@ class ArticleExtractor:
             return False
         
         # Should look like a sentence
-        if not any(text.endswith(p) for p in ['.', '!', '?', '"', '"', ''']) and len(text) < 100:
+        if not any(text.endswith(p) for p in ['.', '!', '?', '"']) and len(text) < 100:
             return False
         
         return True
