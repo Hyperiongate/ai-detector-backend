@@ -3932,9 +3932,9 @@ def enhanced_content_analysis():
         }
         
         # Store in database if needed
-       user = get_current_user()
-if user and DB_AVAILABLE:
-    save_analysis_to_db(1, url, combined_results)  # Using ID 1 for development
+        user = get_current_user()
+        if user and DB_AVAILABLE:
+            save_analysis_to_db(1, url, combined_results)  # Using ID 1 for development
             
         return jsonify(combined_results), 200
         
