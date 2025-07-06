@@ -3189,8 +3189,8 @@ def perform_basic_news_analysis(content, url_data=None):
     
     # Enhanced source analysis based on actual domain
     source_credibility_map = {
-        'apnews.com': 90,
-        'ap.org': 90,
+        'apnews.com': 95,
+        'ap.org': 95,
         'reuters.com': 90,
         'bbc.com': 85,
         'bbc.co.uk': 85,
@@ -3212,7 +3212,32 @@ def perform_basic_news_analysis(content, url_data=None):
     }
     
     source_credibility = source_credibility_map.get(source_domain, 65)
+    # Map domain to proper source name
+    domain_to_name_map = {
+        'apnews.com': 'Associated Press',
+        'ap.org': 'Associated Press',
+        'reuters.com': 'Reuters',
+        'bbc.com': 'BBC News',
+        'bbc.co.uk': 'BBC News',
+        'npr.org': 'NPR',
+        'wsj.com': 'The Wall Street Journal',
+        'nytimes.com': 'The New York Times',
+        'washingtonpost.com': 'The Washington Post',
+        'cnn.com': 'CNN',
+        'foxnews.com': 'Fox News',
+        'msnbc.com': 'MSNBC',
+        'bloomberg.com': 'Bloomberg',
+        'ft.com': 'Financial Times',
+        'economist.com': 'The Economist',
+        'theguardian.com': 'The Guardian',
+        'usatoday.com': 'USA Today',
+        'politico.com': 'Politico',
+        'thehill.com': 'The Hill',
+        'axios.com': 'Axios'
+    }
     
+    # Convert domain to display name
+    source_display_name = domain_to_name_map.get(source_domain, source_domain)
     # Detect topic from content
     topic = detect_article_topic(actual_content, article_title)
     
@@ -3241,7 +3266,7 @@ def perform_basic_news_analysis(content, url_data=None):
             'loaded_terms': loaded_terms[:5]
         },
         'source_analysis': {
-            'domain': source_domain,
+            'domain': source_display_name,
             'credibility_score': source_credibility,
             'source_type': 'news outlet',
             'political_bias': get_source_bias(source_domain),
