@@ -743,7 +743,23 @@ def get_youtube_transcript():
     """
     Extract transcript from YouTube video
     """
-   try:
+    try:  # Fixed indentation - now has 4 spaces
+        data = request.get_json()
+        url = data.get('url', '')
+        language = data.get('language', 'en')
+        
+        if not url:
+            return jsonify({'error': 'YouTube URL required'}), 400
+        
+        # Extract video ID
+        video_id = extract_youtube_video_id(url)
+        if not video_id:
+            return jsonify({'error': 'Invalid YouTube URL'}), 400
+        
+        try:
+            # Get available transcripts
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            
             # Try to find a transcript
             transcript = None
             try:
@@ -800,7 +816,6 @@ def get_youtube_transcript():
     except Exception as e:
         print(f"YouTube endpoint error: {e}")
         return jsonify({'error': 'Failed to process request'}), 500
-
 
 @app.route('/api/export-speech-report', methods=['POST'])
 def export_speech_report():
