@@ -823,7 +823,7 @@ def get_youtube_transcript():
     """
     Extract transcript from YouTube video
     """
-    try:  # Fixed indentation - now has 4 spaces
+    try:
         data = request.get_json()
         url = data.get('url', '')
         language = data.get('language', 'en')
