@@ -3425,7 +3425,7 @@ def generate_cross_references(source_domain, topic):
     return sorted(cross_refs, key=lambda x: x['relevance'], reverse=True) 
 def perform_advanced_news_analysis(content, url_data=None):
     # Start with basic analysis
-basic_results = perform_basic_news_analysis(content, url_data)
+
     """
     Perform advanced news analysis - Phase 2 with full OpenAI integration
     """
