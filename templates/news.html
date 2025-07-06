@@ -2399,28 +2399,53 @@
         }
 
         .author-score {
-            text-align: center;
-        }
+    text-align: center;
+    position: relative;
+}
 
-        .score-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #667eea;
-        }
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.2));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #667eea;
+    position: relative;
+    cursor: help;
+}
 
-        .score-number {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: #667eea;
-        }
+.score-circle:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
 
-        .score-label {
+.score-number {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #667eea;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 600;
+    line-height: 1;
+}
             font-size: 0.75rem;
             color: #6b7280;
             font-weight: 600;
@@ -2493,7 +2518,49 @@
             padding: 20px;
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
+.author-links {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
+}
 
+.author-links h4 {
+    color: #1f2937;
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.author-links-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.author-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(102, 126, 234, 0.05);
+    padding: 8px 16px;
+    border-radius: 25px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.author-link:hover {
+    background: rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.author-link i {
+    font-size: 1.1rem;
+}
         .author-transparency h4 {
             color: #059669;
             font-weight: 700;
@@ -3246,11 +3313,11 @@
                             ${enhancedAuthorData.verified ? '<span class="verified-text"><i class="fas fa-check-circle"></i> Verified Journalist</span>' : ''}
                         </div>
                         <div class="author-score">
-                            <div class="score-circle">
-                                <span class="score-number">${enhancedAuthorData.credibilityScore}</span>
-                                <span class="score-label">Author Score</span>
-                            </div>
-                        </div>
+    <div class="score-circle" data-tooltip="Based on accuracy, experience & expertise">
+        <span class="score-number">${enhancedAuthorData.credibilityScore}</span>
+        <span class="score-label">Score</span>
+    </div>
+</div>
                     </div>
                     
                     <div class="author-metrics">
@@ -3300,7 +3367,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                ${generateAuthorLinks(authorInfo, enhancedAuthorData)}
+            </div>
             `;
         }
 
@@ -3326,6 +3394,57 @@
             
             return maxMatch || 75; // Default to 75 if no strong topic match
         }
+
+        // Helper function to generate author links
+function generateAuthorLinks(authorInfo, enhancedAuthorData) {
+    // Mock author links data (in production, this would come from your API)
+    const authorLinks = {
+        website: authorInfo.website || (enhancedAuthorData.verified ? 'https://example.com/author-profile' : null),
+        twitter: authorInfo.twitter || (enhancedAuthorData.socialVerified ? '@journalisthandle' : null),
+        linkedin: authorInfo.linkedin || null,
+        email: authorInfo.email || null
+    };
+    
+    // Check if any links exist
+    const hasLinks = Object.values(authorLinks).some(link => link !== null);
+    
+    if (!hasLinks) {
+        return '';
+    }
+    
+    let linksHTML = '<div class="author-links"><h4>Connect with the Author</h4><div class="author-links-grid">';
+    
+    if (authorLinks.website) {
+        linksHTML += `<a href="${authorLinks.website}" target="_blank" rel="noopener noreferrer" class="author-link">
+            <i class="fas fa-globe"></i> Website
+        </a>`;
+    }
+    
+    if (authorLinks.twitter) {
+        const twitterUrl = authorLinks.twitter.startsWith('@') ? 
+            `https://twitter.com/${authorLinks.twitter.substring(1)}` : 
+            authorLinks.twitter;
+        linksHTML += `<a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="author-link">
+            <i class="fab fa-twitter"></i> Twitter
+        </a>`;
+    }
+    
+    if (authorLinks.linkedin) {
+        linksHTML += `<a href="${authorLinks.linkedin}" target="_blank" rel="noopener noreferrer" class="author-link">
+            <i class="fab fa-linkedin"></i> LinkedIn
+        </a>`;
+    }
+    
+    if (authorLinks.email) {
+        linksHTML += `<a href="mailto:${authorLinks.email}" class="author-link">
+            <i class="fas fa-envelope"></i> Email
+        </a>`;
+    }
+    
+    linksHTML += '</div></div>';
+    
+    return linksHTML;
+}
 
         // Enhanced show news results function
         function showNewsResults(results, tier) {
