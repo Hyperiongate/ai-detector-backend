@@ -265,25 +265,25 @@
 
 <nav class="ff-nav">
     <div class="ff-nav-container">
-        <a href="index.html" class="ff-nav-logo">
+        <a href="/" class="ff-nav-logo">
             <i class="fas fa-shield-alt"></i>
             <span>Facts & Fakes AI</span>
         </a>
         
         <div class="ff-nav-links" id="ffNavLinks">
-            <a href="index.html" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
-            <a href="news.html" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
-            <a href="speech.html" class="ff-nav-link"><i class="fas fa-microphone"></i> Speech Check</a>
-            <a href="unified.html" class="ff-nav-link"><i class="fas fa-search"></i> Content Check</a>
-            <a href="imageanalysis.html" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
-            <a href="missionstatement.html" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
-            <a href="pricingplan.html" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
-            <a href="contact.html" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+            <a href="/speech" class="ff-nav-link"><i class="fas fa-microphone"></i> Speech Check</a>
+            <a href="/unified" class="ff-nav-link"><i class="fas fa-search"></i> Content Check</a>
+            <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+            <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+            <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+            <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
         </div>
         
         <div class="ff-nav-auth" id="ffNavAuth">
-            <a href="login.html" class="ff-nav-login">Login</a>
-            <a href="pricingplan.html" class="ff-nav-signup">Sign Up</a>
+            <a href="/login" class="ff-nav-login">Login</a>
+            <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
             <div class="ff-beta-balloon">
                 sign up now to start your free trial
             </div>
@@ -307,9 +307,9 @@
                     <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
                 </div>
                 <div style="padding: 10px 0;">
-                    <a href="account.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
-                    <a href="billing.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
-                    <a href="api-keys.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                    <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                    <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                    <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
                     <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -359,11 +359,8 @@ window.ffNav = {
         
         // Add active class to current page
         const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf('/') + 1) || 'index.html';
-        
         document.querySelectorAll('.ff-nav-link').forEach(link => {
-            const linkPath = link.getAttribute('href');
-            if (linkPath === currentPage || (currentPage === '' && linkPath === 'index.html')) {
+            if (link.getAttribute('href') === currentPath) {
                 link.classList.add('active');
             }
         });
@@ -384,7 +381,7 @@ function ffToggleUserDropdown() {
 async function ffLogout() {
     try {
         await fetch('/api/logout', { method: 'POST' });
-        window.location.href = 'index.html';
+        window.location.href = '/';
     } catch (error) {
         console.error('Logout failed:', error);
     }
