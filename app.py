@@ -24,6 +24,7 @@ import hashlib
 from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
+from enhanced_content_analysis import analyze_article_content, EnhancedContentAnalyzer
 
 # Computer Vision imports for enhanced image analysis
 CV_AVAILABLE = False
@@ -202,6 +203,17 @@ if DB_AVAILABLE:
         ip_address = db.Column(db.String(45))
         referrer = db.Column(db.String(500))
         welcome_email_sent = db.Column(db.Boolean, default=False)
+
+    class Analysis(db.Model):
+        __tablename__ = 'analyses'
+        
+        id = db.Column(db.Integer, primary_key=True)
+        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+        url = db.Column(db.Text, nullable=False)
+        analysis_data = db.Column(db.Text, nullable=False)
+        created_at = db.Column(db.DateTime, default=datetime.utcnow)
+        
+        user = db.relationship('User', backref=db.backref('analyses', lazy=True))
 
 # Initialize database tables
 if DB_AVAILABLE:
@@ -3816,6 +3828,54 @@ def cv_status():
             'skimage': 'feature' in globals() or skimage is not None
         }
     })
+
+# Enhanced Content Analysis Routes
+@app.route('/api/enhanced-analysis', methods=['POST'])
+def enhanced_content_analysis():
+    """
+    Endpoint for enhanced content analysis
+    """
+    try:
+        data = request.get_json()
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({'error': 'URL is required'}), 400
+            
+        # Extract article content
+        article_data = extract_article_content(url)
+        
+        if not article_data or not article_data.get('text'):
+            return jsonify({'error': 'Failed to extract article content'}), 400
+            
+        # Perform enhanced analysis
+        analysis_results = analyze_article_content(url, article_data['text'])
+        
+        # Combine with existing verification data if needed
+        combined_results = {
+            'url': url,
+            'basic_info': {
+                'title': article_data.get('title', ''),
+                'authors': article_data.get('authors', []),
+                'publish_date': article_data.get('publish_date', ''),
+                'domain': article_data.get('domain', '')
+            },
+            'enhanced_analysis': analysis_results,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Store in database if needed
+        if current_user.is_authenticated:
+            save_analysis_to_db(current_user.id, url, combined_results)
+            
+        return jsonify(combined_results), 200
+        
+    except Exception as e:
+        logger.error(f"Enhanced analysis error: {str(e)}")
+        return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
+
+@app.route('/api/analyze-text', methods=['POST'])
+def analyze_text_
 
 # Error handlers
 @app.errorhandler(404)
