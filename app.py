@@ -743,33 +743,49 @@ def get_youtube_transcript():
     """
     Extract transcript from YouTube video
     """
-    try:
-        data = request.get_json()
-        url = data.get('url', '')
-        language = data.get('language', 'en')
-        
-        if not url:
-            return jsonify({'error': 'No URL provided'}), 400
-        
-        # Extract video ID
-        video_id = extract_youtube_video_id(url)
-        if not video_id:
-            return jsonify({'error': 'Invalid YouTube URL'}), 400
-        try:
-    # Get transcript with headers to avoid 403
-    # Use cookies and headers to appear as a real browser
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-    }
-    
-    # Get transcript with custom headers
-    transcript_list = YouTubeTranscriptApi.list_transcripts(
-        video_id,
-        proxies=None,
-        headers=headers
-    )
+   try:
+            # Try to find a transcript
+            transcript = None
+            try:
+                transcript = transcript_list.find_manually_created_transcript([language.split('-')[0]])
+            except:
+                try:
+                    transcript = transcript_list.find_transcript([language.split('-')[0]])
+                except:
+                    for t in transcript_list:
+                        transcript = t
+                        break
+            
+            if not transcript:
+                return jsonify({'error': 'No transcript available for this video'}), 404
+            
+            # Fetch the actual transcript
+            transcript_data = transcript.fetch()
+            
+            # Combine all text segments
+            full_text = ' '.join([segment['text'] for segment in transcript_data])
+            
+            # Also create a version with timestamps
+            segments_with_time = []
+            for segment in transcript_data:
+                segments_with_time.append({
+                    'text': segment['text'],
+                    'start': segment['start'],
+                    'duration': segment.get('duration', 0)
+                })
+            
+            return jsonify({
+                'success': True,
+                'transcript': full_text,
+                'segments': segments_with_time[:100],
+                'video_id': video_id,
+                'video_url': f"https://www.youtube.com/watch?v={video_id}",
+                'language': transcript.language,
+                'language_code': transcript.language_code,
+                'is_generated': transcript.is_generated,
+                'word_count': len(full_text.split()),
+                'duration_estimate': segments_with_time[-1]['start'] if segments_with_time else 0
+            })
             
         except TranscriptsDisabled:
             return jsonify({'error': 'Transcripts are disabled for this video'}), 403
