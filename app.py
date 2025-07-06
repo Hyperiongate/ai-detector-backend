@@ -393,6 +393,68 @@ https://factsandfakes.ai
     """
     
     return send_email(email, subject, html_content, text_content)
+
+def send_welcome_email(email):
+    """Send welcome email to new beta users"""
+    subject = "Welcome to Facts & Fakes AI - Your Beta Access is Active!"
+    
+    html_content = """
+    <html>
+    ... (all the HTML content) ...
+    </html>
+    """
+    
+    text_content = """
+Welcome to Facts & Fakes AI!
+... (all the text content) ...
+    """
+    
+    return send_email(email, subject, html_content, text_content)
+
+# ADD THE NEW FUNCTIONS HERE:
+
+def calculate_analysis_confidence(manipulation_indicators, ai_detection):
+    """
+    Calculate overall confidence score for the analysis
+    """
+    # Base confidence on the strength of indicators
+    base_confidence = 70
+    
+    # Adjust based on manipulation indicators
+    if manipulation_indicators['overall_score'] < 20:
+        base_confidence += 10
+    elif manipulation_indicators['overall_score'] > 60:
+        base_confidence -= 10
+        
+    # Adjust based on AI detection confidence
+    if ai_detection['confidence'] == 'high':
+        base_confidence += 15
+    elif ai_detection['confidence'] == 'low':
+        base_confidence -= 15
+        
+    # Ensure within bounds
+    return max(50, min(95, base_confidence))
+
+def save_analysis_to_db(user_id, url, analysis_data):
+    """
+    Save analysis results to database
+    """
+    if not DB_AVAILABLE:
+        return None
+        
+    try:
+        analysis = Analysis(
+            user_id=user_id,
+            url=url,
+            analysis_data=json.dumps(analysis_data),
+            created_at=datetime.utcnow()
+        )
+        db.session.add(analysis)
+        db.session.commit()
+        return analysis.id
+    except Exception as e:
+        print(f"Error saving analysis to database: {e}")
+        return None
 # Add this function to fetch content from URLs
 def fetch_article_from_url(url):
     """
@@ -538,6 +600,12 @@ def fetch_article_from_url(url):
     except Exception as e:
         print(f"Error fetching article from URL: {e}")
         return None
+
+def extract_article_content(url):
+    """
+    Extract article content from URL
+    """
+    return fetch_article_from_url(url)
 
 # Routes
 @app.route('/')
@@ -2702,8 +2770,7 @@ def analyze_news():
         print(f"Analysis error: {e}")
         traceback.print_exc()
         return jsonify({'error': 'Analysis failed'}), 500
-@app.route('/api/analyze-text', methods=['POST'])
-def analyze_text():
+
     # DEVELOPMENT MODE: Skip authentication
     user = get_current_user()
     
@@ -3865,17 +3932,17 @@ def enhanced_content_analysis():
         }
         
         # Store in database if needed
-        if current_user.is_authenticated:
-            save_analysis_to_db(current_user.id, url, combined_results)
+       user = get_current_user()
+if user and DB_AVAILABLE:
+    save_analysis_to_db(1, url, combined_results)  # Using ID 1 for development
             
         return jsonify(combined_results), 200
         
     except Exception as e:
-        logger.error(f"Enhanced analysis error: {str(e)}")
+        print(f"Enhanced analysis error: {str(e)}")
         return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
 
-@app.route('/api/analyze-text', methods=['POST'])
-def analyze_text_
+
 
 # Error handlers
 @app.errorhandler(404)
