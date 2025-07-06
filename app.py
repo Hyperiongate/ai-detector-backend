@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_cors import CORS
 import os
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from datetime import datetime, timedelta
 import traceback
 import json
@@ -572,6 +574,101 @@ def batch_factcheck():
     except Exception as e:
         print(f"Batch fact-check error: {e}")
         return jsonify({'error': 'Batch fact-check failed'}), 500
+# Helper function to extract video ID from YouTube URL
+def extract_youtube_video_id(url):
+    """
+    Extract video ID from various YouTube URL formats
+    """
+    patterns = [
+        r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})',
+        r'youtube\.com\/watch\?.*&v=([a-zA-Z0-9_-]{11})',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    return None
+
+@app.route('/api/youtube-transcript', methods=['POST'])
+def get_youtube_transcript():
+    """
+    Extract transcript from YouTube video
+    """
+    try:
+        data = request.get_json()
+        url = data.get('url', '')
+        language = data.get('language', 'en')
+        
+        if not url:
+            return jsonify({'error': 'No URL provided'}), 400
+        
+        # Extract video ID
+        video_id = extract_youtube_video_id(url)
+        if not video_id:
+            return jsonify({'error': 'Invalid YouTube URL'}), 400
+        
+        try:
+            # Get transcript
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            
+            # Try to find a transcript
+            transcript = None
+            try:
+                transcript = transcript_list.find_manually_created_transcript([language.split('-')[0]])
+            except:
+                try:
+                    transcript = transcript_list.find_transcript([language.split('-')[0]])
+                except:
+                    for t in transcript_list:
+                        transcript = t
+                        break
+            
+            if not transcript:
+                return jsonify({'error': 'No transcript available for this video'}), 404
+            
+            # Fetch the actual transcript
+            transcript_data = transcript.fetch()
+            
+            # Combine all text segments
+            full_text = ' '.join([segment['text'] for segment in transcript_data])
+            
+            # Also create a version with timestamps
+            segments_with_time = []
+            for segment in transcript_data:
+                segments_with_time.append({
+                    'text': segment['text'],
+                    'start': segment['start'],
+                    'duration': segment.get('duration', 0)
+                })
+            
+            return jsonify({
+                'success': True,
+                'transcript': full_text,
+                'segments': segments_with_time[:100],
+                'video_id': video_id,
+                'video_url': f"https://www.youtube.com/watch?v={video_id}",
+                'language': transcript.language,
+                'language_code': transcript.language_code,
+                'is_generated': transcript.is_generated,
+                'word_count': len(full_text.split()),
+                'duration_estimate': segments_with_time[-1]['start'] if segments_with_time else 0
+            })
+            
+        except TranscriptsDisabled:
+            return jsonify({'error': 'Transcripts are disabled for this video'}), 403
+        except NoTranscriptFound:
+            return jsonify({'error': 'No transcript found for this video'}), 404
+        except VideoUnavailable:
+            return jsonify({'error': 'Video is unavailable'}), 404
+        except Exception as e:
+            print(f"YouTube transcript error: {e}")
+            return jsonify({'error': f'Failed to fetch transcript: {str(e)}'}), 500
+            
+    except Exception as e:
+        print(f"YouTube endpoint error: {e}")
+        return jsonify({'error': 'Failed to process request'}), 500
+
 
 @app.route('/api/export-speech-report', methods=['POST'])
 def export_speech_report():
