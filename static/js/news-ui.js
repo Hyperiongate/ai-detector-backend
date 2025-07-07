@@ -1,4 +1,4 @@
-// News Analysis UI Functions
+// News Analysis UI Functions 
 
 // Tab switching
 function switchTab(tabName) {
