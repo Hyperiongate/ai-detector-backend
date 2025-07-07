@@ -3100,6 +3100,29 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
 def perform_basic_news_analysis(content, url_data=None):
     """
     Perform basic news analysis - Updated to handle URL data
+
+    domain_to_name_map = {
+        'apnews.com': 'Associated Press',
+        'ap.org': 'Associated Press',
+        'reuters.com': 'Reuters',
+        'bbc.com': 'BBC News',
+        'bbc.co.uk': 'BBC News',
+        'npr.org': 'NPR',
+        'wsj.com': 'The Wall Street Journal',
+        'nytimes.com': 'The New York Times',
+        'washingtonpost.com': 'The Washington Post',
+        'cnn.com': 'CNN',
+        'foxnews.com': 'Fox News',
+        'msnbc.com': 'MSNBC',
+        'bloomberg.com': 'Bloomberg',
+        'ft.com': 'Financial Times',
+        'economist.com': 'The Economist',
+        'theguardian.com': 'The Guardian',
+        'usatoday.com': 'USA Today',
+        'politico.com': 'Politico',
+        'thehill.com': 'The Hill',
+        'axios.com': 'Axios'
+    }
     """
     # If we have URL data, extract the actual content and metadata
     if url_data:
@@ -3151,28 +3174,7 @@ def perform_basic_news_analysis(content, url_data=None):
     
     source_credibility = source_credibility_map.get(source_domain, 65)
     # Map domain to proper source name
-    domain_to_name_map = {
-        'apnews.com': 'Associated Press',
-        'ap.org': 'Associated Press',
-        'reuters.com': 'Reuters',
-        'bbc.com': 'BBC News',
-        'bbc.co.uk': 'BBC News',
-        'npr.org': 'NPR',
-        'wsj.com': 'The Wall Street Journal',
-        'nytimes.com': 'The New York Times',
-        'washingtonpost.com': 'The Washington Post',
-        'cnn.com': 'CNN',
-        'foxnews.com': 'Fox News',
-        'msnbc.com': 'MSNBC',
-        'bloomberg.com': 'Bloomberg',
-        'ft.com': 'Financial Times',
-        'economist.com': 'The Economist',
-        'theguardian.com': 'The Guardian',
-        'usatoday.com': 'USA Today',
-        'politico.com': 'Politico',
-        'thehill.com': 'The Hill',
-        'axios.com': 'Axios'
-    }
+    
     
     # Convert domain to display name
     source_display_name = domain_to_name_map.get(source_domain, source_domain)
