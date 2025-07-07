@@ -1,5 +1,4 @@
 // News Analysis Main Functions
-
 // Analyze article
 function analyzeArticle() { 
     const url = document.getElementById('articleUrl').value;
@@ -75,24 +74,24 @@ function displayResults(results) {
         updateCredibilityTab(results.credibility);
     }
     
-    if (typeof updateVerificationTab === 'function' && results.verification) {
-        updateVerificationTab(results.verification);
+    if (typeof updateCrossSourceTab === 'function' && results.cross_source) {
+        updateCrossSourceTab(results.cross_source);
     }
     
     if (typeof updateAuthorTab === 'function' && results.author) {
         updateAuthorTab(results.author);
     }
     
-    if (typeof updateStyleTab === 'function' && results.style) {
-        updateStyleTab(results.style);
+    if (typeof updateWritingStyleTab === 'function' && results.writing_style) {
+        updateWritingStyleTab(results.writing_style);
     }
     
     if (typeof updateTemporalTab === 'function' && results.temporal) {
         updateTemporalTab(results.temporal);
     }
     
-    if (typeof updateProTab === 'function') {
-        updateProTab();
+    if (typeof updateProFeaturesTab === 'function') {
+        updateProFeaturesTab();
     }
     
     // Show the results container
