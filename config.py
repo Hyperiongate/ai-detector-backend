@@ -1,6 +1,8 @@
 import os
 from datetime import timedelta 
 
+FAMOUS_QUOTES = []  # Empty list for now
+
 class Config:
     """Base configuration class"""
     
