@@ -3108,6 +3108,8 @@ def perform_basic_news_analysis(content, url_data=None):
         authors = url_data.get('authors', [])
         date_published = url_data.get('date', None)
         article_title = url_data.get('title', '')
+        # Convert domain to display name
+        source_display_name = domain_to_name_map.get(source_domain, source_domain)
     else:
         actual_content = content
         source_domain = "unknown"
