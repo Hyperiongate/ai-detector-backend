@@ -1,5 +1,5 @@
 """
-Facts & Fakes AI - Main Application
+Facts & Fakes AI - Main Application 
 Modular structure for better maintainability
 """
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
