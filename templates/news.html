@@ -7,6 +7,102 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/news-components.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/news-specialized.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/new-responsiveness.css') }}">
+<style>
+/* Additional styles for the updated UI */
+.pro-badge {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.reset-button {
+    background-color: #6c757d;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.reset-button:hover {
+    background-color: #5a6268;
+}
+
+.free-tier-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.url-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.analyze-button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.analyze-button:hover {
+    background-color: #0056b3;
+}
+
+.input-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Tab content styling for pro features */
+.tab-content:not(#summary-content):not(#pro-content) {
+    position: relative;
+}
+
+/* Loading spinner */
+.loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -18,55 +114,75 @@
         <p>Advanced AI-powered news verification and analysis</p>
     </div>
     
-    <div class="input-section">
-        <div class="choose-indicator">Choose One</div>
-        <h2>Select Analysis Type</h2>
-        <div class="input-options">
-            <div class="input-option" onclick="selectInput('url')">
-                <h3>📰 Article URL</h3>
-                <p>Analyze a specific article</p>
-            </div>
-            <div class="input-option" onclick="selectInput('topic')">
-                <h3>🔍 Topic Search</h3>
-                <p>Analyze coverage of a topic</p>
-            </div>
-            <div class="input-option" onclick="selectInput('comparison')">
-                <h3>⚖️ Compare Sources</h3>
-                <p>Compare multiple articles</p>
-            </div>
+    <!-- Simplified input section - just URL analysis -->
+    <div class="analysis-input-section">
+        <h2>Analyze News Article</h2>
+        <p class="input-description">Enter any news article URL to get instant bias and credibility analysis</p>
+        
+        <div class="input-wrapper">
+            <input type="url" 
+                   id="articleUrl" 
+                   placeholder="Paste article URL here (e.g., https://www.nytimes.com/...)" 
+                   class="url-input">
+            <button onclick="analyzeArticle()" class="analyze-button" id="analyzeBtn">
+                Analyze Article
+            </button>
+            <button onclick="resetAnalysis()" class="reset-button" id="resetBtn" style="display: none;">
+                Analyze New Article
+            </button>
         </div>
-        <div id="input-area" style="display:none;">
-            <input type="text" class="url-input" id="articleUrl" placeholder="Enter article URL or topic...">
-            <button class="analyze-button" onclick="analyzeArticle()">Analyze</button>
+        
+        <div class="free-tier-info">
+            <p>✨ <strong>Free users:</strong> Get comprehensive summary with bias and credibility scores</p>
+            <p>🔓 <strong>Pro features:</strong> Deep dive analysis, source verification, author background checks, and more</p>
         </div>
     </div>
     
-    <div id="results" style="display:none;">
+    <!-- Results section with updated tab labels -->
+    <div id="results" class="results-section" style="display: none;">
         <div class="tabs-container">
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('summary')">Summary</button>
-                <button class="tab" onclick="switchTab('bias')">Political Bias</button>
-                <button class="tab" onclick="switchTab('sources')">Sources</button>
-                <button class="tab" onclick="switchTab('credibility')">Credibility</button>
-                <button class="tab" onclick="switchTab('verification')">Cross-Source</button>
-                <button class="tab" onclick="switchTab('author')">Author</button>
-                <button class="tab" onclick="switchTab('style')">Writing Style</button>
-                <button class="tab" onclick="switchTab('temporal')">Temporal Intel</button>
-                <button class="tab" onclick="switchTab('pro')">Pro Analysis</button>
+                <button class="tab active" onclick="switchTab('summary')">
+                    Summary & Analysis
+                </button>
+                <button class="tab" onclick="switchTab('bias')">
+                    Political Bias <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('sources')">
+                    Source Diversity <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('credibility')">
+                    Credibility Check <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('cross-source')">
+                    Cross-Source Verification <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('author')">
+                    Author Analysis <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('style')">
+                    Writing Style <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('temporal')">
+                    Temporal Intelligence <span class="pro-badge">Pro</span>
+                </button>
+                <button class="tab" onclick="switchTab('pro')">
+                    Unlock All Features ✨
+                </button>
             </div>
             
             <!-- Tab Contents -->
             <div id="tab-contents">
                 <!-- Summary Tab -->
                 <div class="tab-content active" id="summary-content">
-                    {% include 'partials/news-info-sections.html' %}
+                    <!-- Content will be dynamically loaded -->
                 </div>
                 
-                <!-- Other tabs will be dynamically loaded -->
+                <!-- Other tabs -->
                 <div class="tab-content" id="bias-content"></div>
                 <div class="tab-content" id="sources-content"></div>
                 <div class="tab-content" id="credibility-content"></div>
-                <div class="tab-content" id="verification-content"></div>
+                <div class="tab-content" id="cross-source-content"></div>
                 <div class="tab-content" id="author-content"></div>
                 <div class="tab-content" id="style-content"></div>
                 <div class="tab-content" id="temporal-content"></div>
