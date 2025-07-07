@@ -2,7 +2,7 @@
 // NEWS VERIFICATION PLATFORM - RESULTS MODULE
 // ============================================
 
-// Main function to display news results
+// Main function to display news results 
 function showNewsResults(results, tier) {
     const resultsDiv = document.getElementById('results');
     
