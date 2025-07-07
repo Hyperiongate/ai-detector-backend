@@ -2708,42 +2708,66 @@
 
         // Check single claim
         async function checkSingleClaim(claim) {
-            try {
-                const response = await fetch('/api/batch-factcheck', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ claims: [claim.text] })
-                });
-                
-                const data = await response.json();
-                if (data.success && data.results && data.results.length > 0) {
-                    const result = data.results[0];
-                    claim.verdict = result.verdict;
-                    claim.confidence = result.confidence;
-                    
-                    // Update live panel
-                    const claimElement = document.querySelector(`[data-claim-id="${claim.id}"]`);
-                    if (claimElement) {
-                        claimElement.classList.remove('checking');
-                        claimElement.classList.add(result.verdict);
-                        
-                        const statusElement = claimElement.querySelector('.live-claim-status');
-                        if (statusElement) {
-                            const icon = result.verdict === 'true' ? '✓' : result.verdict === 'false' ? '✗' : '?';
-                            statusElement.innerHTML = `${icon} ${result.verdict.toUpperCase()} (${Math.round(result.confidence * 100)}%)`;
-                        }
-                    }
-                    
-                    // Update transcript highlight
-                    const transcriptHighlight = document.querySelector(`#transcript .claim-highlight[data-claim-id="${claim.id}"]`);
-                    if (transcriptHighlight) {
-                        transcriptHighlight.classList.add(result.verdict);
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking claim:', error);
-            }
+    try {
+        const response = await fetch('/api/batch-factcheck', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                claims: [claim.text || claim],
+                priority: 'balanced'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Fact-check request failed');
         }
+        
+        const data = await response.json();
+        if (data.success && data.results && data.results.length > 0) {
+            const result = data.results[0];
+            
+            // Update claim object if it exists
+            if (claim.id) {
+                claim.verdict = result.verdict;
+                claim.confidence = result.confidence;
+                claim.sources = result.sources;
+                claim.credibility_score = result.credibility_score;
+                claim.bias = result.bias;
+            }
+            
+            // Update live panel
+            const claimElement = document.querySelector(`[data-claim-id="${claim.id}"]`);
+            if (claimElement) {
+                claimElement.classList.remove('checking');
+                claimElement.classList.add(result.verdict);
+                
+                const statusElement = claimElement.querySelector('.live-claim-status');
+                if (statusElement) {
+                    const icon = result.verdict === 'true' ? '✓' : result.verdict === 'false' ? '✗' : '?';
+                    const verdictText = result.verdict.charAt(0).toUpperCase() + result.verdict.slice(1);
+                    statusElement.innerHTML = `${icon} ${verdictText} (${Math.round(result.confidence * 100)}%)`;
+                }
+            }
+            
+            // Update transcript highlight
+            const transcriptHighlight = document.querySelector(`#transcript .claim-highlight[data-claim-id="${claim.id}"]`);
+            if (transcriptHighlight) {
+                transcriptHighlight.classList.add(result.verdict);
+            }
+            
+            return result;
+        }
+    } catch (error) {
+        console.error('Error checking claim:', error);
+        // Return a default result on error
+        return {
+            verdict: 'unverified',
+            confidence: 0.5,
+            sources: ['Error during verification'],
+            error: true
+        };
+    }
+}
 
         // Update confidence indicator
         function updateConfidenceIndicator(confidence) {
@@ -3122,93 +3146,174 @@
 
         // Load from URL
         async function loadFromURL() {
-            const urlInput = document.getElementById('urlInput');
-            const url = urlInput.value.trim();
+    const urlInput = document.getElementById('urlInput');
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+        alert('Please enter a URL');
+        return;
+    }
+    
+    // Show processing overlay
+    document.getElementById('processingOverlay').style.display = 'flex';
+    
+    try {
+        // Check if it's a YouTube URL
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            // Call the YouTube transcript API
+            const response = await fetch('/api/youtube-transcript', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    url: url,
+                    language: currentLanguage 
+                })
+            });
             
-            if (!url) {
-                alert('Please enter a URL');
-                return;
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to fetch transcript');
             }
             
-            // Show processing overlay
-            document.getElementById('processingOverlay').style.display = 'flex';
+            const data = await response.json();
             
-            try {
-                if (selectedSource === 'stream') {
-                    // Handle live stream
-                    const response = await fetch('/api/stream-transcript', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ stream_url: url })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        document.getElementById('processingOverlay').style.display = 'none';
-                        alert('Stream processing started. Real-time transcription will begin shortly.');
-                        // In a real implementation, this would establish a WebSocket connection
-                    } else {
-                        throw new Error(data.error || 'Failed to process stream');
-                    }
-                }
-            } catch (error) {
-                console.error('Load URL error:', error);
+            // Update transcript with YouTube content
+            document.getElementById('transcript').textContent = data.transcript;
+            updateWordCount();
+            
+            // Extract claims from the transcript
+            detectClaimsInText(data.transcript);
+            updateClaimCount();
+            
+            // Hide processing overlay
+            document.getElementById('processingOverlay').style.display = 'none';
+            
+            // Show success message with video info
+            alert(`YouTube transcript loaded successfully!\n\nVideo: ${data.video_url}\nLanguage: ${data.language}\nWord count: ${data.word_count}\nDuration: ~${Math.floor(data.duration_estimate / 60)} minutes`);
+            
+            // Update hint text
+            document.getElementById('hintText').textContent = 'YouTube transcript loaded. Click "Check Facts" to analyze';
+            
+        } else {
+            // Handle other stream URLs
+            const response = await fetch('/api/stream-transcript', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stream_url: url })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
                 document.getElementById('processingOverlay').style.display = 'none';
-                
-                // Provide helpful error messages
-                let errorMessage = 'Failed to load content. ';
-                if (error.message.includes('404')) {
-                    errorMessage += 'The service endpoint was not found. Please ensure the server is running.';
-                } else if (error.message.includes('network')) {
-                    errorMessage += 'Network error. Please check your connection.';
-                } else {
-                    errorMessage += error.message || 'Please try again.';
-                }
-                
-                alert(errorMessage);
+                alert('Stream processing started. Real-time transcription will begin shortly.');
+            } else {
+                throw new Error(data.error || 'Failed to process stream');
             }
         }
-
+    } catch (error) {
+        console.error('Load URL error:', error);
+        document.getElementById('processingOverlay').style.display = 'none';
+        
+        // Provide helpful error messages
+        let errorMessage = 'Failed to load content. ';
+        if (error.message.includes('No transcript')) {
+            errorMessage = 'No transcript available for this video. The video may not have captions enabled.';
+        } else if (error.message.includes('Invalid YouTube URL')) {
+            errorMessage = 'Invalid YouTube URL. Please enter a valid YouTube video URL.';
+        } else if (error.message.includes('disabled')) {
+            errorMessage = 'Transcripts are disabled for this video by the video owner.';
+        } else if (error.message.includes('unavailable')) {
+            errorMessage = 'Video is unavailable. It may be private, deleted, or region-restricted.';
+        } else if (error.message.includes('404')) {
+            errorMessage = 'Service not found. Please ensure the server is running.';
+        } else if (error.message.includes('network')) {
+            errorMessage = 'Network error. Please check your connection.';
+        } else {
+            errorMessage += error.message || 'Please try again.';
+        }
+        
+        alert(errorMessage);
+    }
+}
         // Trigger file upload
         function triggerFileUpload() {
             document.getElementById('audioFileInput').click();
         }
 
         // Handle file upload
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Check file size
-            if (file.size > 100 * 1024 * 1024) {
-                alert('File size exceeds 100MB limit');
-                return;
-            }
-            
-            // Show processing
-            document.getElementById('processingOverlay').style.display = 'flex';
-            
-            // Simulate file processing
-            setTimeout(() => {
-                document.getElementById('processingOverlay').style.display = 'none';
-                
-                // Simulate transcription
-                const demoAudio = `Ladies and gentlemen, thank you for joining us today for this quarterly earnings call.
-
-I'm pleased to report that our company has achieved record revenues of $4.8 billion this quarter, representing a 23 percent increase year-over-year. Our profit margins have expanded to 18.5 percent, up from 15.2 percent last year.
-
-In terms of market share, we now command 34 percent of the global market, making us the industry leader. Our R&D investments of $800 million are paying off, with 12 new patents filed this quarter.
-
-Customer satisfaction scores have reached an all-time high of 94 percent. We've also reduced our carbon emissions by 40 percent compared to 2019 levels.
-
-Looking ahead, we project 15 percent growth for the next fiscal year. Thank you for your continued support.`;
-                
-                document.getElementById('transcript').textContent = demoAudio;
-                updateWordCount();
-                alert(`Audio file "${file.name}" processed successfully!`);
-            }, 3000);
+        async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Check file size
+    if (file.size > 100 * 1024 * 1024) {
+        alert('File size exceeds 100MB limit');
+        return;
+    }
+    
+    // Check file type
+    const allowedTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a'];
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+        alert('Please upload a valid audio file (MP3, WAV, OGG, or M4A)');
+        return;
+    }
+    
+    // Show processing
+    document.getElementById('processingOverlay').style.display = 'flex';
+    
+    try {
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('audio', file);
+        formData.append('language', currentLanguage);
+        
+        // Upload and process audio file
+        const response = await fetch('/api/speech-to-text', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to process audio');
         }
+        
+        const data = await response.json();
+        
+        // Hide processing overlay
+        document.getElementById('processingOverlay').style.display = 'none';
+        
+        // Update transcript
+        document.getElementById('transcript').textContent = data.transcript;
+        updateWordCount();
+        
+        // Extract claims
+        detectClaimsInText(data.transcript);
+        updateClaimCount();
+        
+        // Show success message
+        alert(`Audio file "${file.name}" processed successfully!\n\nConfidence: ${Math.round((data.confidence || 0.9) * 100)}%\nLanguage: ${data.language || currentLanguage}`);
+        
+        // Update hint text
+        document.getElementById('hintText').textContent = 'Audio transcribed. Click "Check Facts" to analyze';
+        
+    } catch (error) {
+        console.error('Audio processing error:', error);
+        document.getElementById('processingOverlay').style.display = 'none';
+        
+        let errorMessage = 'Failed to process audio file. ';
+        if (error.message.includes('understand')) {
+            errorMessage = 'Could not understand the audio. Please ensure the audio is clear and in the selected language.';
+        } else if (error.message.includes('Invalid file')) {
+            errorMessage = 'Invalid audio file format. Please use MP3, WAV, OGG, or M4A.';
+        } else {
+            errorMessage += error.message || 'Please try again with a different file.';
+        }
+        
+        alert(errorMessage);
+    }
+}
 
         // Handle file drag and drop
         const fileUploadZone = document.getElementById('fileUploadZone');
@@ -3749,9 +3854,29 @@ ${i + 1}. ${result.claim}
         });
 
         // Initialize
+        // Add this to test the API connection:
+async function testAPIConnection() {
+    try {
+        const response = await fetch('/api/test');
+        const data = await response.json();
+        console.log('API Test:', data);
+        return data.success;
+    } catch (error) {
+        console.error('API connection test failed:', error);
+        return false;
+    }
+}
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize header navigation
             window.ffNav.init();
+            // Test API connection
+    testAPIConnection().then(apiWorking => {
+        if (!apiWorking) {
+            console.warn('API connection test failed - some features may not work');
+        } else {
+            console.log('✓ API connection verified');
+        }
+    });
             
             // Initialize speech recognition
             initSpeechRecognition();
