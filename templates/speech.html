@@ -1756,14 +1756,169 @@
             }
         }
 
-        /* Responsive */
+        /* Enhanced Visual Effects */
+        .tool-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            border-radius: 20px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .tool-container:hover::before {
+            opacity: 0.3;
+        }
+
+        /* Enhanced Claim Highlighting */
+        .claim-highlight {
+            display: inline-block;
+            position: relative;
+            padding: 3px 8px;
+            margin: 0 2px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(124, 58, 237, 0.2));
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .claim-highlight:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(124, 58, 237, 0.3));
+        }
+
+        .claim-highlight::after {
+            content: attr(data-confidence);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .claim-highlight:hover::after {
+            opacity: 1;
+        }
+
+        /* Enhanced Audio Visualizer */
+        .audio-visualizer {
+            position: relative;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(124, 58, 237, 0.1));
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .audio-visualizer::before {
+            content: 'Recording Audio';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+
+        /* Enhanced Results Cards */
+        .stats-card,
+        .fact-check-card,
+        .summary-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before,
+        .fact-check-card::before,
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .stats-card:hover::before,
+        .fact-check-card:hover::before,
+        .summary-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Real-time Claim Counter */
+        .real-time-counter {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .real-time-counter.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .real-time-counter .counter-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .real-time-counter .counter-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Improved Responsive Design */
         @media (max-width: 1024px) {
             .live-factcheck-panel {
-                display: none !important;
+                width: 300px;
+                right: 10px;
+                top: 100px;
             }
             
             .feature-controls-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .real-time-counter {
+                bottom: 20px;
+                left: 20px;
+                padding: 12px 20px;
             }
         }
 
@@ -1797,6 +1952,99 @@
             .transcript-info {
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            .live-factcheck-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                width: 100%;
+                max-height: 50vh;
+                border-radius: 20px 20px 0 0;
+            }
+
+            .compact-tab {
+                min-width: 100px;
+                padding: 12px 15px;
+            }
+
+            .real-time-counter {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 80px;
+            }
+
+            .real-time-counter.active {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .ff-nav,
+            .button-group,
+            .feature-controls-section,
+            .export-options,
+            .live-factcheck-panel,
+            .real-time-counter {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            .tool-container {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* Accessibility Improvements */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus Styles */
+        *:focus {
+            outline: 3px solid rgba(102, 126, 234, 0.5);
+            outline-offset: 2px;
+        }
+
+        button:focus,
+        a:focus {
+            outline: 3px solid rgba(102, 126, 234, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            .claim-highlight {
+                border: 2px solid currentColor;
+            }
+
+            .btn {
+                border: 2px solid currentColor;
+            }
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
@@ -1875,6 +2123,15 @@
         <div class="live-claims-list" id="liveClaims">
             <p style="text-align: center; color: #6b7280; font-style: italic;">Claims will appear here as they're detected...</p>
         </div>
+    </div>
+
+    <!-- Real-time Counter -->
+    <div class="real-time-counter" id="realtimeCounter">
+        <div>
+            <div class="counter-value" id="liveClaimCount">0</div>
+            <div class="counter-label">Claims Detected</div>
+        </div>
+        <div class="loading-spinner" id="counterSpinner" style="display: none;"></div>
     </div>
 
     <!-- Main Content -->
@@ -2116,7 +2373,7 @@
                         </div>
                     </div>
                     <div id="transcript" 
-                         contenteditable="true" 
+                         contenteditable="false" 
                          spellcheck="false"
                          data-placeholder="Your speech will appear here as you speak, or paste/type text to analyze..."></div>
                     
@@ -2434,7 +2691,16 @@
         window.ffNav = {
             checkAuthStatus: async function() {
                 try {
+                    // Skip auth check if running locally or in preview
+                    if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || !window.location.hostname) {
+                        return;
+                    }
+                    
                     const response = await fetch('/api/user/status');
+                    if (!response.ok) {
+                        return;
+                    }
+                    
                     const data = await response.json();
                     
                     if (data.authenticated) {
@@ -2450,7 +2716,8 @@
                         document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
                     }
                 } catch (error) {
-                    console.log('Auth check failed:', error);
+                    // Silently fail in preview mode
+                    return;
                 }
             },
             
@@ -2510,6 +2777,10 @@
         let liveCheckInterval = null;
         let flaggedClaims = new Set();
         let currentFilter = 'all';
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let animationFrame = null;
         
         // Initialize speech recognition with enhanced features
         function initSpeechRecognition() {
@@ -2535,6 +2806,12 @@
                     document.getElementById('speechConfidence').classList.add('active');
                     document.getElementById('hintText').textContent = 'Recording in progress... Speak clearly into your microphone';
                     
+                    // Show real-time counter
+                    document.getElementById('realtimeCounter').classList.add('active');
+                    
+                    // Start audio visualization
+                    startAudioVisualization();
+                    
                     // Start duration timer
                     durationInterval = setInterval(updateDuration, 1000);
                     
@@ -2555,6 +2832,9 @@
                     document.getElementById('audioVisualizer').classList.remove('active');
                     document.getElementById('speechConfidence').classList.remove('active');
                     document.getElementById('hintText').textContent = 'Recording stopped. Click "Check Facts" to analyze';
+                    
+                    // Stop audio visualization
+                    stopAudioVisualization();
                     
                     // Stop timers
                     if (durationInterval) {
@@ -2629,6 +2909,55 @@
             }
         }
 
+        // Start audio visualization
+        function startAudioVisualization() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        microphone = audioContext.createMediaStreamSource(stream);
+                        microphone.connect(analyser);
+                        visualize();
+                    })
+                    .catch(err => console.error('Error accessing microphone for visualization:', err));
+            }
+        }
+
+        // Stop audio visualization
+        function stopAudioVisualization() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            if (microphone) {
+                microphone.disconnect();
+                microphone = null;
+            }
+        }
+
+        // Visualize audio
+        function visualize() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            function draw() {
+                animationFrame = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+                
+                const bars = document.querySelectorAll('.audio-bar');
+                bars.forEach((bar, index) => {
+                    const barIndex = Math.floor((index / bars.length) * bufferLength);
+                    const height = Math.max(10, (dataArray[barIndex] / 255) * 40);
+                    bar.style.height = height + 'px';
+                });
+            }
+            
+            draw();
+        }
+
         // Enhanced claim detection
         function detectClaimsInText(text) {
             const patterns = [
@@ -2648,29 +2977,59 @@
                 /according\s+to\s+[\w\s]+/gi,
                 /studies?\s+show/gi,
                 /research\s+indicates?/gi,
-                /experts?\s+say/gi
+                /experts?\s+say/gi,
+                /data\s+(shows?|reveals?|suggests?)/gi,
+                /statistics\s+(show|indicate)/gi,
+                /survey\s+(found|showed|revealed)/gi
             ];
             
+            let newClaimsCount = 0;
             patterns.forEach(pattern => {
                 const matches = text.match(pattern);
                 if (matches) {
                     matches.forEach(match => {
-                        const claim = {
-                            id: Date.now() + Math.random(),
-                            text: match,
-                            context: text,
-                            timestamp: formatDuration(duration),
-                            status: 'detected'
-                        };
-                        claims.push(claim);
-                        
-                        // Add to live panel if active
-                        if (document.getElementById('livePanel').classList.contains('active')) {
-                            addToLivePanel(claim);
+                        // Check if claim already exists
+                        const existingClaim = claims.find(c => c.text === match);
+                        if (!existingClaim) {
+                            const claim = {
+                                id: Date.now() + Math.random(),
+                                text: match,
+                                context: text,
+                                timestamp: formatDuration(duration),
+                                status: 'detected'
+                            };
+                            claims.push(claim);
+                            newClaimsCount++;
+                            
+                            // Add to live panel if active
+                            if (document.getElementById('livePanel').classList.contains('active')) {
+                                addToLivePanel(claim);
+                            }
                         }
                     });
                 }
             });
+            
+            // Animate claim counter if new claims detected
+            if (newClaimsCount > 0 && isRecording) {
+                animateClaimCounter();
+            }
+        }
+
+        // Animate claim counter
+        function animateClaimCounter() {
+            const counter = document.getElementById('liveClaimCount');
+            const spinner = document.getElementById('counterSpinner');
+            
+            spinner.style.display = 'inline-block';
+            counter.style.transform = 'scale(1.2)';
+            counter.style.color = '#667eea';
+            
+            setTimeout(() => {
+                spinner.style.display = 'none';
+                counter.style.transform = 'scale(1)';
+                counter.style.color = '';
+            }, 500);
         }
 
         // Highlight claims in transcript
@@ -2678,7 +3037,11 @@
             let highlightedText = text;
             claims.forEach(claim => {
                 const regex = new RegExp(`(${escapeRegex(claim.text)})`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<span class="claim-highlight" data-claim-id="' + claim.id + '">$1</span>');
+                const confidence = claim.confidence ? Math.round(claim.confidence * 100) + '% confidence' : 'Pending verification';
+                highlightedText = highlightedText.replace(
+                    regex, 
+                    `<span class="claim-highlight ${claim.verdict || ''}" data-claim-id="${claim.id}" data-confidence="${confidence}">$1</span>`
+                );
             });
             return highlightedText;
         }
@@ -2691,7 +3054,7 @@
             }
             
             const claimElement = document.createElement('div');
-            claimElement.className = 'live-claim-item';
+            claimElement.className = 'live-claim-item checking';
             claimElement.dataset.claimId = claim.id;
             claimElement.innerHTML = `
                 <div class="live-claim-text">${claim.text}</div>
@@ -2708,33 +3071,76 @@
 
         // Check single claim
         async function checkSingleClaim(claim) {
-    try {
-        const response = await fetch('/api/batch-factcheck', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                claims: [claim.text || claim],
-                priority: 'balanced'
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Fact-check request failed');
+            try {
+                // Mock response for preview mode
+                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || !window.location.hostname) {
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                    
+                    // Generate mock result
+                    const mockVerdicts = ['true', 'false', 'unverified'];
+                    const mockVerdict = mockVerdicts[Math.floor(Math.random() * mockVerdicts.length)];
+                    const mockConfidence = 0.6 + Math.random() * 0.4;
+                    
+                    const result = {
+                        verdict: mockVerdict,
+                        confidence: mockConfidence,
+                        sources: ['News Database', 'Fact-Check API', 'Government Data'],
+                        credibility_score: Math.floor(70 + Math.random() * 30),
+                        bias: Math.random() > 0.7 ? 'Slight political bias detected' : null
+                    };
+                    
+                    // Update claim object
+                    if (claim.id) {
+                        Object.assign(claim, result);
+                    }
+                    
+                    // Update UI elements
+                    updateClaimUI(claim, result);
+                    return result;
+                }
+                
+                // Real API call
+                const response = await fetch('/api/batch-factcheck', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        claims: [claim.text || claim],
+                        priority: 'balanced'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Fact-check request failed');
+                }
+                
+                const data = await response.json();
+                if (data.success && data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    
+                    // Update claim object if it exists
+                    if (claim.id) {
+                        Object.assign(claim, result);
+                    }
+                    
+                    // Update UI elements
+                    updateClaimUI(claim, result);
+                    return result;
+                }
+            } catch (error) {
+                console.error('Error checking claim:', error);
+                // Return a default result on error
+                return {
+                    verdict: 'unverified',
+                    confidence: 0.5,
+                    sources: ['Error during verification'],
+                    error: true
+                };
+            }
         }
         
-        const data = await response.json();
-        if (data.success && data.results && data.results.length > 0) {
-            const result = data.results[0];
-            
-            // Update claim object if it exists
-            if (claim.id) {
-                claim.verdict = result.verdict;
-                claim.confidence = result.confidence;
-                claim.sources = result.sources;
-                claim.credibility_score = result.credibility_score;
-                claim.bias = result.bias;
-            }
-            
+        // Update claim UI elements
+        function updateClaimUI(claim, result) {
             // Update live panel
             const claimElement = document.querySelector(`[data-claim-id="${claim.id}"]`);
             if (claimElement) {
@@ -2750,24 +3156,9 @@
             }
             
             // Update transcript highlight
-            const transcriptHighlight = document.querySelector(`#transcript .claim-highlight[data-claim-id="${claim.id}"]`);
-            if (transcriptHighlight) {
-                transcriptHighlight.classList.add(result.verdict);
-            }
-            
-            return result;
+            const transcript = document.getElementById('transcript');
+            transcript.innerHTML = highlightClaimsInTranscript(transcript.textContent);
         }
-    } catch (error) {
-        console.error('Error checking claim:', error);
-        // Return a default result on error
-        return {
-            verdict: 'unverified',
-            confidence: 0.5,
-            sources: ['Error during verification'],
-            error: true
-        };
-    }
-}
 
         // Update confidence indicator
         function updateConfidenceIndicator(confidence) {
@@ -2790,9 +3181,7 @@
 
         // Escape regex special characters
         function escapeRegex(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\                <h2 style="color: #4f46e5; margin-bottom: 10px; font-size: 1.5rem;">
-                    <i class="fas fa-hand-point-down"></i> Step 1: Choose Your Input Method
-                </h2>');
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\                <a href="/speech" class="ff-nav-link active"><i class="fas fa-microphone">');
         }
 
         // Toggle live panel
@@ -3146,96 +3535,97 @@
 
         // Load from URL
         async function loadFromURL() {
-    const urlInput = document.getElementById('urlInput');
-    const url = urlInput.value.trim();
-    
-    if (!url) {
-        alert('Please enter a URL');
-        return;
-    }
-    
-    // Show processing overlay
-    document.getElementById('processingOverlay').style.display = 'flex';
-    
-    try {
-        // Check if it's a YouTube URL
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            // Call the YouTube transcript API
-            const response = await fetch('/api/youtube-transcript', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    url: url,
-                    language: currentLanguage 
-                })
-            });
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
             
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to fetch transcript');
+            if (!url) {
+                alert('Please enter a URL');
+                return;
             }
             
-            const data = await response.json();
+            // Show processing overlay
+            document.getElementById('processingOverlay').style.display = 'flex';
             
-            // Update transcript with YouTube content
-            document.getElementById('transcript').textContent = data.transcript;
-            updateWordCount();
-            
-            // Extract claims from the transcript
-            detectClaimsInText(data.transcript);
-            updateClaimCount();
-            
-            // Hide processing overlay
-            document.getElementById('processingOverlay').style.display = 'none';
-            
-            // Show success message with video info
-            alert(`YouTube transcript loaded successfully!\n\nVideo: ${data.video_url}\nLanguage: ${data.language}\nWord count: ${data.word_count}\nDuration: ~${Math.floor(data.duration_estimate / 60)} minutes`);
-            
-            // Update hint text
-            document.getElementById('hintText').textContent = 'YouTube transcript loaded. Click "Check Facts" to analyze';
-            
-        } else {
-            // Handle other stream URLs
-            const response = await fetch('/api/stream-transcript', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stream_url: url })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
+            try {
+                // Check if it's a YouTube URL
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    // Call the YouTube transcript API
+                    const response = await fetch('/api/youtube-transcript', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            url: url,
+                            language: currentLanguage 
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to fetch transcript');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Update transcript with YouTube content
+                    document.getElementById('transcript').textContent = data.transcript;
+                    updateWordCount();
+                    
+                    // Extract claims from the transcript
+                    detectClaimsInText(data.transcript);
+                    updateClaimCount();
+                    
+                    // Hide processing overlay
+                    document.getElementById('processingOverlay').style.display = 'none';
+                    
+                    // Show success message with video info
+                    alert(`YouTube transcript loaded successfully!\n\nVideo: ${data.video_url}\nLanguage: ${data.language}\nWord count: ${data.word_count}\nDuration: ~${Math.floor(data.duration_estimate / 60)} minutes`);
+                    
+                    // Update hint text
+                    document.getElementById('hintText').textContent = 'YouTube transcript loaded. Click "Check Facts" to analyze';
+                    
+                } else {
+                    // Handle other stream URLs
+                    const response = await fetch('/api/stream-transcript', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stream_url: url })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('processingOverlay').style.display = 'none';
+                        alert('Stream processing started. Real-time transcription will begin shortly.');
+                    } else {
+                        throw new Error(data.error || 'Failed to process stream');
+                    }
+                }
+            } catch (error) {
+                console.error('Load URL error:', error);
                 document.getElementById('processingOverlay').style.display = 'none';
-                alert('Stream processing started. Real-time transcription will begin shortly.');
-            } else {
-                throw new Error(data.error || 'Failed to process stream');
+                
+                // Provide helpful error messages
+                let errorMessage = 'Failed to load content. ';
+                if (error.message.includes('No transcript')) {
+                    errorMessage = 'No transcript available for this video. The video may not have captions enabled.';
+                } else if (error.message.includes('Invalid YouTube URL')) {
+                    errorMessage = 'Invalid YouTube URL. Please enter a valid YouTube video URL.';
+                } else if (error.message.includes('disabled')) {
+                    errorMessage = 'Transcripts are disabled for this video by the video owner.';
+                } else if (error.message.includes('unavailable')) {
+                    errorMessage = 'Video is unavailable. It may be private, deleted, or region-restricted.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = 'Service not found. Please ensure the server is running.';
+                } else if (error.message.includes('network')) {
+                    errorMessage = 'Network error. Please check your connection.';
+                } else {
+                    errorMessage += error.message || 'Please try again.';
+                }
+                
+                alert(errorMessage);
             }
         }
-    } catch (error) {
-        console.error('Load URL error:', error);
-        document.getElementById('processingOverlay').style.display = 'none';
-        
-        // Provide helpful error messages
-        let errorMessage = 'Failed to load content. ';
-        if (error.message.includes('No transcript')) {
-            errorMessage = 'No transcript available for this video. The video may not have captions enabled.';
-        } else if (error.message.includes('Invalid YouTube URL')) {
-            errorMessage = 'Invalid YouTube URL. Please enter a valid YouTube video URL.';
-        } else if (error.message.includes('disabled')) {
-            errorMessage = 'Transcripts are disabled for this video by the video owner.';
-        } else if (error.message.includes('unavailable')) {
-            errorMessage = 'Video is unavailable. It may be private, deleted, or region-restricted.';
-        } else if (error.message.includes('404')) {
-            errorMessage = 'Service not found. Please ensure the server is running.';
-        } else if (error.message.includes('network')) {
-            errorMessage = 'Network error. Please check your connection.';
-        } else {
-            errorMessage += error.message || 'Please try again.';
-        }
-        
-        alert(errorMessage);
-    }
-}
+
         // Trigger file upload
         function triggerFileUpload() {
             document.getElementById('audioFileInput').click();
@@ -3243,77 +3633,77 @@
 
         // Handle file upload
         async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Check file size
-    if (file.size > 100 * 1024 * 1024) {
-        alert('File size exceeds 100MB limit');
-        return;
-    }
-    
-    // Check file type
-    const allowedTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a'];
-    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
-        alert('Please upload a valid audio file (MP3, WAV, OGG, or M4A)');
-        return;
-    }
-    
-    // Show processing
-    document.getElementById('processingOverlay').style.display = 'flex';
-    
-    try {
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('audio', file);
-        formData.append('language', currentLanguage);
-        
-        // Upload and process audio file
-        const response = await fetch('/api/speech-to-text', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to process audio');
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file size
+            if (file.size > 100 * 1024 * 1024) {
+                alert('File size exceeds 100MB limit');
+                return;
+            }
+            
+            // Check file type
+            const allowedTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a'];
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+                alert('Please upload a valid audio file (MP3, WAV, OGG, or M4A)');
+                return;
+            }
+            
+            // Show processing
+            document.getElementById('processingOverlay').style.display = 'flex';
+            
+            try {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('audio', file);
+                formData.append('language', currentLanguage);
+                
+                // Upload and process audio file
+                const response = await fetch('/api/speech-to-text', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to process audio');
+                }
+                
+                const data = await response.json();
+                
+                // Hide processing overlay
+                document.getElementById('processingOverlay').style.display = 'none';
+                
+                // Update transcript
+                document.getElementById('transcript').textContent = data.transcript;
+                updateWordCount();
+                
+                // Extract claims
+                detectClaimsInText(data.transcript);
+                updateClaimCount();
+                
+                // Show success message
+                alert(`Audio file "${file.name}" processed successfully!\n\nConfidence: ${Math.round((data.confidence || 0.9) * 100)}%\nLanguage: ${data.language || currentLanguage}`);
+                
+                // Update hint text
+                document.getElementById('hintText').textContent = 'Audio transcribed. Click "Check Facts" to analyze';
+                
+            } catch (error) {
+                console.error('Audio processing error:', error);
+                document.getElementById('processingOverlay').style.display = 'none';
+                
+                let errorMessage = 'Failed to process audio file. ';
+                if (error.message.includes('understand')) {
+                    errorMessage = 'Could not understand the audio. Please ensure the audio is clear and in the selected language.';
+                } else if (error.message.includes('Invalid file')) {
+                    errorMessage = 'Invalid audio file format. Please use MP3, WAV, OGG, or M4A.';
+                } else {
+                    errorMessage += error.message || 'Please try again with a different file.';
+                }
+                
+                alert(errorMessage);
+            }
         }
-        
-        const data = await response.json();
-        
-        // Hide processing overlay
-        document.getElementById('processingOverlay').style.display = 'none';
-        
-        // Update transcript
-        document.getElementById('transcript').textContent = data.transcript;
-        updateWordCount();
-        
-        // Extract claims
-        detectClaimsInText(data.transcript);
-        updateClaimCount();
-        
-        // Show success message
-        alert(`Audio file "${file.name}" processed successfully!\n\nConfidence: ${Math.round((data.confidence || 0.9) * 100)}%\nLanguage: ${data.language || currentLanguage}`);
-        
-        // Update hint text
-        document.getElementById('hintText').textContent = 'Audio transcribed. Click "Check Facts" to analyze';
-        
-    } catch (error) {
-        console.error('Audio processing error:', error);
-        document.getElementById('processingOverlay').style.display = 'none';
-        
-        let errorMessage = 'Failed to process audio file. ';
-        if (error.message.includes('understand')) {
-            errorMessage = 'Could not understand the audio. Please ensure the audio is clear and in the selected language.';
-        } else if (error.message.includes('Invalid file')) {
-            errorMessage = 'Invalid audio file format. Please use MP3, WAV, OGG, or M4A.';
-        } else {
-            errorMessage += error.message || 'Please try again with a different file.';
-        }
-        
-        alert(errorMessage);
-    }
-}
 
         // Handle file drag and drop
         const fileUploadZone = document.getElementById('fileUploadZone');
@@ -3367,20 +3757,48 @@
             }
             
             try {
-                const response = await fetch('/api/batch-factcheck', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ claims: claimsToCheck })
-                });
+                let results;
                 
-                const data = await response.json();
+                // Mock response for preview mode
+                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || !window.location.hostname) {
+                    // Simulate processing delay
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Generate mock results
+                    results = claimsToCheck.map(claim => {
+                        const verdicts = ['true', 'false', 'unverified'];
+                        const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
+                        return {
+                            claim: claim,
+                            verdict: verdict,
+                            confidence: 0.6 + Math.random() * 0.4,
+                            sources: [
+                                { source: 'News Database' },
+                                { source: 'Fact-Check API' },
+                                { source: 'Government Data' }
+                            ],
+                            credibility_score: Math.floor(70 + Math.random() * 30),
+                            bias: Math.random() > 0.7 ? 'Slight political bias detected' : null
+                        };
+                    });
+                } else {
+                    // Real API call
+                    const response = await fetch('/api/batch-factcheck', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ claims: claimsToCheck })
+                    });
+                    
+                    const data = await response.json();
+                    results = data.results;
+                }
                 
                 // Hide processing overlay
                 setTimeout(() => {
                     document.getElementById('processingOverlay').style.display = 'none';
                     
-                    if (data.success && data.results) {
-                        displayResults(data.results);
+                    if (results) {
+                        displayResults(results);
                     }
                 }, 1500); // Show processing for at least 1.5 seconds for effect
                 
@@ -3642,6 +4060,7 @@
         // Update claim count
         function updateClaimCount() {
             document.getElementById('claimCountDisplay').textContent = claims.length;
+            document.getElementById('liveClaimCount').textContent = claims.length;
         }
 
         // Clear all
@@ -3671,6 +4090,9 @@
             // Clear timeline
             document.getElementById('timelineContent').innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">Timeline will populate as claims are detected...</p>';
             
+            // Hide real-time counter
+            document.getElementById('realtimeCounter').classList.remove('active');
+            
             // Stop recording if active
             if (isRecording && recognition) {
                 recognition.stop();
@@ -3699,6 +4121,9 @@ Thank you for your attention to these facts.`;
             // Simulate claim detection
             detectClaimsInText(demoText);
             updateClaimCount();
+            
+            // Show real-time counter
+            document.getElementById('realtimeCounter').classList.add('active');
         }
 
         // Download report
@@ -3853,30 +4278,40 @@ ${i + 1}. ${result.claim}
             }
         });
 
-        // Initialize
-        // Add this to test the API connection:
-async function testAPIConnection() {
-    try {
-        const response = await fetch('/api/test');
-        const data = await response.json();
-        console.log('API Test:', data);
-        return data.success;
-    } catch (error) {
-        console.error('API connection test failed:', error);
-        return false;
-    }
-}
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize header navigation
             window.ffNav.init();
-            // Test API connection
-    testAPIConnection().then(apiWorking => {
-        if (!apiWorking) {
-            console.warn('API connection test failed - some features may not work');
-        } else {
-            console.log('✓ API connection verified');
-        }
-    });
+            
+            // Test API connection (skip in preview/local mode)
+            async function testAPIConnection() {
+                try {
+                    // Skip API test if running locally or in preview
+                    if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || !window.location.hostname) {
+                        console.log('Running in preview mode - API features disabled');
+                        return false;
+                    }
+                    
+                    const response = await fetch('/api/test');
+                    if (!response.ok) {
+                        return false;
+                    }
+                    const data = await response.json();
+                    console.log('API Test:', data);
+                    return data.success;
+                } catch (error) {
+                    // Silently fail in preview mode
+                    return false;
+                }
+            }
+            
+            testAPIConnection().then(apiWorking => {
+                if (apiWorking) {
+                    console.log('✓ API connection verified');
+                } else {
+                    console.log('ℹ Running without API backend - some features may be limited');
+                }
+            });
             
             // Initialize speech recognition
             initSpeechRecognition();
