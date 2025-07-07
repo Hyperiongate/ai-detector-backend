@@ -3098,17 +3098,31 @@ def perform_basic_news_analysis(content):
     if text.startswith('http'):
         source_domain = extract_source_from_url(text) or "Unknown Source"
     else:
-        # Try to extract source from content
+        # Try multiple patterns to extract source from content
         source_patterns = [
+            # Pattern for "SOURCE -" at beginning
+            r'^([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*[-–—]\s*',
+            # Pattern for common news sources
+            r'\b(Reuters|CNN|BBC|Fox News|NPR|AP|Bloomberg|CNBC|ABC|NBC|CBS|The New York Times|Washington Post|Wall Street Journal|Guardian|Associated Press)\b',
+            # Pattern for "from SOURCE"
             r'(?:from|via|source:|at)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*(?:\.|,|\s)',
+            # Copyright pattern
             r'©\s*\d{4}\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)',
+            # News/Media/Press pattern
             r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:News|Media|Press|Journal)',
+            # Pattern for parentheses (SOURCE)
+            r'\(([A-Za-z]+(?:\s+[A-Za-z]+)?)\)',
         ]
         
         for pattern in source_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if match:
                 source_domain = match.group(1).strip()
+                # Clean up the source name
+                if source_domain.lower() in ['reuters', 'cnn', 'bbc', 'ap']:
+                    source_domain = source_domain.upper()
+                elif source_domain.lower() == 'associated press':
+                    source_domain = 'AP'
                 break
     
     # 3. TEMPORAL DETECTION
