@@ -3298,12 +3298,14 @@ def detect_article_topic(content, title=''):
         topic_scores[topic] = score
     
     # Get the topic with highest score
+   # Get the topic with highest score
+    best_topic = 'current events'  # Default value
     if topic_scores:
         best_topic = max(topic_scores, key=topic_scores.get)
         if topic_scores[best_topic] > 0:
+            print(f"DEBUG: Topic scores: {topic_scores}")
+            print(f"DEBUG: Selected topic: {best_topic}")
             return best_topic
-    print(f"DEBUG: Topic scores: {topic_scores}")
-    print(f"DEBUG: Selected topic: {best_topic if topic_scores else 'current events'}")
     return 'current events'
 
 # Helper function to get source bias
