@@ -115,7 +115,7 @@ class DevelopmentConfig(Config):
     TESTING = False
     
     # Use SQLite for local development
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///newsverify_dev.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL') or 'sqlite:///newsverify.db'
     
     # Disable some features for development
     ENABLE_RATE_LIMITING = False
@@ -157,6 +157,11 @@ config = {
     'testing': TestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig
+    # Make config attributes directly accessible for the app
+_config = get_config()()  # Get an instance of the config class
+for key in dir(_config):
+    if not key.startswith('_'):
+        globals()[key] = getattr(_config, key)
 }
 
 def get_config():
