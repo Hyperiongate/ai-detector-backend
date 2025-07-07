@@ -21,8 +21,6 @@ import io
 from PIL import Image
 import numpy as np
 import hashlib
-from urllib.parse import urlparse
-import requests
 from bs4 import BeautifulSoup
 from enhanced_content_analysis import analyze_article_content, EnhancedContentAnalyzer
 from enhanced_article_extractor import fetch_article_from_url, ArticleExtractor
@@ -395,22 +393,7 @@ https://factsandfakes.ai
     
     return send_email(email, subject, html_content, text_content)
 
-def send_welcome_email(email):
-    """Send welcome email to new beta users"""
-    subject = "Welcome to Facts & Fakes AI - Your Beta Access is Active!"
-    
-    html_content = """
-    <html>
-    ... (all the HTML content) ...
-    </html>
-    """
-    
-    text_content = """
-Welcome to Facts & Fakes AI!
-... (all the text content) ...
-    """
-    
-    return send_email(email, subject, html_content, text_content)
+
 
 # ADD THE NEW FUNCTIONS HERE:
 
@@ -3143,30 +3126,8 @@ def perform_basic_news_analysis(content, url_data=None):
         authors = []
         date_published = None
         article_title = ''
-    Perform basic news analysis - Updated to handle URL data
-
-    domain_to_name_map = {
-        'apnews.com': 'Associated Press',
-        'ap.org': 'Associated Press',
-        'reuters.com': 'Reuters',
-        'bbc.com': 'BBC News',
-        'bbc.co.uk': 'BBC News',
-        'npr.org': 'NPR',
-        'wsj.com': 'The Wall Street Journal',
-        'nytimes.com': 'The New York Times',
-        'washingtonpost.com': 'The Washington Post',
-        'cnn.com': 'CNN',
-        'foxnews.com': 'Fox News',
-        'msnbc.com': 'MSNBC',
-        'bloomberg.com': 'Bloomberg',
-        'ft.com': 'Financial Times',
-        'economist.com': 'The Economist',
-        'theguardian.com': 'The Guardian',
-        'usatoday.com': 'USA Today',
-        'politico.com': 'Politico',
-        'thehill.com': 'The Hill',
-        'axios.com': 'Axios'
-    }
+    
+    
     """
     # If we have URL data, extract the actual content and metadata
     if url_data:
@@ -3176,29 +3137,7 @@ def perform_basic_news_analysis(content, url_data=None):
         date_published = url_data.get('date', None)
         article_title = url_data.get('title', '')
         # Convert domain to display name
-        # Temporary fix - define map right before use
-    domain_to_name_map = {
-        'apnews.com': 'Associated Press',
-        'ap.org': 'Associated Press',
-        'reuters.com': 'Reuters',
-        'bbc.com': 'BBC News',
-        'bbc.co.uk': 'BBC News',
-        'npr.org': 'NPR',
-        'wsj.com': 'The Wall Street Journal',
-        'nytimes.com': 'The New York Times',
-        'washingtonpost.com': 'The Washington Post',
-        'cnn.com': 'CNN',
-        'foxnews.com': 'Fox News',
-        'msnbc.com': 'MSNBC',
-        'bloomberg.com': 'Bloomberg',
-        'ft.com': 'Financial Times',
-        'economist.com': 'The Economist',
-        'theguardian.com': 'The Guardian',
-        'usatoday.com': 'USA Today',
-        'politico.com': 'Politico',
-        'thehill.com': 'The Hill',
-        'axios.com': 'Axios'
-    }
+       
         source_display_name = domain_to_name_map.get(source_domain, source_domain)
     else:
         actual_content = content
@@ -3306,7 +3245,7 @@ def perform_basic_news_analysis(content, url_data=None):
         return enhanced
     
     return basic_results
-   # Helper function to detect article topic
+# Helper function to detect article topic
 def detect_article_topic(content, title=''):
     """
     Detect article topic with better accuracy
@@ -3751,7 +3690,7 @@ Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #2c3e50;">Thank you for reaching out!</h2>
                 <p>Hi {data.get('name', '')},</p>
-                <p>We've received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.</p>
+                <p>We\'ve received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.</p>
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p><strong>Your message:</strong></p>
                     <p style="font-style: italic;">"{data.get('message', '')}"</p>
