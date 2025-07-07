@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_cors import CORS 
+from flask_cors import CORS
 import os
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from datetime import datetime, timedelta
 import traceback
 import json
-import requests 
+import requests
 from urllib.parse import urlparse
 import re
 from functools import wraps
@@ -21,9 +21,6 @@ import io
 from PIL import Image
 import numpy as np
 import hashlib
-from bs4 import BeautifulSoup
-from enhanced_content_analysis import analyze_article_content, EnhancedContentAnalyzer
-from enhanced_article_extractor import fetch_article_from_url, ArticleExtractor
 
 # Computer Vision imports for enhanced image analysis
 CV_AVAILABLE = False
@@ -203,17 +200,6 @@ if DB_AVAILABLE:
         referrer = db.Column(db.String(500))
         welcome_email_sent = db.Column(db.Boolean, default=False)
 
-    class Analysis(db.Model):
-        __tablename__ = 'analyses'
-        
-        id = db.Column(db.Integer, primary_key=True)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-        url = db.Column(db.Text, nullable=False)
-        analysis_data = db.Column(db.Text, nullable=False)
-        created_at = db.Column(db.DateTime, default=datetime.utcnow)
-        
-        user = db.relationship('User', backref=db.backref('analyses', lazy=True))
-
 # Initialize database tables
 if DB_AVAILABLE:
     try:
@@ -392,61 +378,6 @@ https://factsandfakes.ai
     """
     
     return send_email(email, subject, html_content, text_content)
-
-
-
-# ADD THE NEW FUNCTIONS HERE:
-
-def calculate_analysis_confidence(manipulation_indicators, ai_detection):
-    """
-    Calculate overall confidence score for the analysis
-    """
-    # Base confidence on the strength of indicators
-    base_confidence = 70
-    
-    # Adjust based on manipulation indicators
-    if manipulation_indicators['overall_score'] < 20:
-        base_confidence += 10
-    elif manipulation_indicators['overall_score'] > 60:
-        base_confidence -= 10
-        
-    # Adjust based on AI detection confidence
-    if ai_detection['confidence'] == 'high':
-        base_confidence += 15
-    elif ai_detection['confidence'] == 'low':
-        base_confidence -= 15
-        
-    # Ensure within bounds
-    return max(50, min(95, base_confidence))
-
-def save_analysis_to_db(user_id, url, analysis_data):
-    """
-    Save analysis results to database
-    """
-    if not DB_AVAILABLE:
-        return None
-        
-    try:
-        analysis = Analysis(
-            user_id=user_id,
-            url=url,
-            analysis_data=json.dumps(analysis_data),
-            created_at=datetime.utcnow()
-        )
-        db.session.add(analysis)
-        db.session.commit()
-        return analysis.id
-    except Exception as e:
-        print(f"Error saving analysis to database: {e}")
-        return None
-# Add this function to fetch content from URLs
-
-
-def extract_article_content(url):
-    """
-    Extract article content from URL
-    """
-    return fetch_article_from_url(url)
 
 # Routes
 @app.route('/')
@@ -670,7 +601,7 @@ def get_youtube_transcript():
         language = data.get('language', 'en')
         
         if not url:
-            return jsonify({'error': 'YouTube URL required'}), 400
+            return jsonify({'error': 'No URL provided'}), 400
         
         # Extract video ID
         video_id = extract_youtube_video_id(url)
@@ -678,7 +609,7 @@ def get_youtube_transcript():
             return jsonify({'error': 'Invalid YouTube URL'}), 400
         
         try:
-            # Get available transcripts
+            # Get transcript
             transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
             
             # Try to find a transcript
@@ -737,6 +668,7 @@ def get_youtube_transcript():
     except Exception as e:
         print(f"YouTube endpoint error: {e}")
         return jsonify({'error': 'Failed to process request'}), 500
+
 
 @app.route('/api/export-speech-report', methods=['POST'])
 def export_speech_report():
@@ -2567,7 +2499,6 @@ def analyze_unified():
 # ============================================================================
 
 # Analysis APIs - NO LOGIN REQUIRED IN DEVELOPMENT
-# Update the analyze_news endpoint to handle URLs properly
 @app.route('/api/analyze-news', methods=['POST'])
 def analyze_news():
     # DEVELOPMENT MODE: Skip authentication
@@ -2581,29 +2512,13 @@ def analyze_news():
         if not content:
             return jsonify({'error': 'No content provided'}), 400
         
-        # Check if content is a URL
-        url_data = None
-        if content.startswith(('http://', 'https://')):
-            print(f"Detected URL input: {content}")
-            # Fetch article from URL
-            url_data = fetch_article_from_url(content)
-            if url_data:
-                print(f"Successfully fetched article from {url_data['domain']}")
-                print(f"Title: {url_data['title']}")
-                print(f"Authors: {url_data['authors']}")
-                print(f"Date: {url_data['date']}")
-                # Use the fetched content for analysis
-                content = url_data['content']
-            else:
-                return jsonify({'error': 'Failed to fetch article from URL'}), 400
-        
         # Simulate different analysis levels
         if is_pro:
             # Pro analysis with AI enhancement
-            analysis_data = perform_advanced_news_analysis(content, url_data)
+            analysis_data = perform_advanced_news_analysis(content)
         else:
             # Free analysis
-            analysis_data = perform_basic_news_analysis(content, url_data)
+            analysis_data = perform_basic_news_analysis(content)
         
         return jsonify(analysis_data)
         
@@ -2612,6 +2527,8 @@ def analyze_news():
         traceback.print_exc()
         return jsonify({'error': 'Analysis failed'}), 500
 
+@app.route('/api/analyze-text', methods=['POST'])
+def analyze_text():
     # DEVELOPMENT MODE: Skip authentication
     user = get_current_user()
     
@@ -3079,121 +2996,30 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
 # UPDATED ANALYSIS FUNCTIONS WITH PHASE 2 INTEGRATION - UNCHANGED FOR NEWS.HTML
 # ============================================================================
 
-# Update the perform_basic_news_analysis function
-# Update the perform_basic_news_analysis function
-def perform_basic_news_analysis(content, url_data=None):
+def perform_basic_news_analysis(content):
     """
-    Perform basic news analysis - Updated to handle URL data
+    Perform basic news analysis - Phase 2 version with optional AI enhancement
     """
-    # Map domain to proper source name
-   
-    domain_to_name_map = {
-        'apnews.com': 'Associated Press',
-        'ap.org': 'Associated Press',
-        'reuters.com': 'Reuters',
-        'bbc.com': 'BBC News',
-        'bbc.co.uk': 'BBC News',
-        'npr.org': 'NPR',
-        'wsj.com': 'The Wall Street Journal',
-        'nytimes.com': 'The New York Times',
-        'washingtonpost.com': 'The Washington Post',
-        'cnn.com': 'CNN',
-        'foxnews.com': 'Fox News',
-        'msnbc.com': 'MSNBC',
-        'bloomberg.com': 'Bloomberg',
-        'ft.com': 'Financial Times',
-        'economist.com': 'The Economist',
-        'theguardian.com': 'The Guardian',
-        'usatoday.com': 'USA Today',
-        'politico.com': 'Politico',
-        'thehill.com': 'The Hill',
-        'axios.com': 'Axios'
-    }
-    
-    # If we have URL data, extract the actual content and metadata
-    if url_data:
-        actual_content = url_data.get('content', content)
-        source_domain = url_data.get('domain', 'unknown')
-        authors = url_data.get('authors', [])
-        date_published = url_data.get('date', None)
-        article_title = url_data.get('title', '')
-        # Convert domain to display name
-        source_display_name = domain_to_name_map.get(source_domain, source_domain)
-    else:
-        actual_content = content
-        source_domain = "unknown"
-        source_display_name = "Unknown Source"  # Add this line too!
-        authors = []
-        date_published = None
-        article_title = ''
-    
-    
-    """
-    # If we have URL data, extract the actual content and metadata
-    if url_data:
-        actual_content = url_data.get('content', content)
-        source_domain = url_data.get('domain', 'unknown')
-        authors = url_data.get('authors', [])
-        date_published = url_data.get('date', None)
-        article_title = url_data.get('title', '')
-        # Convert domain to display name
-       
-        source_display_name = domain_to_name_map.get(source_domain, source_domain)
-    else:
-        actual_content = content
-        source_domain = "unknown"
-        authors = []
-        date_published = None
-        article_title = ''
-    
-    # First, get basic analysis from existing function
-    credibility_score = calculate_basic_credibility(actual_content)
-    bias_analysis = detect_simple_bias(actual_content)
-    emotional_score, loaded_terms = analyze_emotional_language(actual_content)
+    # First, get basic analysis from Phase 1
+    credibility_score = calculate_basic_credibility(content)
+    bias_analysis = detect_simple_bias(content)
+    emotional_score, loaded_terms = analyze_emotional_language(content)
     
     # Count sentences as factual claims (simple heuristic)
-    sentence_count = len([s for s in actual_content.split('.') if s.strip()])
+    sentence_count = len([s for s in content.split('.') if s.strip()])
     
-    # Enhanced source analysis based on actual domain
-    source_credibility_map = {
-        'apnews.com': 95,
-        'ap.org': 95,
-        'reuters.com': 90,
-        'bbc.com': 85,
-        'bbc.co.uk': 85,
-        'npr.org': 85,
-        'wsj.com': 80,
-        'nytimes.com': 80,
-        'washingtonpost.com': 80,
-        'cnn.com': 75,
-        'foxnews.com': 75,
-        'msnbc.com': 75,
-        'bloomberg.com': 80,
-        'ft.com': 85,
-        'economist.com': 85,
-        'theguardian.com': 75,
-        'usatoday.com': 70,
-        'politico.com': 75,
-        'thehill.com': 70,
-        'axios.com': 75
-    }
+    # Simulate source analysis (will be enhanced in Phase 3)
+    source_domain = "newsource.com"  # Placeholder
+    if "reuters" in content.lower():
+        source_domain = "reuters.com"
+        source_credibility = 90
+    elif "bbc" in content.lower():
+        source_domain = "bbc.com"
+        source_credibility = 85
+    else:
+        source_credibility = 70
     
-    source_credibility = source_credibility_map.get(source_domain, 65)
-    # Map domain to proper source name
-    
-    
-    # Convert domain to display name
-    source_display_name = domain_to_name_map.get(source_domain, source_domain)
-    # Detect topic from content
-    topic = detect_article_topic(actual_content, article_title)
-    
-    # Format authors for display
-    author_info = {
-        'name': ', '.join(authors) if authors else 'Not Specified',
-        'count': len(authors)
-    }
-    
-    # Build enhanced response
+    # Build basic response
     basic_results = {
         'credibility_score': credibility_score,
         'bias_indicators': {
@@ -3212,17 +3038,20 @@ def perform_basic_news_analysis(content, url_data=None):
             'loaded_terms': loaded_terms[:5]
         },
         'source_analysis': {
-            'domain': source_display_name,
+            'domain': source_domain,
             'credibility_score': source_credibility,
             'source_type': 'news outlet',
-            'political_bias': get_source_bias(source_domain),
-            'founded': get_source_founded_date(source_domain),
-            'author': author_info,
-            'date_published': date_published,
-            'article_topic': topic
+            'political_bias': 'center',
+            'founded': 'Unknown'
         },
         'fact_check_results': [],
-        'cross_references': generate_cross_references(source_domain, topic),
+        'cross_references': [
+            {
+                'source': 'Reuters',
+                'title': 'Similar story coverage',
+                'relevance': 85
+            }
+        ],
         'methodology': {
             'analysis_type': 'basic',
             'confidence_level': 75,
@@ -3231,175 +3060,20 @@ def perform_basic_news_analysis(content, url_data=None):
                 'text_structure',
                 'keyword_analysis', 
                 'emotional_language',
-                'basic_credibility_indicators',
-                'source_metadata',
-                'author_attribution'
+                'basic_credibility_indicators'
             ]
         }
     }
     
     # Try to enhance with AI for basic tier (limited enhancement)
-    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(actual_content) > 100:
+    if OPENAI_API_KEY and OPENAI_AVAILABLE and client and len(content) > 100:
         print("Attempting basic AI enhancement...")
-        enhanced = enhance_with_openai_analysis(basic_results, actual_content, is_pro=False)
+        enhanced = enhance_with_openai_analysis(basic_results, content, is_pro=False)
         return enhanced
     
     return basic_results
-# Helper function to detect article topic
-def detect_article_topic(content, title=''):
-    """
-    # Detect article topic with better accuracy
-    """
-    full_text = (title + ' ' + content).lower()
-    
-    # Topic detection with weighted keywords
-    topic_patterns = {
-        'floods and natural disasters': {
-            'keywords': ['flood', 'flooding', 'hurricane', 'storm', 'disaster', 'emergency', 'evacuation', 'weather', 'rainfall', 'damage'],
-            'weight': 3
-        },
-        'politics and elections': {
-            'keywords': ['election', 'vote', 'campaign', 'democrat', 'republican', 'congress', 'senate', 'president', 'political', 'government'],
-            'weight': 2
-        },
-        'economy and finance': {
-            'keywords': ['economy', 'inflation', 'market', 'stock', 'financial', 'bank', 'trade', 'business', 'gdp', 'unemployment'],
-            'weight': 2
-        },
-        'technology': {
-            'keywords': ['technology', 'ai', 'artificial intelligence', 'tech', 'software', 'computer', 'digital', 'cyber', 'internet', 'data'],
-            'weight': 2
-        },
-        'health and medicine': {
-            'keywords': ['health', 'medical', 'doctor', 'hospital', 'disease', 'treatment', 'covid', 'vaccine', 'patient', 'medicine'],
-            'weight': 2
-        },
-        'crime and justice': {
-            'keywords': ['police', 'crime', 'arrest', 'court', 'judge', 'law', 'criminal', 'justice', 'prison', 'investigation'],
-            'weight': 2
-        },
-        'international affairs': {
-            'keywords': ['international', 'foreign', 'war', 'conflict', 'military', 'diplomacy', 'united nations', 'treaty', 'sanctions'],
-            'weight': 2
-        },
-        'climate and environment': {
-            'keywords': ['climate', 'environment', 'pollution', 'renewable', 'energy', 'carbon', 'global warming', 'sustainability'],
-            'weight': 2
-        }
-    }
-    
-    topic_scores = {}
-    
-    for topic, data in topic_patterns.items():
-        score = 0
-        for keyword in data['keywords']:
-            occurrences = full_text.count(keyword)
-            score += occurrences * data['weight']
-        topic_scores[topic] = score
-    
-    # Get the topic with highest score
-   # Get the topic with highest score
-    best_topic = 'current events'  # Default value
-    if topic_scores:
-        best_topic = max(topic_scores, key=topic_scores.get)
-        if topic_scores[best_topic] > 0:
-            print(f"DEBUG: Topic scores: {topic_scores}")
-            print(f"DEBUG: Selected topic: {best_topic}")
-            return best_topic
-    return 'current events'
 
-# Helper function to get source bias
-def get_source_bias(domain):
-    """
-    # Get known political bias of news sources
-    """
-    bias_map = {
-        'apnews.com': 'center',
-        'ap.org': 'center',
-        'reuters.com': 'center',
-        'bbc.com': 'center',
-        'npr.org': 'center-left',
-        'wsj.com': 'center-right',
-        'nytimes.com': 'center-left',
-        'washingtonpost.com': 'center-left',
-        'cnn.com': 'left',
-        'foxnews.com': 'right',
-        'msnbc.com': 'left',
-        'bloomberg.com': 'center',
-        'ft.com': 'center',
-        'economist.com': 'center-right',
-        'theguardian.com': 'left',
-        'usatoday.com': 'center',
-        'politico.com': 'center',
-        'thehill.com': 'center-right',
-        'axios.com': 'center'
-    }
-    return bias_map.get(domain, 'unknown')
-
-# Helper function to get source founded date
-def get_source_founded_date(domain):
-    """
-    Get founded date of major news sources
-    """
-    founded_map = {
-        'apnews.com': '1846',
-        'ap.org': '1846',
-        'reuters.com': '1851',
-        'bbc.com': '1922',
-        'npr.org': '1970',
-        'wsj.com': '1889',
-        'nytimes.com': '1851',
-        'washingtonpost.com': '1877',
-        'cnn.com': '1980',
-        'foxnews.com': '1996',
-        'msnbc.com': '1996',
-        'bloomberg.com': '1990',
-        'ft.com': '1888',
-        'economist.com': '1843',
-        'theguardian.com': '1821',
-        'usatoday.com': '1982',
-        'politico.com': '2007',
-        'thehill.com': '1994',
-        'axios.com': '2016'
-    }
-    return founded_map.get(domain, 'Unknown')
-
-# Helper function to generate cross references
-def generate_cross_references(source_domain, topic):
-    """
-    Generate realistic cross-references based on source and topic
-    """
-    # Major outlets that might cover similar stories
-    major_outlets = ['Reuters', 'AP News', 'BBC', 'CNN', 'Fox News', 'NPR', 'The Guardian', 'Bloomberg']
-    
-    # Remove the current source from cross-references
-    current_source = None
-    for outlet in major_outlets:
-        if outlet.lower().replace(' ', '') in source_domain.lower():
-            current_source = outlet
-            break
-    
-    if current_source:
-        major_outlets.remove(current_source)
-    
-    # Generate 2-4 cross references
-    import random
-    num_refs = random.randint(2, min(4, len(major_outlets)))
-    selected_outlets = random.sample(major_outlets, num_refs)
-    
-    cross_refs = []
-    for outlet in selected_outlets:
-        relevance = random.randint(75, 95)
-        cross_refs.append({
-            'source': outlet,
-            'title': f'Similar coverage of {topic}',
-            'relevance': relevance
-        })
-    
-    return sorted(cross_refs, key=lambda x: x['relevance'], reverse=True) 
-def perform_advanced_news_analysis(content, url_data=None):
-    # Start with basic analysis
-
+def perform_advanced_news_analysis(content):
     """
     Perform advanced news analysis - Phase 2 with full OpenAI integration
     """
@@ -3692,7 +3366,7 @@ Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #2c3e50;">Thank you for reaching out!</h2>
                 <p>Hi {data.get('name', '')},</p>
-                <p>We\'ve received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.</p>
+                <p>We've received your message and appreciate you taking the time to contact us. Our team will review your inquiry and get back to you within 24-48 hours.</p>
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p><strong>Your message:</strong></p>
                     <p style="font-style: italic;">"{data.get('message', '')}"</p>
@@ -3766,54 +3440,6 @@ def cv_status():
             'skimage': 'feature' in globals() or skimage is not None
         }
     })
-
-# Enhanced Content Analysis Routes
-@app.route('/api/enhanced-analysis', methods=['POST'])
-def enhanced_content_analysis():
-    """
-    Endpoint for enhanced content analysis
-    """
-    try:
-        data = request.get_json()
-        url = data.get('url', '')
-        
-        if not url:
-            return jsonify({'error': 'URL is required'}), 400
-            
-        # Extract article content
-        article_data = extract_article_content(url)
-        
-        if not article_data or not article_data.get('text'):
-            return jsonify({'error': 'Failed to extract article content'}), 400
-            
-        # Perform enhanced analysis
-        analysis_results = analyze_article_content(url, article_data['text'])
-        
-        # Combine with existing verification data if needed
-        combined_results = {
-            'url': url,
-            'basic_info': {
-                'title': article_data.get('title', ''),
-                'authors': article_data.get('authors', []),
-                'publish_date': article_data.get('publish_date', ''),
-                'domain': domain_to_name_map.get(article_data.get('domain', ''), article_data.get('domain', ''))
-            },
-            'enhanced_analysis': analysis_results,
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        # Store in database if needed
-        user = get_current_user()
-        if user and DB_AVAILABLE:
-            save_analysis_to_db(1, url, combined_results)  # Using ID 1 for development
-            
-        return jsonify(combined_results), 200
-        
-    except Exception as e:
-        print(f"Enhanced analysis error: {str(e)}")
-        return jsonify({'error': 'Analysis failed', 'details': str(e)}), 500
-
-
 
 # Error handlers
 @app.errorhandler(404)
