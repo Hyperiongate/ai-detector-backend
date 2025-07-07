@@ -3097,13 +3097,13 @@ def enhance_with_openai_analysis(basic_results, content, is_pro=False):
 # ============================================================================
 
 # Update the perform_basic_news_analysis function
+# Update the perform_basic_news_analysis function
 def perform_basic_news_analysis(content, url_data=None):
-    """
-    def perform_basic_news_analysis(content, url_data=None):
     """
     Perform basic news analysis - Updated to handle URL data
     """
-    # Map domain to proper source name - DEFINE IT HERE!
+    # Map domain to proper source name
+   
     domain_to_name_map = {
         'apnews.com': 'Associated Press',
         'ap.org': 'Associated Press',
