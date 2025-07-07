@@ -1,283 +1,79 @@
-// ============================================
-// NEWS VERIFICATION PLATFORM - UI MODULE
-// ============================================
+// News Analysis UI Functions
 
-// Notification helper function
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.display = 'block'; 
+// Tab switching
+function switchTab(tabName) {
+    // Remove active class from all tabs and contents
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     
-    // Add to body
-    document.body.appendChild(notification);
+    // Add active class to selected tab and content
+    event.target.classList.add('active');
+    document.getElementById(tabName + '-content').classList.add('active');
     
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
+    // Load content if not already loaded
+    loadTabContent(tabName);
 }
 
-// Input switching
-function switchInputType(type) {
-    window.currentInputType = type;
+// Input selection
+function selectInput(type) {
+    // Remove active class from all options
+    document.querySelectorAll('.input-option').forEach(option => option.classList.remove('active'));
     
-    document.querySelectorAll('.input-tab').forEach((tab, index) => {
-        tab.classList.remove('active');
-        if ((type === 'text' && index === 0) || (type === 'url' && index === 1)) {
-            tab.classList.add('active');
-        }
-    });
+    // Add active class to selected option
+    event.currentTarget.classList.add('active');
     
-    document.querySelectorAll('.input-content').forEach(content => {
-        content.classList.remove('active');
-    });
+    // Show input area
+    document.getElementById('input-area').style.display = 'block';
     
-    const targetContent = document.getElementById(type + 'Input');
-    if (targetContent) {
-        targetContent.classList.add('active');
+    // Update placeholder based on selection
+    const input = document.getElementById('articleUrl');
+    if (type === 'url') {
+        input.placeholder = 'Enter article URL (e.g., https://example.com/article)';
+    } else if (type === 'topic') {
+        input.placeholder = 'Enter topic to analyze (e.g., "climate change policy")';
+    } else if (type === 'comparison') {
+        input.placeholder = 'Enter multiple URLs separated by commas';
     }
 }
 
-// Load test data
-function loadTestData() {
-    const testContent = "Breaking: Infrastructure Bill Passes Senate with Bipartisan Support. The Department of Transportation announced today the allocation of $2.3 billion for highway improvements across 15 states, according to officials who state this initiative will create approximately 45,000 jobs over the next 18 months. The announcement comes following congressional support for the infrastructure bill passed last quarter. Sources close to the administration suggest this represents the largest single infrastructure investment in recent history. Industry experts predict significant economic impact in rural communities, though some critics question the timeline for implementation.";
+// Toggle claim explanations
+function toggleClaim(element) {
+    const dropdown = element.nextElementSibling;
+    const arrow = element.querySelector('span');
     
-    document.getElementById('news-text').value = testContent;
-    switchInputType('text');
-    
-    showNotification('Sample news content loaded successfully!', 'success');
-}
-
-// Reset form
-function resetForm() {
-    document.getElementById('news-text').value = '';
-    document.getElementById('news-url').value = '';
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('results').innerHTML = '';
-    window.currentAnalysisData = null;
-    showNotification('Form reset successfully', 'success');
-}
-
-// Modal functions
-function closeClaimsModal() {
-    document.getElementById('claimsModal').style.display = 'none';
-}
-
-function closeBetaModal() {
-    document.getElementById('betaModal').style.display = 'none';
-}
-
-function openBetaModal() {
-    document.getElementById('betaModal').style.display = 'block';
-}
-
-function submitBetaSignup() {
-    const email = document.getElementById('betaEmail').value;
-    const name = document.getElementById('betaName').value;
-
-    if (!email) {
-        alert('Please enter your email address');
-        return;
-    }
-
-    // Submit to backend
-    fetch('/api/signup', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email, password: 'BetaUser2025!' })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert('🎉 Welcome to the beta! Check your email for access details.');
-        closeBetaModal();
-        document.getElementById('betaSignupForm').reset();
-    })
-    .catch(error => {
-        console.log('Demo mode: Beta signup for', email);
-        alert('🎉 Thanks for your interest! Beta signup recorded.');
-        closeBetaModal();
-        document.getElementById('betaSignupForm').reset();
-    });
-}
-
-// Enhanced dropdown toggle
-function toggleDropdown(header, tier) {
-    const content = header.nextElementSibling;
-    const isOpen = header.classList.contains('open');
-    
-    header.classList.toggle('open');
-    content.classList.toggle('open');
-    
-    if (!isOpen) {
-        content.style.maxHeight = content.scrollHeight + 'px';
+    if (dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        arrow.textContent = '▼';
     } else {
-        content.style.maxHeight = '0';
+        dropdown.classList.add('open');
+        arrow.textContent = '▲';
     }
 }
 
-// Toggle analysis section
-function toggleAnalysisSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    const header = section.querySelector('.analysis-header');
-    const content = section.querySelector('.analysis-content');
-    
-    if (header.classList.contains('locked') && window.newsAnalysis.currentTier() === 'free') {
-        showNotification('Upgrade to Pro to access this analysis', 'info');
-        return;
+// Show style detail
+function showStyleDetail(type) {
+    let message = '';
+    switch(type) {
+        case 'quotes':
+            message = 'Direct Quotes Analysis:\n\n• 12 expert sources quoted\n• Balanced representation (6 industry, 4 government, 2 academic)\n• Average quote length: 23 words\n• All quotes properly attributed\n• No anonymous sources';
+            break;
+        case 'data':
+            message = 'Data & Statistics:\n\n• $2.5 billion funding figure\n• 15 tech CEOs signed support letter\n• Q1 2026 implementation date\n• 70% industry approval rate (survey)\n• 18-month compliance period\n• $10M revenue threshold\n• 3 oversight committee members\n• 90-day public comment period';
+            break;
+        case 'context':
+            message = 'Background Context:\n\n• Previous AI regulation attempts explained\n• International regulatory comparison provided\n• Technical concepts defined for general audience\n• Historical timeline of AI policy development\n• Key stakeholder positions summarized';
+            break;
+        case 'structure':
+            message = 'Article Structure:\n\n• Lead: Main news (framework announcement)\n• Supporting details in order of importance\n• Expert reactions and quotes\n• Background and context\n• Future implications\n• Clear section breaks with subheadings\n• Conclusion summarizing key points';
+            break;
     }
     
-    const isExpanded = section.classList.contains('expanded');
-    
-    if (isExpanded) {
-        section.classList.remove('expanded');
-        header.classList.remove('expanded');
-        content.classList.remove('expanded');
-    } else {
-        section.classList.add('expanded');
-        header.classList.add('expanded');
-        content.classList.add('expanded');
-    }
-    
-    trackNewsEvent('analysis_section_toggled', {
-        section: sectionId,
-        action: isExpanded ? 'collapsed' : 'expanded'
-    });
+    // In production, replace with modal
+    alert(message);
 }
 
-// Scroll to top
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
+// Show upgrade modal
+function showUpgrade() {
+    // In production, show proper modal
+    alert('Pro Analysis Features:\n\n• Comprehensive 30+ page PDF report\n• Advanced bias detection algorithms\n• Historical pattern analysis\n• Real-time monitoring and alerts\n• API access for automation\n• Priority customer support\n\nContact sales@newsanalysis.ai for pricing');
 }
-
-// Show/hide back to top button
-window.addEventListener('scroll', () => {
-    const backToTop = document.getElementById('backToTop');
-    if (window.pageYOffset > 300) {
-        backToTop.classList.add('visible');
-    } else {
-        backToTop.classList.remove('visible');
-    }
-});
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const betaModal = document.getElementById('betaModal');
-    const claimsModal = document.getElementById('claimsModal');
-    if (event.target === betaModal) {
-        closeBetaModal();
-    }
-    if (event.target === claimsModal) {
-        closeClaimsModal();
-    }
-};
-
-// Show all claims in modal
-function showAllClaims(claimType) {
-    const currentAnalysisData = window.newsAnalysis.currentAnalysisData();
-    if (!currentAnalysisData) {
-        return;
-    }
-
-    const modal = document.getElementById('claimsModal');
-    const claimsList = document.getElementById('claimsList');
-    const modalHeader = modal.querySelector('.modal-header h2');
-    
-    let claims = [];
-    let headerText;
-    let headerIcon;
-    
-    // Extract claims from fact check results
-    if (claimType === 'unsupported') {
-        claims = currentAnalysisData.fact_check_results?.filter(result => 
-            result.status === 'Identified for verification' || 
-            result.confidence < 50
-        ) || [];
-        headerText = 'Unsupported Claims Analysis';
-        headerIcon = 'fas fa-exclamation-triangle';
-    } else {
-        claims = currentAnalysisData.fact_check_results?.filter(result => 
-            result.confidence >= 50
-        ) || [];
-        headerText = 'Verified Claims Analysis';
-        headerIcon = 'fas fa-check-circle';
-    }
-    
-    // Update modal header
-    modalHeader.innerHTML = `<i class="${headerIcon}"></i> ${headerText}`;
-    
-    // Clear existing content
-    claimsList.innerHTML = '';
-
-    // Add each claim with detailed analysis
-    claims.forEach((item, index) => {
-        const claimDiv = document.createElement('div');
-        claimDiv.className = 'claim-modal-item';
-        
-        if (claimType === 'unsupported') {
-            claimDiv.innerHTML = `
-                <div class="claim-number">Claim ${index + 1}</div>
-                <div class="claim-text">"${item.claim}"</div>
-                <div class="claim-analysis">
-                    <div class="claim-analysis-title">Why This Needs Verification:</div>
-                    <div class="claim-reason">${item.context || 'This claim requires additional sources for verification.'}</div>
-                </div>
-            `;
-        } else {
-            claimDiv.style.borderLeftColor = '#10b981';
-            claimDiv.innerHTML = `
-                <div class="claim-number" style="color: #10b981;">Verified Claim ${index + 1}</div>
-                <div class="claim-text">"${item.claim}"</div>
-                <div class="claim-analysis">
-                    <div class="claim-analysis-title" style="color: #10b981;">Supporting Evidence:</div>
-                    <div class="claim-reason">${item.context || 'This claim is supported by multiple reliable sources.'}</div>
-                </div>
-            `;
-        }
-        claimsList.appendChild(claimDiv);
-    });
-
-    // Show modal
-    modal.style.display = 'block';
-
-    // Track event
-    trackNewsEvent(`${claimType}_claims_viewed`, {
-        count: claims.length,
-        tier: window.newsAnalysis.currentTier()
-    });
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Track page load
-    trackNewsEvent('news_verification_page_loaded', {
-        user_agent: navigator.userAgent,
-        screen_resolution: screen.width + 'x' + screen.height,
-        referrer: document.referrer
-    });
-});
-
-// Export UI functions for global access
-window.newsUI = {
-    showNotification,
-    switchInputType,
-    loadTestData,
-    resetForm,
-    toggleDropdown,
-    toggleAnalysisSection,
-    scrollToTop,
-    showAllClaims,
-    openBetaModal,
-    closeBetaModal,
-    closeClaimsModal,
-    submitBetaSignup
-};
