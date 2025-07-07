@@ -9,8 +9,8 @@ class Config:
     # Flask Core
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///newsverify.db'
+    # Database Configuration - Check both SQLALCHEMY_DATABASE_URI and DATABASE_URL
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL') or 'sqlite:///newsverify.db'
     
     # Handle PostgreSQL URL format for SQLAlchemy
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
@@ -19,13 +19,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_POOL_SIZE = int(os.environ.get('SQLALCHEMY_POOL_SIZE', 10))
     SQLALCHEMY_MAX_OVERFLOW = int(os.environ.get('SQLALCHEMY_MAX_OVERFLOW', 20))
-    # At the very bottom of config.py, add:
-
-# Make config attributes directly accessible
-_config = get_config()()  # Get an instance of the config class
-for key in dir(_config):
-    if not key.startswith('_'):
-        globals()[key] = getattr(_config, key)
     SQLALCHEMY_POOL_TIMEOUT = 30
     SQLALCHEMY_POOL_RECYCLE = 3600  # 1 hour
     
@@ -108,6 +101,9 @@ for key in dir(_config):
     # Monitoring Configuration
     HEALTH_CHECK_INTERVAL = int(os.environ.get('HEALTH_CHECK_INTERVAL', 300))  # 5 minutes
     CLEANUP_INTERVAL = int(os.environ.get('CLEANUP_INTERVAL', 86400))  # 24 hours
+    
+    # Add missing config items that the app expects
+    CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'support@factsandfakes.ai')
 
 class DevelopmentConfig(Config):
     """Development configuration"""
@@ -115,7 +111,7 @@ class DevelopmentConfig(Config):
     TESTING = False
     
     # Use SQLite for local development
-    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL') or 'sqlite:///newsverify.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///newsverify_dev.db'
     
     # Disable some features for development
     ENABLE_RATE_LIMITING = False
@@ -157,14 +153,16 @@ config = {
     'testing': TestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig
-    # Make config attributes directly accessible for the app
-_config = get_config()()  # Get an instance of the config class
-for key in dir(_config):
-    if not key.startswith('_'):
-        globals()[key] = getattr(_config, key)
 }
 
 def get_config():
     """Get configuration based on environment"""
     env = os.environ.get('FLASK_ENV', 'development')
     return config.get(env, config['default'])
+
+# Export configuration attributes at module level
+# This allows the app to access config.OPENAI_API_KEY directly
+_active_config = get_config()()
+for _attr_name in dir(_active_config):
+    if not _attr_name.startswith('_'):
+        globals()[_attr_name] = getattr(_active_config, _attr_name)
