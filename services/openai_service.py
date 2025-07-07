@@ -4,6 +4,7 @@ OpenAI service - AI integration for advanced analysis
 import time
 import json
 import re
+import os
 import config
 
 # OpenAI import for Phase 2 - Updated for v1.0+ API
@@ -17,7 +18,12 @@ except ImportError:
 
 # Configure OpenAI if available - Updated for v1.0+ API
 client = None
-if config.OPENAI_API_KEY and OPENAI_AVAILABLE:
+try:
+    OPENAI_API_KEY = config.OPENAI_API_KEY
+except AttributeError:
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+
+if OPENAI_API_KEY and OPENAI_AVAILABLE:
     try:
         client = OpenAI(api_key=config.OPENAI_API_KEY)
         print("✓ OpenAI API configured")
