@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech Fact-Checker - Real-Time Verification Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <!-- Header Styles -->
     <style>
@@ -614,6 +615,36 @@
             margin-bottom: 30px;
         }
 
+        /* Fixed Button Group */
+        .fixed-button-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+            backdrop-filter: blur(10px);
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            position: sticky;
+            top: 80px;
+            z-index: 100;
+        }
+
+        .fixed-button-container h3 {
+            text-align: center;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .fixed-button-container h3 i {
+            font-size: 1.6rem;
+            animation: pulse 2s infinite;
+        }
+
         /* Live Fact-Check Panel */
         .live-factcheck-panel {
             position: fixed;
@@ -1121,141 +1152,6 @@
             display: flex;
             align-items: center;
             gap: 5px;
-        }
-
-        /* Info Sections Grid */
-        .info-sections-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        /* Dropdown Sections */
-        .dropdown-section {
-            border: 2px solid;
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(249, 250, 251, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-header {
-            padding: 15px 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-header:hover {
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        .dropdown-header.open {
-            border-bottom: 2px solid;
-        }
-
-        .dropdown-header-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .dropdown-header-content i {
-            font-size: 1.3rem;
-        }
-
-        .dropdown-header-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .dropdown-title {
-            font-weight: 700;
-            color: #4a5568;
-            font-size: 1rem;
-        }
-
-        .dropdown-subtitle {
-            font-size: 0.85rem;
-            color: #6b7280;
-            font-weight: 400;
-        }
-
-        .dropdown-header .dropdown-icon {
-            font-size: 1rem;
-            color: #6b7280;
-            transition: transform 0.3s ease;
-        }
-
-        .dropdown-header.open .dropdown-icon {
-            transform: rotate(180deg);
-            color: #667eea;
-        }
-
-        .dropdown-content {
-            max-height: 0;
-            overflow: hidden;
-            padding: 0;
-            background: white;
-            transition: all 0.5s ease;
-        }
-
-        .dropdown-content.open {
-            max-height: 600px;
-            padding: 25px;
-        }
-
-        /* Section specific colors */
-        #how-it-works-section {
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        #how-it-works-section .dropdown-header {
-            background: rgba(99, 102, 241, 0.08);
-        }
-
-        #how-it-works-section .dropdown-header-content i {
-            color: #6366f1;
-        }
-
-        #sources-section {
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        #sources-section .dropdown-header {
-            background: rgba(16, 185, 129, 0.08);
-        }
-
-        #sources-section .dropdown-header-content i {
-            color: #10b981;
-        }
-
-        #features-section {
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        #features-section .dropdown-header {
-            background: rgba(245, 158, 11, 0.08);
-        }
-
-        #features-section .dropdown-header-content i {
-            color: #f59e0b;
-        }
-
-        #tips-section {
-            border-color: rgba(236, 72, 153, 0.3);
-        }
-
-        #tips-section .dropdown-header {
-            background: rgba(236, 72, 153, 0.08);
-        }
-
-        #tips-section .dropdown-header-content i {
-            color: #ec4899;
         }
 
         /* Timeline View */
@@ -1923,10 +1819,6 @@
         }
 
         @media (max-width: 768px) {
-            .info-sections-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .results-grid {
                 grid-template-columns: 1fr;
             }
@@ -2084,14 +1976,6 @@
                 </div>
                 <div class="ff-user-dropdown" id="ffUserDropdown">
                     <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
-                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
-                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
-                    </div>
-                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
-                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
-                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
-                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
-                        </div>
                         <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
                     </div>
                     <div style="padding: 10px 0;">
@@ -2209,6 +2093,34 @@
                 </div>
             </div>
 
+            <!-- Fixed Button Container - MOVED TO TOP -->
+            <div class="fixed-button-container">
+                <h3><i class="fas fa-rocket"></i> Step 2: Control Panel</h3>
+                <div class="button-group">
+                    <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
+                        <i class="fas fa-microphone"></i> Start Recording
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" style="display: none;">
+                        <i class="fas fa-stop"></i> Stop Recording
+                    </button>
+                    <button id="pauseBtn" class="btn btn-warning" onclick="pauseRecording()" style="display: none;">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button id="resumeBtn" class="btn btn-success" onclick="resumeRecording()" style="display: none;">
+                        <i class="fas fa-play"></i> Resume
+                    </button>
+                    <button id="checkFactsBtn" class="btn btn-success" onclick="checkFacts()">
+                        <i class="fas fa-search"></i> Check Facts
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                <div class="btn-group-hint" id="buttonHint">
+                    <span id="hintText">Click "Start Recording" to begin capturing speech</span>
+                </div>
+            </div>
+
             <!-- Feature Controls Section -->
             <div class="feature-controls-section">
                 <h3 style="text-align: center; color: #4a5568; margin-bottom: 20px;">
@@ -2265,7 +2177,7 @@
                     <div class="instruction-item">
                         <div class="instruction-number">1</div>
                         <div>
-                            <strong>Start Recording:</strong> Click the "Start Recording" button below (microphone access required)
+                            <strong>Start Recording:</strong> Click the "Start Recording" button above (microphone access required)
                         </div>
                     </div>
                     <div class="instruction-item">
@@ -2308,7 +2220,7 @@
                 <!-- URL Input Section -->
                 <div class="url-input-section" id="urlInputSection">
                     <div class="url-input-group">
-                        <input type="text" class="url-input" id="urlInput" placeholder="Enter Stream URL...">
+                        <input type="text" class="url-input" id="urlInput" placeholder="Enter Stream URL or YouTube URL...">
                         <button class="btn btn-primary" onclick="loadFromURL()">
                             <i class="fas fa-download"></i> Load
                         </button>
@@ -2376,207 +2288,6 @@
                          contenteditable="false" 
                          spellcheck="false"
                          data-placeholder="Your speech will appear here as you speak, or paste/type text to analyze..."></div>
-                    
-                    <div class="button-group">
-                        <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
-                            <i class="fas fa-microphone"></i> Start Recording
-                        </button>
-                        <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" style="display: none;">
-                            <i class="fas fa-stop"></i> Stop Recording
-                        </button>
-                        <button id="pauseBtn" class="btn btn-warning" onclick="pauseRecording()" style="display: none;">
-                            <i class="fas fa-pause"></i> Pause
-                        </button>
-                        <button id="resumeBtn" class="btn btn-success" onclick="resumeRecording()" style="display: none;">
-                            <i class="fas fa-play"></i> Resume
-                        </button>
-                        <button id="checkFactsBtn" class="btn btn-success" onclick="checkFacts()">
-                            <i class="fas fa-search"></i> Check Facts
-                        </button>
-                        <button class="btn btn-secondary" onclick="clearAll()">
-                            <i class="fas fa-trash"></i> Clear All
-                        </button>
-                    </div>
-                    <div class="btn-group-hint" id="buttonHint">
-                        <span id="hintText">Click "Start Recording" to begin capturing speech</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Info Sections -->
-            <div class="info-sections-grid">
-                <div class="dropdown-section" id="how-it-works-section">
-                    <div class="dropdown-header" onclick="toggleDropdown(this)">
-                        <div class="dropdown-header-content">
-                            <i class="fas fa-info-circle"></i>
-                            <div class="dropdown-header-text">
-                                <span class="dropdown-title">How It Works</span>
-                                <span class="dropdown-subtitle">4 simple steps</span>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <div style="display: grid; gap: 15px;">
-                            <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #6366f1; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
-                                <div>
-                                    <strong>Choose Your Input:</strong><br>
-                                    <span style="color: #6b7280;">Record live speech, paste text, or load from various sources</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #6366f1; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
-                                <div>
-                                    <strong>Speech Recognition:</strong><br>
-                                    <span style="color: #6b7280;">AI converts speech to text in real-time with confidence scoring</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #6366f1; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
-                                <div>
-                                    <strong>Claim Detection:</strong><br>
-                                    <span style="color: #6b7280;">Identifies factual claims, statistics, and verifiable statements</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: start; gap: 15px;">
-                                <div style="background: #6366f1; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</div>
-                                <div>
-                                    <strong>Verification:</strong><br>
-                                    <span style="color: #6b7280;">Cross-references claims with multiple sources in real-time</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown-section" id="sources-section">
-                    <div class="dropdown-header" onclick="toggleDropdown(this)">
-                        <div class="dropdown-header-content">
-                            <i class="fas fa-database"></i>
-                            <div class="dropdown-header-text">
-                                <span class="dropdown-title">Input Sources</span>
-                                <span class="dropdown-subtitle">Multiple options</span>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
-                                <i class="fas fa-microphone" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
-                                <h4 style="margin-bottom: 5px;">Live Recording</h4>
-                                <p style="font-size: 0.9rem; color: #6b7280;">Real-time speech capture</p>
-                            </div>
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
-                                <i class="fas fa-keyboard" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
-                                <h4 style="margin-bottom: 5px;">Text Input</h4>
-                                <p style="font-size: 0.9rem; color: #6b7280;">Paste or type content</p>
-                            </div>
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
-                                <i class="fas fa-file-audio" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
-                                <h4 style="margin-bottom: 5px;">Audio Files</h4>
-                                <p style="font-size: 0.9rem; color: #6b7280;">Upload & analyze</p>
-                            </div>
-                            <div style="padding: 15px; background: rgba(16, 185, 129, 0.05); border-radius: 10px;">
-                                <i class="fas fa-broadcast-tower" style="color: #10b981; font-size: 1.5rem; margin-bottom: 10px;"></i>
-                                <h4 style="margin-bottom: 5px;">Live Streams</h4>
-                                <p style="font-size: 0.9rem; color: #6b7280;">Real-time stream analysis</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown-section" id="features-section">
-                    <div class="dropdown-header" onclick="toggleDropdown(this)">
-                        <div class="dropdown-header-content">
-                            <i class="fas fa-star"></i>
-                            <div class="dropdown-header-text">
-                                <span class="dropdown-title">AI-Powered Features</span>
-                                <span class="dropdown-subtitle">12 verification methods</span>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(236, 72, 153, 0.1)); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                            <h4 style="color: #f59e0b; margin-bottom: 10px;">🤖 AI Technologies Used:</h4>
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="margin-bottom: 8px;"><strong>AI Language Model:</strong> Advanced claim extraction & context understanding</li>
-                                <li style="margin-bottom: 8px;"><strong>Neural Pattern Recognition:</strong> Identifies statistical claims & factual statements</li>
-                                <li style="margin-bottom: 8px;"><strong>WebKit Speech Recognition:</strong> Real-time speech-to-text with confidence scoring</li>
-                                <li><strong>Multi-Model Consensus:</strong> Cross-validates results for accuracy</li>
-                            </ul>
-                        </div>
-                        <h4 style="margin-bottom: 15px; color: #4a5568;">Verification Methods:</h4>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-database" style="color: #667eea;"></i> News Database Cross-Reference
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-brain" style="color: #667eea;"></i> AI Credibility Scoring
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-chart-line" style="color: #667eea;"></i> Statistical Validation
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-history" style="color: #667eea;"></i> Historical Data Comparison
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-globe" style="color: #667eea;"></i> Real-time Web Verification
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-balance-scale" style="color: #667eea;"></i> Bias Detection Algorithm
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-search" style="color: #667eea;"></i> Semantic Context Analysis
-                            </div>
-                            <div style="padding: 12px; background: rgba(102, 126, 234, 0.05); border-radius: 8px; font-size: 0.9rem;">
-                                <i class="fas fa-shield-alt" style="color: #667eea;"></i> Misinformation Detection
-                            </div>
-                        </div>
-                        <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 10px;">
-                            <p style="color: #059669; font-weight: 600; margin: 0;">
-                                <i class="fas fa-info-circle"></i> Each claim is processed through multiple verification layers for maximum accuracy
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown-section" id="tips-section">
-                    <div class="dropdown-header" onclick="toggleDropdown(this)">
-                        <div class="dropdown-header-content">
-                            <i class="fas fa-lightbulb"></i>
-                            <div class="dropdown-header-text">
-                                <span class="dropdown-title">Best Practices</span>
-                                <span class="dropdown-subtitle">Get better results</span>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <div style="background: rgba(236, 72, 153, 0.05); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
-                            <h4 style="color: #ec4899; margin-bottom: 15px;">For Best Results:</h4>
-                            <ul style="color: #6b7280; margin-left: 20px;">
-                                <li>Speak clearly and at a moderate pace</li>
-                                <li>Use Chrome or Edge browsers for best speech recognition</li>
-                                <li>Ensure good microphone quality and minimal background noise</li>
-                                <li>For text input, include full context of claims</li>
-                                <li>Wait for fact-checking to complete before adding more content</li>
-                            </ul>
-                        </div>
-                        <div style="background: rgba(102, 126, 234, 0.05); padding: 20px; border-radius: 10px;">
-                            <h4 style="color: #667eea; margin-bottom: 15px;">Keyboard Shortcuts:</h4>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                <div><kbd>Space</kbd> Start/Stop Recording</div>
-                                <div><kbd>P</kbd> Pause/Resume</div>
-                                <div><kbd>C</kbd> Check Facts</div>
-                                <div><kbd>R</kbd> Clear All</div>
-                                <div><kbd>L</kbd> Live Panel</div>
-                                <div><kbd>T</kbd> Timeline</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -2958,55 +2669,97 @@
             draw();
         }
 
-        // Enhanced claim detection
+        // Enhanced claim detection - MUCH MORE AGGRESSIVE
         function detectClaimsInText(text) {
+            // Comprehensive patterns for fact detection
             const patterns = [
-                /\d+\.?\d*\s*(percent|%)/gi,
-                /\d+\.?\d*\s*(million|billion|trillion)/gi,
-                /(is|are|was|were)\s+(now\s+)?\d+/gi,
-                /currently\s+stands?\s+at/gi,
-                /increased\s+by\s+\d+/gi,
-                /decreased\s+by\s+\d+/gi,
-                /has\s+(now\s+)?exceeded\s+\d+/gi,
-                /remains?\s+at\s+\d+/gi,
-                /account\s+for\s+(over\s+)?\d+/gi,
-                /since\s+\d{4}/gi,
-                /in\s+\d{4}/gi,
-                /historic\s+(low|high)/gi,
-                /unchanged\s+since/gi,
-                /according\s+to\s+[\w\s]+/gi,
-                /studies?\s+show/gi,
-                /research\s+indicates?/gi,
-                /experts?\s+say/gi,
-                /data\s+(shows?|reveals?|suggests?)/gi,
-                /statistics\s+(show|indicate)/gi,
-                /survey\s+(found|showed|revealed)/gi
+                // Numbers and statistics
+                /\b\d+\.?\d*\s*(percent|%)\b/gi,
+                /\b\d+\.?\d*\s*(million|billion|trillion|thousand)\b/gi,
+                /\b(is|are|was|were|reached|hit|stands?\s+at|totals?|equals?)\s+\d+/gi,
+                /\b\d+\s+(people|dollars|euros|pounds|years|months|days|hours|minutes)\b/gi,
+                /\b(over|under|about|approximately|nearly|almost|more than|less than|at least)\s+\d+/gi,
+                
+                // Temporal claims
+                /\b(since|in|during|before|after|until|from)\s+\d{4}\b/gi,
+                /\b(first|last|only|never|always|every|none|all)\s+\w+/gi,
+                /\b(historic|record|unprecedented|highest|lowest|biggest|smallest|largest)\b/gi,
+                
+                // Comparisons
+                /\b(increased|decreased|rose|fell|grew|declined|doubled|tripled|quadrupled)\s+by?\s*\d*/gi,
+                /\b(more|less|greater|fewer|higher|lower)\s+than\b/gi,
+                /\b(compared to|versus|vs\.?)\s+\w+/gi,
+                
+                // Source citations
+                /\b(according to|based on|as reported by|cited by|source:|per)\s+[\w\s]+/gi,
+                /\b(studies?|research|surveys?|polls?|data|statistics|reports?)\s+(show|indicate|suggest|reveal|find)/gi,
+                /\b(experts?|scientists?|researchers?|analysts?|officials?)\s+(say|believe|claim|argue|state)/gi,
+                
+                // Specific claims
+                /\b(unemployment|inflation|growth|GDP|population|temperature)\s+(rate|level)?\s*(is|was|stands)?\s*\d*/gi,
+                /\b(minimum wage|interest rate|tax rate)\s+(is|remains|stands)?\s*\$?\d*/gi,
+                /\blife expectancy\s+(is|reached|stands)?\s*\d*/gi,
+                
+                // Absolute statements
+                /\b(no one|nobody|nothing|nowhere|everyone|everybody|everything|everywhere)\b/gi,
+                /\b(must|will|won't|cannot|can't|impossible|guaranteed)\b/gi,
+                
+                // Ranking claims
+                /\b(top|best|worst|leading|number one|#1)\s+\w+/gi,
+                /\b(majority|minority|most|few|many|several)\s+of\s+\w+/gi
             ];
             
             let newClaimsCount = 0;
-            patterns.forEach(pattern => {
-                const matches = text.match(pattern);
-                if (matches) {
-                    matches.forEach(match => {
-                        // Check if claim already exists
-                        const existingClaim = claims.find(c => c.text === match);
-                        if (!existingClaim) {
-                            const claim = {
-                                id: Date.now() + Math.random(),
-                                text: match,
-                                context: text,
-                                timestamp: formatDuration(duration),
-                                status: 'detected'
-                            };
-                            claims.push(claim);
-                            newClaimsCount++;
-                            
-                            // Add to live panel if active
-                            if (document.getElementById('livePanel').classList.contains('active')) {
-                                addToLivePanel(claim);
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            
+            sentences.forEach(sentence => {
+                let sentenceHasClaim = false;
+                
+                patterns.forEach(pattern => {
+                    const matches = sentence.match(pattern);
+                    if (matches) {
+                        matches.forEach(match => {
+                            // Check if claim already exists
+                            const existingClaim = claims.find(c => c.text.toLowerCase() === match.toLowerCase());
+                            if (!existingClaim && match.trim().length > 3) {
+                                const claim = {
+                                    id: Date.now() + Math.random(),
+                                    text: match.trim(),
+                                    context: sentence.trim(),
+                                    timestamp: formatDuration(duration),
+                                    status: 'detected'
+                                };
+                                claims.push(claim);
+                                newClaimsCount++;
+                                sentenceHasClaim = true;
+                                
+                                // Add to live panel if active
+                                if (document.getElementById('livePanel').classList.contains('active')) {
+                                    addToLivePanel(claim);
+                                }
                             }
+                        });
+                    }
+                });
+                
+                // If no specific pattern matched but sentence has factual indicators, add the whole sentence
+                if (!sentenceHasClaim && sentence.trim().length > 10) {
+                    const factualIndicators = /\b(is|are|was|were|has|have|had|will|would|should|could|must)\b/i;
+                    if (factualIndicators.test(sentence) && /\d/.test(sentence)) {
+                        const claim = {
+                            id: Date.now() + Math.random(),
+                            text: sentence.trim(),
+                            context: sentence.trim(),
+                            timestamp: formatDuration(duration),
+                            status: 'detected'
+                        };
+                        claims.push(claim);
+                        newClaimsCount++;
+                        
+                        if (document.getElementById('livePanel').classList.contains('active')) {
+                            addToLivePanel(claim);
                         }
-                    });
+                    }
                 }
             });
             
@@ -3181,7 +2934,7 @@
 
         // Escape regex special characters
         function escapeRegex(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\                <a href="/speech" class="ff-nav-link active"><i class="fas fa-microphone">');
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\                        <div');
         }
 
         // Toggle live panel
@@ -3283,13 +3036,6 @@
             }
         }
 
-        // Toggle dropdown
-        function toggleDropdown(header) {
-            const content = header.nextElementSibling;
-            header.classList.toggle('open');
-            content.classList.toggle('open');
-        }
-
         // Select source
         function selectSource(source) {
             selectedSource = source;
@@ -3326,7 +3072,7 @@
                     <div class="instruction-item">
                         <div class="instruction-number">1</div>
                         <div>
-                            <strong>Start Recording:</strong> Click the "Start Recording" button below (microphone access required)
+                            <strong>Start Recording:</strong> Click the "Start Recording" button above (microphone access required)
                         </div>
                     </div>
                     <div class="instruction-item">
@@ -3430,19 +3176,19 @@
                 hintText.textContent = 'Enter stream URL above and click "Load"';
                 modeBanner.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
                 document.getElementById('urlInputSection').style.display = 'block';
-                document.getElementById('urlInput').placeholder = 'Enter live stream URL...';
+                document.getElementById('urlInput').placeholder = 'Enter YouTube URL or live stream URL...';
                 
                 instructionsList.innerHTML = `
                     <div class="instruction-item">
                         <div class="instruction-number">1</div>
                         <div>
-                            <strong>Stream URL:</strong> Enter the URL of a live stream
+                            <strong>Stream URL:</strong> Enter YouTube URL or live stream URL
                         </div>
                     </div>
                     <div class="instruction-item">
                         <div class="instruction-number">2</div>
                         <div>
-                            <strong>Connect:</strong> Click "Load" to connect to stream
+                            <strong>Connect:</strong> Click "Load" to fetch transcript
                         </div>
                     </div>
                     <div class="instruction-item">
@@ -3728,7 +3474,7 @@
             }
         });
 
-        // Check facts with enhanced features
+        // Enhanced check facts function with better claim extraction
         async function checkFacts() {
             const text = document.getElementById('transcript').textContent;
             if (!text.trim()) {
@@ -3742,8 +3488,8 @@
             // Show results section
             document.getElementById('resultsSection').style.display = 'grid';
             
-            // Extract claims
-            const claimsToCheck = extractClaims(text);
+            // Extract ALL potential claims aggressively
+            const claimsToCheck = extractAllClaims(text);
             
             // Update word count in results
             const words = text.trim().split(/\s+/).filter(w => w.length > 0);
@@ -3764,7 +3510,7 @@
                     // Simulate processing delay
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     
-                    // Generate mock results
+                    // Generate mock results for ALL claims
                     results = claimsToCheck.map(claim => {
                         const verdicts = ['true', 'false', 'unverified'];
                         const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
@@ -3810,44 +3556,70 @@
             }
         }
 
-        // Extract claims
-        function extractClaims(text) {
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+        // Extract ALL claims aggressively
+        function extractAllClaims(text) {
             const extractedClaims = [];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
             
+            // Comprehensive patterns for aggressive claim extraction
             const patterns = [
-                /\d+\.?\d*\s*(percent|%)/i,
-                /\d+\.?\d*\s*(million|billion|trillion)/i,
-                /(is|are|was|were)\s+(now\s+)?\d+/i,
-                /currently\s+stands?\s+at/i,
-                /increased\s+by\s+\d+/i,
-                /decreased\s+by\s+\d+/i,
-                /has\s+(now\s+)?exceeded\s+\d+/i,
-                /remains?\s+at\s+\d+/i,
-                /account\s+for\s+(over\s+)?\d+/i,
-                /since\s+\d{4}/i,
-                /in\s+\d{4}/i,
-                /historic\s+(low|high)/i,
-                /unchanged\s+since/i,
-                /record\s+(high|low|number|amount)/i,
-                /highest\s+since/i,
-                /lowest\s+since/i,
-                /first\s+time\s+in/i,
-                /never\s+before/i,
-                /all-time\s+(high|low)/i
+                // Any sentence with numbers
+                /.*\d+.*/i,
+                // Sentences with comparison words
+                /.*(more|less|greater|fewer|higher|lower|better|worse|increased|decreased|rose|fell|grew|declined).*/i,
+                // Temporal references
+                /.*(year|month|day|time|since|before|after|during|currently|now|today|yesterday|tomorrow|recently).*/i,
+                // Definitive statements
+                /.*(is|are|was|were|will|would|should|could|must|has|have|had).*/i,
+                // Ranking or superlatives
+                /.*(first|last|best|worst|most|least|top|bottom|highest|lowest|biggest|smallest|largest).*/i,
+                // Quantity words
+                /.*(all|none|every|no|some|many|few|several|majority|minority).*/i,
+                // Action verbs suggesting facts
+                /.*(announced|reported|stated|declared|confirmed|revealed|showed|demonstrated|proved).*/i,
+                // Source attributions
+                /.*(according|based|source|study|research|survey|poll|data|statistics|report).*/i,
+                // Categorical statements
+                /.*(always|never|only|just|exactly|approximately|about|around|nearly|almost).*/i
             ];
             
             sentences.forEach(sentence => {
                 const trimmed = sentence.trim();
+                
+                // Skip very short sentences
+                if (trimmed.split(' ').length < 4) {
+                    return;
+                }
+                
+                // Check each pattern
+                let matches = false;
                 for (const pattern of patterns) {
                     if (pattern.test(trimmed)) {
-                        extractedClaims.push(trimmed);
+                        matches = true;
                         break;
                     }
                 }
+                
+                // Add the sentence if it matches any pattern
+                if (matches && !extractedClaims.includes(trimmed)) {
+                    extractedClaims.push(trimmed);
+                }
             });
             
-            return extractedClaims.slice(0, 20); // Limit to 20 claims
+            // If we still have very few claims, add more sentences that have factual indicators
+            if (extractedClaims.length < 5) {
+                sentences.forEach(sentence => {
+                    const trimmed = sentence.trim();
+                    if (trimmed.length > 20 && !extractedClaims.includes(trimmed)) {
+                        // Add any sentence that's reasonably long and not already included
+                        if (extractedClaims.length < 20) {
+                            extractedClaims.push(trimmed);
+                        }
+                    }
+                });
+            }
+            
+            return extractedClaims;
         }
 
         // Display results with enhanced features
@@ -4113,6 +3885,14 @@ According to recent studies, smartphone usage has reached 6.8 billion users worl
 
 In healthcare, life expectancy has increased to 73.4 years globally, though significant disparities exist between countries. COVID-19 vaccines have been administered to over 70% of the world's population.
 
+The economy showed mixed signals last quarter. GDP grew by 2.1%, while inflation remained at 3.2%. Consumer spending increased by 1.5% month-over-month.
+
+Education statistics reveal that literacy rates have reached 86% globally. However, 260 million children still lack access to basic education. Online learning platforms grew by 400% during the pandemic.
+
+Technology advancement continues at a rapid pace. 5G networks now cover 30% of the global population. Artificial intelligence market size reached $150 billion in 2023.
+
+Environmental concerns persist. Deforestation rates decreased by 10% compared to last decade. Ocean plastic pollution affects over 800 marine species. Carbon emissions need to drop by 45% by 2030 to meet climate goals.
+
 Thank you for your attention to these facts.`;
             
             document.getElementById('transcript').innerHTML = highlightClaimsInTranscript(demoText);
@@ -4126,7 +3906,7 @@ Thank you for your attention to these facts.`;
             document.getElementById('realtimeCounter').classList.add('active');
         }
 
-        // Download report
+        // Download report with PDF support
         function downloadReport(format) {
             const transcript = document.getElementById('transcript').textContent;
             const stats = {
@@ -4210,7 +3990,73 @@ ${i + 1}. ${result.claim}
                 URL.revokeObjectURL(url);
                 
             } else if (format === 'pdf') {
-                alert('PDF export would be implemented with a PDF generation library like jsPDF');
+                // Use jsPDF to generate PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Title
+                doc.setFontSize(20);
+                doc.text('Speech Fact-Check Report', 20, 20);
+                
+                // Date
+                doc.setFontSize(10);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+                
+                // Statistics
+                doc.setFontSize(14);
+                doc.text('Statistics:', 20, 45);
+                doc.setFontSize(10);
+                doc.text(`Total Words: ${stats.words}`, 30, 55);
+                doc.text(`Claims Checked: ${stats.claims}`, 30, 62);
+                doc.text(`True Claims: ${stats.true}`, 30, 69);
+                doc.text(`False Claims: ${stats.false}`, 30, 76);
+                doc.text(`Accuracy Rate: ${stats.accuracy}%`, 30, 83);
+                
+                // Transcript (truncated for PDF)
+                doc.setFontSize(14);
+                doc.text('Transcript:', 20, 100);
+                doc.setFontSize(10);
+                
+                const transcriptLines = doc.splitTextToSize(transcript.substring(0, 500) + '...', 170);
+                let yPos = 110;
+                transcriptLines.forEach(line => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(line, 20, yPos);
+                    yPos += 7;
+                });
+                
+                // Fact checks
+                doc.addPage();
+                doc.setFontSize(14);
+                doc.text('Fact Check Results:', 20, 20);
+                
+                yPos = 35;
+                factCheckResults.forEach((result, i) => {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    doc.setFontSize(12);
+                    doc.text(`${i + 1}. ${result.verdict.toUpperCase()}`, 20, yPos);
+                    doc.setFontSize(10);
+                    
+                    const claimLines = doc.splitTextToSize(result.claim, 170);
+                    yPos += 10;
+                    claimLines.forEach(line => {
+                        doc.text(line, 25, yPos);
+                        yPos += 7;
+                    });
+                    
+                    doc.text(`Confidence: ${Math.round(result.confidence * 100)}%`, 25, yPos);
+                    yPos += 15;
+                });
+                
+                // Save PDF
+                doc.save(`speech-fact-check-${new Date().toISOString().slice(0, 10)}.pdf`);
             }
         }
 
@@ -4358,4 +4204,12 @@ ${i + 1}. ${result.claim}
         });
     </script>
 </body>
-</html>
+</html> style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                    </div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div
