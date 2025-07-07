@@ -58,65 +58,47 @@ function getSelectedAnalysisType() {
 function displayResults(results) {
     // Update each tab with results
     
-    // Comment out functions that don't exist yet
-    // TODO: Implement these functions in news-results.js
+    // Make sure all the update functions exist before calling them
+    if (typeof updateSummaryTab === 'function' && results.summary) {
+        updateSummaryTab(results.summary);
+    }
     
-    // updateSummaryTab(results.summary);  // Commented - function not defined
-    // updateBiasTab(results.bias);        // Check if this exists
-    // updateSourcesTab(results.sources);  // Check if this exists
-    // updateCredibilityTab(results.credibility);  // Check if this exists
+    if (typeof updateBiasTab === 'function' && results.bias) {
+        updateBiasTab(results.bias);
+    }
     
-    // For now, let's just log the results to see if analysis is working
-    console.log('Analysis Results:', results);
+    if (typeof updateSourcesTab === 'function' && results.sources) {
+        updateSourcesTab(results.sources);
+    }
+    
+    if (typeof updateCredibilityTab === 'function' && results.credibility) {
+        updateCredibilityTab(results.credibility);
+    }
+    
+    if (typeof updateVerificationTab === 'function' && results.verification) {
+        updateVerificationTab(results.verification);
+    }
+    
+    if (typeof updateAuthorTab === 'function' && results.author) {
+        updateAuthorTab(results.author);
+    }
+    
+    if (typeof updateStyleTab === 'function' && results.style) {
+        updateStyleTab(results.style);
+    }
+    
+    if (typeof updateTemporalTab === 'function' && results.temporal) {
+        updateTemporalTab(results.temporal);
+    }
+    
+    if (typeof updateProTab === 'function') {
+        updateProTab();
+    }
     
     // Show the results container
-    const resultsContainer = document.getElementById('results-container');
+    const resultsContainer = document.getElementById('results');
     if (resultsContainer) {
         resultsContainer.style.display = 'block';
-    }
-    
-    // As a temporary solution, display raw results in the first tab
-    const firstTabContent = document.querySelector('.tab-content');
-    if (firstTabContent && results) {
-        firstTabContent.innerHTML = '<pre>' + JSON.stringify(results, null, 2) + '</pre>';
-    }
-}
-
-// Load tab content dynamically
-function loadTabContent(tabName) {
-    const contentDiv = document.getElementById(tabName + '-content');
-    
-    // Skip if already loaded or is summary (loaded by default)
-    if (contentDiv.innerHTML.trim() !== '' || tabName === 'summary') {
-        return;
-    }
-    
-    // Load content based on tab
-    switch(tabName) {
-        case 'bias':
-            contentDiv.innerHTML = getBiasContent();
-            break;
-        case 'sources':
-            contentDiv.innerHTML = getSourcesContent();
-            break;
-        case 'credibility':
-            contentDiv.innerHTML = getCredibilityContent();
-            break;
-        case 'verification':
-            contentDiv.innerHTML = getVerificationContent();
-            break;
-        case 'author':
-            contentDiv.innerHTML = getAuthorContent();
-            break;
-        case 'style':
-            contentDiv.innerHTML = getStyleContent();
-            break;
-        case 'temporal':
-            contentDiv.innerHTML = getTemporalContent();
-            break;
-        case 'pro':
-            contentDiv.innerHTML = getProContent();
-            break;
     }
 }
 
