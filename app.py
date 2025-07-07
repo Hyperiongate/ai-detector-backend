@@ -3248,7 +3248,7 @@ def perform_basic_news_analysis(content, url_data=None):
 # Helper function to detect article topic
 def detect_article_topic(content, title=''):
     """
-    Detect article topic with better accuracy
+    #Detect article topic with better accuracy
     """
     full_text = (title + ' ' + content).lower()
     
