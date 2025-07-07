@@ -57,15 +57,29 @@ function getSelectedAnalysisType() {
 // Display results
 function displayResults(results) {
     // Update each tab with results
-    updateSummaryTab(results.summary);
-    updateBiasTab(results.bias);
-    updateSourcesTab(results.sources);
-    updateCredibilityTab(results.credibility);
-    updateVerificationTab(results.verification);
-    updateAuthorTab(results.author);
-    updateStyleTab(results.style);
-    updateTemporalTab(results.temporal);
-    updateProTab();
+    
+    // Comment out functions that don't exist yet
+    // TODO: Implement these functions in news-results.js
+    
+    // updateSummaryTab(results.summary);  // Commented - function not defined
+    // updateBiasTab(results.bias);        // Check if this exists
+    // updateSourcesTab(results.sources);  // Check if this exists
+    // updateCredibilityTab(results.credibility);  // Check if this exists
+    
+    // For now, let's just log the results to see if analysis is working
+    console.log('Analysis Results:', results);
+    
+    // Show the results container
+    const resultsContainer = document.getElementById('results-container');
+    if (resultsContainer) {
+        resultsContainer.style.display = 'block';
+    }
+    
+    // As a temporary solution, display raw results in the first tab
+    const firstTabContent = document.querySelector('.tab-content');
+    if (firstTabContent && results) {
+        firstTabContent.innerHTML = '<pre>' + JSON.stringify(results, null, 2) + '</pre>';
+    }
 }
 
 // Load tab content dynamically
