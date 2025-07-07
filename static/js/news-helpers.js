@@ -1,5 +1,5 @@
 // ============================================
-// NEWS VERIFICATION PLATFORM - HELPER FUNCTIONS
+// NEWS VERIFICATION PLATFORM - HELPER FUNCTIONS 
 // ============================================
 
 // Helper function to calculate compass rotation
