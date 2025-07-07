@@ -6,7 +6,7 @@ from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFoun
 from datetime import datetime, timedelta
 import traceback
 import json
-import requests
+import requests 
 from urllib.parse import urlparse
 import re
 from functools import wraps
