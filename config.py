@@ -19,6 +19,13 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_POOL_SIZE = int(os.environ.get('SQLALCHEMY_POOL_SIZE', 10))
     SQLALCHEMY_MAX_OVERFLOW = int(os.environ.get('SQLALCHEMY_MAX_OVERFLOW', 20))
+    # At the very bottom of config.py, add:
+
+# Make config attributes directly accessible
+_config = get_config()()  # Get an instance of the config class
+for key in dir(_config):
+    if not key.startswith('_'):
+        globals()[key] = getattr(_config, key)
     SQLALCHEMY_POOL_TIMEOUT = 30
     SQLALCHEMY_POOL_RECYCLE = 3600  # 1 hour
     
