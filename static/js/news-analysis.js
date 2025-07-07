@@ -1,7 +1,7 @@
 // News Analysis Main Functions
 
 // Analyze article
-function analyzeArticle() {
+function analyzeArticle() { 
     const url = document.getElementById('articleUrl').value;
     if (!url) {
         alert('Please enter a URL or topic to analyze');
