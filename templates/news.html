@@ -1,169 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">  
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>NewsVerify Pro - News Verification Platform</title>
-    
-    <!-- Google Analytics 4 Integration -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9CLSNV2S8Q"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-9CLSNV2S8Q');
-        
-        // Custom Analytics Events for News Verification Page
-        function trackNewsEvent(eventName, eventData = {}) {
-            gtag('event', eventName, {
-                event_category: 'News_Verification',
-                page_title: 'NewsVerify Pro - News Verification Platform',
-                ...eventData
-            });
-            
-            // Backend analytics tracking
-            if (typeof backendAnalytics !== 'undefined') {
-                backendAnalytics.track(eventName, {
-                    page: 'news_verification',
-                    timestamp: new Date().toISOString(),
-                    ...eventData
-                });
-            }
-        }
-        
-        // Track page view
-        gtag('event', 'page_view', {
-            page_title: 'NewsVerify Pro - News Verification Platform',
-            page_location: window.location.href,
-            content_group1: 'News Verification'
-        });
-    </script>
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
-    
-    <!-- Separated CSS files -->
-    <link rel="stylesheet" href="/static/css/news-main.css">
-    <link rel="stylesheet" href="/static/css/news-components.css">
-    <link rel="stylesheet" href="/static/css/news-responsive.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-</head>
-<body>
-    {% include 'header.html' %}
+{% extends "base.html" %}
 
-    <!-- Beta Banner -->
-    {% include 'partials/news-beta-banner.html' %}
+{% block title %}News Analysis Dashboard{% endblock %}
 
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-shield-alt"></i> NewsVerify Pro</h1>
-            <p>Professional News Verification Engine • Advanced political bias detection, source credibility scoring, and cross-reference verification</p>
-            <p style="font-size: 0.95rem; opacity: 0.8;">The World's First AI Platform Built Specifically for News Verification & Media Analysis</p>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/news-main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/news-components.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/news-specialized.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/new-responsiveness.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>News Analysis Dashboard</h1>
+        <p>Advanced AI-powered news verification and analysis</p>
+    </div>
+    
+    <div class="input-section">
+        <div class="choose-indicator">Choose One</div>
+        <h2>Select Analysis Type</h2>
+        <div class="input-options">
+            <div class="input-option" onclick="selectInput('url')">
+                <h3>📰 Article URL</h3>
+                <p>Analyze a specific article</p>
+            </div>
+            <div class="input-option" onclick="selectInput('topic')">
+                <h3>🔍 Topic Search</h3>
+                <p>Analyze coverage of a topic</p>
+            </div>
+            <div class="input-option" onclick="selectInput('comparison')">
+                <h3>⚖️ Compare Sources</h3>
+                <p>Compare multiple articles</p>
+            </div>
         </div>
-
-        <nav class="nav-bar">
-            <div class="nav-links-secondary">
-                <a href="/"><i class="fas fa-home"></i> Home</a>
-                <a href="/news" class="active"><i class="fas fa-newspaper"></i> News Verification</a>
-                <a href="/unified"><i class="fas fa-search"></i> Content Authenticity</a>
-                <a href="/imageanalysis"><i class="fas fa-image"></i> AI Image Analysis</a>
-                <a href="/missionstatement"><i class="fas fa-bullseye"></i> Our Mission</a>
-                <a href="/pricingplan"><i class="fas fa-tags"></i> Pricing</a>
+        <div id="input-area" style="display:none;">
+            <input type="text" class="url-input" id="articleUrl" placeholder="Enter article URL or topic...">
+            <button class="analyze-button" onclick="analyzeArticle()">Analyze</button>
+        </div>
+    </div>
+    
+    <div id="results" style="display:none;">
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('summary')">Summary</button>
+                <button class="tab" onclick="switchTab('bias')">Political Bias</button>
+                <button class="tab" onclick="switchTab('sources')">Sources</button>
+                <button class="tab" onclick="switchTab('credibility')">Credibility</button>
+                <button class="tab" onclick="switchTab('verification')">Cross-Source</button>
+                <button class="tab" onclick="switchTab('author')">Author</button>
+                <button class="tab" onclick="switchTab('style')">Writing Style</button>
+                <button class="tab" onclick="switchTab('temporal')">Temporal Intel</button>
+                <button class="tab" onclick="switchTab('pro')">Pro Analysis</button>
             </div>
-        </nav>
-
-        <div class="tool-container">
-            <!-- Compact Collapsible Information Sections -->
-            {% include 'partials/news-info-sections.html' %}
-
-            <!-- Authentication Message Area -->
-            <div id="authMessageArea"></div>
-
-            <!-- Progress Section -->
-            {% include 'components/progress-section.html' %}
-
-            <!-- Input Section -->
-            <div class="input-section">
-                <div class="input-tabs">
-                    <button class="input-tab active" onclick="newsUI.switchInputType('text')">📝 News Text Analysis</button>
-                    <button class="input-tab" onclick="newsUI.switchInputType('url')">🔗 URL Verification</button>
+            
+            <!-- Tab Contents -->
+            <div id="tab-contents">
+                <!-- Summary Tab -->
+                <div class="tab-content active" id="summary-content">
+                    {% include 'partials/news-info-sections.html' %}
                 </div>
                 
-                <div class="input-content active" id="textInput">
-                    <div class="tab-explanation">
-                        <h3>📝 News Text Analysis</h3>
-                        <p><strong>What it's for:</strong> Social media posts, forwarded messages, copied articles</p>
-                        <p><strong>What we analyze:</strong></p>
-                        <ul>
-                            <li>Writing style and language patterns</li>
-                            <li>Bias indicators and emotional language</li>
-                            <li>Fact-checking against our database</li>
-                        </ul>
-                        <p><strong>Key benefit:</strong> No source URL needed - perfect for viral messages</p>
-                    </div>
-                    <div class="input-group">
-                        <label for="news-text"><i class="fas fa-file-text"></i> News Article or Social Media Content</label>
-                        <textarea id="news-text" placeholder="Paste news article, social media post, or any news content for comprehensive verification and bias analysis..."></textarea>
-                    </div>
-                </div>
-                
-                <div class="input-content" id="urlInput">
-                    <div class="tab-explanation">
-                        <h3>🔗 URL Verification</h3>
-                        <p><strong>What it's for:</strong> Online news articles, blog posts, official statements</p>
-                        <p><strong>What we analyze:</strong></p>
-                        <ul>
-                            <li>Source reputation and domain authority</li>
-                            <li>Publication patterns and history</li>
-                            <li>Cross-reference with fact-checking databases</li>
-                        </ul>
-                        <p><strong>Key benefit:</strong> Includes metadata and source verification</p>
-                    </div>
-                    <div class="input-group">
-                        <label for="news-url"><i class="fas fa-link"></i> News Article URL</label>
-                        <input type="url" id="news-url" placeholder="https://example.com/news-article-for-verification">
-                    </div>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="newsAnalysis.runAnalysis('free')">
-                    <i class="fas fa-play"></i> Start Free Analysis
-                </button>
-                <button class="btn btn-primary" onclick="newsAnalysis.runAnalysis('pro')" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                    <i class="fas fa-crown"></i> Start Pro Analysis
-                </button>
-                <button class="btn btn-test" onclick="newsUI.loadTestData()">
-                    <i class="fas fa-flask"></i> Load Sample News
-                </button>
-                <button class="btn btn-secondary" onclick="newsUI.resetForm()">
-                    <i class="fas fa-redo"></i> Reset
-                </button>
-            </div>
-
-            <div class="results" id="results">
-                <!-- Results will be populated here -->
+                <!-- Other tabs will be dynamically loaded -->
+                <div class="tab-content" id="bias-content"></div>
+                <div class="tab-content" id="sources-content"></div>
+                <div class="tab-content" id="credibility-content"></div>
+                <div class="tab-content" id="verification-content"></div>
+                <div class="tab-content" id="author-content"></div>
+                <div class="tab-content" id="style-content"></div>
+                <div class="tab-content" id="temporal-content"></div>
+                <div class="tab-content" id="pro-content"></div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Back to Top Button -->
-    <button class="back-to-top" id="backToTop" onclick="newsUI.scrollToTop()">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+<!-- Include modals -->
+{% include 'partials/news-modals.html' %}
 
-    <!-- Modals -->
-    {% include 'partials/news-modals.html' %}
+{% endblock %}
 
-    <!-- Load authentication script if needed -->
-    <script src="/static/auth-analysis.js"></script>
-    
-    <!-- Load separated JavaScript files -->
-    <script src="/static/js/news-helpers.js"></script>
-    <script src="/static/js/news-analysis.js"></script>
-    <script src="/static/js/news-ui.js"></script>
-    <script src="/static/js/news-results.js"></script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/news-helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/news-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/news-analysis.js') }}"></script>
+<script src="{{ url_for('static', filename='js/news-results.js') }}"></script>
+{% endblock %}
