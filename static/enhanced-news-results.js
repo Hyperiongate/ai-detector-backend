@@ -1,5 +1,5 @@
 // enhanced-news-results.js - Enhanced UI with REAL data connections
-// This file creates beautiful visualizations using only real data from your backend
+// This file creates beautiful visualizations using only real data from your backend 
 
 (function() {
     'use strict';
