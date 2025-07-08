@@ -218,37 +218,24 @@ function stopProgress() {
 }
 
 // ============================================================================
-// MAIN ANALYSIS FUNCTION
+// MAIN ANALYSIS FUNCTION - FIXED FOR YOUR HTML
 // ============================================================================
 
 async function analyzeArticle() {
-    const urlInput = document.getElementById('article-url');
-    const textInput = document.getElementById('news-text');
-    const currentInputType = document.querySelector('.input-tab.active').textContent.includes('Text') ? 'text' : 'url';
+    const urlInput = document.getElementById('articleUrl'); // Fixed ID
+    const currentInputType = 'url'; // Your HTML only supports URL input
     
     let content = '';
-    if (currentInputType === 'text') {
-        content = textInput.value.trim();
-        if (!content) {
-            showNotification('Please enter news content to analyze', 'error');
-            return;
-        }
-        if (content.length < 50) {
-            showNotification('Please enter at least 50 characters for analysis', 'error');
-            return;
-        }
-    } else {
-        content = urlInput.value.trim();
-        if (!content) {
-            showNotification('Please enter a URL to analyze', 'error');
-            return;
-        }
-        try {
-            new URL(content);
-        } catch (e) {
-            showNotification('Please enter a valid URL', 'error');
-            return;
-        }
+    content = urlInput.value.trim();
+    if (!content) {
+        showNotification('Please enter a URL to analyze', 'error');
+        return;
+    }
+    try {
+        new URL(content);
+    } catch (e) {
+        showNotification('Please enter a valid URL', 'error');
+        return;
     }
     
     // Show loading state
