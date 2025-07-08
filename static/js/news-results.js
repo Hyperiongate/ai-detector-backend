@@ -1,4 +1,4 @@
-// news-results.js - Enhanced Results Display with Expandable Cards and Real Data
+// news-results.js - Fixed Results Display with Conversational Format
 (function() {
     'use strict';
     
@@ -6,9 +6,9 @@
     window.NewsApp = window.NewsApp || {};
     
     NewsApp.results = {
-        // Display the complete analysis results with enhanced UI
+        // Display the complete analysis results with conversational format
         displayResults: function(data) {
-            console.log('Displaying enhanced results with expandable cards:', data);
+            console.log('Displaying results:', data);
             
             if (!data || !data.results) {
                 console.error('Invalid data structure:', data);
@@ -24,171 +24,148 @@
                 return;
             }
             
-            // Extract REAL data from backend
+            // Extract data from backend
             const trustScore = results.credibility || 0;
             const biasData = results.bias || {};
             const sourceInfo = results.sources || {};
             const authorName = results.author || 'Not Specified';
             const styleData = results.style || {};
-            const claims = results.claims || [];
-            const crossRefs = results.cross_references || [];
-            const temporalData = results.temporal_analysis || {};
-            const contentStats = results.content_stats || {};
+            const originalContent = data.original_content || '';
             
-            // Build enhanced UI with expandable cards
+            // Determine trust level and color
+            const trustLevel = trustScore >= 80 ? 'High' : trustScore >= 60 ? 'Moderate' : 'Low';
+            const trustColor = trustScore >= 80 ? '#00ff88' : trustScore >= 60 ? '#ffff00' : '#ff4444';
+            
+            // Get article summary (first 150 chars of content)
+            const articleSummary = originalContent.length > 150 ? 
+                originalContent.substring(0, 150) + '...' : 
+                originalContent || 'No content summary available';
+            
+            // Build conversational UI
             resultsDiv.innerHTML = `
-                <div class="enhanced-results-container" style="
+                <div class="analysis-results" style="
                     background: linear-gradient(135deg, rgba(10,14,39,0.95), rgba(0,0,0,0.95));
                     border: 2px solid rgba(0,255,255,0.3);
                     border-radius: 20px;
                     padding: 40px;
                     margin: 20px 0;
                     color: #fff;
-                    position: relative;
-                    overflow: hidden;
                     box-shadow: 0 0 40px rgba(0,255,255,0.3);
                 ">
-                    <!-- Animated background pattern -->
-                    <div style="
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        opacity: 0.05;
-                        background-image: repeating-linear-gradient(
-                            45deg,
-                            transparent,
-                            transparent 10px,
-                            rgba(0,255,255,0.1) 10px,
-                            rgba(0,255,255,0.1) 20px
-                        );
-                        pointer-events: none;
-                    "></div>
-                    
-                    <!-- Header -->
-                    <div class="results-header" style="text-align: center; margin-bottom: 40px; position: relative;">
+                    <!-- Header with Trust Score -->
+                    <div style="text-align: center; margin-bottom: 40px;">
                         <h2 style="
                             font-size: 2.5em;
-                            background: linear-gradient(45deg, #00ffff, #ff00ff, #00ff88);
-                            background-size: 200% 200%;
+                            background: linear-gradient(45deg, #00ffff, #ff00ff);
                             -webkit-background-clip: text;
                             -webkit-text-fill-color: transparent;
-                            animation: gradientShift 4s ease infinite;
-                            margin-bottom: 10px;
+                            margin-bottom: 20px;
                         ">Analysis Complete</h2>
-                        <p style="color: #00ffff; opacity: 0.8;">
-                            Powered by keyword analysis and source verification
-                        </p>
+                        
+                        <!-- Trust Score Display -->
+                        <div style="
+                            display: inline-block;
+                            background: rgba(255,255,255,0.05);
+                            border: 2px solid ${trustColor};
+                            border-radius: 100px;
+                            padding: 20px 40px;
+                            margin-bottom: 30px;
+                        ">
+                            <div style="font-size: 48px; font-weight: bold; color: ${trustColor};">
+                                ${trustScore}%
+                            </div>
+                            <div style="font-size: 20px; color: #aaa; margin-top: 5px;">
+                                ${trustLevel} Trust Score
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Main Metrics Row -->
+                    <!-- Main Conversational Section -->
                     <div style="
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 30px;
-                        margin-bottom: 40px;
+                        background: rgba(255,255,255,0.03);
+                        border-radius: 15px;
+                        padding: 30px;
+                        margin-bottom: 30px;
                     ">
-                        <!-- Trust Score Circle -->
-                        <div style="text-align: center;">
-                            <h3 style="color: #00ffff; margin-bottom: 20px; font-size: 1.5em;">Trust Score</h3>
-                            ${this.createTrustCircle(trustScore)}
-                            <p style="color: #aaa; margin-top: 10px; font-size: 14px;">
-                                Based on source credibility and content analysis
-                            </p>
+                        <!-- 1. Source & Author -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #00ffff; font-size: 1.5em; margin-bottom: 15px;">
+                                📰 Source & Author
+                            </h3>
+                            <div style="font-size: 18px; line-height: 1.8; color: #ddd;">
+                                ${this.getSourceDescription(sourceInfo, authorName)}
+                            </div>
                         </div>
                         
-                        <!-- Bias Gauge -->
-                        <div style="text-align: center;">
-                            <h3 style="color: #ff00ff; margin-bottom: 20px; font-size: 1.5em;">Political Bias</h3>
-                            ${this.createBiasGauge(biasData)}
-                            <p style="color: #aaa; margin-top: 10px; font-size: 14px;">
-                                Objectivity: ${biasData.objectivity || 0}%
-                            </p>
+                        <!-- 2. What is this article about? -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #ff00ff; font-size: 1.5em; margin-bottom: 15px;">
+                                📋 What is this article about?
+                            </h3>
+                            <div style="
+                                background: rgba(255,0,255,0.1);
+                                padding: 20px;
+                                border-radius: 10px;
+                                font-size: 16px;
+                                line-height: 1.6;
+                                color: #ddd;
+                            ">
+                                ${articleSummary}
+                            </div>
+                        </div>
+                        
+                        <!-- 3. What did we find? -->
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="color: #00ff88; font-size: 1.5em; margin-bottom: 15px;">
+                                🔍 What did we find?
+                            </h3>
+                            <div style="font-size: 16px; line-height: 1.8; color: #ddd;">
+                                ${this.getConversationalFindings(trustScore, biasData, styleData)}
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- 8 Expandable Analysis Cards -->
-                    <div class="analysis-cards" style="margin-bottom: 30px;">
+                    <!-- Expandable Educational Cards -->
+                    <div style="margin-bottom: 30px;">
                         <h3 style="color: #00ffff; text-align: center; margin-bottom: 30px; font-size: 1.8em;">
-                            Detailed Analysis - Click Cards to Expand
+                            📚 Understanding Our Analysis - Click to Learn More
                         </h3>
                         
                         <div style="
                             display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                             gap: 20px;
                         ">
-                            <!-- 1. Credibility Analysis Card -->
-                            ${this.createExpandableCard(
+                            ${this.createEducationalCard(
                                 '🎯',
-                                'Credibility Analysis',
-                                this.getCredibilityContent(trustScore, sourceInfo),
+                                'How We Calculate Trust Score',
+                                this.getTrustEducation(trustScore, sourceInfo, styleData),
                                 '#00ffff',
-                                'credibility'
+                                'trust-edu'
                             )}
                             
-                            <!-- 2. Bias Detection Card -->
-                            ${this.createExpandableCard(
+                            ${this.createEducationalCard(
                                 '⚖️',
-                                'Bias Detection',
-                                this.getBiasContent(biasData),
+                                'How We Detect Bias',
+                                this.getBiasEducation(biasData),
                                 '#ff00ff',
-                                'bias'
+                                'bias-edu'
                             )}
                             
-                            <!-- 3. Source Verification Card -->
-                            ${this.createExpandableCard(
-                                '🔍',
-                                'Source Verification',
-                                this.getSourceContent(sourceInfo),
-                                '#00ff88',
-                                'source'
-                            )}
-                            
-                            <!-- 4. Author Information Card -->
-                            ${this.createExpandableCard(
-                                '👤',
-                                'Author Information',
-                                this.getAuthorContent(authorName, sourceInfo),
-                                '#ffff00',
-                                'author'
-                            )}
-                            
-                            <!-- 5. Writing Style Card -->
-                            ${this.createExpandableCard(
+                            ${this.createEducationalCard(
                                 '✍️',
-                                'Writing Style Analysis',
-                                this.getStyleContent(styleData),
+                                'What Makes Quality Journalism',
+                                this.getQualityEducation(styleData),
+                                '#00ff88',
+                                'quality-edu'
+                            )}
+                            
+                            ${this.createEducationalCard(
+                                '⚠️',
+                                'Our Limitations',
+                                this.getLimitationsEducation(),
                                 '#ff8800',
-                                'style'
-                            )}
-                            
-                            <!-- 6. Fact Checking Card -->
-                            ${this.createExpandableCard(
-                                '✓',
-                                'Fact Checking',
-                                this.getFactCheckContent(claims),
-                                '#ff0088',
-                                'facts'
-                            )}
-                            
-                            <!-- 7. Cross References Card -->
-                            ${this.createExpandableCard(
-                                '🔗',
-                                'Cross References',
-                                this.getCrossRefContent(crossRefs),
-                                '#8800ff',
-                                'crossref'
-                            )}
-                            
-                            <!-- 8. Temporal Analysis Card -->
-                            ${this.createExpandableCard(
-                                '📅',
-                                'Temporal Analysis',
-                                this.getTemporalContent(temporalData, contentStats),
-                                '#00ffcc',
-                                'temporal'
+                                'limits-edu'
                             )}
                         </div>
                     </div>
@@ -198,7 +175,6 @@
                         display: flex;
                         gap: 15px;
                         justify-content: center;
-                        margin-top: 40px;
                         flex-wrap: wrap;
                     ">
                         <button onclick="NewsApp.results.generatePDF()" style="
@@ -212,12 +188,8 @@
                             cursor: pointer;
                             transition: all 0.3s;
                             box-shadow: 0 4px 15px rgba(0,255,255,0.4);
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,255,255,0.6)'"
-                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,255,255,0.4)'">
-                            📄 Download PDF Report
+                        ">
+                            📄 Download Report
                         </button>
                         
                         <button onclick="NewsApp.results.shareResults()" style="
@@ -231,15 +203,11 @@
                             cursor: pointer;
                             transition: all 0.3s;
                             box-shadow: 0 4px 15px rgba(255,0,255,0.4);
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255,0,255,0.6)'"
-                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255,0,255,0.4)'">
+                        ">
                             📤 Share Analysis
                         </button>
                         
-                        <button onclick="NewsApp.ui.resetAnalysis()" style="
+                        <button onclick="NewsApp.results.resetAnalysis()" style="
                             background: linear-gradient(45deg, #00ff88, #00cc66);
                             color: #0a0e27;
                             border: none;
@@ -250,29 +218,9 @@
                             cursor: pointer;
                             transition: all 0.3s;
                             box-shadow: 0 4px 15px rgba(0,255,136,0.4);
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0,255,136,0.6)'"
-                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,255,136,0.4)'">
+                        ">
                             🔄 New Analysis
                         </button>
-                    </div>
-                    
-                    <!-- Methodology Note -->
-                    <div style="
-                        text-align: center;
-                        padding: 20px;
-                        background: rgba(255,255,255,0.05);
-                        border-radius: 10px;
-                        margin-top: 30px;
-                    ">
-                        <p style="color: #aaa; font-size: 14px; margin: 0;">
-                            <strong>Analysis Method:</strong> 
-                            ${results.methodology?.analysis_type || 'Keyword-based analysis'} | 
-                            Processing time: ${results.methodology?.processing_time || 'N/A'} | 
-                            Source database: ${Object.keys(sourceInfo).length > 0 ? 'Verified' : 'Not in database'}
-                        </p>
                     </div>
                 </div>
             `;
@@ -282,174 +230,103 @@
             
             // Scroll to results
             resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+        
+        // Get conversational source description
+        getSourceDescription: function(sourceInfo, authorName) {
+            let description = '';
             
-            // Add gradient animation style if not already added
-            if (!document.getElementById('gradient-animation-style')) {
-                const style = document.createElement('style');
-                style.id = 'gradient-animation-style';
-                style.textContent = `
-                    @keyframes gradientShift {
-                        0% { background-position: 0% 50%; }
-                        50% { background-position: 100% 50%; }
-                        100% { background-position: 0% 50%; }
-                    }
-                `;
-                document.head.appendChild(style);
+            // Handle source
+            if (sourceInfo.domain && sourceInfo.domain !== 'Direct Input' && sourceInfo.domain !== 'Unknown Source') {
+                description += `This article comes from <strong style="color: #00ffff;">${sourceInfo.name || sourceInfo.domain}</strong>`;
+                
+                if (sourceInfo.credibility) {
+                    description += `, a ${sourceInfo.bias || 'politically neutral'} news source with a ${sourceInfo.credibility}% credibility rating in our database`;
+                }
+            } else {
+                description += `This content was <strong style="color: #ff8800;">directly pasted</strong> or comes from an <strong style="color: #ff8800;">unverified source</strong>`;
             }
+            
+            // Handle author
+            if (authorName && authorName !== 'Not Specified' && authorName !== 'Unknown Author') {
+                description += `. It was written by <strong style="color: #00ffff;">${authorName}</strong>`;
+            } else {
+                description += `. <strong style="color: #ff8800;">No author</strong> was identified, which may affect credibility`;
+            }
+            
+            description += '.';
+            
+            return description;
         },
         
-        // Create animated trust circle
-        createTrustCircle: function(score) {
-            const radius = 80;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (score / 100) * circumference;
+        // Get conversational findings
+        getConversationalFindings: function(trustScore, biasData, styleData) {
+            let findings = '';
             
-            const color = score >= 80 ? '#00ff88' : score >= 60 ? '#ffff00' : '#ff4444';
-            const label = score >= 80 ? 'High' : score >= 60 ? 'Moderate' : 'Low';
+            // Trust finding
+            if (trustScore >= 80) {
+                findings += `✅ <strong style="color: #00ff88;">Good news!</strong> This article scores high on our trust metrics. `;
+            } else if (trustScore >= 60) {
+                findings += `⚠️ <strong style="color: #ffff00;">Mixed signals:</strong> This article has moderate credibility. `;
+            } else {
+                findings += `❌ <strong style="color: #ff4444;">Be cautious:</strong> This article scores low on our trust metrics. `;
+            }
             
-            return `
-                <div style="position: relative; display: inline-block;">
-                    <svg width="200" height="200" style="transform: rotate(-90deg);">
-                        <!-- Background circle -->
-                        <circle
-                            cx="100"
-                            cy="100"
-                            r="${radius}"
-                            stroke="rgba(255,255,255,0.1)"
-                            stroke-width="15"
-                            fill="none"
-                        />
-                        <!-- Progress circle -->
-                        <circle
-                            cx="100"
-                            cy="100"
-                            r="${radius}"
-                            stroke="${color}"
-                            stroke-width="15"
-                            fill="none"
-                            stroke-dasharray="${circumference}"
-                            stroke-dashoffset="${offset}"
-                            style="
-                                transition: stroke-dashoffset 1s ease-in-out;
-                                filter: drop-shadow(0 0 10px ${color});
-                            "
-                        />
-                    </svg>
-                    <div style="
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        text-align: center;
-                    ">
-                        <div style="font-size: 48px; font-weight: bold; color: ${color};">
-                            ${score}%
-                        </div>
-                        <div style="font-size: 18px; color: #aaa; margin-top: 5px;">
-                            ${label} Trust
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Bias finding
+            const biasLabel = biasData.label || 'unknown';
+            if (biasLabel === 'center' || biasLabel === 'unknown') {
+                findings += `The content appears <strong>politically balanced</strong> `;
+            } else {
+                findings += `We detected a <strong style="color: #ff00ff;">${biasLabel}</strong> political lean `;
+            }
+            
+            findings += `with ${biasData.objectivity || 0}% objectivity. `;
+            
+            // Quality finding
+            const quotes = styleData.quotes || 0;
+            const stats = styleData.statistics || 0;
+            
+            if (quotes >= 2 && stats >= 2) {
+                findings += `<br><br>📊 <strong style="color: #00ff88;">Strong journalism indicators:</strong> The article includes ${quotes} direct quotes and ${stats} statistical references, suggesting thorough reporting.`;
+            } else if (quotes > 0 || stats > 0) {
+                findings += `<br><br>📊 <strong style="color: #ffff00;">Some evidence present:</strong> We found ${quotes} quotes and ${stats} statistics. More sources would strengthen credibility.`;
+            } else {
+                findings += `<br><br>📊 <strong style="color: #ff8800;">Limited evidence:</strong> The article lacks direct quotes or statistics, which are hallmarks of quality journalism.`;
+            }
+            
+            // Emotional language
+            if (biasData.emotional_indicators > 3) {
+                findings += `<br><br>⚡ <strong style="color: #ff8800;">Note:</strong> We detected ${biasData.emotional_indicators} emotionally charged words, which may indicate sensationalized reporting.`;
+            }
+            
+            return findings;
         },
         
-        // Create bias gauge
-        createBiasGauge: function(biasData) {
-            const score = biasData.score || 0; // -10 to +10
-            const label = biasData.label || 'Unknown';
-            const position = ((score + 10) / 20) * 100; // Convert to 0-100%
-            
+        // Create educational card
+        createEducationalCard: function(icon, title, content, color, id) {
             return `
-                <div style="position: relative; width: 200px; margin: 0 auto;">
-                    <!-- Gauge background -->
-                    <div style="
-                        height: 100px;
-                        background: linear-gradient(to right, #0066cc, #888, #cc0000);
-                        border-radius: 100px 100px 0 0;
-                        position: relative;
-                        overflow: hidden;
-                        box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
-                    ">
-                        <!-- Gauge needle -->
-                        <div style="
-                            position: absolute;
-                            bottom: 0;
-                            left: ${position}%;
-                            width: 2px;
-                            height: 100px;
-                            background: #fff;
-                            transform-origin: bottom;
-                            transition: left 1s ease-in-out;
-                            box-shadow: 0 0 10px rgba(255,255,255,0.8);
-                        "></div>
-                        <!-- Center dot -->
-                        <div style="
-                            position: absolute;
-                            bottom: -5px;
-                            left: ${position}%;
-                            width: 10px;
-                            height: 10px;
-                            background: #fff;
-                            border-radius: 50%;
-                            transform: translateX(-50%);
-                            box-shadow: 0 0 10px rgba(255,255,255,0.8);
-                        "></div>
-                    </div>
-                    <!-- Labels -->
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        margin-top: 10px;
-                        font-size: 12px;
-                        color: #aaa;
-                    ">
-                        <span>Left</span>
-                        <span>Center</span>
-                        <span>Right</span>
-                    </div>
-                    <!-- Current bias label -->
-                    <div style="
-                        text-align: center;
-                        margin-top: 10px;
-                        font-size: 18px;
-                        font-weight: bold;
-                        text-transform: capitalize;
-                        color: ${label.includes('left') ? '#0066cc' : label.includes('right') ? '#cc0000' : '#888'};
-                    ">
-                        ${label}
-                    </div>
-                </div>
-            `;
-        },
-        
-        // Create expandable card with animation
-        createExpandableCard: function(icon, title, content, color, id) {
-            return `
-                <div class="analysis-card" style="
+                <div class="edu-card" style="
                     background: rgba(255,255,255,0.05);
                     border: 1px solid ${color}33;
                     border-radius: 15px;
                     padding: 20px;
                     cursor: pointer;
                     transition: all 0.3s;
-                    position: relative;
-                    overflow: hidden;
                 " 
-                onmouseover="this.style.borderColor='${color}66'; this.style.background='rgba(255,255,255,0.08)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 20px rgba(0,0,0,0.3)'"
-                onmouseout="this.style.borderColor='${color}33'; this.style.background='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-                onclick="NewsApp.results.toggleCard('${id}')">
+                onclick="NewsApp.results.toggleCard('${id}')"
+                onmouseover="this.style.borderColor='${color}66'; this.style.background='rgba(255,255,255,0.08)'"
+                onmouseout="this.style.borderColor='${color}33'; this.style.background='rgba(255,255,255,0.05)'">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center;">
                             <span style="font-size: 28px; margin-right: 12px;">${icon}</span>
-                            <h4 style="color: ${color}; margin: 0; font-size: 18px; font-weight: 600;">${title}</h4>
+                            <h4 style="color: ${color}; margin: 0; font-size: 18px;">${title}</h4>
                         </div>
-                        <span id="${id}-arrow" style="color: ${color}; transition: transform 0.3s; font-size: 20px;">▼</span>
+                        <span id="${id}-arrow" style="color: ${color}; transition: transform 0.3s;">▼</span>
                     </div>
                     <div id="${id}-content" style="
                         max-height: 0;
                         overflow: hidden;
                         transition: max-height 0.3s ease-out;
-                        margin-top: 0;
                     ">
                         <div style="padding-top: 20px; color: #ddd; line-height: 1.6;">
                             ${content}
@@ -459,278 +336,127 @@
             `;
         },
         
-        // Card content generators with REAL data
-        getCredibilityContent: function(score, sourceInfo) {
+        // Educational content generators
+        getTrustEducation: function(score, sourceInfo, styleData) {
             return `
+                <h5 style="color: #00ffff; margin: 0 0 15px 0;">Your article scored ${score}% - here's why:</h5>
+                
                 <div style="background: rgba(0,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #00ffff; margin: 0 0 10px 0;">Overall Credibility Score</h5>
-                    <div style="font-size: 36px; font-weight: bold; color: ${score >= 80 ? '#00ff88' : score >= 60 ? '#ffff00' : '#ff4444'};">
-                        ${score}%
-                    </div>
+                    <strong>How we calculate trust scores:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Base score from source reputation (${sourceInfo.credibility || 50}%)</li>
+                        <li>+5% if author is clearly identified</li>
+                        <li>+5% if publication date is present</li>
+                        <li>+10% if article includes direct quotes</li>
+                        <li>+5% if statistics are properly cited</li>
+                        <li>-5% for excessive emotional language</li>
+                    </ul>
                 </div>
                 
-                <h5 style="color: #00ffff; margin: 20px 0 10px 0;">Credibility Factors:</h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;">✓ Source verification: ${sourceInfo.domain ? 'Verified' : 'Not in database'}</li>
-                    <li style="margin-bottom: 8px;">✓ Author attribution: ${sourceInfo.author ? 'Present' : 'Missing'}</li>
-                    <li style="margin-bottom: 8px;">✓ Content structure: Analyzed</li>
-                    <li style="margin-bottom: 8px;">✓ Citation quality: Assessed</li>
-                </ul>
+                <p><strong>What this means:</strong> ${
+                    score >= 80 ? 
+                    "This is a highly credible article from a reputable source with good journalistic practices." :
+                    score >= 60 ?
+                    "This article has decent credibility but may lack some important journalistic elements." :
+                    "This article has low credibility - verify information with additional sources."
+                }</p>
                 
                 <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Credibility score is calculated based on source reputation, author credentials, 
-                    citation quality, and content structure analysis.
+                    <strong>Remember:</strong> Even high-scoring articles can contain errors. Always think critically about what you read.
                 </p>
             `;
         },
         
-        getBiasContent: function(biasData) {
+        getBiasEducation: function(biasData) {
             return `
+                <h5 style="color: #ff00ff; margin: 0 0 15px 0;">We detected: ${biasData.label || 'Unknown bias'}</h5>
+                
                 <div style="background: rgba(255,0,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #ff00ff; margin: 0 0 10px 0;">Political Bias Analysis</h5>
-                    <div style="font-size: 24px; font-weight: bold; color: #ff00ff; text-transform: capitalize;">
-                        ${biasData.label || 'Unknown'}
-                    </div>
-                    <div style="font-size: 14px; color: #aaa; margin-top: 5px;">
-                        Bias Score: ${biasData.score || 0} (scale: -10 to +10)
-                    </div>
+                    <strong>Our bias detection method:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>We scan for politically-charged keywords</li>
+                        <li>Left indicators found: ${biasData.left_indicators || 0}</li>
+                        <li>Right indicators found: ${biasData.right_indicators || 0}</li>
+                        <li>Emotional words detected: ${biasData.emotional_indicators || 0}</li>
+                        <li>Objectivity score: ${biasData.objectivity || 0}%</li>
+                    </ul>
                 </div>
                 
-                <h5 style="color: #ff00ff; margin: 20px 0 10px 0;">Bias Indicators Found:</h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;">📊 Left-leaning keywords: ${biasData.left_indicators || 0}</li>
-                    <li style="margin-bottom: 8px;">📊 Right-leaning keywords: ${biasData.right_indicators || 0}</li>
-                    <li style="margin-bottom: 8px;">📊 Emotional language: ${biasData.emotional_indicators || 0} words</li>
-                    <li style="margin-bottom: 8px;">📊 Objectivity score: ${biasData.objectivity || 0}%</li>
+                <p><strong>Important limitations:</strong></p>
+                <ul style="margin: 10px 0 0 20px;">
+                    <li>Keyword detection can miss context and nuance</li>
+                    <li>Some topics naturally use "biased" words</li>
+                    <li>We can't detect subtle framing or omission bias</li>
+                    <li>Opinion pieces will always show bias (that's okay!)</li>
                 </ul>
                 
                 <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Bias detection uses keyword frequency analysis to identify political leaning 
-                    and emotional language patterns.
+                    <strong>Pro tip:</strong> Read sources from across the political spectrum to get a complete picture.
                 </p>
             `;
         },
         
-        getSourceContent: function(sourceInfo) {
-            if (!sourceInfo.domain || sourceInfo.domain === 'Unknown Source' || sourceInfo.domain === 'Direct Input') {
-                return `
-                    <div style="background: rgba(255,100,100,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h5 style="color: #ff4444; margin: 0 0 10px 0;">⚠️ Source Not Verified</h5>
-                        <p style="color: #ddd; margin: 0;">
-                            This source is not in our database of verified news outlets.
-                        </p>
-                    </div>
-                    
-                    <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                        We verify sources against 14 major news outlets including Reuters, BBC, CNN, Fox News, 
-                        and others. Consider cross-checking information from unverified sources.
-                    </p>
-                `;
-            }
-            
-            return `
-                <div style="background: rgba(0,255,136,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #00ff88; margin: 0 0 10px 0;">✓ Verified Source</h5>
-                    <div style="font-size: 20px; font-weight: bold; color: #00ff88;">
-                        ${sourceInfo.name || sourceInfo.domain}
-                    </div>
-                </div>
-                
-                <h5 style="color: #00ff88; margin: 20px 0 10px 0;">Source Details:</h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;">🌐 Domain: ${sourceInfo.domain}</li>
-                    <li style="margin-bottom: 8px;">📊 Credibility: ${sourceInfo.credibility}%</li>
-                    <li style="margin-bottom: 8px;">⚖️ Known bias: ${sourceInfo.bias || 'Unknown'}</li>
-                    <li style="margin-bottom: 8px;">✓ In database: Yes</li>
-                </ul>
-                
-                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Source verification checks against our database of major news outlets
-                    with known credibility ratings and bias assessments.
-                </p>
-            `;
-        },
-        
-        getAuthorContent: function(authorName, sourceInfo) {
-            if (authorName === 'Not Specified' || authorName === 'Unknown Author') {
-                return `
-                    <div style="background: rgba(255,100,100,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h5 style="color: #ff4444; margin: 0 0 10px 0;">⚠️ No Author Information</h5>
-                        <p style="color: #ddd; margin: 0;">
-                            No author byline was detected in this article.
-                        </p>
-                    </div>
-                    
-                    <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                        Articles without clear authorship may be less reliable. Anonymous or unattributed 
-                        content should be verified with additional sources.
-                    </p>
-                `;
-            }
-            
-            return `
-                <div style="background: rgba(255,255,0,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #ffff00; margin: 0 0 10px 0;">Author Detected</h5>
-                    <div style="font-size: 20px; font-weight: bold; color: #ffff00;">
-                        ${authorName}
-                    </div>
-                </div>
-                
-                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Author name extracted from article byline. We do not currently track author history, 
-                    credentials, or previous work. This is simply the name as it appears in the article.
-                </p>
-            `;
-        },
-        
-        getStyleContent: function(styleData) {
+        getQualityEducation: function(styleData) {
             const quotes = styleData.quotes || 0;
             const stats = styleData.statistics || 0;
             const readingLevel = styleData.readingLevel || 'N/A';
-            const quality = quotes >= 2 && stats >= 2 ? 'High' : quotes >= 1 || stats >= 1 ? 'Medium' : 'Low';
             
             return `
+                <h5 style="color: #00ff88; margin: 0 0 15px 0;">Quality Journalism Checklist:</h5>
+                
+                <div style="background: rgba(0,255,136,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <strong>This article has:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>${quotes >= 2 ? '✅' : '❌'} Multiple sources quoted (${quotes} found)</li>
+                        <li>${stats >= 2 ? '✅' : '❌'} Statistical evidence (${stats} found)</li>
+                        <li>${readingLevel >= 10 ? '✅' : '⚠️'} Appropriate complexity (Grade ${readingLevel})</li>
+                        <li>${styleData.balanced ? '✅' : '❌'} Balanced presentation</li>
+                    </ul>
+                </div>
+                
+                <p><strong>Why this matters:</strong></p>
+                <ul style="margin: 10px 0 0 20px;">
+                    <li><strong>Quotes</strong> show the journalist talked to real sources</li>
+                    <li><strong>Statistics</strong> provide concrete evidence for claims</li>
+                    <li><strong>Complexity</strong> indicates depth of coverage</li>
+                    <li><strong>Balance</strong> suggests multiple perspectives considered</li>
+                </ul>
+                
+                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
+                    <strong>Remember:</strong> Even well-written articles can be wrong. Quality indicators suggest good process, not guaranteed truth.
+                </p>
+            `;
+        },
+        
+        getLimitationsEducation: function() {
+            return `
+                <h5 style="color: #ff8800; margin: 0 0 15px 0;">What our analysis CAN and CAN'T do:</h5>
+                
                 <div style="background: rgba(255,136,0,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #ff8800; margin: 0 0 10px 0;">Writing Quality Analysis</h5>
-                    <div style="font-size: 24px; font-weight: bold; color: #ff8800;">
-                        ${quality} Quality
-                    </div>
+                    <strong>✅ What we CAN do:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Check if source is in our database of 14 major outlets</li>
+                        <li>Detect obvious political keywords</li>
+                        <li>Count quotes and statistics</li>
+                        <li>Extract author names and dates</li>
+                        <li>Assess basic writing quality</li>
+                    </ul>
                 </div>
                 
-                <h5 style="color: #ff8800; margin: 20px 0 10px 0;">Content Metrics:</h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;">💬 Direct quotes found: ${quotes}</li>
-                    <li style="margin-bottom: 8px;">📊 Statistical claims: ${stats}</li>
-                    <li style="margin-bottom: 8px;">📚 Reading level: Grade ${readingLevel}</li>
-                    <li style="margin-bottom: 8px;">✍️ Style: ${styleData.balanced ? 'Balanced' : 'Needs improvement'}</li>
-                </ul>
-                
-                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Quality journalism typically includes multiple direct quotes and statistical 
-                    evidence to support claims. Higher quality scores indicate better sourcing.
-                </p>
-            `;
-        },
-        
-        getFactCheckContent: function(claims) {
-            if (!claims || claims.length === 0) {
-                return `
-                    <div style="background: rgba(150,150,150,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h5 style="color: #999; margin: 0 0 10px 0;">No Claims Extracted</h5>
-                        <p style="color: #ddd; margin: 0;">
-                            No specific claims were identified for fact-checking in this article.
-                        </p>
-                    </div>
-                    
-                    <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                        Advanced fact-checking requires Pro subscription with AI integration. 
-                        The system extracts and verifies specific factual claims when available.
-                    </p>
-                `;
-            }
-            
-            return `
-                <div style="background: rgba(255,0,136,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #ff0088; margin: 0 0 10px 0;">Claims Identified</h5>
-                    <div style="font-size: 20px; font-weight: bold; color: #ff0088;">
-                        ${claims.length} Claims Found
-                    </div>
+                <div style="background: rgba(255,100,100,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <strong>❌ What we CAN'T do:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>Verify if facts are actually true</li>
+                        <li>Check quotes against original sources</li>
+                        <li>Detect sophisticated propaganda</li>
+                        <li>Understand context or sarcasm</li>
+                        <li>Verify images or videos</li>
+                        <li>Check author credentials</li>
+                    </ul>
                 </div>
                 
-                <h5 style="color: #ff0088; margin: 20px 0 10px 0;">Claims for Verification:</h5>
-                ${claims.slice(0, 3).map((claim, index) => `
-                    <div style="
-                        background: rgba(255,255,255,0.05);
-                        padding: 12px;
-                        border-radius: 8px;
-                        margin-bottom: 10px;
-                        border-left: 3px solid ${claim.confidence >= 80 ? '#00ff88' : claim.confidence >= 60 ? '#ffff00' : '#ff4444'};
-                    ">
-                        <p style="color: #ddd; margin: 0 0 5px 0; font-size: 14px;">
-                            ${index + 1}. "${claim.claim.substring(0, 100)}${claim.claim.length > 100 ? '...' : ''}"
-                        </p>
-                        <p style="color: #aaa; margin: 0; font-size: 12px;">
-                            Status: ${claim.status} | Confidence: ${claim.confidence}%
-                        </p>
-                    </div>
-                `).join('')}
-                
-                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    AI-powered fact checking extracts and identifies claims for verification.
-                    Full verification requires cross-referencing with fact-checking databases.
-                </p>
-            `;
-        },
-        
-        getCrossRefContent: function(crossRefs) {
-            if (!crossRefs || crossRefs.length === 0) {
-                return `
-                    <div style="background: rgba(150,150,150,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <h5 style="color: #999; margin: 0 0 10px 0;">No Cross-References Available</h5>
-                        <p style="color: #ddd; margin: 0;">
-                            No related coverage found in our reference database.
-                        </p>
-                    </div>
-                    
-                    <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                        Cross-reference data requires Pro subscription. When available, we show 
-                        related coverage from other verified news sources.
-                    </p>
-                `;
-            }
-            
-            return `
-                <div style="background: rgba(136,0,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #8800ff; margin: 0 0 10px 0;">Related Coverage Found</h5>
-                    <div style="font-size: 20px; font-weight: bold; color: #8800ff;">
-                        ${crossRefs.length} References
-                    </div>
-                </div>
-                
-                <h5 style="color: #8800ff; margin: 20px 0 10px 0;">Related Articles:</h5>
-                ${crossRefs.map(ref => `
-                    <div style="
-                        background: rgba(255,255,255,0.05);
-                        padding: 12px;
-                        border-radius: 8px;
-                        margin-bottom: 10px;
-                    ">
-                        <p style="color: #ddd; margin: 0 0 5px 0; font-weight: 500;">
-                            ${ref.source}: ${ref.title}
-                        </p>
-                        <p style="color: #aaa; margin: 0; font-size: 12px;">
-                            Relevance: ${ref.relevance}%
-                        </p>
-                    </div>
-                `).join('')}
-            `;
-        },
-        
-        getTemporalContent: function(temporalData, contentStats) {
-            const datesFound = temporalData.dates_found || [];
-            const wordCount = contentStats.word_count || 0;
-            const sentenceCount = contentStats.sentence_count || 0;
-            
-            return `
-                <div style="background: rgba(0,255,204,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h5 style="color: #00ffcc; margin: 0 0 10px 0;">Temporal & Content Analysis</h5>
-                    <div style="font-size: 20px; font-weight: bold; color: #00ffcc;">
-                        ${datesFound.length > 0 ? 'Dated Content' : 'No Dates Found'}
-                    </div>
-                </div>
-                
-                <h5 style="color: #00ffcc; margin: 20px 0 10px 0;">Content Statistics:</h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 8px;">📅 Dates found: ${datesFound.length}</li>
-                    ${datesFound.length > 0 ? `<li style="margin-bottom: 8px;">📅 Dates: ${datesFound.slice(0, 3).join(', ')}</li>` : ''}
-                    <li style="margin-bottom: 8px;">📝 Word count: ${wordCount}</li>
-                    <li style="margin-bottom: 8px;">📄 Sentences: ${sentenceCount}</li>
-                    <li style="margin-bottom: 8px;">📊 Avg sentence length: ${sentenceCount > 0 ? Math.round(wordCount / sentenceCount) : 0} words</li>
-                </ul>
-                
-                <p style="color: #aaa; font-size: 14px; margin-top: 15px;">
-                    Temporal analysis identifies dates and time references in the content. 
-                    This helps assess the timeliness and relevance of the information.
+                <p style="color: #ffaa00; font-weight: bold;">
+                    ⚠️ This is a HELPER TOOL, not a truth detector. Always verify important information through multiple sources.
                 </p>
             `;
         },
@@ -751,30 +477,81 @@
             }
         },
         
-        // Generate PDF report
+        // Reset analysis - FIXED
+        resetAnalysis: function() {
+            // Hide results
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv) {
+                resultsDiv.style.display = 'none';
+                resultsDiv.innerHTML = '';
+            }
+            
+            // Clear all input fields
+            const urlInput = document.getElementById('articleUrl');
+            const textArea = document.getElementById('news-text');
+            const fullArticle = document.getElementById('fullArticle');
+            
+            if (urlInput) urlInput.value = '';
+            if (textArea) textArea.value = '';
+            if (fullArticle) fullArticle.value = '';
+            
+            // Show input section
+            const inputSection = document.querySelector('.input-section');
+            if (inputSection) {
+                inputSection.style.display = 'block';
+            }
+            
+            // Reset tabs to URL tab
+            const urlTab = document.querySelector('[onclick*="showUrlInput"]');
+            const textTab = document.querySelector('[onclick*="showTextInput"]');
+            if (urlTab && textTab) {
+                urlTab.classList.add('active');
+                textTab.classList.remove('active');
+            }
+            
+            // Show URL input, hide text input
+            const urlInputDiv = document.getElementById('url-input');
+            const textInputDiv = document.getElementById('text-input');
+            if (urlInputDiv) urlInputDiv.style.display = 'block';
+            if (textInputDiv) textInputDiv.style.display = 'none';
+            
+            // Clear any stored data
+            if (window.NewsApp && window.NewsApp.analysis) {
+                window.NewsApp.analysis.currentData = null;
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        
+        // Generate PDF report - FIXED
         generatePDF: function() {
-            const currentData = NewsApp.analysis.getCurrentData();
+            const currentData = window.NewsApp?.analysis?.currentData || window.NewsApp?.analysis?.getCurrentData?.();
+            
             if (!currentData) {
-                alert('No analysis data available to generate report');
+                this.showNotification('No analysis data available to generate report', 'error');
                 return;
             }
             
-            // Get the article URL or text that was analyzed
-            const articleUrl = document.getElementById('articleUrl')?.value || 
-                             document.getElementById('news-text')?.value || 
-                             document.getElementById('fullArticle')?.value || 
-                             'No content';
+            // Show loading
+            this.showNotification('Generating PDF report...', 'info');
+            
+            // Prepare data for PDF
+            const pdfData = {
+                results: currentData.results || {},
+                original_content: currentData.original_content || '',
+                analyzed_url: document.getElementById('articleUrl')?.value || '',
+                analyzed_text: document.getElementById('news-text')?.value || document.getElementById('fullArticle')?.value || '',
+                analysis_date: new Date().toISOString()
+            };
             
             // Make API call to generate PDF
-            fetch('/api/generate-pdf', {
+            fetch('/api/news/generate-pdf', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    url: articleUrl,
-                    analysisData: currentData 
-                })
+                body: JSON.stringify(pdfData)
             })
             .then(response => {
                 if (!response.ok) {
@@ -788,55 +565,84 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = `news-analysis-report-${new Date().toISOString().split('T')[0]}.pdf`;
+                a.download = `news-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 
-                // Show success notification
                 this.showNotification('PDF report downloaded successfully!', 'success');
             })
             .catch(error => {
                 console.error('Error generating PDF:', error);
-                alert('Failed to generate PDF report. Please try again.');
+                this.showNotification('Failed to generate PDF. Please try again.', 'error');
             });
         },
         
-        // Share results
+        // Share results - FIXED
         shareResults: function() {
-            const currentData = NewsApp.analysis.getCurrentData();
+            const currentData = window.NewsApp?.analysis?.currentData || window.NewsApp?.analysis?.getCurrentData?.();
+            
             if (!currentData) {
-                alert('No analysis data to share');
+                this.showNotification('No analysis data to share', 'error');
                 return;
             }
             
-            const articleUrl = document.getElementById('articleUrl')?.value || window.location.href;
             const results = currentData.results || {};
-            const shareText = `News Analysis Results:\n` +
-                            `Trust Score: ${results.credibility || 0}%\n` +
-                            `Bias: ${results.bias?.label || 'Unknown'}\n` +
-                            `Check it out: ${articleUrl}`;
+            const trustScore = results.credibility || 0;
+            const bias = results.bias?.label || 'Unknown';
+            const source = results.sources?.name || 'Unknown source';
+            
+            const shareText = `I analyzed an article from ${source} using Facts & Fakes AI:\n\n` +
+                            `📊 Trust Score: ${trustScore}%\n` +
+                            `⚖️ Political Bias: ${bias}\n` +
+                            `✍️ Quality: ${results.style?.quotes || 0} quotes, ${results.style?.statistics || 0} statistics\n\n` +
+                            `Try it yourself at: ${window.location.origin}`;
             
             if (navigator.share) {
                 navigator.share({
-                    title: 'News Analysis Report',
+                    title: 'News Analysis - Facts & Fakes AI',
                     text: shareText,
                     url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
+                }).catch(err => {
+                    // Fallback to clipboard
+                    this.copyToClipboard(shareText);
+                });
             } else {
                 // Fallback - copy to clipboard
-                navigator.clipboard.writeText(shareText).then(() => {
-                    this.showNotification('Analysis results copied to clipboard!', 'success');
-                }).catch(err => {
-                    console.error('Failed to copy:', err);
-                    alert('Failed to copy to clipboard');
-                });
+                this.copyToClipboard(shareText);
             }
         },
         
-        // Show notification
+        // Copy to clipboard helper
+        copyToClipboard: function(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.showNotification('Analysis results copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Final fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    this.showNotification('Analysis results copied to clipboard!', 'success');
+                } catch (err) {
+                    this.showNotification('Failed to copy to clipboard', 'error');
+                }
+                document.body.removeChild(textArea);
+            });
+        },
+        
+        // Show notification - IMPROVED
         showNotification: function(message, type = 'info') {
+            // Remove any existing notifications
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.style.cssText = `
@@ -847,17 +653,30 @@
                 border-radius: 8px;
                 z-index: 10000;
                 max-width: 400px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 animation: slideIn 0.3s ease;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea'};
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
                 color: white;
+                font-weight: 500;
             `;
             notification.textContent = message;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
             
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.remove();
+                notification.style.animation = 'slideOut 0.3s ease';
+                notification.style.animationFillMode = 'forwards';
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         },
         
@@ -876,7 +695,7 @@
                 ">
                     <h3 style="margin: 0 0 10px 0;">⚠️ Analysis Error</h3>
                     <p style="margin: 0 0 20px 0;">${message}</p>
-                    <button onclick="NewsApp.ui.resetAnalysis()" style="
+                    <button onclick="NewsApp.results.resetAnalysis()" style="
                         background: #ff4444;
                         color: white;
                         border: none;
@@ -890,6 +709,10 @@
             resultsDiv.style.display = 'block';
         }
     };
+    
+    // Make resetAnalysis available globally for the button
+    window.NewsApp.ui = window.NewsApp.ui || {};
+    window.NewsApp.ui.resetAnalysis = NewsApp.results.resetAnalysis;
     
     // Make available globally
     window.NewsApp.results = NewsApp.results;
