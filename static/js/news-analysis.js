@@ -1,9 +1,19 @@
 // news-analysis.js - Fixed Analysis Module
 // Handles the analysis process and API calls
 
-let currentInputType = 'url';  // Default to URL since that's the first tab
-let currentAnalysisData = null;
-let isAnalyzing = false;
+// Use a namespace to avoid global conflicts
+if (typeof window.newsAnalysis === 'undefined') {
+    window.newsAnalysis = {
+        currentInputType: 'url',  // Default to URL since that's the first tab
+        currentAnalysisData: null,
+        isAnalyzing: false
+    };
+}
+
+// Create local references for easier use
+let currentInputType = window.newsAnalysis.currentInputType;
+let currentAnalysisData = window.newsAnalysis.currentAnalysisData;
+let isAnalyzing = window.newsAnalysis.isAnalyzing;
 
 // Initialize the module
 function initializeAnalysis() {
