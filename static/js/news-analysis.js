@@ -50,6 +50,7 @@ function setupEventListeners() {
 // Switch input type (called from main)
 function switchInputType(type) {
     currentInputType = type;
+    window.newsAnalysis.currentInputType = type;
 }
 
 // Load test data
@@ -85,7 +86,9 @@ function resetForm() {
     document.getElementById('results').style.display = 'none';
     document.getElementById('results').innerHTML = '';
     currentAnalysisData = null;
+    window.newsAnalysis.currentAnalysisData = null;
     isAnalyzing = false;
+    window.newsAnalysis.isAnalyzing = false;
     
     // Reset button text
     updateAnalyzeButtons(false);
@@ -117,10 +120,13 @@ function updateAnalyzeButtons(analyzed = true) {
 
 // Main analysis function
 async function runAnalysis(tier = 'free') {
-    if (isAnalyzing) {
+    if (isAnalyzing || window.newsAnalysis.isAnalyzing) {
         showNotification('Analysis already in progress. Please wait.', 'info');
         return;
     }
+    
+    // Update current input type from window
+    currentInputType = window.newsAnalysis.currentInputType;
     
     // Get input based on current tab
     let inputData = {};
@@ -183,6 +189,7 @@ async function runAnalysis(tier = 'free') {
     
     // Start analysis
     isAnalyzing = true;
+    window.newsAnalysis.isAnalyzing = true;
     showProgressBar();
     
     try {
@@ -215,6 +222,8 @@ async function runAnalysis(tier = 'free') {
         
         // Store results
         currentAnalysisData = results;
+        window.newsAnalysis.currentAnalysisData = results;
+        window.newsResults.currentAnalysisData = results;
         
         // Complete progress
         completeProgress();
@@ -224,6 +233,8 @@ async function runAnalysis(tier = 'free') {
             hideProgressBar();
             if (typeof displayNewsResults === 'function') {
                 displayNewsResults(results, tier);
+            } else if (typeof window.displayNewsResults === 'function') {
+                window.displayNewsResults(results, tier);
             } else {
                 console.error('displayNewsResults function not found');
                 showNotification('Error displaying results. Please refresh the page.', 'error');
@@ -244,6 +255,7 @@ async function runAnalysis(tier = 'free') {
         console.error('Analysis error:', error);
         hideProgressBar();
         isAnalyzing = false;
+        window.newsAnalysis.isAnalyzing = false;
         
         showNotification(`Analysis failed: ${error.message}. Please try again.`, 'error');
         
@@ -334,6 +346,7 @@ function hideProgressBar() {
         progressSection.style.display = 'none';
     }
     isAnalyzing = false;
+    window.newsAnalysis.isAnalyzing = false;
 }
 
 // Notification helper
@@ -365,3 +378,4 @@ window.runAnalysis = runAnalysis;
 window.runNewsAnalysis = runAnalysis;  // Add both names for compatibility
 window.resetNewsForm = resetForm;
 window.switchNewsInputType = switchInputType;
+window.showNotification = showNotification;
