@@ -12,17 +12,42 @@ function displayResults(data, tier = 'pro') {
     currentAnalysisData = data;
     
     const resultsDiv = document.getElementById('results');
-    const tabContents = document.getElementById('tab-contents');
     
-    // Clear previous results
-    if (tabContents) {
-        tabContents.innerHTML = '';
+    // Make sure results div exists
+    if (!resultsDiv) {
+        console.error('Results div not found!');
+        return;
     }
     
     // Show results section
     resultsDiv.style.display = 'block';
     
-    // Create tab contents for your existing tab structure
+    // Find or create tab-contents div
+    let tabContents = document.getElementById('tab-contents');
+    if (!tabContents) {
+        // If tab-contents doesn't exist, look for the tabs container
+        const tabsContainer = resultsDiv.querySelector('.tabs-container');
+        if (tabsContainer) {
+            tabContents = tabsContainer.querySelector('#tab-contents');
+            if (!tabContents) {
+                // Create tab-contents if it doesn't exist
+                tabContents = document.createElement('div');
+                tabContents.id = 'tab-contents';
+                tabsContainer.appendChild(tabContents);
+            }
+        }
+    }
+    
+    // Clear previous content
+    if (tabContents) {
+        tabContents.innerHTML = '';
+    } else {
+        // Fallback: just put content directly in results
+        resultsDiv.innerHTML = `<div id="tab-contents"></div>`;
+        tabContents = document.getElementById('tab-contents');
+    }
+    
+    // Create tab contents
     createSummaryTab(data, tier);
     createBiasTab(data, tier);
     createSourcesTab(data, tier);
@@ -46,15 +71,24 @@ window.switchTab = function(tabName) {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    document.querySelector(`.tab:nth-child(${getTabIndex(tabName)})`).classList.add('active');
+    
+    // Find and activate the correct tab
+    const tabs = document.querySelectorAll('.tab');
+    const tabIndex = getTabIndex(tabName) - 1;
+    if (tabs[tabIndex]) {
+        tabs[tabIndex].classList.add('active');
+    }
     
     // Update active tab content
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
+        content.style.display = 'none';
     });
+    
     const targetContent = document.getElementById(`${tabName}-content`);
     if (targetContent) {
         targetContent.classList.add('active');
+        targetContent.style.display = 'block';
     }
 };
 
@@ -77,11 +111,11 @@ function createSummaryTab(data, tier) {
                       'REQUIRES VERIFICATION';
     
     const summaryHTML = `
-    <div class="tab-content active" id="summary-content">
+    <div class="tab-content active" id="summary-content" style="display: block;">
         <div class="summary-banner" style="background: rgba(0,0,0,0.8); border: 2px solid rgba(0,255,255,0.3); border-radius: 20px; padding: 40px; margin-bottom: 30px;">
-            <div class="credibility-header" style="display: flex; align-items: center; gap: 40px; margin-bottom: 30px;">
+            <div class="credibility-header" style="display: flex; align-items: center; gap: 40px; margin-bottom: 30px; flex-wrap: wrap;">
                 ${createCredibilityCircle(credibilityScore)}
-                <div class="credibility-details" style="flex: 1;">
+                <div class="credibility-details" style="flex: 1; min-width: 300px;">
                     <h2 class="credibility-title" style="font-size: 2.5rem; font-weight: 800; color: #00ffff; margin-bottom: 15px;">
                         Overall Assessment: ${assessment}
                     </h2>
@@ -96,7 +130,7 @@ function createSummaryTab(data, tier) {
             </div>
             
             <!-- Quick Stats Grid -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
                 <div style="background: rgba(0,255,255,0.1); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 20px; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 800; color: #00ffff;">${credibilityScore}%</div>
                     <div style="color: #fff; opacity: 0.8;">Credibility</div>
@@ -123,7 +157,10 @@ function createSummaryTab(data, tier) {
         </div>
     </div>`;
     
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', summaryHTML);
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', summaryHTML);
+    }
 }
 
 // ============================================================================
@@ -136,7 +173,7 @@ function createBiasTab(data, tier) {
     const biasLabel = biasData.bias_label || 'center';
     
     const biasHTML = `
-    <div class="tab-content" id="bias-content">
+    <div class="tab-content" id="bias-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(255,0,255,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #ff00ff; font-size: 2rem; margin-bottom: 30px; text-align: center;">⚖️ Political Bias Analysis</h2>
             
@@ -166,7 +203,10 @@ function createBiasTab(data, tier) {
         </div>
     </div>`;
     
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', biasHTML);
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', biasHTML);
+    }
 }
 
 // ============================================================================
@@ -177,11 +217,11 @@ function createSourcesTab(data, tier) {
     const sourceData = data.source_analysis || {};
     
     const sourcesHTML = `
-    <div class="tab-content" id="sources-content">
+    <div class="tab-content" id="sources-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(0,255,136,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #00ff88; font-size: 2rem; margin-bottom: 30px; text-align: center;">🌐 Source Diversity Analysis</h2>
             
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
                 <div style="background: rgba(0,255,136,0.1); border-radius: 15px; padding: 25px;">
                     <h3 style="color: #00ff88; margin-bottom: 15px;">Primary Source</h3>
                     <p style="color: #fff; font-size: 1.3rem; margin-bottom: 10px;">${sourceData.domain || 'Unknown Source'}</p>
@@ -218,7 +258,10 @@ function createSourcesTab(data, tier) {
         </div>
     </div>`;
     
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', sourcesHTML);
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', sourcesHTML);
+    }
 }
 
 // ============================================================================
@@ -227,7 +270,7 @@ function createSourcesTab(data, tier) {
 
 function createCredibilityCircle(score) {
     return `
-    <div class="credibility-score-container" style="position: relative;">
+    <div class="credibility-score-container" style="position: relative; flex-shrink: 0;">
         <div class="credibility-score-circle" style="width: 200px; height: 200px; position: relative;">
             <svg width="200" height="200" style="transform: rotate(-90deg);">
                 <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
@@ -310,7 +353,7 @@ function createClaimsGrid(data) {
     return `
     <div style="margin-top: 30px;">
         <h3 style="color: #ff00ff; margin-bottom: 20px;">Factual Claims Analysis</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             <div style="background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); border-radius: 15px; padding: 20px;">
                 <h4 style="color: #ff6666; margin-bottom: 10px;">
                     <i class="fas fa-exclamation-triangle"></i> Unsupported Claims
@@ -334,74 +377,98 @@ function createClaimsGrid(data) {
 }
 
 // ============================================================================
-// REMAINING TABS (Simplified for space)
+// REMAINING TABS
 // ============================================================================
 
 function createCredibilityTab(data, tier) {
     const html = `
-    <div class="tab-content" id="credibility-content">
+    <div class="tab-content" id="credibility-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,0,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #ffff00; font-size: 2rem; margin-bottom: 30px; text-align: center;">✓ Credibility Check</h2>
-            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Detailed credibility analysis...</p>
+            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Detailed credibility analysis coming soon...</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 function createCrossSourceTab(data, tier) {
     const crossRefs = data.cross_references || [];
     const html = `
-    <div class="tab-content" id="cross-source-content">
+    <div class="tab-content" id="cross-source-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(0,255,255,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #00ffff; font-size: 2rem; margin-bottom: 30px; text-align: center;">🔍 Cross-Source Verification</h2>
             <p style="color: #fff; text-align: center; font-size: 1.2rem;">Found ${crossRefs.length} matching sources in our database of 500+ outlets.</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 function createAuthorTab(data, tier) {
     const html = `
-    <div class="tab-content" id="author-content">
+    <div class="tab-content" id="author-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(255,0,255,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #ff00ff; font-size: 2rem; margin-bottom: 30px; text-align: center;">👤 Author Analysis</h2>
-            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Author credibility and expertise analysis...</p>
+            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Author credibility and expertise analysis coming soon...</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 function createStyleTab(data, tier) {
     const html = `
-    <div class="tab-content" id="style-content">
+    <div class="tab-content" id="style-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(0,255,136,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #00ff88; font-size: 2rem; margin-bottom: 30px; text-align: center;">✍️ Writing Style Analysis</h2>
-            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Linguistic patterns and authenticity checks...</p>
+            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Linguistic patterns and authenticity analysis coming soon...</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 function createTemporalTab(data, tier) {
     const html = `
-    <div class="tab-content" id="temporal-content">
+    <div class="tab-content" id="temporal-content" style="display: none;">
         <div style="background: rgba(0,0,0,0.8); border: 2px solid rgba(255,255,0,0.3); border-radius: 20px; padding: 40px;">
             <h2 style="color: #ffff00; font-size: 2rem; margin-bottom: 30px; text-align: center;">⏱️ Temporal Intelligence</h2>
-            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Timeline and currency analysis...</p>
+            <p style="color: #fff; text-align: center; font-size: 1.2rem;">Timeline and currency analysis coming soon...</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 function createProTab(data, tier) {
     const html = `
-    <div class="tab-content" id="pro-content">
+    <div class="tab-content" id="pro-content" style="display: none;">
         <div style="background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.2)); border: 2px solid #FFD700; border-radius: 20px; padding: 40px;">
             <h2 style="color: #FFD700; font-size: 2rem; margin-bottom: 30px; text-align: center;">💎 Pro Features Unlocked</h2>
             <p style="color: #fff; text-align: center; font-size: 1.2rem;">All advanced analysis features are currently available for development.</p>
         </div>
     </div>`;
-    document.getElementById('tab-contents').insertAdjacentHTML('beforeend', html);
+    
+    const tabContents = document.getElementById('tab-contents');
+    if (tabContents) {
+        tabContents.insertAdjacentHTML('beforeend', html);
+    }
 }
 
 // ============================================================================
