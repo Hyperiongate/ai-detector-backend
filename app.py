@@ -59,6 +59,11 @@ def index():
 def news():
     return render_template('news.html', user=get_current_user())
 
+@app.route('/news-analyzer')
+def news_analyzer():
+    """New route for the enhanced news analyzer page"""
+    return render_template('news-analyzer.html', user=get_current_user())
+
 @app.route('/unified')
 def unified():
     return render_template('unified.html', user=get_current_user())
