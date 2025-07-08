@@ -1,923 +1,421 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Truth Analyzer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #7f8c8d;
-        }
-
-        /* URL Input */
-        .input-section {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        #urlInput {
-            flex: 1;
-            padding: 14px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        #urlInput:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        #analyzeBtn {
-            padding: 14px 30px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        #analyzeBtn:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        #analyzeBtn:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .free-limit-warning {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            display: none;
-        }
-
-        /* Loading State */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 60px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Results Section */
-        .results {
-            display: none;
-        }
-
-        .results.active {
-            display: block;
-        }
-
-        /* Overall Assessment Box */
-        .overall-assessment {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .trust-score-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .trust-score {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-        }
-
-        .trust-score svg {
-            transform: rotate(-90deg);
-        }
-
-        .trust-score-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            font-weight: bold;
-        }
-
-        .trust-label {
-            font-size: 18px;
-            margin-top: 15px;
-            font-weight: 600;
-        }
-
-        .source-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .source-info h3 {
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-
-        .article-summary {
-            background: #e8f4f8;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-
-        .key-findings {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .key-findings h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .key-findings ul {
-            list-style: none;
-        }
-
-        .key-findings li {
-            padding: 8px 0;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .key-findings li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #27ae60;
-        }
-
-        .key-findings li.warning:before {
-            content: "⚠";
-            color: #f39c12;
-        }
-
-        .key-findings li.danger:before {
-            content: "✗";
-            color: #e74c3c;
-        }
-
-        /* Pro Features Section */
-        .pro-features {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .pro-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .pro-badge {
-            background: #9b59b6;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        /* Analysis Cards */
-        .analysis-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .analysis-card.locked {
-            opacity: 0.7;
-        }
-
-        .card-header {
-            padding: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.3s;
-        }
-
-        .card-header:hover {
-            background: #e9ecef;
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            background: #3498db;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 20px;
-        }
-
-        .card-info {
-            flex: 1;
-        }
-
-        .card-title {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 4px;
-        }
-
-        .card-preview {
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .expand-icon {
-            font-size: 20px;
-            color: #7f8c8d;
-            transition: transform 0.3s;
-        }
-
-        .analysis-card.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .card-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .analysis-card.expanded .card-content {
-            max-height: 1000px;
-        }
-
-        .card-body {
-            padding: 0 20px 20px;
-        }
-
-        .explanation-box {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-
-        .explanation-box h4 {
-            color: #2980b9;
-            margin-bottom: 8px;
-        }
-
-        .analysis-details {
-            background: white;
-            padding: 20px;
-            border-radius: 6px;
-        }
-
-        .metric-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .metric-item:last-child {
-            border-bottom: none;
-        }
-
-        .metric-bar {
-            width: 150px;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .metric-fill {
-            height: 100%;
-            transition: width 0.5s;
-        }
-
-        .metric-fill.high {
-            background: #27ae60;
-        }
-
-        .metric-fill.medium {
-            background: #f39c12;
-        }
-
-        .metric-fill.low {
-            background: #e74c3c;
-        }
-
-        /* Upgrade CTA */
-        .upgrade-cta {
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .upgrade-cta h3 {
-            margin-bottom: 15px;
-        }
-
-        .upgrade-cta p {
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-
-        .upgrade-btn {
-            background: white;
-            color: #9b59b6;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .upgrade-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+# news_analyzer.py - Enhanced News Analysis Backend
+# This module handles the actual analysis of news content
+
+import re
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+from datetime import datetime
+import json
+from typing import Dict, List, Tuple, Optional
+
+# Source credibility database
+SOURCE_CREDIBILITY = {
+    'apnews.com': {'name': 'Associated Press', 'credibility': 90, 'bias': 'center'},
+    'reuters.com': {'name': 'Reuters', 'credibility': 90, 'bias': 'center'},
+    'bbc.com': {'name': 'BBC News', 'credibility': 85, 'bias': 'center-left'},
+    'cnn.com': {'name': 'CNN', 'credibility': 70, 'bias': 'left'},
+    'foxnews.com': {'name': 'Fox News', 'credibility': 65, 'bias': 'right'},
+    'nytimes.com': {'name': 'The New York Times', 'credibility': 80, 'bias': 'left-center'},
+    'washingtonpost.com': {'name': 'The Washington Post', 'credibility': 80, 'bias': 'left-center'},
+    'wsj.com': {'name': 'The Wall Street Journal', 'credibility': 85, 'bias': 'right-center'},
+    'npr.org': {'name': 'NPR', 'credibility': 85, 'bias': 'left-center'},
+    'politico.com': {'name': 'Politico', 'credibility': 75, 'bias': 'center'},
+}
+
+class NewsAnalyzer:
+    """Enhanced news analyzer with real content extraction and analysis"""
+    
+    def __init__(self):
+        self.bias_keywords = {
+            'left': ['progressive', 'inequality', 'social justice', 'climate crisis', 'systemic'],
+            'right': ['conservative', 'freedom', 'traditional', 'free market', 'patriotic'],
+            'emotional': ['shocking', 'outrageous', 'devastating', 'horrifying', 'unbelievable']
+        }
+    
+    def analyze(self, content: str, content_type: str = 'text', is_pro: bool = False) -> Dict:
+        """Main analysis function"""
+        
+        # Extract content based on type
+        if content_type == 'url':
+            article_data = self.extract_from_url(content)
+            if not article_data['success']:
+                return self._generate_error_response(article_data['error'])
+            
+            text = article_data['text']
+            metadata = article_data['metadata']
+        else:
+            text = content
+            metadata = self.extract_metadata_from_text(text)
+        
+        # Perform comprehensive analysis
+        analysis_results = {
+            'success': True,
+            'results': {
+                'credibility': self.calculate_credibility(text, metadata),
+                'bias': self.analyze_bias(text),
+                'sources': self.analyze_sources(metadata, content if content_type == 'url' else None),
+                'author': self.extract_author(text, metadata),
+                'style': self.analyze_writing_style(text),
+                'claims': self.extract_claims(text) if is_pro else [],
+                'cross_references': self.find_cross_references(text) if is_pro else []
+            },
+            'original_content': text[:500] + '...' if len(text) > 500 else text
+        }
+        
+        return analysis_results
+    
+    def extract_from_url(self, url: str) -> Dict:
+        """Extract article content from URL"""
+        try:
+            # Add headers to avoid blocking
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
-
-            .input-group {
-                flex-direction: column;
+            
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Extract text content
+            # Try different selectors for different news sites
+            article_text = ""
+            
+            # Common article selectors
+            selectors = [
+                'article',
+                'main',
+                '[role="main"]',
+                '.article-body',
+                '.story-body',
+                '.entry-content',
+                'div[itemprop="articleBody"]'
+            ]
+            
+            for selector in selectors:
+                elements = soup.select(selector)
+                if elements:
+                    article_text = ' '.join([elem.get_text(strip=True) for elem in elements])
+                    if len(article_text) > 100:
+                        break
+            
+            # If no article found, try paragraphs
+            if len(article_text) < 100:
+                paragraphs = soup.find_all('p')
+                article_text = ' '.join([p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 20])
+            
+            # Extract metadata
+            metadata = {
+                'title': soup.find('title').get_text() if soup.find('title') else '',
+                'author': self._extract_author_from_html(soup),
+                'date': self._extract_date_from_html(soup),
+                'domain': urlparse(url).netloc.replace('www.', '')
             }
-
-            #analyzeBtn {
-                width: 100%;
+            
+            return {
+                'success': True,
+                'text': article_text,
+                'metadata': metadata
             }
-
-            .trust-score {
-                width: 150px;
-                height: 150px;
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Could not extract content from URL: {str(e)}",
+                'text': '',
+                'metadata': {}
             }
-
-            .trust-score-text {
-                font-size: 36px;
-            }
+    
+    def _extract_author_from_html(self, soup: BeautifulSoup) -> str:
+        """Extract author from HTML"""
+        # Try meta tags first
+        author_meta = soup.find('meta', {'name': 'author'}) or soup.find('meta', {'property': 'author'})
+        if author_meta:
+            return author_meta.get('content', '')
+        
+        # Try common author selectors
+        selectors = [
+            '[rel="author"]',
+            '.author-name',
+            '.by-author',
+            '.ArticleHeader-byline',
+            'span[itemprop="author"]',
+            '.author'
+        ]
+        
+        for selector in selectors:
+            element = soup.select_one(selector)
+            if element:
+                return element.get_text(strip=True)
+        
+        return ''
+    
+    def _extract_date_from_html(self, soup: BeautifulSoup) -> str:
+        """Extract publication date from HTML"""
+        # Try meta tags
+        date_meta = soup.find('meta', {'property': 'article:published_time'}) or \
+                   soup.find('meta', {'name': 'publication_date'})
+        if date_meta:
+            return date_meta.get('content', '')
+        
+        # Try time elements
+        time_elem = soup.find('time')
+        if time_elem:
+            return time_elem.get('datetime', time_elem.get_text(strip=True))
+        
+        return ''
+    
+    def extract_metadata_from_text(self, text: str) -> Dict:
+        """Extract metadata from pasted text"""
+        metadata = {
+            'title': '',
+            'author': '',
+            'date': '',
+            'domain': 'Direct Input'
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔍 News Truth Analyzer</h1>
-            <p>Professional news verification powered by AI</p>
-        </div>
-
-        <div class="input-section">
-            <div class="input-group">
-                <input type="url" id="urlInput" placeholder="Enter news article URL..." value="https://www.cnn.com/2024/11/06/politics/trump-wins-2024-presidential-election/index.html">
-                <button id="analyzeBtn">Analyze Article</button>
-            </div>
-            <div class="free-limit-warning" id="freeLimitWarning">
-                ⚠️ Free tier limit: 1 analysis per day. <a href="#upgrade">Upgrade to Pro</a> for unlimited analyses.
-            </div>
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <h3>Analyzing Article...</h3>
-            <p>Running comprehensive verification checks</p>
-        </div>
-
-        <div class="results" id="results">
-            <!-- Overall Assessment (Free Tier) -->
-            <div class="overall-assessment">
-                <div class="trust-score-container">
-                    <div class="trust-score">
-                        <svg width="200" height="200">
-                            <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="20"/>
-                            <circle id="trustCircle" cx="100" cy="100" r="90" fill="none" stroke="#3498db" stroke-width="20" stroke-dasharray="565.5" stroke-dashoffset="565.5"/>
-                        </svg>
-                        <div class="trust-score-text" id="trustScoreText">0</div>
-                    </div>
-                    <div class="trust-label" id="trustLabel">Calculating...</div>
-                </div>
-
-                <div class="source-info">
-                    <h3>Source & Author</h3>
-                    <p id="sourceAuthor">Loading...</p>
-                </div>
-
-                <div class="article-summary">
-                    <h3>Article Summary</h3>
-                    <p id="articleSummary">Loading...</p>
-                </div>
-
-                <div class="key-findings">
-                    <h3>Key Findings</h3>
-                    <ul id="keyFindings">
-                        <li>Loading analysis results...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Pro Features -->
-            <div class="pro-features">
-                <div class="pro-header">
-                    <h2>Detailed Analysis</h2>
-                    <span class="pro-badge">PRO</span>
-                </div>
-
-                <!-- Analysis Cards -->
-                <div id="analysisCards">
-                    <!-- Cards will be dynamically inserted here -->
-                </div>
-            </div>
-
-            <!-- Upgrade CTA -->
-            <div class="upgrade-cta" id="upgradeCTA" style="display: none;">
-                <h3>🚀 Unlock Full Analysis</h3>
-                <p>Get detailed insights, fact-checking, bias detection, and more with Pro</p>
-                <button class="upgrade-btn">Upgrade to Pro - $9.99/month</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Analysis system
-        class NewsAnalyzer {
-            constructor() {
-                this.isProUser = false;
-                this.freeUsageCount = parseInt(localStorage.getItem('freeUsageCount') || '0');
-                this.lastUsageDate = localStorage.getItem('lastUsageDate') || '';
-                this.checkDailyLimit();
-                this.initializeEventListeners();
+        
+        # Extract author - improved patterns
+        author_patterns = [
+            r'^By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
+            r'^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)\n',
+            r'By:\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
+        ]
+        
+        for pattern in author_patterns:
+            match = re.search(pattern, text, re.MULTILINE)
+            if match:
+                metadata['author'] = match.group(1).strip()
+                break
+        
+        # Extract date
+        date_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}'
+        date_match = re.search(date_pattern, text)
+        if date_match:
+            metadata['date'] = date_match.group(0)
+        
+        return metadata
+    
+    def extract_author(self, text: str, metadata: Dict) -> str:
+        """Extract and return author name"""
+        if metadata.get('author'):
+            return metadata['author']
+        
+        # Try to extract from text
+        author_match = re.search(r'By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)', text)
+        if author_match:
+            return author_match.group(1)
+        
+        return 'Unknown Author'
+    
+    def calculate_credibility(self, text: str, metadata: Dict) -> int:
+        """Calculate overall credibility score"""
+        score = 50  # Base score
+        
+        # Check source credibility
+        domain = metadata.get('domain', '')
+        if domain in SOURCE_CREDIBILITY:
+            score = SOURCE_CREDIBILITY[domain]['credibility']
+        
+        # Adjust based on content analysis
+        # Has author attribution
+        if metadata.get('author') and metadata['author'] != 'Unknown Author':
+            score += 5
+        
+        # Has date
+        if metadata.get('date'):
+            score += 5
+        
+        # Has quotes (check for quotation marks)
+        quote_count = text.count('"')
+        if quote_count >= 4:  # At least 2 quotes
+            score += 10
+        
+        # Has statistics/numbers
+        numbers = re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text)
+        if len(numbers) >= 3:
+            score += 5
+        
+        # Check for balanced language (not too emotional)
+        emotional_words = sum(1 for word in self.bias_keywords['emotional'] if word.lower() in text.lower())
+        if emotional_words < 2:
+            score += 5
+        
+        # Cap at 95
+        return min(score, 95)
+    
+    def analyze_bias(self, text: str) -> Dict:
+        """Analyze political bias"""
+        text_lower = text.lower()
+        
+        # Count bias indicators
+        left_count = sum(1 for word in self.bias_keywords['left'] if word in text_lower)
+        right_count = sum(1 for word in self.bias_keywords['right'] if word in text_lower)
+        
+        # Calculate bias score (-10 to +10)
+        bias_score = (right_count - left_count) * 2
+        bias_score = max(-10, min(10, bias_score))
+        
+        # Determine bias label
+        if bias_score <= -7:
+            bias_label = 'far-left'
+        elif bias_score <= -3:
+            bias_label = 'left'
+        elif bias_score <= -1:
+            bias_label = 'left-center'
+        elif bias_score <= 1:
+            bias_label = 'center'
+        elif bias_score <= 3:
+            bias_label = 'right-center'
+        elif bias_score <= 7:
+            bias_label = 'right'
+        else:
+            bias_label = 'far-right'
+        
+        # Calculate objectivity (inverse of emotional content)
+        emotional_count = sum(1 for word in self.bias_keywords['emotional'] if word in text_lower)
+        objectivity = max(0, 100 - (emotional_count * 10))
+        
+        return {
+            'label': bias_label,
+            'score': bias_score,
+            'objectivity': objectivity,
+            'left_indicators': left_count,
+            'right_indicators': right_count,
+            'emotional_indicators': emotional_count
+        }
+    
+    def analyze_sources(self, metadata: Dict, url: Optional[str] = None) -> Dict:
+        """Analyze source credibility"""
+        domain = metadata.get('domain', '')
+        
+        # Check if it's a known source
+        if domain in SOURCE_CREDIBILITY:
+            source_info = SOURCE_CREDIBILITY[domain]
+            return {
+                'name': source_info['name'],
+                'credibility': source_info['credibility'],
+                'bias': source_info['bias'],
+                'domain': domain,
+                'matches': 3  # Mock data - in production, actually search for matches
             }
-
-            checkDailyLimit() {
-                const today = new Date().toDateString();
-                if (this.lastUsageDate !== today) {
-                    this.freeUsageCount = 0;
-                    this.lastUsageDate = today;
-                    localStorage.setItem('lastUsageDate', today);
-                    localStorage.setItem('freeUsageCount', '0');
-                }
-            }
-
-            initializeEventListeners() {
-                document.getElementById('analyzeBtn').addEventListener('click', () => this.analyzeArticle());
-                document.getElementById('urlInput').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.analyzeArticle();
-                });
-            }
-
-            async analyzeArticle() {
-                const url = document.getElementById('urlInput').value.trim();
-                if (!url) {
-                    alert('Please enter a valid URL');
-                    return;
-                }
-
-                // Check free tier limit
-                if (!this.isProUser && this.freeUsageCount >= 1) {
-                    document.getElementById('freeLimitWarning').style.display = 'block';
-                    document.getElementById('upgradeCTA').style.display = 'block';
-                    return;
-                }
-
-                // Show loading
-                document.getElementById('loading').classList.add('active');
-                document.getElementById('results').classList.remove('active');
-
-                // Simulate analysis (in real implementation, this would call your backend)
-                setTimeout(() => {
-                    this.displayResults(this.getMockAnalysisData());
-                    
-                    // Increment usage count for free users
-                    if (!this.isProUser) {
-                        this.freeUsageCount++;
-                        localStorage.setItem('freeUsageCount', this.freeUsageCount.toString());
-                    }
-                }, 2000);
-            }
-
-            getMockAnalysisData() {
-                return {
-                    trustScore: 82,
-                    trustLabel: "Mostly Trustworthy",
-                    source: "CNN",
-                    author: "Kevin Liptak",
-                    summary: "Analysis of Donald Trump's victory in the 2024 presidential election, covering key swing states, voter demographics, and factors that led to his return to the White House. The article examines the political landscape and implications for both parties.",
-                    keyFindings: [
-                        { text: "Credible mainstream news source with established reputation", type: "success" },
-                        { text: "Author is a verified political correspondent with track record", type: "success" },
-                        { text: "Some partisan language detected in analysis sections", type: "warning" },
-                        { text: "Facts cross-verified with multiple sources", type: "success" },
-                        { text: "Timeline and claims are logically consistent", type: "success" },
-                        { text: "Recommended: Cross-reference with other sources for complete picture", type: "info" }
-                    ],
-                    detailedAnalysis: {
-                        sourceCredibility: {
-                            score: 85,
-                            details: "CNN is an established news organization with professional editorial standards",
-                            metrics: {
-                                "Domain Authority": { value: 92, level: "high" },
-                                "Fact-Check History": { value: 78, level: "high" },
-                                "Transparency": { value: 80, level: "high" },
-                                "Editorial Standards": { value: 85, level: "high" }
-                            }
-                        },
-                        authorBackground: {
-                            score: 88,
-                            details: "Kevin Liptak is a White House reporter with 10+ years experience",
-                            metrics: {
-                                "Experience Level": { value: 90, level: "high" },
-                                "Subject Expertise": { value: 85, level: "high" },
-                                "Verification Status": { value: 95, level: "high" },
-                                "Previous Work": { value: 82, level: "high" }
-                            }
-                        },
-                        biasDetection: {
-                            score: 72,
-                            details: "Slight left-leaning bias detected in word choice and framing",
-                            metrics: {
-                                "Language Neutrality": { value: 68, level: "medium" },
-                                "Source Diversity": { value: 75, level: "high" },
-                                "Opinion vs Fact": { value: 70, level: "medium" },
-                                "Emotional Language": { value: 65, level: "medium" }
-                            }
-                        },
-                        factVerification: {
-                            score: 90,
-                            details: "Key claims verified against official sources and data",
-                            metrics: {
-                                "Claim Accuracy": { value: 92, level: "high" },
-                                "Source Citations": { value: 88, level: "high" },
-                                "Data Verification": { value: 95, level: "high" },
-                                "Quote Accuracy": { value: 85, level: "high" }
-                            }
-                        },
-                        crossValidation: {
-                            score: 87,
-                            details: "Story corroborated by 12+ other major news outlets",
-                            metrics: {
-                                "Source Agreement": { value: 90, level: "high" },
-                                "Timeline Match": { value: 88, level: "high" },
-                                "Detail Consistency": { value: 85, level: "high" },
-                                "Coverage Breadth": { value: 82, level: "high" }
-                            }
-                        },
-                        aiDetection: {
-                            score: 15,
-                            details: "Human-written content with natural language patterns",
-                            metrics: {
-                                "AI Probability": { value: 15, level: "low" },
-                                "Writing Patterns": { value: 12, level: "low" },
-                                "Stylistic Markers": { value: 18, level: "low" },
-                                "Content Originality": { value: 90, level: "high" }
-                            }
-                        },
-                        logicalConsistency: {
-                            score: 88,
-                            details: "Claims and timeline are internally consistent",
-                            metrics: {
-                                "Timeline Logic": { value: 90, level: "high" },
-                                "Claim Consistency": { value: 87, level: "high" },
-                                "Data Alignment": { value: 85, level: "high" },
-                                "Narrative Flow": { value: 88, level: "high" }
-                            }
-                        },
-                        timeliness: {
-                            score: 95,
-                            details: "Article updated with latest information and corrections",
-                            metrics: {
-                                "Publication Date": { value: 95, level: "high" },
-                                "Update Frequency": { value: 92, level: "high" },
-                                "Information Currency": { value: 98, level: "high" },
-                                "Correction History": { value: 90, level: "high" }
-                            }
-                        }
-                    }
-                };
-            }
-
-            displayResults(data) {
-                // Hide loading, show results
-                document.getElementById('loading').classList.remove('active');
-                document.getElementById('results').classList.add('active');
-
-                // Update trust score with animation
-                this.animateTrustScore(data.trustScore);
-                document.getElementById('trustLabel').textContent = data.trustLabel;
-
-                // Update basic info
-                document.getElementById('sourceAuthor').textContent = `${data.source} - by ${data.author}`;
-                document.getElementById('articleSummary').textContent = data.summary;
-
-                // Update key findings
-                const findingsList = document.getElementById('keyFindings');
-                findingsList.innerHTML = '';
-                data.keyFindings.forEach(finding => {
-                    const li = document.createElement('li');
-                    li.textContent = finding.text;
-                    if (finding.type === 'warning') li.classList.add('warning');
-                    if (finding.type === 'danger') li.classList.add('danger');
-                    findingsList.appendChild(li);
-                });
-
-                // Create analysis cards
-                this.createAnalysisCards(data.detailedAnalysis);
-
-                // Show upgrade CTA for free users
-                if (!this.isProUser) {
-                    document.getElementById('upgradeCTA').style.display = 'block';
-                }
-            }
-
-            animateTrustScore(score) {
-                const circle = document.getElementById('trustCircle');
-                const text = document.getElementById('trustScoreText');
-                const circumference = 2 * Math.PI * 90;
-                const offset = circumference - (score / 100) * circumference;
-                
-                // Set color based on score
-                let color = '#e74c3c'; // red
-                if (score >= 70) color = '#27ae60'; // green
-                else if (score >= 40) color = '#f39c12'; // orange
-                
-                circle.style.stroke = color;
-                
-                // Animate
-                let currentScore = 0;
-                const increment = score / 50;
-                const timer = setInterval(() => {
-                    currentScore += increment;
-                    if (currentScore >= score) {
-                        currentScore = score;
-                        clearInterval(timer);
-                    }
-                    text.textContent = Math.round(currentScore);
-                    circle.style.strokeDashoffset = circumference - (currentScore / 100) * circumference;
-                }, 20);
-            }
-
-            createAnalysisCards(analysis) {
-                const container = document.getElementById('analysisCards');
-                container.innerHTML = '';
-
-                const cards = [
-                    {
-                        id: 'sourceCredibility',
-                        icon: '🏛️',
-                        title: 'Source Credibility Analysis',
-                        preview: `Trust score: ${analysis.sourceCredibility.score}/100`,
-                        explanation: 'Evaluates the news outlet\'s reputation, fact-checking history, and editorial standards.',
-                        data: analysis.sourceCredibility
-                    },
-                    {
-                        id: 'authorBackground',
-                        icon: '👤',
-                        title: 'Author Background Check',
-                        preview: `Credibility: ${analysis.authorBackground.score}/100`,
-                        explanation: 'Verifies the author\'s credentials, expertise, and track record.',
-                        data: analysis.authorBackground
-                    },
-                    {
-                        id: 'biasDetection',
-                        icon: '⚖️',
-                        title: 'Bias & Objectivity Report',
-                        preview: `Objectivity: ${analysis.biasDetection.score}/100`,
-                        explanation: 'Detects political bias, emotional language, and opinion vs fact ratios.',
-                        data: analysis.biasDetection
-                    },
-                    {
-                        id: 'factVerification',
-                        icon: '✓',
-                        title: 'Fact Verification Results',
-                        preview: `Accuracy: ${analysis.factVerification.score}/100`,
-                        explanation: 'Verifies claims against trusted sources and official data.',
-                        data: analysis.factVerification
-                    },
-                    {
-                        id: 'crossValidation',
-                        icon: '🔄',
-                        title: 'Cross-Source Validation',
-                        preview: `Corroboration: ${analysis.crossValidation.score}/100`,
-                        explanation: 'Checks if other reputable sources report the same information.',
-                        data: analysis.crossValidation
-                    },
-                    {
-                        id: 'aiDetection',
-                        icon: '🤖',
-                        title: 'AI/Manipulation Detection',
-                        preview: `AI probability: ${analysis.aiDetection.score}%`,
-                        explanation: 'Detects AI-generated content and manipulation techniques.',
-                        data: analysis.aiDetection
-                    },
-                    {
-                        id: 'logicalConsistency',
-                        icon: '🧩',
-                        title: 'Logical Consistency Check',
-                        preview: `Consistency: ${analysis.logicalConsistency.score}/100`,
-                        explanation: 'Ensures claims don\'t contradict each other and timelines make sense.',
-                        data: analysis.logicalConsistency
-                    },
-                    {
-                        id: 'timeliness',
-                        icon: '📅',
-                        title: 'Timeliness & Updates',
-                        preview: `Currency: ${analysis.timeliness.score}/100`,
-                        explanation: 'Checks if information is current and properly updated.',
-                        data: analysis.timeliness
-                    },
-                    {
-                        id: 'download',
-                        icon: '📄',
-                        title: 'Download Full Report',
-                        preview: 'Get detailed PDF analysis',
-                        isDownload: true
-                    }
-                ];
-
-                cards.forEach(card => {
-                    const cardElement = this.createCard(card);
-                    container.appendChild(cardElement);
-                });
-            }
-
-            createCard(cardData) {
-                const card = document.createElement('div');
-                card.className = 'analysis-card' + (this.isProUser ? '' : ' locked');
-                
-                const header = document.createElement('div');
-                header.className = 'card-header';
-                header.innerHTML = `
-                    <div style="display: flex; align-items: center;">
-                        <div class="card-icon">${cardData.icon}</div>
-                        <div class="card-info">
-                            <div class="card-title">${cardData.title}</div>
-                            <div class="card-preview">${cardData.preview}</div>
-                        </div>
-                    </div>
-                    <div class="expand-icon">▼</div>
-                `;
-
-                if (cardData.isDownload) {
-                    header.style.cursor = 'pointer';
-                    header.addEventListener('click', () => {
-                        if (this.isProUser) {
-                            this.downloadReport();
-                        } else {
-                            alert('Upgrade to Pro to download detailed reports');
-                        }
-                    });
-                } else {
-                    header.addEventListener('click', () => {
-                        if (this.isProUser) {
-                            card.classList.toggle('expanded');
-                        } else {
-                            alert('Upgrade to Pro to see detailed analysis');
-                        }
-                    });
-                }
-
-                card.appendChild(header);
-
-                if (!cardData.isDownload && cardData.data) {
-                    const content = document.createElement('div');
-                    content.className = 'card-content';
-                    
-                    const body = document.createElement('div');
-                    body.className = 'card-body';
-                    
-                    body.innerHTML = `
-                        <div class="explanation-box">
-                            <h4>What this tells you:</h4>
-                            <p>${cardData.explanation}</p>
-                        </div>
-                        <div class="analysis-details">
-                            <p style="margin-bottom: 20px;"><strong>Analysis:</strong> ${cardData.data.details}</p>
-                            <div class="metrics">
-                                ${Object.entries(cardData.data.metrics).map(([key, metric]) => `
-                                    <div class="metric-item">
-                                        <span>${key}</span>
-                                        <div class="metric-bar">
-                                            <div class="metric-fill ${metric.level}" style="width: ${metric.value}%"></div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                    
-                    content.appendChild(body);
-                    card.appendChild(content);
-                }
-
-                return card;
-            }
-
-            downloadReport() {
-                alert('PDF download would be implemented here');
-                // In real implementation, this would generate and download a PDF
+        
+        # For unknown sources
+        return {
+            'name': domain or 'Unknown Source',
+            'credibility': 50,
+            'bias': 'unknown',
+            'domain': domain,
+            'matches': 0
+        }
+    
+    def analyze_writing_style(self, text: str) -> Dict:
+        """Analyze writing style and patterns"""
+        # Count quotes
+        quote_count = len(re.findall(r'"[^"]{10,}"', text))
+        
+        # Count statistics
+        stats_count = len(re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text))
+        
+        # Calculate reading level (simple approximation)
+        sentences = re.split(r'[.!?]+', text)
+        words = text.split()
+        avg_words_per_sentence = len(words) / max(len(sentences), 1)
+        
+        if avg_words_per_sentence > 25:
+            reading_level = 12
+        elif avg_words_per_sentence > 20:
+            reading_level = 11
+        elif avg_words_per_sentence > 15:
+            reading_level = 10
+        else:
+            reading_level = 9
+        
+        # Check for balanced coverage
+        balanced = quote_count >= 2 and stats_count >= 2
+        
+        return {
+            'quotes': quote_count,
+            'statistics': stats_count,
+            'readingLevel': reading_level,
+            'balanced': balanced
+        }
+    
+    def extract_claims(self, text: str) -> List[Dict]:
+        """Extract factual claims from text"""
+        claims = []
+        
+        # Look for sentences with numbers or definitive statements
+        sentences = re.split(r'[.!?]+', text)
+        
+        for sentence in sentences[:10]:  # Limit to first 10 for performance
+            sentence = sentence.strip()
+            
+            # Skip short sentences
+            if len(sentence) < 20:
+                continue
+            
+            # Check if it contains a claim indicator
+            if any(indicator in sentence.lower() for indicator in ['will', 'would', 'has', 'have', 'announced', 'said', 'according']):
+                claims.append({
+                    'claim': sentence,
+                    'confidence': 80 if re.search(r'\d+', sentence) else 60,
+                    'status': 'Identified for verification'
+                })
+        
+        return claims[:5]  # Return top 5 claims
+    
+    def find_cross_references(self, text: str) -> List[Dict]:
+        """Find cross-references (mock data for now)"""
+        # In production, this would actually search for similar articles
+        # For now, return mock data based on content
+        
+        references = []
+        
+        # Check for major topics
+        if 'tariff' in text.lower():
+            references.extend([
+                {'source': 'Reuters', 'title': 'Analysis: Trump tariff threats', 'relevance': 85},
+                {'source': 'BBC', 'title': 'US trade policy updates', 'relevance': 75}
+            ])
+        
+        if 'trump' in text.lower():
+            references.append({'source': 'CNN', 'title': 'Trump administration policies', 'relevance': 70})
+        
+        return references
+    
+    def _generate_error_response(self, error: str) -> Dict:
+        """Generate error response"""
+        return {
+            'success': False,
+            'error': error,
+            'results': {
+                'credibility': 50,
+                'bias': {'label': 'unknown', 'score': 0, 'objectivity': 50},
+                'sources': {'name': 'Unknown', 'credibility': 50},
+                'author': 'Unknown',
+                'style': {'quotes': 0, 'statistics': 0, 'readingLevel': 10, 'balanced': False}
             }
         }
 
-        // Initialize the analyzer
-        const analyzer = new NewsAnalyzer();
-    </script>
-</body>
-</html>
+
+# Flask route handler
+def analyze_news_route(request_data: Dict) -> Dict:
+    """Flask route handler for news analysis"""
+    
+    analyzer = NewsAnalyzer()
+    
+    # Extract parameters
+    content = request_data.get('content', '')
+    content_type = request_data.get('type', 'text')
+    is_pro = request_data.get('is_pro', False)
+    
+    if not content:
+        return {'error': 'No content provided'}, 400
+    
+    # Perform analysis
+    try:
+        results = analyzer.analyze(content, content_type, is_pro)
+        return results
+    except Exception as e:
+        return {'error': f'Analysis failed: {str(e)}'}, 500
