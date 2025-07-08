@@ -77,7 +77,7 @@ body {
     100% { transform: translate(60px, 60px); }
 }
 
-/* Futuristic Input Section */
+/* Enhanced Input Section with Tabs */
 .analysis-input-section {
     background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
     border: 2px solid rgba(0,255,255,0.3);
@@ -114,13 +114,50 @@ body {
     margin-bottom: 10px;
 }
 
+/* Input Tabs */
+.input-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(0,255,255,0.2);
+    padding-bottom: 10px;
+}
+
+.input-tab {
+    padding: 10px 20px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0;
+    transition: all 0.3s;
+}
+
+.input-tab:hover {
+    background: rgba(0,255,255,0.2);
+}
+
+.input-tab.active {
+    background: linear-gradient(135deg, #00ffff, #0099cc);
+    color: #0a0e27;
+}
+
+.input-content {
+    display: none;
+}
+
+.input-content.active {
+    display: block;
+}
+
 .input-wrapper {
     display: flex;
     gap: 15px;
     margin: 30px 0;
 }
 
-.url-input {
+.url-input, textarea {
     flex: 1;
     padding: 15px 20px;
     border: 2px solid rgba(0,255,255,0.5);
@@ -129,15 +166,21 @@ body {
     color: #fff;
     font-size: 16px;
     transition: all 0.3s;
+    font-family: inherit;
 }
 
-.url-input:focus {
+textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.url-input:focus, textarea:focus {
     outline: none;
     border-color: #00ffff;
     box-shadow: 0 0 20px rgba(0,255,255,0.5);
 }
 
-.url-input::placeholder {
+.url-input::placeholder, textarea::placeholder {
     color: rgba(255,255,255,0.5);
 }
 
@@ -178,23 +221,83 @@ body {
     box-shadow: 0 6px 20px rgba(255,0,255,0.6);
 }
 
-/* Ripple effect for buttons */
-.analyze-button::after, .reset-button::after {
-    content: '';
+/* Progress Section */
+.progress-section {
+    display: none;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(0,255,255,0.3);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 40px 0;
+    text-align: center;
+}
+
+.progress-stages {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+.progress-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.5;
+    transition: all 0.3s;
+}
+
+.progress-stage.active {
+    opacity: 1;
+}
+
+.progress-stage.completed {
+    opacity: 1;
+}
+
+.stage-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.stage-label {
+    font-size: 0.9em;
+    color: #00ffff;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 20px 0;
+    position: relative;
+}
+
+#progressBar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffff, #00ff88, #ffff00, #ff00ff);
+    background-size: 300% 100%;
+    border-radius: 20px;
+    animation: progressGradient 2s ease-in-out infinite;
+    transition: width 0.5s ease;
+}
+
+#progressPercentage {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.5);
     transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-.analyze-button:active::after, .reset-button:active::after {
-    width: 300px;
-    height: 300px;
+.progress-status {
+    color: #00ffff;
+    font-size: 1.1em;
+    margin-top: 20px;
 }
 
 /* Info Cards */
@@ -226,107 +329,6 @@ body {
 
 .info-card strong {
     color: #00ffff;
-}
-
-/* Enhanced Loading State */
-.loading-container {
-    text-align: center;
-    padding: 60px;
-}
-
-.progress-bar-container {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto 30px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 20px;
-    height: 30px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #00ffff, #00ff88, #ffff00, #ff00ff);
-    background-size: 300% 100%;
-    border-radius: 20px;
-    animation: progressGradient 2s ease-in-out infinite;
-    transition: width 0.5s ease;
-}
-
-@keyframes progressGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.loading-status {
-    color: #00ffff;
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.loading-substatus {
-    color: rgba(255,255,255,0.7);
-    font-size: 0.9em;
-}
-
-/* AI Animation */
-.ai-brain {
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 30px;
-    position: relative;
-}
-
-.brain-core {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(45deg, #00ffff, #ff00ff);
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: brainPulse 2s ease-in-out infinite;
-}
-
-@keyframes brainPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.2); }
-}
-
-.brain-ring {
-    position: absolute;
-    border: 2px solid rgba(0,255,255,0.5);
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.brain-ring:nth-child(2) {
-    width: 80px;
-    height: 80px;
-    animation: ringRotate 3s linear infinite;
-}
-
-.brain-ring:nth-child(3) {
-    width: 100px;
-    height: 100px;
-    animation: ringRotate 4s linear infinite reverse;
-}
-
-.brain-ring:nth-child(4) {
-    width: 120px;
-    height: 120px;
-    animation: ringRotate 5s linear infinite;
-}
-
-@keyframes ringRotate {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Colorful Tabs */
@@ -377,22 +379,6 @@ body {
     box-shadow: 0 8px 30px rgba(255,255,255,0.4);
 }
 
-.tab::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.tab:hover::before {
-    opacity: 1;
-}
-
 .pro-badge {
     background: linear-gradient(45deg, #FFD700, #FFA500);
     color: #000;
@@ -435,25 +421,38 @@ body {
     margin-top: 40px;
 }
 
-/* Simple Loading Spinner (for old browsers) */
-.loading {
-    text-align: center;
-    padding: 40px;
+/* Notification */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    z-index: 10000;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: none;
+    animation: slideIn 0.3s ease;
 }
 
-.spinner {
-    border: 4px solid rgba(255,255,255,0.1);
-    border-top: 4px solid #00ffff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
+.notification.success {
+    background: #10b981;
+    color: white;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.notification.error {
+    background: #ef4444;
+    color: white;
+}
+
+.notification.info {
+    background: #667eea;
+    color: white;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* Responsive */
@@ -493,21 +492,56 @@ body {
         <p>Neural Network-Powered Media Intelligence</p>
     </div>
     
-    <!-- Futuristic Input Section -->
+    <!-- Enhanced Input Section -->
     <div class="analysis-input-section">
         <h2>🤖 Initialize Analysis Protocol</h2>
         <p class="input-description">Deploy advanced AI to decode bias and verify credibility in real-time</p>
         
-        <div class="input-wrapper">
-            <input type="url" 
-                   id="articleUrl" 
-                   placeholder="Insert target article URL for deep analysis..." 
-                   class="url-input">
-            <button onclick="analyzeArticle()" class="analyze-button" id="analyzeBtn">
+        <!-- Input Type Tabs -->
+        <div class="input-tabs">
+            <button class="input-tab active" onclick="switchInputType('url')">🔗 URL Verification</button>
+            <button class="input-tab" onclick="switchInputType('text')">📝 News Text Analysis</button>
+            <button class="input-tab" onclick="switchInputType('article')">📄 Full Article (Most Accurate)</button>
+        </div>
+        
+        <!-- URL Input -->
+        <div class="input-content active" id="urlInput">
+            <div class="input-wrapper">
+                <input type="url" 
+                       id="articleUrl" 
+                       placeholder="Insert target article URL for deep analysis..." 
+                       class="url-input">
+            </div>
+        </div>
+        
+        <!-- Text Input -->
+        <div class="input-content" id="textInput">
+            <div class="input-wrapper">
+                <textarea id="news-text" 
+                          placeholder="Paste news text, headlines, or social media posts for instant verification..."
+                          class="url-input"></textarea>
+            </div>
+        </div>
+        
+        <!-- Full Article Input -->
+        <div class="input-content" id="articleInput">
+            <div class="input-wrapper">
+                <textarea id="fullArticle" 
+                          placeholder="Paste the complete article including title, author, date, and full text for the most accurate analysis..."
+                          class="url-input" style="min-height: 200px;"></textarea>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="analyzeArticle('free')" class="analyze-button" id="analyzeBtn">
                 ⚡ Analyze
             </button>
-            <button onclick="resetAnalysis()" class="reset-button" id="resetBtn" style="display: none;">
-                🔄 Analyze Another Article
+            <button onclick="analyzeArticle('pro')" class="analyze-button" id="analyzeBtnPro" style="background: linear-gradient(45deg, #FFD700, #FFA500); margin-left: 10px;">
+                👑 Pro Analysis
+            </button>
+            <button onclick="resetForm()" class="reset-button" id="resetBtn" style="margin-left: 10px;">
+                🔄 Reset
             </button>
         </div>
         
@@ -521,70 +555,110 @@ body {
         </div>
         
         <p style="text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9em; margin-top: 20px;">
-            💡 Tip: For pages with multiple articles, our AI targets the main story
+            💡 Tip: Use "Full Article" tab for most accurate results with 95%+ reliability
         </p>
+    </div>
+    
+    <!-- Progress Section -->
+    <div class="progress-section" id="progressSection">
+        <h3 style="color: #00ffff; margin-bottom: 30px;">🧠 AI Analysis in Progress</h3>
+        
+        <div class="progress-stages" id="progressStages">
+            <div class="progress-stage" data-stage="0">
+                <div class="stage-icon">📄</div>
+                <div class="stage-label">Extracting Content</div>
+            </div>
+            <div class="progress-stage" data-stage="1">
+                <div class="stage-icon">⚖️</div>
+                <div class="stage-label">Analyzing Bias</div>
+            </div>
+            <div class="progress-stage" data-stage="2">
+                <div class="stage-icon">🔍</div>
+                <div class="stage-label">Checking Sources</div>
+            </div>
+            <div class="progress-stage" data-stage="3">
+                <div class="stage-icon">✓</div>
+                <div class="stage-label">Verifying Claims</div>
+            </div>
+            <div class="progress-stage" data-stage="4">
+                <div class="stage-icon">📊</div>
+                <div class="stage-label">Generating Report</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div id="progressBar"></div>
+            <span id="progressPercentage">0%</span>
+        </div>
+        
+        <div class="progress-status" id="progressStatus">
+            Initializing neural networks...
+        </div>
     </div>
     
     <!-- Results section with colorful tabs -->
     <div id="results" class="results-section" style="display: none;">
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('summary')">
-                    📊 Summary & Analysis
-                </button>
-                <button class="tab" onclick="switchTab('bias')">
-                    ⚖️ Political Bias <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('sources')">
-                    🌐 Source Diversity <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('credibility')">
-                    ✓ Credibility Check <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('cross-source')">
-                    🔍 Cross-Verification <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('author')">
-                    👤 Author Analysis <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('style')">
-                    ✍️ Writing Style <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('temporal')">
-                    ⏱️ Temporal Intel <span class="pro-badge">Pro</span>
-                </button>
-                <button class="tab" onclick="switchTab('pro')">
-                    💎 Unlock All
-                </button>
-            </div>
-            
-            <!-- Tab Contents -->
-            <div id="tab-contents">
-                <div class="tab-content active" id="summary-content">
-                    <!-- Content will be dynamically loaded -->
-                </div>
-                <div class="tab-content" id="bias-content"></div>
-                <div class="tab-content" id="sources-content"></div>
-                <div class="tab-content" id="credibility-content"></div>
-                <div class="tab-content" id="cross-source-content"></div>
-                <div class="tab-content" id="author-content"></div>
-                <div class="tab-content" id="style-content"></div>
-                <div class="tab-content" id="temporal-content"></div>
-                <div class="tab-content" id="pro-content"></div>
-            </div>
-        </div>
+        <!-- Results will be dynamically inserted here -->
     </div>
 </div>
-
-<!-- Include modals -->
-{% include 'partials/news-modals.html' %}
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/news-helpers.js') }}"></script>
+<!-- Load JavaScript files in correct order -->
 <script src="{{ url_for('static', filename='js/news-ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/news-analysis.js') }}"></script>
 <script src="{{ url_for('static', filename='js/news-results.js') }}"></script>
-<script src="/static/js/news-main.js"></script>
+<script src="{{ url_for('static', filename='js/news-main.js') }}"></script>
+
+<script>
+// Additional initialization for this specific design
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('News page initialized');
+});
+
+// Tab switching function for results
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    const targetContent = document.getElementById(tabName + '-content');
+    if (targetContent) {
+        targetContent.classList.add('active');
+    }
+    
+    // Handle pro tabs
+    if (tabName !== 'summary' && tabName !== 'pro') {
+        // Show upgrade message for pro features
+        if (targetContent && !targetContent.innerHTML.trim()) {
+            targetContent.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <h3 style="color: #FFD700; margin-bottom: 20px;">🔒 Pro Feature</h3>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">
+                        This advanced analysis is available with Pro subscription
+                    </p>
+                    <button onclick="window.location.href='/pricingplan'" 
+                            style="background: linear-gradient(45deg, #FFD700, #FFA500); 
+                                   color: #000; 
+                                   padding: 15px 40px; 
+                                   border: none; 
+                                   border-radius: 10px; 
+                                   font-weight: bold; 
+                                   cursor: pointer;
+                                   font-size: 16px;">
+                        Upgrade to Pro
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+</script>
 {% endblock %}
