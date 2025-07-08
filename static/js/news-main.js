@@ -1,9 +1,10 @@
 // news-main.js - Main integration file for news verification
 // This file coordinates all the news analysis modules
 
-// Global variables
-let currentInputType = 'text';
-let currentTier = 'free';
+// Only declare if not already declared
+if (typeof window.newsAnalysisApp === 'undefined') {
+    window.newsAnalysisApp = {};
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -21,11 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize UI components
 function initializeUI() {
-    // Enhance UI with the third tab
-    if (typeof enhanceNewsUI === 'function') {
-        enhanceNewsUI();
-    }
-    
     // Initialize tooltips
     initializeTooltips();
     
@@ -35,49 +31,37 @@ function initializeUI() {
 
 // Initialize all event listeners
 function initializeEventListeners() {
-    // Tab switching
-    document.querySelectorAll('.input-tab').forEach((tab, index) => {
-        tab.addEventListener('click', () => {
-            const types = ['text', 'url', 'article'];
-            switchInputType(types[index]);
-        });
-    });
-    
-    // Test data button
-    const testBtn = document.querySelector('.btn-test');
-    if (testBtn) {
-        testBtn.addEventListener('click', loadTestData);
-    }
-    
-    // Reset button
-    const resetBtn = document.querySelector('.btn-secondary');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetForm);
-    }
+    // Event listeners are set up in individual modules
 }
 
 // Main analysis function (called by buttons)
-function analyzeArticle(tier = 'free') {
-    currentTier = tier;
+window.analyzeArticle = function(tier = 'free') {
+    console.log('analyzeArticle called with tier:', tier);
     
     // Call the analysis function from news-analysis.js
     if (typeof runAnalysis === 'function') {
         runAnalysis(tier);
-    } else if (typeof runNewsAnalysis === 'function') {
-        runNewsAnalysis(tier);
+    } else if (typeof window.runAnalysis === 'function') {
+        window.runAnalysis(tier);
+    } else if (typeof window.runNewsAnalysis === 'function') {
+        window.runNewsAnalysis(tier);
     } else {
         console.error('Analysis function not found');
-        showNotification('Analysis system not ready. Please refresh the page.', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Analysis system not ready. Please refresh the page.', 'error');
+        } else {
+            alert('Analysis system not ready. Please refresh the page.');
+        }
     }
-}
+};
 
-// Switch input type
-function switchInputType(type) {
-    currentInputType = type;
+// Switch input type - use the one from news-analysis.js
+window.switchInputType = function(type) {
+    console.log('Switching to input type:', type);
     
     // Update tabs
     document.querySelectorAll('.input-tab').forEach((tab, index) => {
-        const tabTypes = ['text', 'url', 'article'];
+        const tabTypes = ['url', 'text', 'article'];
         tab.classList.toggle('active', tabTypes[index] === type);
     });
     
@@ -92,79 +76,30 @@ function switchInputType(type) {
     }
     
     // Call the module function if available
-    if (typeof switchNewsInputType === 'function') {
-        switchNewsInputType(type);
+    if (typeof window.switchNewsInputType === 'function') {
+        window.switchNewsInputType(type);
     }
-}
+};
 
-// Load test data
-function loadTestData() {
-    const testContent = `By David Rising
-Associated Press
-
-BANGKOK -- President Donald Trump has threatened to impose sweeping tariffs on Mexico, Canada and China, some of the United States' largest trading partners. The move could spark a global trade war and drive up prices for American consumers.
-
-Trump announced Monday he would impose a 25% tariff on all goods from Mexico and Canada on his first day in office. He also threatened an additional 10% tariff on Chinese imports.
-
-"These tariffs will remain in effect until such time as Drugs, in particular Fentanyl, and all Illegal Aliens stop this Invasion of our Country!" Trump wrote on social media.
-
-Economic experts warn the tariffs could significantly impact the U.S. economy. "Tariffs are paid by importers, not foreign countries, and those costs are typically passed on to consumers," said Mary Johnson, an economist at Georgetown University.`;
-    
-    // Fill all input fields
-    const textArea = document.getElementById('news-text');
-    const urlInput = document.getElementById('articleUrl');
-    const articleArea = document.getElementById('fullArticle');
-    
-    if (textArea) textArea.value = testContent;
-    if (urlInput) urlInput.value = 'https://apnews.com/article/trump-tariffs-mexico-canada-china-trade';
-    if (articleArea) articleArea.value = testContent;
-    
-    switchInputType('text');
-    showNotification('Sample news content loaded!', 'success');
-}
-
-// Reset form
-function resetForm() {
-    // Clear all inputs
-    const textArea = document.getElementById('news-text');
-    const urlInput = document.getElementById('articleUrl');
-    const articleArea = document.getElementById('fullArticle');
-    
-    if (textArea) textArea.value = '';
-    if (urlInput) urlInput.value = '';
-    if (articleArea) articleArea.value = '';
-    
-    // Hide results
-    const resultsDiv = document.getElementById('results');
-    if (resultsDiv) {
-        resultsDiv.style.display = 'none';
-        resultsDiv.innerHTML = '';
+// Reset form - use the one from news-analysis.js
+window.resetForm = function() {
+    if (typeof window.resetNewsForm === 'function') {
+        window.resetNewsForm();
+    } else {
+        // Fallback reset
+        document.getElementById('news-text').value = '';
+        document.getElementById('articleUrl').value = '';
+        document.getElementById('fullArticle').value = '';
+        
+        const resultsDiv = document.getElementById('results');
+        if (resultsDiv) {
+            resultsDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+        }
+        
+        console.log('Form reset');
     }
-    
-    // Call module reset if available
-    if (typeof resetNewsForm === 'function') {
-        resetNewsForm();
-    }
-    
-    showNotification('Form reset successfully', 'success');
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.display = 'block';
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
+};
 
 // Initialize tooltips
 function initializeTooltips() {
@@ -197,29 +132,9 @@ function setupSmoothScrolling() {
     });
 }
 
-// Enhanced back to top functionality
-window.addEventListener('scroll', () => {
-    const backToTop = document.getElementById('backToTop');
-    if (backToTop) {
-        if (window.pageYOffset > 300) {
-            backToTop.classList.add('visible');
-        } else {
-            backToTop.classList.remove('visible');
-        }
-    }
+// Make sure functions are available globally
+console.log('News main.js loaded - functions available:', {
+    analyzeArticle: typeof window.analyzeArticle,
+    switchInputType: typeof window.switchInputType,
+    resetForm: typeof window.resetForm
 });
-
-// Scroll to top function
-window.scrollToTop = function() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-};
-
-// Export global functions
-window.analyzeArticle = analyzeArticle;
-window.switchInputType = switchInputType;
-window.loadTestData = loadTestData;
-window.resetForm = resetForm;
-window.showNotification = showNotification;
