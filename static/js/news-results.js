@@ -1,352 +1,240 @@
-// News Results Display Functions
+// News Analysis Main Functions
 
-// Enhanced Update Summary Tab
-function updateSummaryTab(data) {
+// Reset function
+function resetAnalysis() {
+    // Clear the URL input
+    document.getElementById('articleUrl').value = '';
+    
+    // Hide results
+    document.getElementById('results').style.display = 'none';
+    
+    // Show analyze button, hide reset button
+    document.getElementById('analyzeBtn').style.display = 'inline-block';
+    document.getElementById('resetBtn').style.display = 'none';
+    
+    // Reset to first tab
+    switchTab('summary');
+}
+
+// Analyze article
+function analyzeArticle() { 
+    const url = document.getElementById('articleUrl').value;
+    if (!url) {
+        alert('Please enter a URL to analyze');
+        return;
+    }
+    
+    // Hide analyze button, show reset button
+    document.getElementById('analyzeBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'inline-block';
+    
+    // Show loading state
+    const results = document.getElementById('results');
+    results.style.display = 'block';
+    
+    // Show animated loading in first tab
+    showLoadingAnimation();
+    
+    // Make API call to Flask backend
+    fetch('/api/analyze-news', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: url,
+            analysis_type: 'url'  // Always use URL analysis
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayResults(data.results);
+        } else {
+            showError(data.error || 'Analysis failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Network error. Please try again.');
+    });
+}
+
+// Animated loading state
+function showLoadingAnimation() {
     const container = document.getElementById('summary-content');
-    if (!container || !data) return;
-    
-    // Calculate visual scores
-    const biasScore = data.bias_score || 0;
-    const credibilityScore = data.credibility_score || 75;
-    const biasPosition = ((biasScore + 100) / 200) * 100;
+    let progress = 0;
+    const loadingStages = [
+        { progress: 10, status: "Initializing Neural Network...", substatus: "Loading AI models" },
+        { progress: 25, status: "Fetching Article Content...", substatus: "Extracting text and metadata" },
+        { progress: 40, status: "Analyzing Political Bias...", substatus: "Scanning for partisan language" },
+        { progress: 55, status: "Verifying Credibility...", substatus: "Checking source reliability" },
+        { progress: 70, status: "Cross-Referencing Sources...", substatus: "Comparing with database" },
+        { progress: 85, status: "Generating Insights...", substatus: "Compiling final analysis" },
+        { progress: 95, status: "Finalizing Report...", substatus: "Almost there!" }
+    ];
     
     container.innerHTML = `
-        <div class="summary-section">
-            <!-- Article Info -->
-            <div class="article-info">
-                <h3>Article Information</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>Source:</strong> ${data.source || 'Unknown Source'}
-                    </div>
-                    <div class="info-item">
-                        <strong>Author:</strong> ${data.author || 'Not specified'}
-                    </div>
-                    <div class="info-item">
-                        <strong>Date:</strong> ${data.publication_date || 'Not available'}
-                    </div>
-                </div>
+        <div class="loading-container">
+            <div class="ai-brain">
+                <div class="brain-core"></div>
+                <div class="brain-ring"></div>
+                <div class="brain-ring"></div>
+                <div class="brain-ring"></div>
             </div>
             
-            <!-- Article Summary -->
-            <div class="article-summary">
-                <h3>What This Article Is About</h3>
-                <p>${data.summary || 'No summary available'}</p>
-                
-                ${data.key_points && data.key_points.length > 0 ? `
-                    <h4>Key Points:</h4>
-                    <ul class="key-points">
-                        ${data.key_points.slice(0, 3).map(point => `<li>${point}</li>`).join('')}
-                    </ul>
-                ` : ''}
+            <div class="loading-status" id="loading-status">Initializing Neural Network...</div>
+            <div class="loading-substatus" id="loading-substatus">Loading AI models</div>
+            
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
             </div>
             
-            <!-- Analysis Scores -->
-            <div class="analysis-scores">
-                <h3>Analysis Results</h3>
-                
-                <!-- Bias Score -->
-                <div class="score-section">
-                    <h4>Political Bias</h4>
-                    <div class="bias-meter">
-                        <div class="bias-scale">
-                            <div class="bias-indicator" style="left: ${biasPosition}%">
-                                <div class="bias-tooltip">${getBiasLabel(biasScore)}</div>
-                            </div>
-                        </div>
-                        <div class="bias-labels">
-                            <span>Far Left</span>
-                            <span>Left</span>
-                            <span>Center</span>
-                            <span>Right</span>
-                            <span>Far Right</span>
-                        </div>
-                    </div>
-                    <p class="bias-description">${data.bias_summary || 'This article appears to be politically neutral.'}</p>
-                </div>
-                
-                <!-- Credibility Score -->
-                <div class="score-section">
-                    <h4>Credibility Score</h4>
-                    <div class="credibility-meter">
-                        <div class="score-circle ${getCredibilityClass(credibilityScore)}">
-                            <span class="score-value">${credibilityScore}%</span>
-                        </div>
-                        <p class="score-label">${getCredibilityLabel(credibilityScore)}</p>
-                    </div>
-                    <p class="credibility-description">${data.credibility_summary || 'Based on source reputation and content analysis.'}</p>
-                </div>
-            </div>
-            
-            <!-- Overall Findings -->
-            <div class="overall-findings">
-                <h3>Overall Findings</h3>
-                <div class="findings-summary">
-                    ${data.overall_assessment || `
-                        <p>This article has been analyzed for political bias and credibility. 
-                        ${getBiasLabel(biasScore) === 'Center' ? 'It appears to be relatively balanced in its political perspective.' : `It shows a ${getBiasLabel(biasScore)} political leaning.`}
-                        The credibility score of ${credibilityScore}% indicates ${getCredibilityLabel(credibilityScore).toLowerCase()} reliability.</p>
-                    `}
-                </div>
-            </div>
-            
-            <!-- Pro Upgrade Prompt -->
-            <div class="pro-prompt">
-                <h4>Want Deeper Insights?</h4>
-                <p>Unlock detailed bias indicators, source verification, author background checks, and more with Pro!</p>
-                <button class="upgrade-button-small" onclick="window.location.href='/pricing'">
-                    See Pro Features
-                </button>
+            <div style="color: rgba(255,255,255,0.6); margin-top: 20px;">
+                <small>🧠 Processing with advanced AI algorithms...</small>
             </div>
         </div>
     `;
+    
+    // Animate progress bar
+    let stageIndex = 0;
+    const progressInterval = setInterval(() => {
+        if (stageIndex < loadingStages.length) {
+            const stage = loadingStages[stageIndex];
+            updateProgress(stage.progress, stage.status, stage.substatus);
+            stageIndex++;
+        } else {
+            clearInterval(progressInterval);
+        }
+    }, 2000); // Update every 2 seconds
 }
 
-// Update Bias Tab - Pro Feature
-function updateBiasTab(data) {
-    const container = document.getElementById('bias-content');
-    if (!container) return;
+function updateProgress(percent, status, substatus) {
+    const progressBar = document.getElementById('progress-bar');
+    const statusText = document.getElementById('loading-status');
+    const substatusText = document.getElementById('loading-substatus');
     
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Advanced Political Bias Analysis</h3>
-            <p>Unlock detailed insights including:</p>
-            <ul class="feature-list">
-                <li>Sentence-by-sentence bias detection</li>
-                <li>Loaded language identification</li>
-                <li>Framing analysis</li>
-                <li>Historical bias patterns of the source</li>
-                <li>Comparison with similar articles</li>
-            </ul>
-            <div class="sample-preview">
-                <h4>Sample from this article:</h4>
-                <p class="sample-text">"${data.sample_biased_text || 'Advanced bias analysis available in Pro version'}"</p>
-            </div>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                Unlock Full Bias Analysis
-            </button>
-            <p class="trial-info">✨ Pro users can analyze unlimited articles. Free trial available!</p>
+    if (progressBar) progressBar.style.width = percent + '%';
+    if (statusText) statusText.textContent = status;
+    if (substatusText) substatusText.textContent = substatus;
+}
+
+// Switch tabs
+function switchTab(tabName) {
+    // Remove active class from all tabs and contents
+    document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Add active class to selected tab and content
+    const activeButton = Array.from(document.querySelectorAll('.tab')).find(
+        btn => btn.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
+               btn.onclick.toString().includes(tabName)
+    );
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+    
+    const activeContent = document.getElementById(tabName + '-content');
+    if (activeContent) {
+        activeContent.classList.add('active');
+    }
+}
+
+// Display results
+function displayResults(results) {
+    // Update each tab with results
+    
+    // Make sure all the update functions exist before calling them
+    if (typeof updateSummaryTab === 'function' && results.summary) {
+        updateSummaryTab(results.summary);
+    }
+    
+    if (typeof updateBiasTab === 'function' && results.bias) {
+        updateBiasTab(results.bias);
+    }
+    
+    if (typeof updateSourcesTab === 'function' && results.sources) {
+        updateSourcesTab(results.sources);
+    }
+    
+    if (typeof updateCredibilityTab === 'function' && results.credibility) {
+        updateCredibilityTab(results.credibility);
+    }
+    
+    if (typeof updateCrossSourceTab === 'function' && results.cross_source) {
+        updateCrossSourceTab(results.cross_source);
+    }
+    
+    if (typeof updateAuthorTab === 'function' && results.author) {
+        updateAuthorTab(results.author);
+    }
+    
+    if (typeof updateWritingStyleTab === 'function' && results.writing_style) {
+        updateWritingStyleTab(results.writing_style);
+    }
+    
+    if (typeof updateTemporalTab === 'function' && results.temporal) {
+        updateTemporalTab(results.temporal);
+    }
+    
+    if (typeof updateProFeaturesTab === 'function') {
+        updateProFeaturesTab();
+    }
+    
+    // Show the results container
+    const resultsContainer = document.getElementById('results');
+    if (resultsContainer) {
+        resultsContainer.style.display = 'block';
+    }
+}
+
+// Show error message
+function showError(message) {
+    document.getElementById('summary-content').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+            <div style="color: #ff0066; font-size: 48px; margin-bottom: 20px;">⚠️</div>
+            <h3 style="color: #ff0066;">Analysis Error</h3>
+            <p style="color: rgba(255,255,255,0.8);">${message}</p>
+            <button class="analyze-button" onclick="resetAnalysis()" style="margin-top: 20px;">Try Again</button>
         </div>
     `;
+    
+    // Show reset button on error
+    document.getElementById('analyzeBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'inline-block';
 }
 
-// Update Sources Tab - Pro Feature
-function updateSourcesTab(data) {
-    const container = document.getElementById('sources-content');
-    if (!container) return;
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add enter key support
+    document.getElementById('articleUrl').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            analyzeArticle();
+        }
+    });
     
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Source Diversity Analysis</h3>
-            <p>Pro members get access to:</p>
-            <ul class="feature-list">
-                <li>Complete source mapping</li>
-                <li>Source credibility ratings</li>
-                <li>Missing perspective analysis</li>
-                <li>Echo chamber detection</li>
-                <li>Source relationship networks</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                View All Sources
-            </button>
-        </div>
-    `;
-}
-
-// Update Credibility Tab - Pro Feature
-function updateCredibilityTab(data) {
-    const container = document.getElementById('credibility-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Deep Credibility Check</h3>
-            <p>Get comprehensive credibility analysis:</p>
-            <ul class="feature-list">
-                <li>Source reliability history</li>
-                <li>Fact-checking results</li>
-                <li>Citation quality analysis</li>
-                <li>Transparency scoring</li>
-                <li>Domain authority metrics</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                Access Full Report
-            </button>
-        </div>
-    `;
-}
-
-// Update Cross-Source Tab - Pro Feature
-function updateCrossSourceTab(data) {
-    const container = document.getElementById('cross-source-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Cross-Source Verification</h3>
-            <p>Verify claims across multiple sources:</p>
-            <ul class="feature-list">
-                <li>Automatic fact-checking</li>
-                <li>Claim verification across 100+ sources</li>
-                <li>Contradiction detection</li>
-                <li>Consensus analysis</li>
-                <li>Real-time updates</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                Unlock Verification Tools
-            </button>
-        </div>
-    `;
-}
-
-// Update Author Tab - Pro Feature
-function updateAuthorTab(data) {
-    const container = document.getElementById('author-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Author Background Check</h3>
-            <p>Learn about article authors:</p>
-            <ul class="feature-list">
-                <li>Author credentials and expertise</li>
-                <li>Publication history analysis</li>
-                <li>Potential conflicts of interest</li>
-                <li>Social media presence</li>
-                <li>Previous work bias patterns</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                View Author Analysis
-            </button>
-        </div>
-    `;
-}
-
-// Update Writing Style Tab - Pro Feature
-function updateWritingStyleTab(data) {
-    const container = document.getElementById('style-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Writing Style Analysis</h3>
-            <p>Understand how the article influences readers:</p>
-            <ul class="feature-list">
-                <li>Emotional language detection</li>
-                <li>Persuasion technique identification</li>
-                <li>Rhetorical device analysis</li>
-                <li>Tone and sentiment mapping</li>
-                <li>Manipulation tactics detection</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                Analyze Writing Style
-            </button>
-        </div>
-    `;
-}
-
-// Update Temporal Tab - Pro Feature
-function updateTemporalTab(data) {
-    const container = document.getElementById('temporal-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-feature-preview">
-            <div class="lock-icon">🔒</div>
-            <h3>Temporal Intelligence</h3>
-            <p>Track news evolution over time:</p>
-            <ul class="feature-list">
-                <li>Story development timeline</li>
-                <li>Information freshness scoring</li>
-                <li>Update frequency analysis</li>
-                <li>Historical context mapping</li>
-                <li>Predictive trend analysis</li>
-            </ul>
-            <button class="upgrade-cta" onclick="window.location.href='/pricing'">
-                Access Timeline Analysis
-            </button>
-        </div>
-    `;
-}
-
-// Update Pro Features Tab
-function updateProFeaturesTab() {
-    const container = document.getElementById('pro-content');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="pro-features">
-            <h3>🚀 Unlock Advanced Analysis</h3>
-            <p>Take your news analysis to the next level with Pro:</p>
+    // Add ripple effect to buttons
+    const buttons = document.querySelectorAll('.analyze-button, .reset-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
             
-            <div class="pro-benefits">
-                <div class="benefit-card">
-                    <h4>Unlimited Analysis</h4>
-                    <p>Analyze as many articles as you want, whenever you want</p>
-                </div>
-                <div class="benefit-card">
-                    <h4>Deep Learning AI</h4>
-                    <p>Advanced algorithms for more accurate bias and credibility detection</p>
-                </div>
-                <div class="benefit-card">
-                    <h4>Real-time Verification</h4>
-                    <p>Cross-reference claims across hundreds of trusted sources instantly</p>
-                </div>
-                <div class="benefit-card">
-                    <h4>API Access</h4>
-                    <p>Integrate our analysis tools into your own applications</p>
-                </div>
-            </div>
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
             
-            <div class="pricing-info">
-                <h4>Special Offer</h4>
-                <p class="price">$9.99/month</p>
-                <p class="savings">Save 20% with annual billing</p>
-            </div>
+            this.appendChild(ripple);
             
-            <button class="upgrade-button-large" onclick="window.location.href='/pricing'">
-                Start Free Trial
-            </button>
-            
-            <p class="guarantee">30-day money-back guarantee • Cancel anytime</p>
-        </div>
-    `;
-}
-
-// Helper Functions
-function getBiasLabel(score) {
-    if (score < -60) return 'Far Left';
-    if (score < -20) return 'Left';
-    if (score < 20) return 'Center';
-    if (score < 60) return 'Right';
-    return 'Far Right';
-}
-
-function getCredibilityClass(score) {
-    if (score >= 80) return 'high';
-    if (score >= 60) return 'medium';
-    return 'low';
-}
-
-function getCredibilityLabel(score) {
-    if (score >= 80) return 'High Credibility';
-    if (score >= 60) return 'Moderate Credibility';
-    if (score >= 40) return 'Low Credibility';
-    return 'Very Low Credibility';
-}
-
-function getStatusIcon(status) {
-    const icons = {
-        'Verified': '✓',
-        'Unverified': '?',
-        'Disputed': '⚠',
-        'False': '✗'
-    };
-    return icons[status] || '?';
-}
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+});
