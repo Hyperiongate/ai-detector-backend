@@ -262,15 +262,14 @@ async function analyzeArticle() {
     showLoadingState();
     
     try {
-        // Your API might expect 'url' instead of 'content'
         const response = await fetch('/api/analyze-news', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                url: url,  // Changed from 'content' to 'url'
-                is_pro: window.currentTier === 'pro' || false
+                url: url,
+                is_pro: true  // Always pro for development
             })
         });
         
@@ -299,10 +298,17 @@ async function analyzeArticle() {
         setTimeout(() => {
             hideLoadingState();
             if (window.displayResults) {
-                displayResults(data, window.currentTier || 'free');
+                displayResults(data, 'pro'); // Always pro for development
+                
+                // AUTO-SCROLL TO RESULTS
+                setTimeout(() => {
+                    const resultsDiv = document.getElementById('results');
+                    if (resultsDiv) {
+                        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
             } else {
                 console.error('displayResults function not found');
-                // Fallback display
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.style.display = 'block';
                 resultsDiv.innerHTML = '<div style="color: white; padding: 20px;">Analysis complete! Check console for results.</div>';
