@@ -1,4 +1,4 @@
-// news-analysis.js - News Analysis Module with API Debugging
+// news-analysis.js - News Analysis Module
 (function() {
     'use strict';
     
@@ -30,8 +30,14 @@
                 // Start progress animation
                 this.startProgressAnimation();
                 
-                // Create request body
-                const requestBody = { url: url, tier: tier };
+                // Create request body - include multiple fields to ensure compatibility
+                const requestBody = { 
+                    url: url,
+                    article_url: url,  // Alternative field name
+                    content: '',       // Empty content field
+                    tier: tier 
+                };
+                
                 console.log('Request body:', JSON.stringify(requestBody, null, 2));
                 
                 const response = await fetch('/api/analyze-news', {
@@ -43,29 +49,28 @@
                 });
                 
                 console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 
-                // Try to get response text regardless of status
+                // Get response as text first
                 const responseText = await response.text();
-                console.log('Response text:', responseText);
+                console.log('Raw response:', responseText);
                 
                 let data;
                 try {
                     data = JSON.parse(responseText);
                 } catch (parseError) {
-                    console.error('Failed to parse response as JSON:', parseError);
-                    console.log('Raw response:', responseText);
-                    throw new Error(`Server returned invalid JSON: ${responseText}`);
+                    console.error('Failed to parse response:', parseError);
+                    throw new Error('Server returned invalid response');
                 }
                 
                 if (!response.ok) {
-                    console.error('API Error Response:', data);
+                    console.error('API Error:', data);
                     throw new Error(data.error || `HTTP error! status: ${response.status}`);
                 }
                 
                 console.log('Analysis results:', data);
                 
-                if (data.success && data.results) {
+                // Check for success flag or results
+                if ((data.success && data.results) || data.results) {
                     // Store the analysis data
                     this.currentAnalysisData = data;
                     
@@ -79,12 +84,11 @@
                         console.error('Results display module not loaded');
                     }
                 } else {
-                    throw new Error(data.error || 'Analysis failed');
+                    throw new Error(data.error || 'Analysis failed - no results returned');
                 }
                 
             } catch (error) {
                 console.error('Analysis error:', error);
-                console.error('Error stack:', error.stack);
                 this.handleError(error.message);
             } finally {
                 this.analysisInProgress = false;
@@ -171,7 +175,22 @@
             if (NewsApp.results && NewsApp.results.showError) {
                 NewsApp.results.showError(message);
             } else {
-                alert('Analysis failed: ' + message);
+                // Fallback error display
+                const resultsDiv = document.getElementById('results');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = `
+                        <div class="error-message" style="padding: 20px; background: #ff4444; color: white; border-radius: 8px; margin: 20px 0;">
+                            <h3>Analysis Failed</h3>
+                            <p>${message}</p>
+                            <button onclick="NewsApp.ui.resetAnalysis()" style="background: white; color: #ff4444; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                    resultsDiv.style.display = 'block';
+                } else {
+                    alert('Analysis failed: ' + message);
+                }
             }
         },
         
