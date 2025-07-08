@@ -2,10 +2,11 @@
 Facts & Fakes AI - Main Application 
 Modular structure for better maintainability
 """
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_file
 from flask_cors import CORS
 import traceback
 from datetime import datetime
+from io import BytesIO
 
 # Import configuration
 import config
@@ -18,7 +19,7 @@ from services.openai_service import OPENAI_AVAILABLE, client
 
 # Import analysis modules
 from analysis.text_analysis import perform_realistic_unified_text_analysis, perform_basic_text_analysis, perform_advanced_text_analysis
-from analysis.news_analysis import perform_basic_news_analysis, perform_advanced_news_analysis, perform_realistic_unified_news_check
+from analysis.news_analysis import perform_basic_news_analysis, perform_advanced_news_analysis, perform_realistic_unified_news_check, analyze_news_route
 from analysis.image_analysis import perform_realistic_image_analysis, perform_basic_image_analysis
 from analysis.speech_analysis import (
     extract_claims_from_speech,
@@ -186,159 +187,134 @@ def analyze_unified():
 
 @app.route('/api/analyze-news', methods=['POST'])
 def analyze_news():
-    """Enhanced news analysis endpoint for the new UI"""
+    """Enhanced news analysis endpoint with URL extraction"""
     try:
         data = request.get_json()
         
-        # Get the URL or topic from the request
-        url = data.get('url', '').strip()
-        analysis_type = data.get('analysis_type', 'url')
+        # Use the new analyzer
+        results = analyze_news_route(data)
         
-        # Validate input
-        if not url:
-            return jsonify({
-                'success': False,
-                'error': 'No URL or topic provided'
-            }), 400
+        # Check if it's an error response
+        if isinstance(results, tuple):
+            return jsonify(results[0]), results[1]
         
-        # For now, use the existing analysis function
-        # In the future, you can enhance this based on analysis_type
-        if analysis_type == 'comparison' and ',' in url:
-            # Multiple URLs for comparison
-            urls = [u.strip() for u in url.split(',')]
-            # For now, just analyze the first URL
-            content = urls[0]
-        elif analysis_type == 'topic':
-            # Topic analysis - treat as search query
-            content = url
-        else:
-            # Single URL analysis
-            content = url
-        
-        # Perform analysis using existing function
-        analysis_data = perform_advanced_news_analysis(content)
-        
-        # Transform the data to match the new UI format
-        results = {
-            'summary': {
-                'title': 'Tech Giants Face New AI Regulation Framework',
-                'published': datetime.now().strftime('%B %d, %Y'),
-                'source': 'TechNews Daily',
-                'key_points': [
-                    'New federal AI oversight committee established',
-                    'Mandatory transparency requirements for large language models',
-                    '$2.5 billion allocated for AI safety research',
-                    'Implementation timeline set for Q1 2026'
-                ],
-                'quick_take': 'This represents the most comprehensive AI regulation framework in US history.'
-            },
-            'bias': {
-                'overall_bias': 'slight_right',
-                'bias_score': 55,
-                'claims': [
-                    {
-                        'claim': 'AI regulation will stifle innovation',
-                        'type': 'unsupported',
-                        'explanation': 'This claim lacks supporting evidence.',
-                        'evidence': ['Safe harbor provisions', 'Streamlined approval process']
-                    },
-                    {
-                        'claim': 'Industry leaders support the framework',
-                        'type': 'supported',
-                        'explanation': 'Well-supported by multiple sources.',
-                        'evidence': ['CEO statements', 'Industry endorsements']
-                    }
-                ]
-            },
-            'sources': {
-                'primary_sources': [
-                    {'name': 'Congressional Report', 'type': 'government'},
-                    {'name': 'Tech Industry Statement', 'type': 'industry'}
-                ],
-                'secondary_sources': [
-                    {'name': 'Reuters', 'type': 'news', 'description': 'Breaking coverage'},
-                    {'name': 'TechCrunch', 'type': 'news', 'description': 'Analysis'}
-                ],
-                'diversity_score': 8,
-                'diversity_notes': 'Good mix of sources'
-            },
-            'credibility': {
-                'overall_score': 8.5,
-                'factors': {
-                    'factual_accuracy': {'score': 9, 'max': 10},
-                    'source_reliability': {'score': 8, 'max': 10},
-                    'transparency': {'score': 9, 'max': 10}
-                },
-                'strengths': ['Author expertise', 'Editorial standards'],
-                'concerns': ['Potential conflicts']
-            },
-            'author': {
-                'name': 'Jennifer Chen',
-                'initials': 'JC',
-                'website': 'https://jenniferchen.tech',
-                'metrics': {
-                    'experience': '12 years',
-                    'accuracy_rate': '96%',
-                    'expertise_match': 'High',
-                    'awards': 3
-                },
-                'bio': 'Senior technology policy correspondent'
-            },
-            'style': {
-                'tone': 'Professional, Balanced',
-                'complexity': 'Medium (Grade 12)',
-                'objectivity_score': 8,
-                'technical_level': 'Moderate',
-                'elements': {
-                    'direct_quotes': 12,
-                    'data_points': 8,
-                    'background_context': 'Comprehensive',
-                    'structure': 'Inverted pyramid'
-                },
-                'language_metrics': {
-                    'avg_sentence_length': 18,
-                    'passive_voice_percentage': 12,
-                    'jargon_density': 'Low',
-                    'emotional_language': 'Minimal'
-                }
-            },
-            'temporal': {
-                'published': datetime.now().strftime('%B %d, %Y, %I:%M %p EST'),
-                'last_updated': datetime.now().strftime('%B %d, %Y, %I:%M %p EST'),
-                'events_timeline': [
-                    {'date': 'July 2, 2025', 'event': 'Committee announces framework'},
-                    {'date': 'July 3, 2025', 'event': 'Industry response'}
-                ],
-                'coverage_speed': {
-                    'time_to_publication': '26 hours',
-                    'update_frequency': '2 updates',
-                    'assessment': 'Timely coverage'
-                }
-            },
-            'verification': {
-                'verified_claims': [
-                    {'claim': 'Committee establishment', 'sources': ['Reuters', 'AP'], 'status': 'verified'}
-                ],
-                'partially_verified': [
-                    {'claim': 'Transparency details', 'sources': ['TechCrunch'], 'status': 'partial'}
-                ],
-                'unverified': [],
-                'conflicts': []
-            }
-        }
-        
-        return jsonify({
-            'success': True,
-            'results': results
-        })
+        return jsonify(results)
         
     except Exception as e:
-        print(f"Enhanced news analysis error: {e}")
+        print(f"News analysis error: {e}")
         traceback.print_exc()
         return jsonify({
             'success': False,
             'error': 'Analysis failed. Please try again.'
         }), 500
+
+@app.route('/api/generate-pdf', methods=['POST'])
+def generate_pdf():
+    """Generate PDF report for news analysis"""
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        
+        data = request.get_json()
+        analysis_data = data.get('analysisData', {})
+        results = analysis_data.get('results', {})
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        
+        # Title
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(50, height - 50, "News Verification Report")
+        
+        # Date
+        p.setFont("Helvetica", 12)
+        p.drawString(50, height - 80, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        
+        # Draw a line
+        p.line(50, height - 90, width - 50, height - 90)
+        
+        # Analysis Results
+        y_position = height - 120
+        
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y_position, "Analysis Results")
+        y_position -= 30
+        
+        p.setFont("Helvetica", 12)
+        
+        # Credibility Score
+        credibility = results.get('credibility', 'N/A')
+        p.drawString(50, y_position, f"Credibility Score: {credibility}%")
+        y_position -= 20
+        
+        # Bias
+        bias = results.get('bias', {})
+        if isinstance(bias, dict):
+            bias_label = bias.get('label', 'N/A')
+            objectivity = bias.get('objectivity', 'N/A')
+        else:
+            bias_label = bias
+            objectivity = 'N/A'
+        
+        p.drawString(50, y_position, f"Political Bias: {bias_label}")
+        y_position -= 20
+        p.drawString(50, y_position, f"Objectivity: {objectivity}%")
+        y_position -= 20
+        
+        # Source
+        source = results.get('sources', {}).get('name', 'Unknown')
+        p.drawString(50, y_position, f"Source: {source}")
+        y_position -= 20
+        
+        # Author
+        author = results.get('author', 'Unknown')
+        p.drawString(50, y_position, f"Author: {author}")
+        y_position -= 40
+        
+        # Add more content as needed
+        if y_position > 100:
+            p.setFont("Helvetica-Bold", 14)
+            p.drawString(50, y_position, "Key Findings")
+            y_position -= 25
+            
+            p.setFont("Helvetica", 11)
+            findings = [
+                f"• This article has {credibility}% credibility",
+                f"• Political bias detected: {bias_label}",
+                f"• Source verified as: {source}",
+                "• Full analysis available online"
+            ]
+            
+            for finding in findings:
+                p.drawString(70, y_position, finding)
+                y_position -= 20
+        
+        # Footer
+        p.setFont("Helvetica-Italic", 10)
+        p.drawString(50, 50, "Full analysis available at factsandfakes.ai/news")
+        p.drawString(50, 35, "© 2025 Facts & Fakes AI - Professional News Verification")
+        
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        return send_file(
+            buffer, 
+            as_attachment=True, 
+            download_name=f'news-analysis-{int(datetime.now().timestamp())}.pdf', 
+            mimetype='application/pdf'
+        )
+        
+    except ImportError:
+        print("ReportLab not installed - falling back to text response")
+        return jsonify({'error': 'PDF generation not available. Please install reportlab.'}), 501
+        
+    except Exception as e:
+        print(f"PDF generation error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/analyze-text', methods=['POST'])
 def analyze_text():
