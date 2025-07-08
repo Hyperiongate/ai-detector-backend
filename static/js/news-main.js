@@ -1,91 +1,87 @@
-// static/js/news-main.js - Main integration file
+// news-main.js - Main integration file for news verification
+// This file coordinates all the news analysis modules
 
-// ============================================================================
-// GLOBAL VARIABLES
-// ============================================================================
+// Global variables
+let currentInputType = 'text';
+let currentTier = 'free';
 
-window.currentTier = 'free';
-window.currentInputType = 'text';
-
-// ============================================================================
-// MAIN INITIALIZATION
-// ============================================================================
-
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all UI components
+    console.log('News verification platform initialized');
+    
+    // Initialize all modules
     initializeUI();
+    initializeEventListeners();
     
-    // Setup event listeners
-    setupEventListeners();
-    
-    // Track page load
-    if (typeof gtag !== 'undefined') {
-        gtag('event', 'page_view', {
-            page_title: 'NewsVerify Pro - News Verification Platform',
-            page_location: window.location.href,
-            content_group1: 'News Verification'
-        });
-    }
+    // Set up global error handler
+    window.addEventListener('error', function(event) {
+        console.error('Global error:', event);
+    });
 });
 
-// ============================================================================
-// UI INITIALIZATION
-// ============================================================================
-
+// Initialize UI components
 function initializeUI() {
-    // UI components are initialized in news-ui.js
-    console.log('News verification platform initialized');
+    // Enhance UI with the third tab
+    if (typeof enhanceNewsUI === 'function') {
+        enhanceNewsUI();
+    }
+    
+    // Initialize tooltips
+    initializeTooltips();
+    
+    // Set up smooth scrolling
+    setupSmoothScrolling();
 }
 
-// ============================================================================
-// EVENT LISTENERS
-// ============================================================================
-
-function setupEventListeners() {
-    // Input type switching
-    const inputTabs = document.querySelectorAll('.input-tab');
-    inputTabs.forEach((tab, index) => {
-        tab.addEventListener('click', () => switchInputType(index === 0 ? 'text' : 'url'));
+// Initialize all event listeners
+function initializeEventListeners() {
+    // Tab switching
+    document.querySelectorAll('.input-tab').forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+            const types = ['text', 'url', 'article'];
+            switchInputType(types[index]);
+        });
     });
-    
-    // Analysis buttons
-    const freeAnalysisBtn = document.querySelector('.btn-primary[onclick*="free"]');
-    const proAnalysisBtn = document.querySelector('.btn-primary[onclick*="pro"]');
-    
-    if (freeAnalysisBtn) {
-        freeAnalysisBtn.onclick = () => runAnalysis('free');
-    }
-    if (proAnalysisBtn) {
-        proAnalysisBtn.onclick = () => runAnalysis('pro');
-    }
     
     // Test data button
     const testBtn = document.querySelector('.btn-test');
     if (testBtn) {
-        testBtn.onclick = loadTestData;
+        testBtn.addEventListener('click', loadTestData);
     }
     
     // Reset button
-    const resetBtn = document.querySelector('.btn-secondary[onclick*="reset"]');
+    const resetBtn = document.querySelector('.btn-secondary');
     if (resetBtn) {
-        resetBtn.onclick = resetForm;
+        resetBtn.addEventListener('click', resetForm);
     }
 }
 
-// ============================================================================
-// INPUT SWITCHING
-// ============================================================================
-
-function switchInputType(type) {
-    window.currentInputType = type;
+// Main analysis function (called by buttons)
+function analyzeArticle(tier = 'free') {
+    currentTier = tier;
     
+    // Call the analysis function from news-analysis.js
+    if (typeof runAnalysis === 'function') {
+        runAnalysis(tier);
+    } else if (typeof runNewsAnalysis === 'function') {
+        runNewsAnalysis(tier);
+    } else {
+        console.error('Analysis function not found');
+        showNotification('Analysis system not ready. Please refresh the page.', 'error');
+    }
+}
+
+// Switch input type
+function switchInputType(type) {
+    currentInputType = type;
+    
+    // Update tabs
     document.querySelectorAll('.input-tab').forEach((tab, index) => {
-        tab.classList.remove('active');
-        if ((type === 'text' && index === 0) || (type === 'url' && index === 1)) {
-            tab.classList.add('active');
-        }
+        const tabTypes = ['text', 'url', 'article'];
+        tab.classList.toggle('active', tabTypes[index] === type);
     });
     
+    // Update content
     document.querySelectorAll('.input-content').forEach(content => {
         content.classList.remove('active');
     });
@@ -94,77 +90,136 @@ function switchInputType(type) {
     if (targetContent) {
         targetContent.classList.add('active');
     }
-}
-
-// ============================================================================
-// ANALYSIS FUNCTIONS
-// ============================================================================
-
-async function runAnalysis(tier) {
-    window.currentTier = tier;
     
-    // Use the analyze function from news-analysis.js
-    if (window.newsAnalysis && window.newsAnalysis.analyzeArticle) {
-        await window.newsAnalysis.analyzeArticle();
-    } else {
-        console.error('Analysis module not loaded');
-        showNotification('Analysis system not ready. Please refresh the page.', 'error');
+    // Call the module function if available
+    if (typeof switchNewsInputType === 'function') {
+        switchNewsInputType(type);
     }
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
+// Load test data
 function loadTestData() {
-    const testContent = `Breaking: Infrastructure Bill Passes Senate with Bipartisan Support
+    const testContent = `By David Rising
+Associated Press
+
+BANGKOK -- President Donald Trump has threatened to impose sweeping tariffs on Mexico, Canada and China, some of the United States' largest trading partners. The move could spark a global trade war and drive up prices for American consumers.
+
+Trump announced Monday he would impose a 25% tariff on all goods from Mexico and Canada on his first day in office. He also threatened an additional 10% tariff on Chinese imports.
+
+"These tariffs will remain in effect until such time as Drugs, in particular Fentanyl, and all Illegal Aliens stop this Invasion of our Country!" Trump wrote on social media.
+
+Economic experts warn the tariffs could significantly impact the U.S. economy. "Tariffs are paid by importers, not foreign countries, and those costs are typically passed on to consumers," said Mary Johnson, an economist at Georgetown University.`;
     
-By Sarah Johnson
-Washington, D.C. - December 15, 2024
-
-The Department of Transportation announced today the allocation of $2.3 billion for highway improvements across 15 states, according to Transportation Secretary Pete Buttigieg. This initiative will create approximately 45,000 jobs over the next 18 months.
-
-"This represents the largest single infrastructure investment in recent history," Buttigieg stated during a press conference this morning. The announcement comes following strong bipartisan support for the infrastructure bill passed last quarter.
-
-Senator John Smith (R-TX) praised the allocation, saying, "This investment will modernize our aging infrastructure and create good-paying jobs for American workers." However, some critics question the timeline for implementation.
-
-Industry experts predict significant economic impact in rural communities. Dr. Maria Rodriguez, an economist at Georgetown University, estimates the multiplier effect could generate up to $5 billion in economic activity.
-
-The funds will be distributed based on a formula considering population density, infrastructure condition ratings, and economic need. States must submit detailed proposals by March 2025 to qualify for funding.
-
-Environmental groups have expressed concerns about the potential impact on protected wetlands, though the Department maintains all projects will undergo thorough environmental review.
-
-This development marks a significant milestone in the administration's infrastructure agenda, with additional funding packages expected to be announced in the coming months.`;
+    // Fill all input fields
+    const textArea = document.getElementById('news-text');
+    const urlInput = document.getElementById('articleUrl');
+    const articleArea = document.getElementById('fullArticle');
     
-    document.getElementById('news-text').value = testContent;
+    if (textArea) textArea.value = testContent;
+    if (urlInput) urlInput.value = 'https://apnews.com/article/trump-tariffs-mexico-canada-china-trade';
+    if (articleArea) articleArea.value = testContent;
+    
     switchInputType('text');
-    
-    showNotification('Sample news content loaded successfully!', 'success');
+    showNotification('Sample news content loaded!', 'success');
 }
 
+// Reset form
 function resetForm() {
-    document.getElementById('news-text').value = '';
-    document.getElementById('article-url').value = '';
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('results').innerHTML = '';
+    // Clear all inputs
+    const textArea = document.getElementById('news-text');
+    const urlInput = document.getElementById('articleUrl');
+    const articleArea = document.getElementById('fullArticle');
     
-    if (window.currentAnalysisData) {
-        window.currentAnalysisData = null;
+    if (textArea) textArea.value = '';
+    if (urlInput) urlInput.value = '';
+    if (articleArea) articleArea.value = '';
+    
+    // Hide results
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+    }
+    
+    // Call module reset if available
+    if (typeof resetNewsForm === 'function') {
+        resetNewsForm();
     }
     
     showNotification('Form reset successfully', 'success');
 }
 
-// ============================================================================
-// ERROR HANDLING
-// ============================================================================
+// Show notification
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.display = 'block';
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
 
-window.addEventListener('error', function(e) {
-    console.error('Global error:', e);
-    if (e.message && e.message.includes('showNotification')) {
-        // Fallback notification function
-        window.showNotification = function(message, type) {
-            alert(message);
-        };
+// Initialize tooltips
+function initializeTooltips() {
+    // Add tooltips to elements with title attribute
+    document.querySelectorAll('[title]').forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            this.dataset.originalTitle = this.title;
+            this.title = '';
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            this.title = this.dataset.originalTitle || '';
+        });
+    });
+}
+
+// Set up smooth scrolling
+function setupSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// Enhanced back to top functionality
+window.addEventListener('scroll', () => {
+    const backToTop = document.getElementById('backToTop');
+    if (backToTop) {
+        if (window.pageYOffset > 300) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
     }
 });
+
+// Scroll to top function
+window.scrollToTop = function() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+};
+
+// Export global functions
+window.analyzeArticle = analyzeArticle;
+window.switchInputType = switchInputType;
+window.loadTestData = loadTestData;
+window.resetForm = resetForm;
+window.showNotification = showNotification;
