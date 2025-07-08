@@ -10,76 +10,6 @@
     <link rel="stylesheet" href="/static/css/news-components.css">
     <link rel="stylesheet" href="/static/css/news-specialized.css">
     <link rel="stylesheet" href="/static/css/new-responsiveness.css">
-    
-    <style>
-        /* Additional styles for the updated input section */
-        .input-tab {
-            position: relative;
-            padding: 15px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .input-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .input-tab.active {
-            background: #007bff;
-            color: white;
-        }
-        
-        .url-input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .article-textarea {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            resize: vertical;
-        }
-        
-        .analyze-btn {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 10px auto;
-        }
-        
-        .analyze-btn:hover {
-            background: #0056b3;
-        }
-    </style>
 </head>
 <body>
     <!-- Header -->
@@ -111,152 +41,49 @@
                 <span>This tool is in active development. Results are for educational purposes.</span>
             </div>
 
-            <!-- Updated Input Section -->
+            <!-- Input Section -->
             <div class="input-section" id="input-section">
-                <!-- Add explanatory text above tabs -->
-                <div style="
-                    text-align: center;
-                    margin-bottom: 20px;
-                    padding: 15px;
-                    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-                    border-radius: 10px;
-                    border: 1px solid rgba(0,123,255,0.1);
-                ">
-                    <h3 style="
-                        margin: 0 0 10px 0;
-                        color: #2c3e50;
-                        font-size: 20px;
-                        font-weight: 600;
-                    ">Choose Your Analysis Method</h3>
-                    <p style="
-                        margin: 0;
-                        color: #6c757d;
-                        font-size: 16px;
-                        line-height: 1.5;
-                    ">Select how you'd like to analyze news content for bias, credibility, and factual accuracy</p>
-                </div>
-
-                <!-- Input tabs - reduced to 2 -->
+                <!-- Input tabs -->
                 <div class="input-tabs">
-                    <button class="input-tab active" data-tab="url" style="position: relative;">
-                        <span style="font-size: 20px; margin-right: 8px;">🔗</span>
-                        URL Verification
-                        <span style="
-                            display: block;
-                            font-size: 12px;
-                            color: #6c757d;
-                            font-weight: normal;
-                            margin-top: 2px;
-                        ">Quick analysis from any news website</span>
-                    </button>
-                    <button class="input-tab" data-tab="full-article" style="position: relative;">
-                        <span style="font-size: 20px; margin-right: 8px;">📄</span>
-                        Full Article Analysis
-                        <span style="
-                            display: block;
-                            font-size: 12px;
-                            color: #6c757d;
-                            font-weight: normal;
-                            margin-top: 2px;
-                        ">Most accurate - paste complete article text</span>
-                        <span style="
-                            position: absolute;
-                            top: 5px;
-                            right: 10px;
-                            background: #28a745;
-                            color: white;
-                            font-size: 10px;
-                            padding: 2px 6px;
-                            border-radius: 3px;
-                            font-weight: 600;
-                        ">RECOMMENDED</span>
-                    </button>
+                    <button class="input-tab active" data-tab="url">URL Verification</button>
+                    <button class="input-tab" data-tab="text">News Text Analysis</button>
+                    <button class="input-tab" data-tab="full-article">Full Article (Most Accurate)</button>
                 </div>
 
                 <!-- URL input tab content -->
                 <div class="tab-content active" id="url-tab">
-                    <div style="
-                        background: #f8f9fa;
-                        padding: 15px;
-                        border-radius: 8px;
-                        margin-bottom: 15px;
-                        border-left: 4px solid #007bff;
-                    ">
-                        <p style="margin: 0; color: #495057; font-size: 14px;">
-                            <strong>How it works:</strong> Paste a news article URL and our AI will fetch and analyze the content directly from the source. Works with major news websites like CNN, BBC, Reuters, and more.
-                        </p>
-                    </div>
                     <div class="input-container">
                         <input type="url" 
                                id="articleUrl" 
-                               placeholder="https://www.example.com/news-article" 
-                               class="url-input"
-                               style="
-                                   font-family: monospace;
-                                   font-size: 14px;
-                               ">
+                               placeholder="Enter news article URL" 
+                               class="url-input">
                         <button class="analyze-btn" data-tier="pro">
-                            <span class="btn-icon">🔍</span> Analyze URL
+                            <span class="btn-icon">🔍</span> Analyze Article
                         </button>
                     </div>
-                    <div style="
-                        text-align: center;
-                        margin-top: 10px;
-                        color: #6c757d;
-                        font-size: 13px;
-                    ">
-                        <span>💡 Tip: Make sure to use the full article URL, not just the domain</span>
+                </div>
+
+                <!-- Text analysis tab content -->
+                <div class="tab-content" id="text-tab">
+                    <div class="textarea-container">
+                        <textarea id="newsText" 
+                                  placeholder="Paste news text here for analysis..." 
+                                  class="text-input"></textarea>
+                        <button class="analyze-btn" data-tier="pro">
+                            <span class="btn-icon">📊</span> Analyze Text
+                        </button>
                     </div>
                 </div>
 
                 <!-- Full article tab content -->
                 <div class="tab-content" id="full-article-tab">
-                    <div style="
-                        background: #d4edda;
-                        padding: 15px;
-                        border-radius: 8px;
-                        margin-bottom: 15px;
-                        border-left: 4px solid #28a745;
-                    ">
-                        <p style="margin: 0; color: #155724; font-size: 14px;">
-                            <strong>Most Accurate Method:</strong> Copy and paste the entire article text including headline, author, and body. This method provides the deepest analysis as it ensures we analyze the complete content without any extraction errors.
-                        </p>
-                    </div>
                     <div class="textarea-container">
-                        <textarea id="articleText" 
-                                  placeholder="Paste the complete article text here...
-
-Include:
-- Headline
-- Author name
-- Publication date
-- Full article body
-
-Example:
-'Breaking: Major Policy Change Announced
-By Jane Smith
-January 15, 2024
-
-The government announced today...'"
-                                  class="article-textarea"
-                                  style="
-                                      min-height: 300px;
-                                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                      line-height: 1.6;
-                                  "></textarea>
-                        <button class="analyze-btn" data-tier="pro" onclick="analyzeFullText()">
-                            <span class="btn-icon">📊</span> Analyze Full Text
+                        <textarea id="fullArticle" 
+                                  placeholder="Paste complete article including title, author, and content..." 
+                                  class="article-input"></textarea>
+                        <button class="analyze-btn" data-tier="pro">
+                            <span class="btn-icon">📄</span> Deep Analysis
                         </button>
-                    </div>
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        margin-top: 10px;
-                        color: #6c757d;
-                        font-size: 13px;
-                    ">
-                        <span>📝 Minimum 100 words recommended</span>
-                        <span id="wordCount">0 words</span>
                     </div>
                 </div>
             </div>
@@ -336,64 +163,5 @@ The government announced today...'"
     <script src="/static/js/news-analysis.js"></script>
     <script src="/static/js/news-results.js"></script>
     <script src="/static/js/news-main.js"></script>
-
-    <!-- Additional JavaScript for tab functionality -->
-    <script>
-    // Tab switching functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabs = document.querySelectorAll('.input-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
-                
-                // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Update active content
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(tabName + '-tab').classList.add('active');
-            });
-        });
-        
-        // Word count for full article
-        const articleText = document.getElementById('articleText');
-        const wordCount = document.getElementById('wordCount');
-        
-        if (articleText && wordCount) {
-            articleText.addEventListener('input', function() {
-                const words = this.value.trim().split(/\s+/).filter(word => word.length > 0).length;
-                wordCount.textContent = words + ' words';
-                wordCount.style.color = words >= 100 ? '#28a745' : '#6c757d';
-            });
-        }
-    });
-
-    // Function to analyze full text
-    function analyzeFullText() {
-        const fullText = document.getElementById('articleText').value.trim();
-        
-        if (!fullText) {
-            alert('Please paste the article text to analyze');
-            return;
-        }
-        
-        if (fullText.split(/\s+/).length < 50) {
-            alert('Please provide more text for accurate analysis (minimum 50 words)');
-            return;
-        }
-        
-        // Call the analysis function with the text
-        if (window.NewsApp && window.NewsApp.analysis && window.NewsApp.analysis.runAnalysisText) {
-            window.NewsApp.analysis.runAnalysisText(fullText, 'pro');
-        } else {
-            alert('Analysis module not loaded. Please refresh the page.');
-        }
-    }
-    </script>
 </body>
 </html>
