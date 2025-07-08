@@ -231,23 +231,30 @@ function stopProgress() {
 }
 
 // ============================================================================
-// MAIN ANALYSIS FUNCTION - FIXED FOR YOUR HTML
+// MAIN ANALYSIS FUNCTION - FIXED FOR YOUR HTML AND API
 // ============================================================================
 
 async function analyzeArticle() {
-    const urlInput = document.getElementById('articleUrl'); // Fixed ID
-    const currentInputType = 'url'; // Your HTML only supports URL input
+    const urlInput = document.getElementById('articleUrl');
     
-    let content = '';
-    content = urlInput.value.trim();
-    if (!content) {
-        showNotification('Please enter a URL to analyze', 'error');
+    let url = urlInput.value.trim();
+    if (!url) {
+        if (window.showNotification) {
+            showNotification('Please enter a URL to analyze', 'error');
+        } else {
+            alert('Please enter a URL to analyze');
+        }
         return;
     }
+    
     try {
-        new URL(content);
+        new URL(url);
     } catch (e) {
-        showNotification('Please enter a valid URL', 'error');
+        if (window.showNotification) {
+            showNotification('Please enter a valid URL', 'error');
+        } else {
+            alert('Please enter a valid URL');
+        }
         return;
     }
     
@@ -255,24 +262,28 @@ async function analyzeArticle() {
     showLoadingState();
     
     try {
+        // Your API might expect 'url' instead of 'content'
         const response = await fetch('/api/analyze-news', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                content: content,
-                is_pro: window.currentTier === 'pro'
+                url: url,  // Changed from 'content' to 'url'
+                is_pro: window.currentTier === 'pro' || false
             })
         });
         
-        stopProgress();
-        
         if (!response.ok) {
-            throw new Error('Analysis failed');
+            const errorText = await response.text();
+            console.error('API Error:', errorText);
+            throw new Error(`Analysis failed: ${response.status}`);
         }
         
         const data = await response.json();
+        
+        // Stop the progress animation
+        stopProgress();
         
         // Complete progress
         const progressBar = document.getElementById('progressBar');
@@ -287,13 +298,27 @@ async function analyzeArticle() {
         // Wait a moment then show results
         setTimeout(() => {
             hideLoadingState();
-            displayResults(data, window.currentTier || 'free');
+            if (window.displayResults) {
+                displayResults(data, window.currentTier || 'free');
+            } else {
+                console.error('displayResults function not found');
+                // Fallback display
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = '<div style="color: white; padding: 20px;">Analysis complete! Check console for results.</div>';
+                console.log('Analysis results:', data);
+            }
         }, 1000);
         
     } catch (error) {
         stopProgress();
         hideLoadingState();
-        showNotification('Analysis failed: ' + error.message, 'error');
+        console.error('Analysis error:', error);
+        if (window.showNotification) {
+            showNotification('Analysis failed: ' + error.message, 'error');
+        } else {
+            alert('Analysis failed: ' + error.message);
+        }
     }
 }
 
@@ -306,3 +331,6 @@ window.newsAnalysis = {
     showLoadingState,
     hideLoadingState
 };
+
+// Make analyzeArticle available globally for the onclick handler
+window.analyzeArticle = analyzeArticle;
