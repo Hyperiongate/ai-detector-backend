@@ -98,6 +98,94 @@
             }
         },
         
+        // Run analysis for pasted text
+        runAnalysisText: async function(text, tier = 'pro') {
+            console.log('Sending text analysis request');
+            
+            if (this.analysisInProgress) {
+                console.log('Analysis already in progress');
+                return;
+            }
+            
+            this.analysisInProgress = true;
+            
+            try {
+                // Show progress bar
+                if (NewsApp.ui && NewsApp.ui.showProgressBar) {
+                    NewsApp.ui.showProgressBar();
+                }
+                
+                // Start progress animation
+                this.startProgressAnimation();
+                
+                // Create request body for text analysis
+                const requestBody = { 
+                    content: text,       // The pasted text
+                    type: 'text',        // Tell it we're providing text, not URL
+                    is_pro: tier === 'pro'
+                };
+                
+                console.log('Request body:', JSON.stringify(requestBody, null, 2));
+                
+                const response = await fetch('/api/analyze-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                // Get response as text first
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response:', parseError);
+                    throw new Error('Server returned invalid response');
+                }
+                
+                if (!response.ok) {
+                    console.error('API Error:', data);
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                console.log('Analysis results:', data);
+                
+                // Check for success flag or results
+                if ((data.success && data.results) || data.results) {
+                    // Store the analysis data
+                    this.currentAnalysisData = data;
+                    
+                    // Complete progress animation
+                    await this.completeProgressAnimation();
+                    
+                    // Display results
+                    if (NewsApp.results && NewsApp.results.displayResults) {
+                        NewsApp.results.displayResults(data);
+                    } else {
+                        console.error('Results display module not loaded');
+                    }
+                } else {
+                    throw new Error(data.error || 'Analysis failed - no results returned');
+                }
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                this.handleError(error.message);
+            } finally {
+                this.analysisInProgress = false;
+                // Hide progress bar if still showing
+                if (NewsApp.ui && NewsApp.ui.hideProgressBar) {
+                    setTimeout(() => NewsApp.ui.hideProgressBar(), 1000);
+                }
+            }
+        },
+        
         // Start progress animation
         startProgressAnimation: function() {
             const stages = [
