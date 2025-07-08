@@ -583,23 +583,16 @@
         // Analysis system
         class NewsAnalyzer {
             constructor() {
-                this.isProUser = false;
-                // Skip all limit checking for development
-                this.freeUsageCount = 0;
-                this.freeUsageCount = parseInt(localStorage.getItem('freeUsageCount') || '0');
-                this.lastUsageDate = localStorage.getItem('lastUsageDate') || '';
-                this.checkDailyLimit();
+                this.isProUser = true;  // ENABLED FOR TESTING - All features unlocked
+                this.freeUsageCount = 0;  // Reset counter
+                this.lastUsageDate = '';
+                // Skip daily limit check for testing
                 this.initializeEventListeners();
             }
 
             checkDailyLimit() {
-                const today = new Date().toDateString();
-                if (this.lastUsageDate !== today) {
-                    this.freeUsageCount = 0;
-                    this.lastUsageDate = today;
-                    localStorage.setItem('lastUsageDate', today);
-                    localStorage.setItem('freeUsageCount', '0');
-                }
+                // Disabled for testing
+                return;
             }
 
             initializeEventListeners() {
@@ -616,13 +609,8 @@
                     return;
                 }
 
-                // Check free tier limit
-                if (!this.isProUser && this.freeUsageCount >= 1) {
-                    document.getElementById('freeLimitWarning').style.display = 'block';
-                    document.getElementById('upgradeCTA').style.display = 'block';
-                    return;
-                }
-
+                // Skip free tier limit check - always allow analysis
+                
                 // Show loading
                 document.getElementById('loading').classList.add('active');
                 document.getElementById('results').classList.remove('active');
@@ -630,12 +618,6 @@
                 // Simulate analysis (in real implementation, this would call your backend)
                 setTimeout(() => {
                     this.displayResults(this.getMockAnalysisData());
-                    
-                    // Increment usage count for free users
-                    if (!this.isProUser) {
-                        this.freeUsageCount++;
-                        localStorage.setItem('freeUsageCount', this.freeUsageCount.toString());
-                    }
                 }, 2000);
             }
 
@@ -766,10 +748,8 @@
                 // Create analysis cards
                 this.createAnalysisCards(data.detailedAnalysis);
 
-                // Hide upgrade CTA during development
-                // if (!this.isProUser) {
-                //     document.getElementById('upgradeCTA').style.display = 'block';
-                // }
+                // Hide upgrade CTA since we're in Pro mode for testing
+                document.getElementById('upgradeCTA').style.display = 'none';
             }
 
             animateTrustScore(score) {
@@ -951,7 +931,7 @@
 
             createCard(cardData) {
                 const card = document.createElement('div');
-                card.className = 'analysis-card' + (this.isProUser ? '' : ' locked');
+                card.className = 'analysis-card';  // No locked class since isProUser = true
                 
                 const header = document.createElement('div');
                 header.className = 'card-header';
@@ -969,19 +949,11 @@
                 if (cardData.isDownload) {
                     header.style.cursor = 'pointer';
                     header.addEventListener('click', () => {
-                        if (this.isProUser) {
-                            this.downloadReport();
-                        } else {
-                            alert('Upgrade to Pro to download detailed reports');
-                        }
+                        this.downloadReport();
                     });
                 } else {
                     header.addEventListener('click', () => {
-                        if (this.isProUser) {
-                            card.classList.toggle('expanded');
-                        } else {
-                            alert('Upgrade to Pro to see detailed analysis');
-                        }
+                        card.classList.toggle('expanded');
                     });
                 }
 
