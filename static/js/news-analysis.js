@@ -10,13 +10,20 @@ function showLoadingState() {
     resultsDiv.style.display = 'none';
     resultsDiv.innerHTML = '';
     
+    // Hide the input section and show progress in its place
+    const inputSection = document.querySelector('.analysis-input-section');
+    if (inputSection) {
+        inputSection.style.display = 'none';
+    }
+    
     // Create or show progress section
     let progressSection = document.getElementById('progressSection');
     if (!progressSection) {
         progressSection = createProgressSection();
-        const container = document.querySelector('.tool-container');
-        const inputSection = container.querySelector('.input-section');
-        inputSection.insertAdjacentHTML('afterend', progressSection.outerHTML);
+        // Insert progress where the input section was
+        if (inputSection && inputSection.parentNode) {
+            inputSection.parentNode.insertBefore(progressSection, inputSection);
+        }
         progressSection = document.getElementById('progressSection');
     }
     
@@ -33,6 +40,12 @@ function hideLoadingState() {
     const progressSection = document.getElementById('progressSection');
     if (progressSection) {
         progressSection.style.display = 'none';
+    }
+    
+    // Show the input section again
+    const inputSection = document.querySelector('.analysis-input-section');
+    if (inputSection) {
+        inputSection.style.display = 'block';
     }
 }
 
