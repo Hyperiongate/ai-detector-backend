@@ -76,11 +76,11 @@
                     // Complete progress animation
                     await this.completeProgressAnimation();
                     
-                    // Display results
-                    if (NewsApp.results && NewsApp.results.displayResults) {
-                        NewsApp.results.displayResults(data);
+                    // Display results with ENHANCED UI
+                    if (NewsApp.enhancedResults && NewsApp.enhancedResults.displayResults) {
+                        NewsApp.enhancedResults.displayResults(data);
                     } else {
-                        console.error('Results display module not loaded');
+                        console.error('Enhanced results display module not loaded');
                     }
                 } else {
                     throw new Error(data.error || 'Analysis failed - no results returned');
@@ -164,11 +164,11 @@
                     // Complete progress animation
                     await this.completeProgressAnimation();
                     
-                    // Display results
-                    if (NewsApp.results && NewsApp.results.displayResults) {
-                        NewsApp.results.displayResults(data);
+                    // Display results with ENHANCED UI
+                    if (NewsApp.enhancedResults && NewsApp.enhancedResults.displayResults) {
+                        NewsApp.enhancedResults.displayResults(data);
                     } else {
-                        console.error('Results display module not loaded');
+                        console.error('Enhanced results display module not loaded');
                     }
                 } else {
                     throw new Error(data.error || 'Analysis failed - no results returned');
@@ -258,9 +258,9 @@
                 clearInterval(this.progressInterval);
             }
             
-            // Show error in results
-            if (NewsApp.results && NewsApp.results.showError) {
-                NewsApp.results.showError(message);
+            // Show error in results using enhanced display
+            if (NewsApp.enhancedResults && NewsApp.enhancedResults.showError) {
+                NewsApp.enhancedResults.showError(message);
             } else {
                 // Fallback error display
                 const resultsDiv = document.getElementById('results');
