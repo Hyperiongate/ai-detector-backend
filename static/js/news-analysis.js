@@ -1,4 +1,4 @@
-// news-analysis.js - News Analysis Module with Fixed Namespace
+// news-analysis.js - News Analysis Module with API Debugging
 (function() {
     'use strict';
     
@@ -30,19 +30,39 @@
                 // Start progress animation
                 this.startProgressAnimation();
                 
+                // Create request body
+                const requestBody = { url: url, tier: tier };
+                console.log('Request body:', JSON.stringify(requestBody, null, 2));
+                
                 const response = await fetch('/api/analyze-news', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ url: url, tier: tier })
+                    body: JSON.stringify(requestBody)
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                // Try to get response text regardless of status
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response as JSON:', parseError);
+                    console.log('Raw response:', responseText);
+                    throw new Error(`Server returned invalid JSON: ${responseText}`);
                 }
                 
-                const data = await response.json();
+                if (!response.ok) {
+                    console.error('API Error Response:', data);
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+                
                 console.log('Analysis results:', data);
                 
                 if (data.success && data.results) {
@@ -64,6 +84,7 @@
                 
             } catch (error) {
                 console.error('Analysis error:', error);
+                console.error('Error stack:', error.stack);
                 this.handleError(error.message);
             } finally {
                 this.analysisInProgress = false;
