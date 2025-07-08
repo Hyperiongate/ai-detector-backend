@@ -1,240 +1,308 @@
-// News Analysis Main Functions
+// static/js/news-analysis.js - Enhanced with multi-stage progress
 
-// Reset function
-function resetAnalysis() {
-    // Clear the URL input
-    document.getElementById('articleUrl').value = '';
-    
+// ============================================================================
+// LOADING STATE WITH ENHANCED PROGRESS
+// ============================================================================
+
+function showLoadingState() {
     // Hide results
-    document.getElementById('results').style.display = 'none';
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.style.display = 'none';
+    resultsDiv.innerHTML = '';
     
-    // Show analyze button, hide reset button
-    document.getElementById('analyzeBtn').style.display = 'inline-block';
-    document.getElementById('resetBtn').style.display = 'none';
-    
-    // Reset to first tab
-    switchTab('summary');
-}
-
-// Analyze article
-function analyzeArticle() { 
-    const url = document.getElementById('articleUrl').value;
-    if (!url) {
-        alert('Please enter a URL to analyze');
-        return;
+    // Create or show progress section
+    let progressSection = document.getElementById('progressSection');
+    if (!progressSection) {
+        progressSection = createProgressSection();
+        const container = document.querySelector('.tool-container');
+        const inputSection = container.querySelector('.input-section');
+        inputSection.insertAdjacentHTML('afterend', progressSection.outerHTML);
+        progressSection = document.getElementById('progressSection');
     }
     
-    // Hide analyze button, show reset button
-    document.getElementById('analyzeBtn').style.display = 'none';
-    document.getElementById('resetBtn').style.display = 'inline-block';
+    progressSection.style.display = 'block';
     
-    // Show loading state
-    const results = document.getElementById('results');
-    results.style.display = 'block';
+    // Reset progress
+    resetProgress();
     
-    // Show animated loading in first tab
-    showLoadingAnimation();
+    // Start progress animation
+    startProgressAnimation();
+}
+
+function hideLoadingState() {
+    const progressSection = document.getElementById('progressSection');
+    if (progressSection) {
+        progressSection.style.display = 'none';
+    }
+}
+
+// ============================================================================
+// CREATE PROGRESS SECTION
+// ============================================================================
+
+function createProgressSection() {
+    const section = document.createElement('div');
+    section.className = 'progress-section';
+    section.id = 'progressSection';
+    section.style.display = 'none';
     
-    // Make API call to Flask backend
-    fetch('/api/analyze-news', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            url: url,
-            analysis_type: 'url'  // Always use URL analysis
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            displayResults(data.results);
-        } else {
-            showError(data.error || 'Analysis failed');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showError('Network error. Please try again.');
+    section.innerHTML = `
+        <div class="progress-title">
+            <i class="fas fa-cogs fa-spin" style="color: #667eea;"></i>
+            News Verification in Progress...
+        </div>
+        
+        <div class="progress-stages" id="progressStages">
+            <div class="progress-stage" data-stage="0">
+                <div class="stage-icon">📄</div>
+                <div class="stage-label">Extracting Content</div>
+            </div>
+            <div class="progress-stage" data-stage="1">
+                <div class="stage-icon">⚖️</div>
+                <div class="stage-label">Analyzing Bias</div>
+            </div>
+            <div class="progress-stage" data-stage="2">
+                <div class="stage-icon">🔍</div>
+                <div class="stage-label">Checking Sources</div>
+            </div>
+            <div class="progress-stage" data-stage="3">
+                <div class="stage-icon">✓</div>
+                <div class="stage-label">Verifying Claims</div>
+            </div>
+            <div class="progress-stage" data-stage="4">
+                <div class="stage-icon">📊</div>
+                <div class="stage-label">Generating Report</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar">
+                <span class="progress-percentage" id="progressPercentage">0%</span>
+            </div>
+        </div>
+        
+        <div class="progress-status">
+            <div class="progress-spinner"></div>
+            <span id="progressStatus">Initializing advanced verification systems...</span>
+        </div>
+        
+        <div class="claim-progress" style="display: none;" id="claimProgress">
+            <span style="color: #6b7280; font-weight: 600;">Claims found:</span>
+            <span class="claim-counter" id="claimCounter">0</span>
+            <div class="claim-progress-bar">
+                <div class="claim-progress-fill" id="claimProgressFill"></div>
+            </div>
+        </div>
+    `;
+    
+    return section;
+}
+
+// ============================================================================
+// PROGRESS ANIMATION
+// ============================================================================
+
+let progressInterval = null;
+let currentProgress = 0;
+let currentStage = 0;
+
+function resetProgress() {
+    currentProgress = 0;
+    currentStage = 0;
+    
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
+    
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+    if (progressPercentage) {
+        progressPercentage.textContent = '0%';
+    }
+    
+    // Reset all stages
+    const stages = document.querySelectorAll('.progress-stage');
+    stages.forEach(stage => {
+        stage.classList.remove('active', 'completed');
     });
 }
 
-// Animated loading state
-function showLoadingAnimation() {
-    const container = document.getElementById('summary-content');
-    let progress = 0;
-    const loadingStages = [
-        { progress: 10, status: "Initializing Neural Network...", substatus: "Loading AI models" },
-        { progress: 25, status: "Fetching Article Content...", substatus: "Extracting text and metadata" },
-        { progress: 40, status: "Analyzing Political Bias...", substatus: "Scanning for partisan language" },
-        { progress: 55, status: "Verifying Credibility...", substatus: "Checking source reliability" },
-        { progress: 70, status: "Cross-Referencing Sources...", substatus: "Comparing with database" },
-        { progress: 85, status: "Generating Insights...", substatus: "Compiling final analysis" },
-        { progress: 95, status: "Finalizing Report...", substatus: "Almost there!" }
+function updateProgressStages(stage) {
+    const stages = document.querySelectorAll('.progress-stage');
+    stages.forEach((stageEl, index) => {
+        if (index < stage) {
+            stageEl.classList.add('completed');
+            stageEl.classList.remove('active');
+        } else if (index === stage) {
+            stageEl.classList.add('active');
+            stageEl.classList.remove('completed');
+        } else {
+            stageEl.classList.remove('active', 'completed');
+        }
+    });
+}
+
+function startProgressAnimation() {
+    const progressStages = [
+        { message: 'Extracting article content and metadata...', stage: 0, claimsFound: 0 },
+        { message: 'Analyzing political bias and language patterns...', stage: 1, claimsFound: 3 },
+        { message: 'Searching 500+ news sources for verification...', stage: 2, claimsFound: 5 },
+        { message: 'Fact-checking claims against our database...', stage: 3, claimsFound: 8 },
+        { message: 'Generating comprehensive analysis report...', stage: 4, claimsFound: 12 }
     ];
     
-    container.innerHTML = `
-        <div class="loading-container">
-            <div class="ai-brain">
-                <div class="brain-core"></div>
-                <div class="brain-ring"></div>
-                <div class="brain-ring"></div>
-                <div class="brain-ring"></div>
-            </div>
-            
-            <div class="loading-status" id="loading-status">Initializing Neural Network...</div>
-            <div class="loading-substatus" id="loading-substatus">Loading AI models</div>
-            
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
-            </div>
-            
-            <div style="color: rgba(255,255,255,0.6); margin-top: 20px;">
-                <small>🧠 Processing with advanced AI algorithms...</small>
-            </div>
-        </div>
-    `;
-    
-    // Animate progress bar
     let stageIndex = 0;
-    const progressInterval = setInterval(() => {
-        if (stageIndex < loadingStages.length) {
-            const stage = loadingStages[stageIndex];
-            updateProgress(stage.progress, stage.status, stage.substatus);
-            stageIndex++;
-        } else {
+    
+    progressInterval = setInterval(() => {
+        currentProgress += 4; // 5% every 250ms = 20 seconds total
+        
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressStatus = document.getElementById('progressStatus');
+        
+        if (progressBar) {
+            progressBar.style.width = currentProgress + '%';
+        }
+        if (progressPercentage) {
+            progressPercentage.textContent = currentProgress + '%';
+        }
+        
+        // Update stage based on progress
+        const newStageIndex = Math.floor((currentProgress / 100) * progressStages.length);
+        if (newStageIndex !== stageIndex && newStageIndex < progressStages.length) {
+            stageIndex = newStageIndex;
+            const stage = progressStages[stageIndex];
+            
+            if (progressStatus) {
+                progressStatus.textContent = stage.message;
+            }
+            updateProgressStages(stage.stage);
+            
+            // Show claims progress after stage 2
+            if (stage.stage >= 2) {
+                showClaimsProgress(stage.claimsFound);
+            }
+        }
+        
+        if (currentProgress >= 100) {
             clearInterval(progressInterval);
+            if (progressStatus) {
+                progressStatus.textContent = 'Analysis complete! Preparing your results...';
+            }
+            updateProgressStages(4);
         }
-    }, 2000); // Update every 2 seconds
+    }, 250); // Update every 250ms
 }
 
-function updateProgress(percent, status, substatus) {
-    const progressBar = document.getElementById('progress-bar');
-    const statusText = document.getElementById('loading-status');
-    const substatusText = document.getElementById('loading-substatus');
+function showClaimsProgress(claimsFound) {
+    const claimProgress = document.getElementById('claimProgress');
+    const claimCounter = document.getElementById('claimCounter');
+    const claimProgressFill = document.getElementById('claimProgressFill');
     
-    if (progressBar) progressBar.style.width = percent + '%';
-    if (statusText) statusText.textContent = status;
-    if (substatusText) substatusText.textContent = substatus;
-}
-
-// Switch tabs
-function switchTab(tabName) {
-    // Remove active class from all tabs and contents
-    document.querySelectorAll('.tab').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // Add active class to selected tab and content
-    const activeButton = Array.from(document.querySelectorAll('.tab')).find(
-        btn => btn.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
-               btn.onclick.toString().includes(tabName)
-    );
-    if (activeButton) {
-        activeButton.classList.add('active');
+    if (claimProgress) {
+        claimProgress.style.display = 'flex';
     }
-    
-    const activeContent = document.getElementById(tabName + '-content');
-    if (activeContent) {
-        activeContent.classList.add('active');
+    if (claimCounter) {
+        claimCounter.textContent = claimsFound;
+    }
+    if (claimProgressFill) {
+        claimProgressFill.style.width = Math.min(100, claimsFound * 8) + '%';
     }
 }
 
-// Display results
-function displayResults(results) {
-    // Update each tab with results
-    
-    // Make sure all the update functions exist before calling them
-    if (typeof updateSummaryTab === 'function' && results.summary) {
-        updateSummaryTab(results.summary);
-    }
-    
-    if (typeof updateBiasTab === 'function' && results.bias) {
-        updateBiasTab(results.bias);
-    }
-    
-    if (typeof updateSourcesTab === 'function' && results.sources) {
-        updateSourcesTab(results.sources);
-    }
-    
-    if (typeof updateCredibilityTab === 'function' && results.credibility) {
-        updateCredibilityTab(results.credibility);
-    }
-    
-    if (typeof updateCrossSourceTab === 'function' && results.cross_source) {
-        updateCrossSourceTab(results.cross_source);
-    }
-    
-    if (typeof updateAuthorTab === 'function' && results.author) {
-        updateAuthorTab(results.author);
-    }
-    
-    if (typeof updateWritingStyleTab === 'function' && results.writing_style) {
-        updateWritingStyleTab(results.writing_style);
-    }
-    
-    if (typeof updateTemporalTab === 'function' && results.temporal) {
-        updateTemporalTab(results.temporal);
-    }
-    
-    if (typeof updateProFeaturesTab === 'function') {
-        updateProFeaturesTab();
-    }
-    
-    // Show the results container
-    const resultsContainer = document.getElementById('results');
-    if (resultsContainer) {
-        resultsContainer.style.display = 'block';
+function stopProgress() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
     }
 }
 
-// Show error message
-function showError(message) {
-    document.getElementById('summary-content').innerHTML = `
-        <div style="text-align: center; padding: 40px;">
-            <div style="color: #ff0066; font-size: 48px; margin-bottom: 20px;">⚠️</div>
-            <h3 style="color: #ff0066;">Analysis Error</h3>
-            <p style="color: rgba(255,255,255,0.8);">${message}</p>
-            <button class="analyze-button" onclick="resetAnalysis()" style="margin-top: 20px;">Try Again</button>
-        </div>
-    `;
-    
-    // Show reset button on error
-    document.getElementById('analyzeBtn').style.display = 'none';
-    document.getElementById('resetBtn').style.display = 'inline-block';
-}
+// ============================================================================
+// MAIN ANALYSIS FUNCTION
+// ============================================================================
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Add enter key support
-    document.getElementById('articleUrl').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            analyzeArticle();
+async function analyzeArticle() {
+    const urlInput = document.getElementById('article-url');
+    const textInput = document.getElementById('news-text');
+    const currentInputType = document.querySelector('.input-tab.active').textContent.includes('Text') ? 'text' : 'url';
+    
+    let content = '';
+    if (currentInputType === 'text') {
+        content = textInput.value.trim();
+        if (!content) {
+            showNotification('Please enter news content to analyze', 'error');
+            return;
         }
-    });
+        if (content.length < 50) {
+            showNotification('Please enter at least 50 characters for analysis', 'error');
+            return;
+        }
+    } else {
+        content = urlInput.value.trim();
+        if (!content) {
+            showNotification('Please enter a URL to analyze', 'error');
+            return;
+        }
+        try {
+            new URL(content);
+        } catch (e) {
+            showNotification('Please enter a valid URL', 'error');
+            return;
+        }
+    }
     
-    // Add ripple effect to buttons
-    const buttons = document.querySelectorAll('.analyze-button, .reset-button');
-    buttons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.classList.add('ripple');
-            
-            this.appendChild(ripple);
-            
-            setTimeout(() => ripple.remove(), 600);
+    // Show loading state
+    showLoadingState();
+    
+    try {
+        const response = await fetch('/api/analyze-news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: content,
+                is_pro: window.currentTier === 'pro'
+            })
         });
-    });
-});
+        
+        stopProgress();
+        
+        if (!response.ok) {
+            throw new Error('Analysis failed');
+        }
+        
+        const data = await response.json();
+        
+        // Complete progress
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressStatus = document.getElementById('progressStatus');
+        
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressPercentage) progressPercentage.textContent = '100%';
+        if (progressStatus) progressStatus.textContent = 'Analysis complete! Preparing your results...';
+        updateProgressStages(4);
+        
+        // Wait a moment then show results
+        setTimeout(() => {
+            hideLoadingState();
+            displayResults(data, window.currentTier || 'free');
+        }, 1000);
+        
+    } catch (error) {
+        stopProgress();
+        hideLoadingState();
+        showNotification('Analysis failed: ' + error.message, 'error');
+    }
+}
+
+// ============================================================================
+// EXPORT FUNCTIONS
+// ============================================================================
+
+window.newsAnalysis = {
+    analyzeArticle,
+    showLoadingState,
+    hideLoadingState
+};
