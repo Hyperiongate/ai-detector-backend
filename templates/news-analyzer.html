@@ -584,6 +584,8 @@
         class NewsAnalyzer {
             constructor() {
                 this.isProUser = false;
+                // Skip all limit checking for development
+                this.freeUsageCount = 0;
                 this.freeUsageCount = parseInt(localStorage.getItem('freeUsageCount') || '0');
                 this.lastUsageDate = localStorage.getItem('lastUsageDate') || '';
                 this.checkDailyLimit();
@@ -764,10 +766,10 @@
                 // Create analysis cards
                 this.createAnalysisCards(data.detailedAnalysis);
 
-                // Show upgrade CTA for free users
-                if (!this.isProUser) {
-                    document.getElementById('upgradeCTA').style.display = 'block';
-                }
+                // Hide upgrade CTA during development
+                // if (!this.isProUser) {
+                //     document.getElementById('upgradeCTA').style.display = 'block';
+                // }
             }
 
             animateTrustScore(score) {
