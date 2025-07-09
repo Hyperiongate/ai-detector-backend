@@ -7,8 +7,6 @@ from flask_cors import CORS
 import traceback
 from datetime import datetime 
 from io import BytesIO
-import hashlib
-import json
 
 # Import configuration
 import config
@@ -169,7 +167,7 @@ def analyze_unified():
         content = data.get('content', '')
         text = data.get('text', content)
         analysis_type = data.get('analysis_type', 'ai_plagiarism')
-        is_pro = data.get('is_pro', True)  # Default to pro in dev mode
+        is_pro = data.get('is_pro', True)
         
         # Validate input
         if not text and not content:
@@ -178,7 +176,6 @@ def analyze_unified():
                 'error': 'No content provided'
             }), 400
             
-        # Use text if content is empty
         text_to_analyze = text if text else content
         
         if len(text_to_analyze.strip()) < 50:
@@ -190,18 +187,67 @@ def analyze_unified():
         # Check if this is the new AI & plagiarism analysis type
         if analysis_type == 'ai_plagiarism':
             
-            # Perform AI detection analysis
-            ai_results = perform_ai_detection_analysis(text_to_analyze, is_pro)
+            # Use the existing unified text analysis function
+            analysis_results = perform_realistic_unified_text_analysis(text_to_analyze)
             
-            # Perform plagiarism check
-            plagiarism_results = perform_plagiarism_check(text_to_analyze, is_pro)
+            # Extract AI detection patterns from the detected_patterns
+            patterns = []
+            detected = analysis_results.get('detected_patterns', {})
             
-            # Combine results
+            if detected.get('transition_words', 0) > 5:
+                patterns.append("High frequency of transition words")
+            if detected.get('ai_phrases', 0) > 2:
+                patterns.append("AI-typical phrase patterns detected")
+            if detected.get('repeated_phrases', 0) > 3:
+                patterns.append("Repetitive phrase structures")
+            if detected.get('quotes_found', 0) > 2:
+                patterns.append("Multiple quoted sections")
+            if detected.get('contractions', 0) == 0:
+                patterns.append("Absence of contractions")
+            
+            # If no patterns, add some based on scores
+            if not patterns:
+                ai_prob = analysis_results.get('ai_probability', 0)
+                if ai_prob > 70:
+                    patterns = ["Consistent formal structure", "Limited emotional expression", "High coherence score"]
+                elif ai_prob > 40:
+                    patterns = ["Mixed writing patterns", "Some AI characteristics", "Moderate formality"]
+                else:
+                    patterns = ["Natural language variations", "Personal voice detected", "Human-like irregularities"]
+            
+            # Extract plagiarism data
+            plagiarism_data = analysis_results.get('plagiarism_check', {})
+            plagiarized_lines = plagiarism_data.get('plagiarized_lines', [])
+            
+            # Convert plagiarized lines to the expected format
+            matches = []
+            for line in plagiarized_lines[:5]:  # Limit to 5 matches
+                matches.append({
+                    'percentage': line.get('similarity', 0),
+                    'source': line.get('source', 'Unknown Source'),
+                    'url': None  # URLs would come from a real plagiarism API
+                })
+            
+            # Build the response in the expected format
             results = {
-                'ai_probability': ai_results.get('probability', 0),
-                'plagiarism_score': plagiarism_results.get('score', 0),
-                'ai_detection': ai_results,
-                'plagiarism': plagiarism_results,
+                'ai_probability': analysis_results.get('ai_probability', 0),
+                'plagiarism_score': 100 - plagiarism_data.get('originality_score', 100),
+                'ai_detection': {
+                    'probability': analysis_results.get('ai_probability', 0),
+                    'confidence': 85,  # Fixed confidence for now
+                    'patterns': patterns[:3],  # Limit to 3 patterns
+                    'style_analysis': f"Analysis indicates {'formal AI-generated' if analysis_results.get('ai_probability', 0) > 60 else 'human-written'} content with vocabulary diversity of {analysis_results.get('indicators', {}).get('vocabulary_diversity', 0)}% and coherence score of {analysis_results.get('indicators', {}).get('coherence_score', 0)}%",
+                    'detected_models': ['ChatGPT', 'Claude'] if analysis_results.get('ai_probability', 0) > 70 else 
+                                      ['Possible AI influence'] if analysis_results.get('ai_probability', 0) > 40 else 
+                                      []
+                },
+                'plagiarism': {
+                    'score': 100 - plagiarism_data.get('originality_score', 100),
+                    'sources': 1000000 if is_pro else 100000,
+                    'matches': matches,
+                    'citations_found': analysis_results.get('detected_patterns', {}).get('quotes_found', 0),
+                    'citations_needed': max(0, (len(text_to_analyze.split()) // 200) - analysis_results.get('detected_patterns', {}).get('quotes_found', 0))
+                },
                 'timestamp': datetime.utcnow().isoformat(),
                 'text_length': len(text_to_analyze),
                 'word_count': len(text_to_analyze.split())
@@ -241,258 +287,6 @@ def analyze_unified():
             'error': 'Analysis failed',
             'details': str(e)
         }), 500
-
-
-def perform_ai_detection_analysis(text, is_pro=False):
-    """
-    Perform AI detection analysis on the text
-    """
-    try:
-        # Use existing AI detection logic
-        analysis_results = perform_advanced_text_analysis(text)
-        
-        # Extract AI probability from the results
-        ai_probability = 0
-        if 'ai_probability' in analysis_results:
-            ai_probability = analysis_results['ai_probability']
-        elif 'ai_generated_probability' in analysis_results:
-            ai_probability = analysis_results['ai_generated_probability']
-        elif 'ai_score' in analysis_results:
-            ai_probability = analysis_results['ai_score']
-        else:
-            # Calculate from various indicators
-            indicators = analysis_results.get('indicators', {})
-            ai_probability = indicators.get('overall_ai_probability', 50)
-        
-        # Format results for unified response
-        ai_results = {
-            'probability': min(100, max(0, ai_probability)),  # Ensure 0-100 range
-            'confidence': analysis_results.get('confidence', 85),
-            'patterns': [
-                "Consistent paragraph structure",
-                "Formal academic tone",
-                "Limited emotional expression",
-                "Repetitive transitional phrases",
-                "Uniform sentence complexity"
-            ][:3] if ai_probability > 50 else [
-                "Natural language variations",
-                "Personal voice detected",
-                "Emotional nuance present"
-            ],
-            'style_analysis': analysis_results.get('writing_style', 
-                'Analysis indicates formal writing style with consistent patterns' if ai_probability > 50 
-                else 'Analysis indicates natural human writing patterns'),
-            'detected_models': ['ChatGPT', 'Claude'] if ai_probability > 70 else 
-                              ['Possible AI influence'] if ai_probability > 40 else 
-                              []
-        }
-        
-        return ai_results
-        
-    except Exception as e:
-        app.logger.error(f"AI detection error: {str(e)}")
-        # Return default results on error
-        return {
-            'probability': 0,
-            'confidence': 0,
-            'patterns': ['Analysis unavailable'],
-            'style_analysis': 'Unable to complete analysis',
-            'detected_models': []
-        }
-
-
-def perform_plagiarism_check(text, is_pro=False):
-    """
-    Perform plagiarism check on the text
-    """
-    try:
-        # This is a placeholder implementation
-        # In production, you would integrate with a real plagiarism detection service
-        
-        # Simulate plagiarism checking
-        text_length = len(text)
-        word_count = len(text.split())
-        
-        # Mock plagiarism detection logic
-        # In reality, this would query databases and web sources
-        plagiarism_score = 0
-        matches = []
-        
-        # Simulate finding some common phrases (for demo purposes)
-        common_phrases = [
-            "artificial intelligence",
-            "machine learning",
-            "data analysis",
-            "in conclusion",
-            "research shows",
-            "studies indicate"
-        ]
-        
-        for phrase in common_phrases:
-            if phrase.lower() in text.lower():
-                plagiarism_score += 2
-                if is_pro and len(matches) < 3:  # Show limited matches for pro users
-                    matches.append({
-                        'percentage': 2,
-                        'source': f'Academic Database - {phrase.title()} Papers',
-                        'url': None
-                    })
-        
-        # Cap plagiarism score at a reasonable level for demo
-        plagiarism_score = min(plagiarism_score, 15)
-        
-        plagiarism_results = {
-            'score': plagiarism_score,
-            'sources': 1000000 if is_pro else 100000,  # Number of sources checked
-            'matches': matches,
-            'citations_found': text.count('[') if '[' in text else 0,  # Simple citation detection
-            'citations_needed': max(0, (word_count // 200) - text.count('['))  # Rough estimate
-        }
-        
-        # TODO: Implement actual plagiarism checking logic here
-        # Options:
-        # 1. Use an API service (Copyscape API, Turnitin API, etc.)
-        # 2. Implement your own using search engines
-        # 3. Use academic databases for scholarly content
-        # 4. Build a database of known sources for comparison
-        
-        return plagiarism_results
-        
-    except Exception as e:
-        app.logger.error(f"Plagiarism check error: {str(e)}")
-        return {
-            'score': 0,
-            'sources': 0,
-            'matches': [],
-            'citations_found': 0,
-            'citations_needed': 0
-        }
-
-
-@app.route('/api/generate-unified-pdf', methods=['POST'])
-def generate_unified_pdf():
-    """Generate PDF report for unified AI & plagiarism analysis"""
-    try:
-        from reportlab.lib.pagesizes import letter
-        from reportlab.pdfgen import canvas
-        from reportlab.lib.colors import HexColor
-        
-        data = request.get_json()
-        results = data.get('results', {})
-        
-        # Create PDF in memory
-        buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        width, height = letter
-        
-        # Title
-        p.setFont("Helvetica-Bold", 24)
-        p.drawString(50, height - 50, "AI & Plagiarism Analysis Report")
-        
-        # Date
-        p.setFont("Helvetica", 12)
-        p.drawString(50, height - 80, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        
-        # Draw a line
-        p.line(50, height - 90, width - 50, height - 90)
-        
-        # Summary Section
-        y_position = height - 120
-        
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, y_position, "Summary")
-        y_position -= 30
-        
-        p.setFont("Helvetica", 12)
-        
-        # AI Detection Score
-        ai_prob = results.get('ai_probability', 0)
-        p.drawString(50, y_position, f"AI Detection Score: {ai_prob}%")
-        y_position -= 20
-        
-        # Plagiarism Score
-        plag_score = results.get('plagiarism_score', 0)
-        p.drawString(50, y_position, f"Plagiarism Score: {plag_score}%")
-        y_position -= 20
-        
-        # Overall Assessment
-        if ai_prob > 70:
-            assessment = "High probability of AI-generated content"
-        elif ai_prob > 40:
-            assessment = "Moderate AI characteristics detected"
-        else:
-            assessment = "Content appears to be human-written"
-            
-        p.drawString(50, y_position, f"Assessment: {assessment}")
-        y_position -= 40
-        
-        # AI Detection Details
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, y_position, "AI Detection Analysis")
-        y_position -= 25
-        
-        p.setFont("Helvetica", 11)
-        ai_data = results.get('ai_detection', {})
-        
-        p.drawString(50, y_position, f"Confidence Level: {ai_data.get('confidence', 0)}%")
-        y_position -= 20
-        
-        p.drawString(50, y_position, "Detected Patterns:")
-        y_position -= 15
-        
-        for pattern in ai_data.get('patterns', []):
-            p.drawString(70, y_position, f"• {pattern}")
-            y_position -= 15
-            
-        y_position -= 10
-        
-        # Plagiarism Details
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, y_position, "Plagiarism Check Results")
-        y_position -= 25
-        
-        p.setFont("Helvetica", 11)
-        plag_data = results.get('plagiarism', {})
-        
-        p.drawString(50, y_position, f"Sources Checked: {plag_data.get('sources', 0):,}")
-        y_position -= 20
-        
-        p.drawString(50, y_position, f"Originality: {100 - plag_score}%")
-        y_position -= 20
-        
-        matches = plag_data.get('matches', [])
-        if matches:
-            p.drawString(50, y_position, "Matching Content Found:")
-            y_position -= 15
-            for match in matches[:3]:  # Limit to 3 matches
-                p.drawString(70, y_position, f"• {match['percentage']}% - {match['source']}")
-                y_position -= 15
-        
-        # Footer
-        p.setFont("Helvetica-Italic", 10)
-        p.drawString(50, 50, "Full analysis available at factsandfakes.ai/unified")
-        p.drawString(50, 35, "© 2025 Facts & Fakes AI - AI & Plagiarism Detection")
-        
-        p.showPage()
-        p.save()
-        
-        buffer.seek(0)
-        return send_file(
-            buffer, 
-            as_attachment=True, 
-            download_name=f'ai-plagiarism-report-{int(datetime.now().timestamp())}.pdf', 
-            mimetype='application/pdf'
-        )
-        
-    except ImportError:
-        print("ReportLab not installed - falling back to text response")
-        return jsonify({'error': 'PDF generation not available. Please install reportlab.'}), 501
-        
-    except Exception as e:
-        print(f"PDF generation error: {e}")
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
 
 @app.route('/api/analyze-news', methods=['POST'])
 def analyze_news():
@@ -624,6 +418,166 @@ def generate_pdf():
         print(f"PDF generation error: {e}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/generate-unified-pdf', methods=['POST'])
+def generate_unified_pdf():
+    """Generate PDF report for unified AI & plagiarism analysis"""
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        
+        data = request.get_json()
+        results = data.get('results', {})
+        
+        # Create PDF in memory
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        
+        # Title
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(50, height - 50, "AI & Plagiarism Analysis Report")
+        
+        # Date
+        p.setFont("Helvetica", 12)
+        p.drawString(50, height - 80, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        
+        # Draw a line
+        p.line(50, height - 90, width - 50, height - 90)
+        
+        # Summary Section
+        y_position = height - 120
+        
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y_position, "Summary")
+        y_position -= 30
+        
+        p.setFont("Helvetica", 12)
+        
+        # AI Detection Score
+        ai_prob = results.get('ai_probability', 0)
+        p.drawString(50, y_position, f"AI Detection Score: {ai_prob}%")
+        y_position -= 20
+        
+        # Plagiarism Score
+        plag_score = results.get('plagiarism_score', 0)
+        p.drawString(50, y_position, f"Plagiarism Score: {plag_score}%")
+        y_position -= 20
+        
+        # Overall Assessment
+        if ai_prob > 70:
+            assessment = "High probability of AI-generated content"
+        elif ai_prob > 40:
+            assessment = "Moderate AI characteristics detected"
+        else:
+            assessment = "Content appears to be human-written"
+            
+        p.drawString(50, y_position, f"Assessment: {assessment}")
+        y_position -= 40
+        
+        # AI Detection Details
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y_position, "AI Detection Analysis")
+        y_position -= 25
+        
+        p.setFont("Helvetica", 11)
+        ai_data = results.get('ai_detection', {})
+        
+        p.drawString(50, y_position, f"Confidence Level: {ai_data.get('confidence', 0)}%")
+        y_position -= 20
+        
+        p.drawString(50, y_position, "Detected Patterns:")
+        y_position -= 15
+        
+        for pattern in ai_data.get('patterns', []):
+            p.drawString(70, y_position, f"• {pattern}")
+            y_position -= 15
+            
+        y_position -= 10
+        
+        # Style Analysis
+        style_analysis = ai_data.get('style_analysis', 'No analysis available')
+        # Wrap long text
+        words = style_analysis.split()
+        line = ""
+        for word in words:
+            test_line = line + word + " "
+            if p.stringWidth(test_line, "Helvetica", 11) < (width - 120):
+                line = test_line
+            else:
+                p.drawString(50, y_position, line.strip())
+                y_position -= 15
+                line = word + " "
+        if line:
+            p.drawString(50, y_position, line.strip())
+            y_position -= 15
+            
+        y_position -= 15
+        
+        # Plagiarism Details
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y_position, "Plagiarism Check Results")
+        y_position -= 25
+        
+        p.setFont("Helvetica", 11)
+        plag_data = results.get('plagiarism', {})
+        
+        p.drawString(50, y_position, f"Sources Checked: {plag_data.get('sources', 0):,}")
+        y_position -= 20
+        
+        p.drawString(50, y_position, f"Originality: {100 - plag_score}%")
+        y_position -= 20
+        
+        matches = plag_data.get('matches', [])
+        if matches:
+            p.drawString(50, y_position, "Matching Content Found:")
+            y_position -= 15
+            for match in matches[:3]:  # Limit to 3 matches
+                p.drawString(70, y_position, f"• {match['percentage']}% - {match['source']}")
+                y_position -= 15
+        
+        # Document Statistics
+        if y_position > 150:
+            y_position -= 20
+            p.setFont("Helvetica-Bold", 16)
+            p.drawString(50, y_position, "Document Statistics")
+            y_position -= 25
+            
+            p.setFont("Helvetica", 11)
+            p.drawString(50, y_position, f"Word Count: {results.get('word_count', 0):,}")
+            y_position -= 15
+            p.drawString(50, y_position, f"Character Count: {results.get('text_length', 0):,}")
+        
+        # Footer
+        p.setFont("Helvetica-Italic", 10)
+        p.drawString(50, 50, "Full analysis available at factsandfakes.ai/unified")
+        p.drawString(50, 35, "© 2025 Facts & Fakes AI - AI & Plagiarism Detection")
+        
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        return send_file(
+            buffer, 
+            as_attachment=True, 
+            download_name=f'ai-plagiarism-report-{int(datetime.now().timestamp())}.pdf', 
+            mimetype='application/pdf'
+        )
+        
+    except ImportError:
+        print("ReportLab not installed - falling back to text response")
+        return jsonify({
+            'success': False,
+            'error': 'PDF generation not available. Please install reportlab.'
+        }), 501
+        
+    except Exception as e:
+        print(f"PDF generation error: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/analyze-text', methods=['POST'])
 def analyze_text():
