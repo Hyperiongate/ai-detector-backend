@@ -19,6 +19,8 @@ from services.openai_service import OPENAI_AVAILABLE, client
 
 # Import analysis modules
 from analysis.text_analysis import perform_realistic_unified_text_analysis, perform_basic_text_analysis, perform_advanced_text_analysis
+from analysis.enhanced_text_analysis import calculate_advanced_ai_probability
+from services.plagiarism_service import plagiarism_service
 
 # FIXED: Import only what exists in the new news_analysis.py
 from analysis.news_analysis import analyze_news_route, NewsAnalyzer
@@ -187,231 +189,31 @@ def analyze_unified():
         # Check if this is the new AI & plagiarism analysis type
         if analysis_type == 'ai_plagiarism':
             
-            # Use the existing unified text analysis function for deep analysis
-            analysis_results = perform_realistic_unified_text_analysis(text_to_analyze)
+            # Use enhanced AI detection with perplexity and burstiness
+            analysis_results = calculate_advanced_ai_probability(text_to_analyze)
             
-            # Extract detailed data for improved accuracy
+            # Get real plagiarism results
+            use_real_apis = is_pro and (plagiarism_service.copyscape_key or plagiarism_service.copyleaks_key or plagiarism_service.google_api_key)
+            plagiarism_results = plagiarism_service.check_plagiarism(text_to_analyze, use_real_apis=use_real_apis)
+            
+            # Extract detailed data from enhanced analysis
             detected = analysis_results.get('detected_patterns', {})
             indicators = analysis_results.get('indicators', {})
             statistics = analysis_results.get('statistics', {})
+            advanced_metrics = analysis_results.get('advanced_metrics', {})
             
-            # Calculate more accurate metrics
-            word_count = statistics.get('word_count', 0)
-            sentence_count = statistics.get('sentence_count', 1)
+            # Get AI probability and patterns from enhanced analysis
+            ai_probability = analysis_results.get('ai_probability', 0)
             
-            # Enhanced pattern detection with detailed analysis
+            # Extract patterns from advanced metrics
             patterns = []
-            pattern_details = []
+            pattern_details = advanced_metrics.get('advanced_patterns', [])
             
-            # 1. Transition Word Analysis (More nuanced)
-            transition_count = detected.get('transition_words', 0)
-            transition_ratio = transition_count / max(sentence_count, 1)
+            for pattern in pattern_details[:5]:  # Top 5 patterns
+                patterns.append(pattern.get('description', ''))
             
-            if transition_ratio > 0.5:
-                patterns.append("Excessive transition word density")
-                pattern_details.append({
-                    'severity': 'high',
-                    'score': 25,
-                    'detail': f'{transition_count} transitions in {sentence_count} sentences'
-                })
-            elif transition_ratio > 0.3:
-                patterns.append("High frequency of transition words")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 15,
-                    'detail': f'Above average transition usage ({int(transition_ratio * 100)}%)'
-                })
-            elif transition_ratio > 0.2:
-                patterns.append("Moderate transition word usage")
-                pattern_details.append({
-                    'severity': 'low',
-                    'score': 5,
-                    'detail': 'Normal academic writing pattern'
-                })
-            
-            # 2. AI Phrase Detection (More comprehensive)
-            ai_phrase_count = detected.get('ai_phrases', 0)
-            ai_phrase_ratio = ai_phrase_count / max(sentence_count, 1)
-            
-            if ai_phrase_count > 5 or ai_phrase_ratio > 0.3:
-                patterns.append("Strong AI phrase signature detected")
-                pattern_details.append({
-                    'severity': 'high',
-                    'score': 30,
-                    'detail': f'{ai_phrase_count} AI-typical phrases identified'
-                })
-            elif ai_phrase_count > 2:
-                patterns.append("AI-typical phrase patterns detected")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 20,
-                    'detail': 'Common AI formulations present'
-                })
-            
-            # 3. Repetitive Pattern Analysis
-            repeated_phrases = detected.get('repeated_phrases', 0)
-            repetitive_score = indicators.get('repetitive_patterns', 0)
-            
-            if repetitive_score > 60 or repeated_phrases > 5:
-                patterns.append("Highly repetitive structure")
-                pattern_details.append({
-                    'severity': 'high',
-                    'score': 20,
-                    'detail': f'Repetition index: {repetitive_score}%'
-                })
-            elif repetitive_score > 30:
-                patterns.append("Repetitive phrase structures")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 10,
-                    'detail': 'Some structural repetition detected'
-                })
-            
-            # 4. Contraction Analysis (Human indicator)
-            contraction_count = detected.get('contractions', 0)
-            contraction_ratio = contraction_count / max(word_count, 1) * 100
-            
-            if contraction_count == 0 and word_count > 100:
-                patterns.append("Complete absence of contractions")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 15,
-                    'detail': 'Unnaturally formal writing style'
-                })
-            elif contraction_ratio < 0.5:
-                patterns.append("Limited contraction usage")
-                pattern_details.append({
-                    'severity': 'low',
-                    'score': 5,
-                    'detail': 'Formal writing detected'
-                })
-            
-            # 5. Vocabulary and Complexity Analysis
-            vocab_diversity = indicators.get('vocabulary_diversity', 50)
-            sentence_complexity = indicators.get('sentence_complexity', 50)
-            
-            if vocab_diversity < 35:
-                patterns.append("Limited vocabulary range")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 10,
-                    'detail': f'Vocabulary diversity: {vocab_diversity}%'
-                })
-            elif vocab_diversity > 90:
-                patterns.append("Unusually diverse vocabulary")
-                pattern_details.append({
-                    'severity': 'low',
-                    'score': 5,
-                    'detail': 'Potential thesaurus overuse'
-                })
-            
-            if sentence_complexity > 85:
-                patterns.append("Highly uniform sentence structure")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 15,
-                    'detail': 'Lacks natural variation'
-                })
-            
-            # 6. Personal Pronoun Analysis
-            pronoun_count = detected.get('personal_pronouns', 0)
-            pronoun_ratio = pronoun_count / max(word_count, 1) * 100
-            
-            if pronoun_ratio < 0.5 and word_count > 100:
-                patterns.append("Minimal personal perspective")
-                pattern_details.append({
-                    'severity': 'medium',
-                    'score': 10,
-                    'detail': f'Only {pronoun_count} personal references'
-                })
-            
-            # Calculate enhanced AI probability based on all factors
-            base_ai_score = analysis_results.get('ai_probability', 50)
-            
-            # Apply weighted adjustments based on pattern severity
-            total_pattern_score = sum(p.get('score', 0) for p in pattern_details)
-            
-            # Adjust AI probability based on comprehensive analysis
-            ai_probability = base_ai_score
-            
-            # Strong indicators adjustment
-            if total_pattern_score > 80:
-                ai_probability = min(95, base_ai_score + 20)
-            elif total_pattern_score > 50:
-                ai_probability = min(90, base_ai_score + 15)
-            elif total_pattern_score > 30:
-                ai_probability = min(85, base_ai_score + 10)
-            elif total_pattern_score < 10:
-                ai_probability = max(10, base_ai_score - 15)
-            
-            # Fine-tune based on specific combinations
-            if transition_ratio > 0.4 and ai_phrase_count > 3 and contraction_count == 0:
-                ai_probability = min(95, ai_probability + 10)
-            elif contraction_count > 5 and pronoun_count > 10:
-                ai_probability = max(5, ai_probability - 20)
-            
-            # Calculate confidence based on analysis depth
-            confidence = 75  # Base confidence
-            
-            if word_count >= 500:
-                confidence += 10
-            elif word_count >= 200:
-                confidence += 5
-            elif word_count < 100:
-                confidence -= 15
-            
-            if len(pattern_details) >= 4:
-                confidence += 10
-            elif len(pattern_details) <= 1:
-                confidence -= 10
-            
-            confidence = max(60, min(95, confidence))
-            
-            # Enhanced plagiarism data extraction
-            plagiarism_data = analysis_results.get('plagiarism_check', {})
-            plagiarized_lines = plagiarism_data.get('plagiarized_lines', [])
-            
-            # Group matches by source type for better reporting
-            matches = []
-            source_breakdown = {
-                'Academic': 0,
-                'Web Content': 0,
-                'News': 0,
-                'Encyclopedia': 0,
-                'Quotations': 0
-            }
-            
-            for line in plagiarized_lines[:8]:  # Show up to 8 matches
-                source = line.get('source', 'Unknown Source')
-                similarity = line.get('similarity', 0)
-                
-                # Categorize source
-                if 'Academic' in source:
-                    source_type = 'Academic'
-                elif 'Wikipedia' in source:
-                    source_type = 'Encyclopedia'
-                elif 'News' in source:
-                    source_type = 'News'
-                elif 'Quote' in source:
-                    source_type = 'Quotations'
-                else:
-                    source_type = 'Web Content'
-                
-                source_breakdown[source_type] += 1
-                
-                matches.append({
-                    'percentage': similarity,
-                    'source': source,
-                    'source_type': source_type,
-                    'text_excerpt': line.get('text', '')[:100] + '...' if len(line.get('text', '')) > 100 else line.get('text', ''),
-                    'url': None
-                })
-            
-            # Sort patterns by importance
-            if patterns:
-                patterns = patterns[:5]  # Top 5 most relevant
-            else:
-                # Fallback patterns based on final AI score
+            # If no patterns from advanced metrics, use basic patterns
+            if not patterns:
                 if ai_probability > 70:
                     patterns = ["Consistent formal structure", "Algorithm-like patterns", "Limited stylistic variation"]
                 elif ai_probability > 40:
@@ -419,59 +221,61 @@ def analyze_unified():
                 else:
                     patterns = ["Natural language flow", "Human writing variations", "Personal voice present"]
             
+            # Calculate confidence based on multiple factors
+            confidence = 85  # Base confidence from advanced analysis
+            
+            # Adjust based on text length
+            word_count = statistics.get('word_count', 0)
+            if word_count >= 500:
+                confidence += 5
+            elif word_count < 100:
+                confidence -= 10
+                
+            confidence = max(60, min(95, confidence))
+            
             # Build comprehensive response with enhanced data
             results = {
                 'ai_probability': int(ai_probability),
-                'plagiarism_score': 100 - plagiarism_data.get('originality_score', 100),
+                'plagiarism_score': plagiarism_results.get('score', 0) if isinstance(plagiarism_results.get('score', 0), (int, float)) else 100 - plagiarism_results.get('originality_score', 100),
                 'ai_detection': {
                     'probability': int(ai_probability),
                     'confidence': confidence,
                     'patterns': patterns[:3],
                     'pattern_details': pattern_details,
-                    'style_analysis': f"Comprehensive analysis of {word_count} words across {sentence_count} sentences reveals {'strong AI characteristics' if ai_probability > 70 else 'mixed patterns' if ai_probability > 40 else 'human writing traits'}. Vocabulary diversity: {vocab_diversity}%, Sentence uniformity: {sentence_complexity}%, Transition density: {int(transition_ratio * 100)}%, Personal voice: {'Minimal' if pronoun_ratio < 1 else 'Present'}.",
+                    'style_analysis': f"Advanced analysis of {word_count} words reveals {'strong AI characteristics' if ai_probability > 70 else 'mixed patterns' if ai_probability > 40 else 'human writing traits'}. Perplexity: {advanced_metrics.get('perplexity_score', 'N/A')}%, Burstiness: {advanced_metrics.get('burstiness_score', 'N/A')}%, Vocabulary diversity: {indicators.get('vocabulary_diversity', 0)}%.",
                     'detected_models': get_ai_model_predictions(ai_probability, pattern_details),
                     'linguistic_metrics': {
-                        'vocabulary_diversity': vocab_diversity,
-                        'sentence_complexity': sentence_complexity,
+                        'vocabulary_diversity': indicators.get('vocabulary_diversity', 0),
+                        'sentence_complexity': indicators.get('sentence_complexity', 0),
                         'coherence_score': indicators.get('coherence_score', 0),
-                        'repetitive_patterns': repetitive_score,
-                        'transition_density': int(transition_ratio * 100),
-                        'formality_index': 100 - min(100, contraction_count * 10),
-                        'personal_voice_score': min(100, int(pronoun_ratio * 20))
+                        'repetitive_patterns': indicators.get('repetitive_patterns', 0),
+                        'perplexity_score': advanced_metrics.get('perplexity_score', 0),
+                        'burstiness_score': advanced_metrics.get('burstiness_score', 0)
                     }
                 },
-                'plagiarism': {
-                    'score': 100 - plagiarism_data.get('originality_score', 100),
-                    'sources': 1000000 if is_pro else 100000,
-                    'source_breakdown': source_breakdown,
-                    'matches': matches,
-                    'citations_found': detected.get('quotes_found', 0),
-                    'citations_needed': max(0, (word_count // 200) - detected.get('quotes_found', 0)),
-                    'highest_match': plagiarism_data.get('highest_match', 0),
-                    'total_matches': len(plagiarized_lines),
-                    'matched_sources': plagiarism_data.get('matched_sources', 0)
-                },
+                'plagiarism': plagiarism_results,
                 'document_statistics': {
                     'word_count': word_count,
-                    'sentence_count': sentence_count,
+                    'sentence_count': statistics.get('sentence_count', 0),
                     'paragraph_count': len([p for p in text_to_analyze.split('\n\n') if p.strip()]),
                     'average_sentence_length': statistics.get('average_sentence_length', 0),
                     'average_word_length': statistics.get('average_word_length', 0),
                     'reading_level': statistics.get('reading_level', 'Unknown'),
                     'character_count': statistics.get('character_count', 0),
-                    'unique_words': int(word_count * vocab_diversity / 100) if vocab_diversity else 0
+                    'unique_words': int(word_count * indicators.get('vocabulary_diversity', 50) / 100) if indicators.get('vocabulary_diversity') else 0
                 },
                 'detailed_metrics': {
-                    'transition_words': transition_count,
-                    'ai_phrases': ai_phrase_count,
-                    'contractions': contraction_count,
-                    'personal_pronouns': pronoun_count,
-                    'repeated_bigrams': repeated_phrases,
+                    'transition_words': detected.get('transition_words', 0),
+                    'ai_phrases': detected.get('ai_phrases', 0),
+                    'contractions': detected.get('contractions', 0),
+                    'personal_pronouns': detected.get('personal_pronouns', 0),
+                    'repeated_bigrams': detected.get('repeated_phrases', 0),
                     'quotes_detected': detected.get('quotes_found', 0)
                 },
                 'timestamp': datetime.utcnow().isoformat(),
-                'analysis_version': '2.1',
-                'processing_time': 2.3  # Simulated processing time
+                'analysis_version': '3.0',  # Updated version
+                'processing_time': plagiarism_results.get('scan_time', 2.5),
+                'databases_queried': plagiarism_results.get('databases_queried', [])
             }
             
             return jsonify({
@@ -828,6 +632,156 @@ def generate_unified_pdf():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/analyze-file', methods=['POST'])
+def analyze_file():
+    """Analyze uploaded file for AI content and plagiarism"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file uploaded'
+            }), 400
+            
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+            
+        # Check file size (10MB limit)
+        file.seek(0, 2)  # Seek to end
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > 10 * 1024 * 1024:
+            return jsonify({
+                'success': False,
+                'error': 'File size must be less than 10MB'
+            }), 400
+            
+        # Extract text based on file type
+        filename = file.filename.lower()
+        text = ''
+        
+        if filename.endswith('.txt'):
+            text = file.read().decode('utf-8', errors='ignore')
+            
+        elif filename.endswith('.pdf'):
+            try:
+                import PyPDF2
+                pdf_reader = PyPDF2.PdfReader(file)
+                for page in pdf_reader.pages:
+                    text += page.extract_text() + '\n'
+            except ImportError:
+                return jsonify({
+                    'success': False,
+                    'error': 'PDF support not available. Please install PyPDF2.'
+                }), 501
+                
+        elif filename.endswith(('.doc', '.docx')):
+            try:
+                import docx
+                doc = docx.Document(file)
+                for paragraph in doc.paragraphs:
+                    text += paragraph.text + '\n'
+            except ImportError:
+                return jsonify({
+                    'success': False,
+                    'error': 'DOCX support not available. Please install python-docx.'
+                }), 501
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Unsupported file type. Please upload TXT, PDF, or DOCX files.'
+            }), 400
+            
+        # Analyze the extracted text
+        if not text or len(text.strip()) < 50:
+            return jsonify({
+                'success': False,
+                'error': 'File contains insufficient text for analysis'
+            }), 400
+            
+        # Use the same analysis as text input
+        request.json = {'content': text, 'analysis_type': 'ai_plagiarism', 'is_pro': True}
+        return analyze_unified()
+        
+    except Exception as e:
+        print(f"File analysis error: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to analyze file'
+        }), 500
+
+
+@app.route('/api/analyze-url', methods=['POST'])
+def analyze_url():
+    """Analyze content from URL for AI content and plagiarism"""
+    try:
+        data = request.get_json()
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({
+                'success': False,
+                'error': 'No URL provided'
+            }), 400
+            
+        # Extract text from URL
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            
+            # Fetch the webpage
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            # Parse HTML
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.decompose()
+                
+            # Extract text
+            text = soup.get_text()
+            
+            # Clean up text
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            text = '\n'.join(chunk for chunk in chunks if chunk)
+            
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to fetch URL content: {str(e)}'
+            }), 400
+            
+        if not text or len(text.strip()) < 50:
+            return jsonify({
+                'success': False,
+                'error': 'URL contains insufficient text for analysis'
+            }), 400
+            
+        # Use the same analysis as text input
+        request.json = {'content': text, 'analysis_type': 'ai_plagiarism', 'is_pro': True}
+        return analyze_unified()
+        
+    except Exception as e:
+        print(f"URL analysis error: {e}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to analyze URL'
+        }), 500
+
 
 @app.route('/api/analyze-text', methods=['POST'])
 def analyze_text():
