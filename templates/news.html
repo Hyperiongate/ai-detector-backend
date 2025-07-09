@@ -4,18 +4,32 @@
 
 {% block styles %}
 <style>
-    /* Remove all dark theme styles and use light theme */
-    
+    /* Enhanced contrast for better visibility */
+    :root {
+        --card-background: #ffffff;
+        --card-border: #e2e8f0;
+        --section-background: #f8fafc;
+        --hover-background: #f1f5f9;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --primary-blue: #2563eb;
+        --primary-hover: #1d4ed8;
+    }
+
     /* Container adjustments */
     .container {
         padding-top: 40px;
     }
 
-    /* Header styling - now with light theme */
+    /* Header styling */
     .page-header {
         text-align: center;
         margin-bottom: 50px;
-        padding: 40px 0;
+        padding: 40px;
+        background: var(--section-background);
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .page-header h1 {
@@ -35,25 +49,26 @@
         margin-bottom: 20px;
     }
 
-    /* Tech intro section */
+    /* Tech intro section with visible borders */
     .tech-intro {
-        background: var(--background-primary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
+        background: var(--card-background);
+        border: 2px solid var(--card-border);
+        border-radius: 12px;
         padding: 30px;
         margin-bottom: 40px;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .tech-intro:hover {
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transform: translateY(-2px);
+        border-color: var(--primary-blue);
     }
 
     .tech-intro h3 {
-        color: var(--primary-color);
+        color: var(--primary-blue);
         margin-bottom: 15px;
         display: flex;
         align-items: center;
@@ -72,14 +87,19 @@
         padding-top: 20px;
     }
 
-    /* Input section */
+    .tech-intro-content li {
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    /* Input section with clear boundaries */
     .input-section {
-        background: var(--background-primary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
+        background: var(--card-background);
+        border: 2px solid var(--card-border);
+        border-radius: 12px;
         padding: 40px;
         margin-bottom: 40px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .input-tabs {
@@ -92,8 +112,8 @@
 
     .input-tab {
         padding: 12px 30px;
-        border: 2px solid var(--border-color);
-        background: var(--background-primary);
+        border: 2px solid var(--card-border);
+        background: var(--section-background);
         color: var(--text-secondary);
         font-weight: 600;
         cursor: pointer;
@@ -103,23 +123,23 @@
     }
 
     .input-tab:hover {
-        background: var(--background-tertiary);
-        border-color: var(--primary-color);
-        color: var(--primary-color);
+        background: var(--hover-background);
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
     }
 
     .input-tab.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
         color: white;
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
-    /* Analysis explanation */
+    /* Analysis explanation with visible background */
     .analysis-explanation {
-        background: rgba(37, 99, 235, 0.05);
-        border: 1px solid rgba(37, 99, 235, 0.2);
-        border-radius: var(--radius-md);
+        background: var(--section-background);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
         padding: 20px;
         margin-bottom: 25px;
         font-size: 15px;
@@ -127,7 +147,7 @@
     }
 
     .analysis-explanation h4 {
-        color: var(--primary-color);
+        color: var(--primary-blue);
         margin-bottom: 10px;
     }
 
@@ -145,7 +165,64 @@
         margin-bottom: 20px;
     }
 
-    /* Loading state */
+    .url-input, .text-input {
+        flex: 1;
+        padding: 18px 24px;
+        border: 2px solid var(--card-border);
+        border-radius: 8px;
+        background: var(--section-background);
+        color: var(--text-primary);
+        font-size: 16px;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .text-input {
+        min-height: 200px;
+        resize: vertical;
+        width: 100%;
+    }
+
+    .url-input:focus, .text-input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .url-input::placeholder, .text-input::placeholder {
+        color: #94a3b8;
+    }
+
+    .analyze-btn {
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .analyze-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .analyze-btn:disabled {
+        background: var(--hover-background);
+        color: var(--text-secondary);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Loading state with clear visibility */
     .loading {
         display: none;
         position: fixed;
@@ -155,10 +232,10 @@
         width: 90%;
         max-width: 800px;
         padding: 30px;
-        background: var(--background-primary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-lg);
+        background: white;
+        border: 2px solid var(--card-border);
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         z-index: 1000;
     }
 
@@ -183,8 +260,8 @@
     .checkpoint-icon {
         width: 50px;
         height: 50px;
-        background: var(--background-tertiary);
-        border: 2px solid var(--border-color);
+        background: var(--section-background);
+        border: 2px solid var(--card-border);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -195,15 +272,15 @@
     }
 
     .checkpoint.active .checkpoint-icon {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
         color: white;
         box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
     }
 
     .checkpoint.completed .checkpoint-icon {
-        background: var(--success-color);
-        border-color: var(--success-color);
+        background: #10b981;
+        border-color: #10b981;
         color: white;
     }
 
@@ -226,8 +303,18 @@
         left: 25px;
         right: 25px;
         height: 4px;
-        background: var(--background-tertiary);
+        background: var(--hover-background);
         z-index: 1;
+        border-radius: 2px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #2563eb 0%, #6366f1 50%, #2563eb 100%);
+        transition: width 0.5s ease;
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
     }
 
     .loading-status {
@@ -246,21 +333,21 @@
         display: block;
     }
 
-    /* Overall summary */
+    /* Overall summary with clear sections */
     .overall-summary {
-        background: var(--background-primary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
+        background: white;
+        border: 2px solid var(--card-border);
+        border-radius: 12px;
         padding: 40px;
         margin-bottom: 40px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .summary-header {
         text-align: center;
         margin-bottom: 40px;
         padding-bottom: 30px;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 2px solid var(--card-border);
     }
 
     .trust-score-container {
@@ -301,18 +388,29 @@
 
     .summary-section {
         padding: 25px;
-        border-left: 4px solid var(--primary-color);
-        background: var(--background-secondary);
-        border-radius: var(--radius-md);
+        border-left: 4px solid var(--primary-blue);
+        background: var(--section-background);
+        border-radius: 8px;
+        border: 1px solid var(--card-border);
+        border-left: 4px solid var(--primary-blue);
     }
 
     .summary-section h3 {
-        color: var(--primary-color);
+        color: var(--primary-blue);
         margin-bottom: 15px;
         display: flex;
         align-items: center;
         gap: 10px;
         font-size: 1.3em;
+    }
+
+    .summary-section p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .summary-section strong {
+        color: var(--text-primary);
     }
 
     /* Pro section */
@@ -327,7 +425,7 @@
 
     .pro-badge {
         display: inline-block;
-        background: linear-gradient(135deg, #6366f1 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         color: white;
         padding: 8px 20px;
         border-radius: 50px;
@@ -336,27 +434,27 @@
         margin-bottom: 20px;
     }
 
-    /* Analysis dropdowns */
+    /* Analysis dropdowns with visible borders */
     .analysis-dropdown {
-        background: var(--background-primary);
+        background: white;
         border: 2px solid;
-        border-radius: var(--radius-md);
+        border-radius: 12px;
         margin-bottom: 20px;
         overflow: hidden;
         transition: all 0.3s;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .analysis-dropdown:hover {
         transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
     .analysis-dropdown.expanded {
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
     }
 
-    /* Dropdown colors */
+    /* Different colors for each dropdown */
     .analysis-dropdown:nth-child(1) { border-color: #2563eb; }
     .analysis-dropdown:nth-child(2) { border-color: #0ea5e9; }
     .analysis-dropdown:nth-child(3) { border-color: #6366f1; }
@@ -368,15 +466,16 @@
 
     .dropdown-header {
         padding: 25px 30px;
-        background: var(--background-secondary);
+        background: var(--section-background);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid var(--card-border);
     }
 
     .dropdown-header:hover {
-        background: var(--background-tertiary);
+        background: var(--hover-background);
     }
 
     .dropdown-icon-wrapper {
@@ -397,6 +496,7 @@
         font-size: 24px;
         flex-shrink: 0;
         color: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .dropdown-title-section {
@@ -437,20 +537,27 @@
 
     .dropdown-body {
         padding: 30px;
-        background: var(--background-secondary);
+        background: white;
     }
 
     .analysis-intro {
-        background: rgba(37, 99, 235, 0.05);
-        border-left: 4px solid var(--primary-color);
+        background: var(--section-background);
+        border-left: 4px solid var(--primary-blue);
         padding: 20px;
-        border-radius: var(--radius-md);
+        border-radius: 8px;
         margin-bottom: 25px;
+        border: 1px solid var(--card-border);
+        border-left: 4px solid var(--primary-blue);
     }
 
     .analysis-intro h4 {
-        color: var(--primary-color);
+        color: var(--primary-blue);
         margin-bottom: 10px;
+    }
+
+    .analysis-intro p {
+        color: var(--text-secondary);
+        line-height: 1.6;
     }
 
     .analysis-details {
@@ -462,7 +569,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 15px 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--card-border);
     }
 
     .metric-item:last-child {
@@ -476,7 +583,7 @@
 
     .metric-value {
         font-weight: 500;
-        color: var(--primary-color);
+        color: var(--primary-blue);
     }
 
     .metric-visual {
@@ -488,14 +595,15 @@
     .metric-bar {
         width: 100px;
         height: 8px;
-        background: var(--background-tertiary);
+        background: var(--hover-background);
         border-radius: 4px;
         overflow: hidden;
+        border: 1px solid var(--card-border);
     }
 
     .metric-bar-fill {
         height: 100%;
-        background: var(--success-color);
+        background: #10b981;
         transition: width 0.5s ease;
     }
 
@@ -503,8 +611,9 @@
     .bias-gauge {
         margin: 25px 0;
         padding: 25px;
-        background: var(--background-tertiary);
-        border-radius: var(--radius-md);
+        background: var(--section-background);
+        border-radius: 8px;
+        border: 1px solid var(--card-border);
     }
 
     .gauge-container {
@@ -513,6 +622,7 @@
         background: linear-gradient(to right, #3b82f6 0%, #a78bfa 50%, #ef4444 100%);
         border-radius: 25px;
         margin: 20px 0;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .gauge-marker {
@@ -523,14 +633,15 @@
         height: 30px;
         background: white;
         border-radius: 50%;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--text-primary);
     }
 
     /* Claim cards */
     .claim-card {
-        background: var(--background-tertiary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
+        background: var(--section-background);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
         padding: 20px;
         margin-bottom: 15px;
         display: flex;
@@ -564,29 +675,32 @@
 
     .claim-verdict.true {
         background: rgba(16, 185, 129, 0.1);
-        color: var(--success-color);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
     .claim-verdict.false {
         background: rgba(239, 68, 68, 0.1);
-        color: var(--danger-color);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
     .claim-verdict.unverified {
         background: rgba(245, 158, 11, 0.1);
-        color: var(--warning-color);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
     /* Finding items */
     .finding-item {
         padding: 20px;
         margin-bottom: 15px;
-        border-radius: var(--radius-md);
+        border-radius: 8px;
         display: flex;
         align-items: center;
         gap: 15px;
-        background: var(--background-tertiary);
-        border: 1px solid var(--border-color);
+        background: var(--section-background);
+        border: 1px solid var(--card-border);
     }
 
     .finding-icon {
@@ -604,27 +718,32 @@
     .action-section {
         text-align: center;
         margin-top: 40px;
+        padding: 40px;
+        background: var(--section-background);
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
     }
 
     /* Messages */
     .message {
         padding: 20px;
-        border-radius: var(--radius-md);
+        border-radius: 8px;
         margin: 20px 0;
         text-align: center;
         font-weight: 500;
+        border: 1px solid;
     }
 
     .message.error {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: var(--danger-color);
+        background: rgba(239, 68, 68, 0.05);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #dc2626;
     }
 
     .message.success {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        color: var(--success-color);
+        background: rgba(16, 185, 129, 0.05);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #059669;
     }
 
     /* Responsive design */
@@ -662,17 +781,20 @@
 
     <!-- State of the Art Explanation -->
     <div class="tech-intro" onclick="toggleTechIntro()">
-        <h3>🚀 Cutting-Edge AI Technology - Click to Learn More</h3>
+        <h3>🚀 How Our Analysis Works - Click to Learn More</h3>
         <div class="tech-intro-content">
-            <p style="margin-bottom: 20px;">Our system leverages the most advanced AI technologies available to provide you with comprehensive news analysis:</p>
+            <p style="margin-bottom: 20px;">Our system provides comprehensive news analysis using advanced AI technology:</p>
             <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 15px;">🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context, detecting bias, and fact-checking with human-level comprehension</li>
-                <li style="margin-bottom: 15px;">📊 <strong>Multi-Source Verification:</strong> Cross-references claims against multiple databases and knowledge sources to ensure accuracy</li>
-                <li style="margin-bottom: 15px;">🔍 <strong>Deep Learning Analysis:</strong> Neural networks trained on millions of articles to detect manipulation patterns and writing techniques</li>
-                <li style="margin-bottom: 15px;">⚡ <strong>Real-Time Processing:</strong> Instant analysis with comprehensive results in seconds, providing immediate insights</li>
-                <li style="margin-bottom: 15px;">🎯 <strong>Bias Detection AI:</strong> Advanced algorithms to identify political lean, emotional manipulation, and perspective framing</li>
-                <li style="margin-bottom: 15px;">📈 <strong>Credibility Scoring:</strong> Proprietary algorithms combining source history, author credentials, content quality, and fact accuracy</li>
+                <li>🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context, detecting bias, and evaluating claims with human-level comprehension</li>
+                <li>📊 <strong>Statistical Content Analysis:</strong> Real-time counting of sources, quotes, statistics, and other journalistic quality indicators</li>
+                <li>🔍 <strong>Pattern Detection:</strong> Advanced algorithms to identify manipulation patterns, emotional language, and missing context</li>
+                <li>⚡ <strong>Real-Time Processing:</strong> Instant analysis with comprehensive results in seconds, providing immediate insights</li>
+                <li>🎯 <strong>Bias Detection AI:</strong> Sophisticated analysis to identify political lean, emotional manipulation, and perspective framing</li>
+                <li>📈 <strong>Source Credibility Database:</strong> Comprehensive database of news sources with historical accuracy ratings and bias assessments</li>
             </ul>
+            <p style="margin-top: 20px; padding: 15px; background: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
+                <strong>Transparency Note:</strong> All analysis is performed by AI and should be used as one tool among many for evaluating news. We recommend verifying important information with multiple sources.
+            </p>
         </div>
     </div>
 
@@ -715,7 +837,7 @@
         </div>
     </div>
 
-    <!-- Advanced Loading State - Fixed at top -->
+    <!-- Advanced Loading State -->
     <div class="loading" id="loading">
         <div class="checkpoint-progress">
             <div class="checkpoints">
@@ -728,15 +850,15 @@
                     <div class="checkpoint-label">AI Analysis</div>
                 </div>
                 <div class="checkpoint" data-stage="2">
-                    <div class="checkpoint-icon">🔍</div>
-                    <div class="checkpoint-label">Fact Check</div>
+                    <div class="checkpoint-icon">📊</div>
+                    <div class="checkpoint-label">Statistics</div>
                 </div>
                 <div class="checkpoint" data-stage="3">
                     <div class="checkpoint-icon">⚖️</div>
                     <div class="checkpoint-label">Bias Scan</div>
                 </div>
                 <div class="checkpoint" data-stage="4">
-                    <div class="checkpoint-icon">📊</div>
+                    <div class="checkpoint-icon">✅</div>
                     <div class="checkpoint-label">Finalizing</div>
                 </div>
                 <div class="progress-bar-container">
@@ -744,7 +866,7 @@
                 </div>
             </div>
         </div>
-        <div class="loading-status" id="loadingStatus">Initializing neural networks...</div>
+        <div class="loading-status" id="loadingStatus">Initializing analysis systems...</div>
     </div>
 
     <!-- Results -->
@@ -879,8 +1001,8 @@
         const stages = [
             'Extracting article content and metadata from source...',
             'Running GPT-4 neural network analysis on content...',
-            'Cross-referencing claims against fact-checking databases...',
-            'Analyzing writing patterns for bias detection...',
+            'Analyzing statistical patterns and content metrics...',
+            'Detecting bias patterns and framing techniques...',
             'Generating comprehensive intelligence report...'
         ];
         
@@ -913,21 +1035,21 @@
         progressBar.style.width = progress + '%';
     }
 
-    // Display results
+    // Display results - keeping ALL original features
     function displayResults(data) {
         const results = data.results;
         const resultsDiv = document.getElementById('results');
         
         resultsDiv.classList.add('active');
         
-        // Generate overall summary
+        // Generate overall summary - all in one box
         const overallSummary = `
             <div class="overall-summary">
                 <div class="summary-header">
                     <div class="trust-score-container">
                         <div class="trust-score">
                             <svg width="200" height="200">
-                                <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border-color)" stroke-width="20"/>
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="#e2e8f0" stroke-width="20"/>
                                 <circle id="trustCircle" cx="100" cy="100" r="90" fill="none" 
                                         stroke="${getTrustColor(results.credibility)}" 
                                         stroke-width="20" 
@@ -970,7 +1092,7 @@
             </div>
         `;
         
-        // Generate pro analysis dropdowns
+        // Generate pro analysis dropdowns - KEEPING ALL 8 SECTIONS
         const proAnalysis = `
             <div class="pro-section">
                 <div class="pro-header">
@@ -1112,11 +1234,11 @@
         `).join('');
     }
 
-    // Generate analysis dropdowns with colored borders
+    // Generate ALL 8 analysis dropdowns with proper data
     function generateAnalysisDropdowns(results) {
         const dropdowns = [];
         
-        // Author Credibility Analysis
+        // 1. Author Credibility Analysis
         if (results.author || results.author === 'Unknown') {
             dropdowns.push({
                 icon: '👤',
@@ -1126,7 +1248,7 @@
                 content: `
                     <div class="analysis-intro">
                         <h4>What this analysis reveals:</h4>
-                        <p>Author credibility is a crucial factor in determining article reliability. We evaluate the author's professional background, expertise in the subject matter, track record of accurate reporting, and any potential conflicts of interest. Established journalists with relevant expertise and transparent affiliations typically produce more trustworthy content.</p>
+                        <p>Author credibility is a crucial factor in determining article reliability. We evaluate the author's professional background, expertise in the subject matter, track record of accurate reporting, and any potential conflicts of interest.</p>
                     </div>
                     <div class="analysis-details">
                         <div class="metric-item">
@@ -1142,22 +1264,265 @@
                             <div class="metric-visual">
                                 <span class="metric-value">${results.author !== 'Unknown' ? 'Positive' : 'Negative'}</span>
                                 <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${results.author !== 'Unknown' ? '80%' : '20%'}" style="background: ${results.author !== 'Unknown' ? 'var(--success-color)' : 'var(--danger-color)'};"></div>
+                                    <div class="metric-bar-fill" data-width="${results.author !== 'Unknown' ? '80%' : '20%'}" style="background: ${results.author !== 'Unknown' ? '#10b981' : '#ef4444'};"></div>
                                 </div>
                             </div>
                         </div>
-                        <p style="margin-top: 20px; padding: 20px; background: var(--background-tertiary); border-radius: var(--radius-md);">
+                        <p style="margin-top: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
                             <strong>Why this matters:</strong> ${results.author !== 'Unknown' ? 
-                            'Author attribution demonstrates accountability and allows readers to verify the writer\'s credentials and potential biases. This transparency is a hallmark of quality journalism.' : 
-                            'The absence of author attribution is a red flag. Anonymous articles lack accountability and make it impossible to verify the writer\'s expertise or identify potential conflicts of interest.'}
+                            'Author attribution demonstrates accountability and allows readers to verify the writer\'s credentials and potential biases.' : 
+                            'The absence of author attribution is a red flag. Anonymous articles lack accountability and make it impossible to verify expertise.'}
                         </p>
                     </div>
                 `
             });
         }
         
-        // Continue with other dropdowns...
-        // [All other dropdown definitions follow the same pattern with updated light theme styles]
+        // 2. Source Verification & History
+        if (results.sources) {
+            dropdowns.push({
+                icon: '🏛️',
+                title: 'News Source Verification & Credibility Assessment',
+                preview: `${results.sources.name} - ${results.sources.credibility || 'Unknown'}% credibility score`,
+                iconColors: ['#0ea5e9', '#06b6d4'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>We verify news sources against our comprehensive database of media outlets. This analysis examines the source's historical accuracy, editorial standards, transparency policies, and any known political affiliations.</p>
+                    </div>
+                    <div class="analysis-details">
+                        <div class="metric-item">
+                            <span class="metric-label">Source Name:</span>
+                            <span class="metric-value">${results.sources.name}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Website Domain:</span>
+                            <span class="metric-value">${results.sources.domain}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Credibility Score:</span>
+                            <div class="metric-visual">
+                                <span class="metric-value">${results.sources.credibility || 'N/A'}%</span>
+                                <div class="metric-bar">
+                                    <div class="metric-bar-fill" data-width="${results.sources.credibility || 0}%" style="background: ${getScoreColor(results.sources.credibility)};"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Known Political Bias:</span>
+                            <span class="metric-value">${results.sources.bias || 'Not detected'}</span>
+                        </div>
+                        ${results.sources.assessment ? `
+                        <p style="margin-top: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
+                            <strong>AI Assessment:</strong> ${results.sources.assessment}
+                        </p>` : ''}
+                    </div>
+                `
+            });
+        }
+        
+        // 3. Bias & Objectivity Detection
+        if (results.bias) {
+            dropdowns.push({
+                icon: '⚖️',
+                title: 'Political Bias & Objectivity Analysis',
+                preview: `${results.bias.label} perspective - ${results.bias.objectivity}% objective reporting`,
+                iconColors: ['#6366f1', '#8b5cf6'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>Our AI examines linguistic patterns, word choices, source selection, and story framing to detect political bias. Remember: bias doesn't necessarily mean inaccuracy.</p>
+                    </div>
+                    ${createBiasGauge(results.bias)}
+                    <div class="analysis-details">
+                        ${results.bias.reasoning ? `
+                        <p style="margin-bottom: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
+                            <strong>GPT-4 Analysis:</strong> ${results.bias.reasoning}
+                        </p>` : ''}
+                        <div class="metric-item">
+                            <span class="metric-label">Political Lean Detected:</span>
+                            <span class="metric-value">${results.bias.label}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Objectivity Score:</span>
+                            <div class="metric-visual">
+                                <span class="metric-value">${results.bias.objectivity}%</span>
+                                <div class="metric-bar">
+                                    <div class="metric-bar-fill" data-width="${results.bias.objectivity}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Bias Intensity:</span>
+                            <span class="metric-value">${results.bias.score > 0 ? '+' : ''}${results.bias.score} (${Math.abs(results.bias.score) <= 3 ? 'Mild' : Math.abs(results.bias.score) <= 6 ? 'Moderate' : 'Strong'})</span>
+                        </div>
+                    </div>
+                `
+            });
+        }
+        
+        // 4. Fact Verification Results
+        if (results.claims && results.claims.length > 0) {
+            dropdowns.push({
+                icon: '✓',
+                title: 'Fact-Checking & Claim Verification Results',
+                preview: `${results.claims.length} factual claims analyzed and verified`,
+                iconColors: ['#10b981', '#059669'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>GPT-4 identifies specific factual claims made in the article and evaluates them based on its training data. High confidence scores indicate strong evidence supporting the claim.</p>
+                    </div>
+                    <div class="analysis-details">
+                        ${results.claims.map(claim => `
+                            <div class="claim-card">
+                                <span class="claim-icon">${getClaimIcon(claim.status)}</span>
+                                <div class="claim-content">
+                                    <div class="claim-text">"${claim.claim}"</div>
+                                    <div>
+                                        <span class="claim-verdict ${getClaimClass(claim.status)}">
+                                            ${getClaimLabel(claim.status)}
+                                        </span>
+                                        <span style="color: var(--text-secondary);">AI Confidence: ${claim.confidence}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${results.overall_accuracy ? `
+                        <div style="margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <strong style="color: #10b981; font-size: 1.2em;">Overall Factual Accuracy Score: ${results.overall_accuracy}%</strong>
+                            <p style="margin-top: 10px; color: var(--text-secondary);">This score represents the percentage of verifiable claims that our AI confirmed as accurate.</p>
+                        </div>` : ''}
+                    </div>
+                `
+            });
+        }
+        
+        // 5. Writing Quality & Journalistic Standards
+        if (results.style) {
+            dropdowns.push({
+                icon: '✍️',
+                title: 'Writing Quality & Journalistic Standards Analysis',
+                preview: `${results.style.tone || 'Unknown'} tone - ${results.style.balanced ? 'Balanced' : 'Unbalanced'} reporting`,
+                iconColors: ['#f59e0b', '#f97316'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>Quality journalism follows specific standards: multiple sources, verifiable data, balanced perspectives, and clear attribution. We analyze these factors in detail.</p>
+                    </div>
+                    <div class="analysis-details">
+                        <div class="metric-item">
+                            <span class="metric-label">Direct Quote Usage:</span>
+                            <div class="metric-visual">
+                                <span class="metric-value">${results.style.quotes} quotes ${results.style.quotes >= 2 ? '✅' : '⚠️'}</span>
+                                <div class="metric-bar">
+                                    <div class="metric-bar-fill" data-width="${Math.min(results.style.quotes * 20, 100)}%" style="background: ${results.style.quotes >= 2 ? '#10b981' : '#f59e0b'};"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Statistical Evidence:</span>
+                            <div class="metric-visual">
+                                <span class="metric-value">${results.style.statistics} references ${results.style.statistics >= 2 ? '✅' : '⚠️'}</span>
+                                <div class="metric-bar">
+                                    <div class="metric-bar-fill" data-width="${Math.min(results.style.statistics * 20, 100)}%" style="background: ${results.style.statistics >= 2 ? '#10b981' : '#f59e0b'};"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Reading Complexity:</span>
+                            <span class="metric-value">Grade ${results.style.readingLevel} level</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Writing Tone:</span>
+                            <span class="metric-value">${results.style.tone || 'Not analyzed'}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Balanced Perspective:</span>
+                            <span class="metric-value">${results.style.balanced ? 'Yes ✅' : 'No ❌'}</span>
+                        </div>
+                    </div>
+                `
+            });
+        }
+        
+        // 6. AI Deep Insights & Pattern Recognition
+        if (results.key_findings && results.key_findings.length > 0) {
+            dropdowns.push({
+                icon: '🧠',
+                title: 'AI Deep Insights & Pattern Recognition',
+                preview: `${results.key_findings.length} advanced observations detected`,
+                iconColors: ['#8b5cf6', '#a855f7'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>GPT-4 can identify subtle patterns, logical inconsistencies, missing context, and manipulation techniques that readers might miss.</p>
+                    </div>
+                    <div class="analysis-details">
+                        ${results.key_findings.map((finding, i) => `
+                            <div style="margin-bottom: 15px; padding: 20px; background: var(--section-background); border-radius: 8px; border-left: 4px solid var(--primary-blue); border: 1px solid var(--card-border); border-left: 4px solid var(--primary-blue);">
+                                <strong style="color: var(--primary-blue);">Key Insight ${i + 1}:</strong>
+                                <p style="margin-top: 10px; line-height: 1.6; color: var(--text-secondary);">${finding}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `
+            });
+        }
+        
+        // 7. Warning Signs & Red Flags
+        if (results.red_flags && results.red_flags.length > 0) {
+            dropdowns.push({
+                icon: '⚠️',
+                title: 'Warning Signs & Credibility Red Flags',
+                preview: `${results.red_flags.length} potential issues identified`,
+                iconColors: ['#ef4444', '#dc2626'],
+                content: `
+                    <div class="analysis-intro">
+                        <h4>What this analysis reveals:</h4>
+                        <p>Our system identifies specific warning signs that may indicate unreliable information or poor journalistic practices.</p>
+                    </div>
+                    <div class="analysis-details">
+                        ${results.red_flags.map(flag => `
+                            <div style="margin-bottom: 15px; padding: 20px; background: rgba(239, 68, 68, 0.05); border-radius: 8px; border-left: 4px solid #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444;">
+                                <strong style="color: #ef4444;">⚠️ Warning:</strong>
+                                <p style="margin-top: 10px; line-height: 1.6; color: var(--text-secondary);">${flag}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `
+            });
+        }
+        
+        // 8. Recommendations for Readers
+        dropdowns.push({
+            icon: '💡',
+            title: 'Recommendations & Best Practices for Verification',
+            preview: 'How to verify this information independently',
+            iconColors: ['#14b8a6', '#0d9488'],
+            content: `
+                <div class="analysis-intro">
+                    <h4>What we recommend:</h4>
+                    <p>Based on our analysis, here are specific steps you can take to verify this information and develop a complete understanding of the topic.</p>
+                </div>
+                <div class="analysis-details">
+                    <div style="margin-bottom: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
+                        <strong>🔍 Verification Steps:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px; color: var(--text-secondary);">
+                            <li>Search for this story on 2-3 other reputable news sources</li>
+                            <li>Check if sources with different political leanings report similar facts</li>
+                            <li>Look for original documents or primary sources mentioned</li>
+                            <li>Verify quotes by searching for the original context</li>
+                            <li>Check fact-checking websites for any disputed claims</li>
+                        </ul>
+                    </div>
+                    <div style="padding: 20px; background: rgba(37, 99, 235, 0.05); border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
+                        <strong>💡 Remember:</strong>
+                        <p style="margin-top: 10px; color: var(--text-secondary);">This AI analysis is one tool among many. Always think critically, consider multiple perspectives, and verify important information through multiple independent sources before forming conclusions.</p>
+                    </div>
+                </div>
+            `
+        });
         
         return dropdowns.map((dropdown, index) => `
             <div class="analysis-dropdown" style="--icon-color-1: ${dropdown.iconColors[0]}; --icon-color-2: ${dropdown.iconColors[1]};">
@@ -1184,9 +1549,9 @@
 
     // Helper functions
     function getTrustColor(score) {
-        if (score >= 80) return 'var(--success-color)';
-        if (score >= 60) return 'var(--warning-color)';
-        return 'var(--danger-color)';
+        if (score >= 80) return '#10b981';
+        if (score >= 60) return '#f59e0b';
+        return '#ef4444';
     }
 
     function getTrustLabel(score) {
@@ -1204,9 +1569,9 @@
     }
 
     function getScoreColor(score) {
-        if (score >= 80) return 'var(--success-color)';
-        if (score >= 60) return 'var(--warning-color)';
-        return 'var(--danger-color)';
+        if (score >= 80) return '#10b981';
+        if (score >= 60) return '#f59e0b';
+        return '#ef4444';
     }
 
     function getClaimClass(status) {
@@ -1245,7 +1610,7 @@
                     <span style="color: #ef4444;">Far Right →</span>
                 </div>
                 <p style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 14px;">
-                    Political bias indicates the ideological perspective from which news is presented. Quality journalism can exist across the political spectrum - what matters most is transparency about perspective, factual accuracy, and fair representation of different viewpoints.
+                    Political bias indicates the ideological perspective from which news is presented. Quality journalism can exist across the political spectrum.
                 </p>
             </div>
         `;
