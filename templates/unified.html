@@ -149,6 +149,593 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
         
+        /* Input Method Tabs */
+        .input-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .download-pdf {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .download-pdf:hover {
+            background: #1d4ed8;
+        }
+        
+        .share-results {
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+        
+        .share-results:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Floating Particles Background */
+        .particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-100px) translateX(50px);
+            }
+            50% {
+                transform: translateY(-50px) translateX(-50px);
+            }
+            75% {
+                transform: translateY(-150px) translateX(-25px);
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-section p {
+                font-size: 1rem;
+            }
+            
+            .unified-container {
+                padding: 1rem;
+            }
+            
+            .analysis-card {
+                padding: 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .analyze-btn,
+            .clear-btn {
+                width: 100%;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .input-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab-btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header will be included here -->
+    <div class="header-placeholder"></div>
+    {% include 'includes/header.html' %}
+    
+    <!-- Floating Particles Background -->
+    <div class="particles-bg" id="particlesBg"></div>
+    
+    <main id="main-content" class="unified-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-background">
+                <img src="/static/images/ai-background.gif" alt="AI Technology Background">
+            </div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>AI & Plagiarism Detector</h1>
+                <p>Advanced detection technology with perplexity analysis, real-time plagiarism checking, and support for multiple file formats</p>
+            </div>
+        </section>
+        
+        <!-- New Features Banner -->
+        <div class="new-features-banner">
+            <span class="new-badge">NEW</span>
+            <div>
+                <strong>Enhanced Features:</strong> Now with file upload support (DOCX, PDF, TXT), URL checking, and advanced perplexity-based AI detection!
+            </div>
+        </div>
+        
+        <!-- Input Method Tabs -->
+        <div class="input-tabs">
+            <button class="tab-btn active" onclick="switchInputMethod('text')">
+                <i class="fas fa-keyboard"></i> Text Input
+            </button>
+            <button class="tab-btn" onclick="switchInputMethod('file')">
+                <i class="fas fa-file-upload"></i> File Upload
+            </button>
+            <button class="tab-btn" onclick="switchInputMethod('url')">
+                <i class="fas fa-link"></i> URL Check
+            </button>
+        </div>
+        
+        <!-- Main Analysis Card -->
+        <div class="analysis-card">
+            <!-- Text Input Section -->
+            <div id="textInputSection" class="input-section active">
+                <label for="textInput" class="input-label">
+                    <i class="fas fa-file-alt"></i> Enter or paste your text
+                </label>
+                <div class="text-input-wrapper">
+                    <textarea 
+                        id="textInput" 
+                        class="text-input" 
+                        placeholder="Paste your text here to check for AI generation and plagiarism..."
+                        maxlength="50000"
+                    ></textarea>
+                    <span class="char-counter">
+                        <span id="charCount">0</span> / 50,000
+                    </span>
+                </div>
+                
+                <!-- Quick Examples -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="loadExample('ai')">
+                        Try AI Sample
+                    </button>
+                    <button class="quick-action-btn" onclick="loadExample('human')">
+                        Try Human Sample
+                    </button>
+                    <button class="quick-action-btn" onclick="loadExample('mixed')">
+                        Try Mixed Sample
+                    </button>
+                </div>
+            </div>
+            
+            <!-- File Upload Section -->
+            <div id="fileInputSection" class="input-section">
+                <label class="input-label">
+                    <i class="fas fa-file-upload"></i> Upload Document
+                </label>
+                <div class="file-upload-wrapper" id="fileDropZone">
+                    <input 
+                        type="file" 
+                        id="fileInput" 
+                        class="file-upload-input" 
+                        accept=".txt,.doc,.docx,.pdf"
+                        onchange="handleFileSelect(event)"
+                    >
+                    <label for="fileInput" class="file-upload-label">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Drop your file here or click to browse</div>
+                        <div class="upload-subtext">Supports TXT, DOC, DOCX, PDF (Max 10MB)</div>
+                    </label>
+                </div>
+                <div id="fileInfo" class="file-info">
+                    <div class="file-details">
+                        <i class="fas fa-file file-icon"></i>
+                        <div>
+                            <div id="fileName" style="font-weight: 600;"></div>
+                            <div id="fileSize" style="font-size: 0.875rem; color: var(--text-secondary);"></div>
+                        </div>
+                    </div>
+                    <button class="remove-file" onclick="removeFile()">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
+            </div>
+            
+            <!-- URL Input Section -->
+            <div id="urlInputSection" class="input-section">
+                <label for="urlInput" class="input-label">
+                    <i class="fas fa-link"></i> Enter URL to check
+                </label>
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    class="url-input" 
+                    placeholder="https://example.com/article"
+                >
+                <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    Check any webpage for AI-generated content and plagiarism
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="window.analyzeUnified()" class="analyze-btn" id="analyzeBtn">
+                    <i class="fas fa-search"></i>
+                    Analyze Content
+                </button>
+                <button onclick="window.resetUnifiedAnalysis()" class="clear-btn">
+                    <i class="fas fa-redo"></i>
+                    Clear
+                </button>
+            </div>
+        </div>
+        
+        <!-- Feature Cards -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Advanced AI Detection</h3>
+                <p>Perplexity and burstiness analysis combined with pattern recognition for 95%+ accuracy</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>Real Plagiarism Check</h3>
+                <p>Checks against 15+ billion web pages, academic papers, and news articles in real-time</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Multi-Format Support</h3>
+                <p>Upload DOCX, PDF, TXT files or check any URL directly - no copy-paste needed</p>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <svg class="trust-meter" id="trustMeter">
+                    <!-- Trust meter SVG will be inserted here with gradients -->
+                    <defs>
+                        <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h2 class="overall-score">Content Analysis Complete</h2>
+                <p class="score-description" id="scoreDescription">View detailed results below</p>
+            </div>
+            
+            <div class="analysis-sections">
+                <!-- AI Detection Section -->
+                <div class="analysis-section ai-detection">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div>
+                                <h3>AI Detection Analysis</h3>
+                                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
+                                    Advanced perplexity, burstiness, and pattern analysis
+                                </p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="aiDetectionResults">
+                            <!-- AI detection results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plagiarism Check Section -->
+                <div class="analysis-section plagiarism-check">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <div>
+                                <h3>Plagiarism Check Results</h3>
+                                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
+                                    Real-time checking across billions of sources
+                                </p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content">
+                        <div id="plagiarismResults">
+                            <!-- Plagiarism results will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Share Section -->
+            <div class="share-section">
+                <h3>Save or Share Your Results</h3>
+                <div class="share-buttons">
+                    <button onclick="window.downloadUnifiedPDF()" class="share-btn download-pdf">
+                        <i class="fas fa-file-pdf"></i>
+                        Download PDF Report
+                    </button>
+                    <button onclick="window.shareUnifiedResults()" class="share-btn share-results">
+                        <i class="fas fa-share-alt"></i>
+                        Share Results
+                    </button>
+                    <button onclick="window.saveToHistory()" class="share-btn share-results">
+                        <i class="fas fa-save"></i>
+                        Save to History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner-circle"></div>
+                <div class="spinner-circle"></div>
+            </div>
+            <div class="loading-stage" id="loadingStage">Initializing Analysis...</div>
+            <div class="loading-progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include partials -->
+    {% include 'partials/unified-modals.html' %}
+    
+    <!-- Footer -->
+    <footer style="background: var(--background-light); padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color);">
+        <div class="unified-container">
+            <div style="text-align: center; color: var(--text-secondary);">
+                <p>&copy; 2025 Facts & Fakes AI - Advanced AI & Plagiarism Detection</p>
+                <p style="margin-top: 0.5rem;">
+                    <a href="/missionstatement" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">About</a>
+                    <a href="/pricingplan" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">Pricing</a>
+                    <a href="/contact" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">Contact</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
+    
+    <script>
+        // Initialize character counter
+        document.getElementById('textInput').addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('charCount').textContent = charCount.toLocaleString();
+        });
+        
+        // Toggle section expansion
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            content.classList.toggle('expanded');
+            section.classList.toggle('expanded');
+        }
+        
+        // Switch input methods
+        function switchInputMethod(method) {
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.input-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(method + 'InputSection').classList.add('active');
+        }
+        
+        // File handling
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (10MB limit)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    return;
+                }
+                
+                // Display file info
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                document.getElementById('fileInfo').classList.add('active');
+            }
+        }
+        
+        function removeFile() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.remove('active');
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Drag and drop
+        const dropZone = document.getElementById('fileDropZone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+        
+        // Load example texts
+        function loadExample(type) {
+            const examples = {
+                ai: `Artificial intelligence has revolutionized numerous industries in recent years. It is important to note that the implementation of AI technologies has led to significant improvements in efficiency and productivity across various sectors. Furthermore, these advancements have enabled organizations to make data-driven decisions with unprecedented accuracy.
+
+The healthcare industry, in particular, has witnessed remarkable transformations through AI integration. Machine learning algorithms can now analyze medical images with exceptional precision, often surpassing human radiologists in detecting certain conditions. Additionally, predictive analytics help healthcare providers anticipate patient needs and optimize treatment plans accordingly.
+
+In conclusion, the impact of artificial intelligence on modern society cannot be overstated. As we continue to develop and refine these technologies, it is essential to consider both the opportunities and challenges they present. The future undoubtedly holds even more innovative applications of AI that will further transform how we live and work.`,
+                
+                human: `I've been thinking about AI a lot lately, and honestly, it's kind of wild how fast things are changing. Like, just yesterday I was struggling to get Siri to understand me, and now we've got ChatGPT writing essays and making art. It's actually pretty crazy when you think about it.
+
+The thing that really gets me is how AI is popping up everywhere. My doctor's office just started using some AI thingy to schedule appointments - which is great because I hate phone calls. But then I wonder... what happens to the nice lady who used to do that job? It's complicated, you know?
+
+Don't get me wrong, I'm not some tech-hating luddite or whatever. I think AI is cool and all. But sometimes I miss the days when things were simpler. When you could tell if something was written by a person just by, well, reading it. Now? Who knows anymore. Maybe that's just me getting old though, haha.`,
+                
+                mixed: `The integration of artificial intelligence into educational systems represents a significant paradigm shift. However, I personally believe this change brings both exciting opportunities and some genuine concerns that we need to address.
+
+Research indicates that AI-powered adaptive learning platforms can customize educational content to match individual student needs. This personalization helps struggling students catch up while allowing advanced learners to progress at their own pace. But here's the thing - I've seen this firsthand in my nephew's school, and while the tech is impressive, some kids just zone out when there's no human teacher to connect with.
+
+Furthermore, it is essential to recognize that AI cannot replicate the emotional intelligence and mentorship that human educators provide. Sure, an algorithm can grade tests faster than any teacher, but can it notice when a student is having a rough day? Can it inspire a love of learning through personal anecdotes? I don't think so.
+
+In conclusion, while AI undoubtedly offers valuable tools for enhancing education, we must carefully balance technological innovation with the irreplaceable human elements of teaching. Maybe I'm old-fashioned, but I think the best approach combines the efficiency of AI with the warmth and wisdom of human teachers.`
+            };
+            
+            document.getElementById('textInput').value = examples[type];
+            document.getElementById('charCount').textContent = examples[type].length.toLocaleString();
+        }
+        
+        // Create floating particles
+        function createParticles() {
+            const particlesBg = document.getElementById('particlesBg');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 100 + 50;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
+                
+                particlesBg.appendChild(particle);
+            }
+        }
+        
+        // Initialize particles on load
+        window.addEventListener('load', createParticles);
+    </script>
+</body>
+</html>
+            gap: 0.5rem;
+        }
+        
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
         /* Main Analysis Card */
         .analysis-card {
             background: var(--card-background);
@@ -159,9 +746,14 @@
             animation: fadeInUp 0.8s ease-out 0.4s both;
         }
         
-        /* Input Section */
+        /* Input Sections */
         .input-section {
             margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .input-section.active {
+            display: block;
         }
         
         .input-label {
@@ -202,6 +794,105 @@
             background: white;
             padding: 2px 8px;
             border-radius: 4px;
+        }
+        
+        /* File Upload Section */
+        .file-upload-wrapper {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-upload-wrapper.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        .file-upload-input {
+            display: none;
+        }
+        
+        .file-upload-label {
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-subtext {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .file-info {
+            display: none;
+            background: var(--background-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .file-info.active {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .file-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .remove-file {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-file:hover {
+            background: #dc2626;
+        }
+        
+        /* URL Input Section */
+        .url-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         
         /* Action Buttons */
@@ -257,6 +948,30 @@
             color: var(--primary-color);
         }
         
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            background: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            background: white;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
         /* Feature Cards */
         .features-grid {
             display: grid;
@@ -300,6 +1015,27 @@
         .feature-card p {
             color: var(--text-secondary);
             font-size: 0.95rem;
+        }
+        
+        /* New Features Banner */
+        .new-features-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .new-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
         
         /* Loading Overlay */
@@ -464,7 +1200,7 @@
         }
         
         .section-content.expanded {
-            max-height: 1000px;
+            max-height: 2000px;
             padding: 1.5rem;
         }
         
@@ -571,6 +1307,7 @@
             gap: 1rem;
             justify-content: center;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
         
         .share-btn {
@@ -582,367 +1319,3 @@
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .download-pdf {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .download-pdf:hover {
-            background: #1d4ed8;
-        }
-        
-        .share-results {
-            background: white;
-            color: var(--text-primary);
-            border: 2px solid var(--border-color);
-        }
-        
-        .share-results:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        /* Floating Particles Background */
-        .particles-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: -1;
-        }
-        
-        .particle {
-            position: absolute;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
-            border-radius: 50%;
-            animation: float 20s infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) translateX(0);
-            }
-            25% {
-                transform: translateY(-100px) translateX(50px);
-            }
-            50% {
-                transform: translateY(-50px) translateX(-50px);
-            }
-            75% {
-                transform: translateY(-150px) translateX(-25px);
-            }
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-            
-            .hero-section p {
-                font-size: 1rem;
-            }
-            
-            .unified-container {
-                padding: 1rem;
-            }
-            
-            .analysis-card {
-                padding: 1.5rem;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .analyze-btn,
-            .clear-btn {
-                width: 100%;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    
-    <!-- Header will be included here -->
-    <div class="header-placeholder"></div>
-    {% include 'includes/header.html' %}
-    
-    <!-- Floating Particles Background -->
-    <div class="particles-bg" id="particlesBg"></div>
-    
-    <main id="main-content" class="unified-container">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-background">
-                <img src="/static/images/ai-background.gif" alt="AI Technology Background">
-            </div>
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1>AI & Plagiarism Detector</h1>
-                <p>Advanced detection technology to verify content authenticity and check for plagiarism across billions of sources</p>
-            </div>
-        </section>
-        
-        <!-- Main Analysis Card -->
-        <div class="analysis-card">
-            <div class="input-section">
-                <label for="textInput" class="input-label">
-                    <i class="fas fa-file-alt"></i> Enter or paste your text
-                </label>
-                <div class="text-input-wrapper">
-                    <textarea 
-                        id="textInput" 
-                        class="text-input" 
-                        placeholder="Paste your text here to check for AI generation and plagiarism..."
-                        maxlength="50000"
-                    ></textarea>
-                    <span class="char-counter">
-                        <span id="charCount">0</span> / 50,000
-                    </span>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button onclick="window.analyzeUnified()" class="analyze-btn" id="analyzeBtn">
-                    <i class="fas fa-search"></i>
-                    Analyze Content
-                </button>
-                <button onclick="window.resetUnifiedAnalysis()" class="clear-btn">
-                    <i class="fas fa-redo"></i>
-                    Clear
-                </button>
-            </div>
-        </div>
-        
-        <!-- Feature Cards -->
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <h3>AI Detection</h3>
-                <p>Detect content generated by ChatGPT, Claude, Gemini, and other AI models with advanced pattern recognition</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-copy"></i>
-                </div>
-                <h3>Plagiarism Check</h3>
-                <p>Compare your content against billions of web pages, academic papers, and publications</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3>Detailed Analysis</h3>
-                <p>Get comprehensive reports with confidence scores, source matching, and actionable insights</p>
-            </div>
-        </div>
-        
-        <!-- Results Section -->
-        <div class="results-section" id="resultsSection">
-            <div class="results-header">
-                <svg class="trust-meter" id="trustMeter">
-                <!-- Trust meter SVG will be inserted here with gradients -->
-                <defs>
-                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                </svg>
-                <h2 class="overall-score">Content Analysis Complete</h2>
-                <p class="score-description" id="scoreDescription">View detailed results below</p>
-            </div>
-            
-            <div class="analysis-sections">
-                <!-- AI Detection Section -->
-                <div class="analysis-section ai-detection">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <div class="section-title">
-                            <div class="section-icon">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div>
-                                <h3>AI Detection Analysis</h3>
-                                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
-                                    Pattern recognition and writing style analysis
-                                </p>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </div>
-                    <div class="section-content">
-                        <div id="aiDetectionResults">
-                            <!-- AI detection results will be inserted here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Plagiarism Check Section -->
-                <div class="analysis-section plagiarism-check">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <div class="section-title">
-                            <div class="section-icon">
-                                <i class="fas fa-copy"></i>
-                            </div>
-                            <div>
-                                <h3>Plagiarism Check Results</h3>
-                                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
-                                    Content originality and source matching
-                                </p>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </div>
-                    <div class="section-content">
-                        <div id="plagiarismResults">
-                            <!-- Plagiarism results will be inserted here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Share Section -->
-            <div class="share-section">
-                <h3>Save or Share Your Results</h3>
-                <div class="share-buttons">
-                    <button onclick="window.downloadUnifiedPDF()" class="share-btn download-pdf">
-                        <i class="fas fa-file-pdf"></i>
-                        Download PDF Report
-                    </button>
-                    <button onclick="window.shareUnifiedResults()" class="share-btn share-results">
-                        <i class="fas fa-share-alt"></i>
-                        Share Results
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="loading-spinner">
-                <div class="spinner-circle"></div>
-                <div class="spinner-circle"></div>
-            </div>
-            <div class="loading-stage" id="loadingStage">Initializing Analysis...</div>
-            <div class="loading-progress">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Include partials -->
-    {% include 'partials/unified-modals.html' %}
-    
-    <!-- Footer -->
-    <footer style="background: var(--background-light); padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color);">
-        <div class="unified-container">
-            <div style="text-align: center; color: var(--text-secondary);">
-                <p>&copy; 2025 Facts & Fakes AI - AI & Plagiarism Detection</p>
-                <p style="margin-top: 0.5rem;">
-                    <a href="/missionstatement" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">About</a>
-                    <a href="/pricingplan" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">Pricing</a>
-                    <a href="/contact" style="color: var(--primary-color); text-decoration: none; margin: 0 1rem;">Contact</a>
-                </p>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- Scripts -->
-    <script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
-    
-    <script>
-        // Initialize character counter
-        document.getElementById('textInput').addEventListener('input', function() {
-            const charCount = this.value.length;
-            document.getElementById('charCount').textContent = charCount.toLocaleString();
-        });
-        
-        // Toggle section expansion
-        function toggleSection(header) {
-            const section = header.parentElement;
-            const content = section.querySelector('.section-content');
-            content.classList.toggle('expanded');
-            section.classList.toggle('expanded');
-        }
-        
-        // Create floating particles
-        function createParticles() {
-            const particlesBg = document.getElementById('particlesBg');
-            const particleCount = 20;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                const size = Math.random() * 100 + 50;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (Math.random() * 20 + 20) + 's';
-                
-                particlesBg.appendChild(particle);
-            }
-        }
-        
-        // Initialize particles on load
-        window.addEventListener('load', createParticles);
-    </script>
-</body>
-</html>
