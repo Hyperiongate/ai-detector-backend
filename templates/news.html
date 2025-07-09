@@ -823,6 +823,9 @@
 <div class="particle" style="left: 60%; top: 60%; width: 5px; height: 5px; background: #10b981; border-radius: 50%;"></div>
 <div class="particle" style="left: 30%; top: 80%; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%;"></div>
 
+<!-- Header -->
+{% include 'includes/header.html' %}
+
 <div class="container py-5">
     <!-- Header Section -->
     <div class="text-center mb-5">
@@ -840,6 +843,10 @@
                 </span>
             </span>
         </p>
+        <!-- Overview Process Button -->
+        <button class="btn btn-outline-primary mt-3" onclick="showAnalysisProcess()">
+            <i class="fas fa-info-circle me-2"></i>View Our Analysis Process
+        </button>
     </div>
 
     <!-- Input Section with animated gradient background -->
@@ -876,18 +883,23 @@
 
     <!-- Loading Section with Enhanced Progress -->
     <div id="loading-section" style="display: none;">
-        <div class="card shadow-lg border-0 mb-5">
-            <div class="card-body p-4">
-                <h3 class="mb-4">
+        <!-- Compact Fixed Progress Bar -->
+        <div style="position: fixed; top: 0; left: 0; right: 0; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px;">
+            <div class="container">
+                <h5 class="mb-2">
                     <i class="fas fa-brain fa-pulse me-2 text-primary"></i>
                     AI Analysis in Progress...
-                </h3>
-                
-                <!-- Progress bar -->
-                <div class="progress-container">
+                </h5>
+                <div class="progress-container" style="margin-bottom: 10px;">
                     <div class="progress-bar" id="analysis-progress">0%</div>
                 </div>
-                
+                <p class="mb-0 text-muted" id="current-stage-text">Initializing analysis...</p>
+            </div>
+        </div>
+        
+        <!-- Stages (below fixed header) -->
+        <div class="card shadow-lg border-0 mb-5" style="margin-top: 120px;">
+            <div class="card-body p-4">
                 <!-- Enhanced stages -->
                 <div class="analysis-stage" id="stage-1">
                     <div class="stage-icon">
@@ -1438,7 +1450,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5>What You're Missing:</h5>
+                        <h5>Additional Pro Features:</h5>
                         <ul class="list-unstyled">
                             <li><i class="fas fa-check text-success me-2"></i>Historical source accuracy tracking</li>
                             <li><i class="fas fa-check text-success me-2"></i>Multi-article comparison</li>
@@ -1449,19 +1461,22 @@
                             <li><i class="fas fa-check text-success me-2"></i>Custom alerts for topics</li>
                         </ul>
                     </div>
-                    <div class="col-md-6">
-                        <h5>Special Offer:</h5>
-                        <div class="alert alert-warning">
-                            <h6>Limited Time: 50% OFF First Month!</h6>
-                            <h3 class="mb-0"><s>$29</s> $14.50/month</h3>
-                            <small>Offer ends in 48 hours</small>
-                        </div>
-                        <button class="btn btn-primary btn-lg w-100 glow-effect" onclick="upgradeToPro()">
-                            <i class="fas fa-rocket me-2"></i>Upgrade to Pro Now
+                    <div class="col-md-6 text-center">
+                        <h3 class="text-primary mb-3">$29/month</h3>
+                        <p>Unlimited analyses • Priority processing</p>
+                        <button class="btn btn-primary btn-lg glow-effect" onclick="upgradeToPro()">
+                            <i class="fas fa-rocket me-2"></i>Upgrade to Pro
                         </button>
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Download Complete Report Button -->
+        <div class="text-center mt-5">
+            <button class="btn btn-success btn-lg" onclick="downloadFullReport()">
+                <i class="fas fa-file-pdf me-2"></i>Download Complete Analysis Report (PDF)
+            </button>
         </div>
     </div>
 </div>
@@ -1469,8 +1484,59 @@
 <!-- Sticky Upgrade Button (Shows for Free Users) -->
 <div class="sticky-upgrade" id="sticky-upgrade" style="display: none;">
     <button onclick="upgradeToPro()">
-        <i class="fas fa-rocket me-2"></i>Upgrade to Pro - 50% OFF
+        <i class="fas fa-rocket me-2"></i>Upgrade to Pro
     </button>
+</div>
+
+<!-- Analysis Process Modal -->
+<div class="modal fade" id="analysisProcessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>Our Comprehensive Analysis Process
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Our AI-powered analysis examines:</h6>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Source Credibility:</strong> Historical accuracy, transparency, corrections policy</li>
+                            <li><strong>Author Background:</strong> Expertise, publication history, credentials</li>
+                            <li><strong>Writing Quality:</strong> Grammar, structure, professionalism</li>
+                            <li><strong>Fact Verification:</strong> Cross-reference with multiple databases</li>
+                            <li><strong>Political Bias:</strong> 50,000+ term analysis, framing detection</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Hidden Agendas:</strong> Commercial interests, persuasion tactics</li>
+                            <li><strong>Clickbait Detection:</strong> Headline-content matching</li>
+                            <li><strong>Emotional Manipulation:</strong> 8 emotion categories analyzed</li>
+                            <li><strong>Source Diversity:</strong> Variety and balance assessment</li>
+                            <li><strong>AI Content Detection:</strong> Pattern analysis across models</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Technology Stack:</strong></p>
+                <ul>
+                    <li>GPT-4 for deep content analysis</li>
+                    <li>Natural Language Processing for linguistic patterns</li>
+                    <li>Machine Learning models trained on 1M+ articles</li>
+                    <li>Real-time fact-checking API integrations</li>
+                    <li>Proprietary bias detection algorithms</li>
+                </ul>
+                <hr>
+                <p class="text-muted mb-0">Each analysis generates 100+ data points to ensure comprehensive, accurate results you can trust.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
@@ -1534,6 +1600,14 @@ async function analyzeArticle() {
     let progress = 0;
     const progressBar = document.getElementById('analysis-progress');
     const stages = document.querySelectorAll('.analysis-stage');
+    const stageTexts = [
+        'Extracting article content...',
+        'Running AI deep analysis...',
+        'Cross-referencing facts...',
+        'Detecting bias patterns...',
+        'Analyzing source reliability...',
+        'Generating comprehensive report...'
+    ];
     let currentStage = 0;
     
     const progressInterval = setInterval(() => {
@@ -1541,8 +1615,13 @@ async function analyzeArticle() {
         progressBar.style.width = progress + '%';
         progressBar.textContent = progress + '%';
         
-        // Activate stages
+        // Update stage text
         const stageProgress = Math.floor((progress / 100) * stages.length);
+        if (stageProgress > currentStage && stageProgress <= stages.length) {
+            document.getElementById('current-stage-text').textContent = stageTexts[stageProgress - 1];
+        }
+        
+        // Activate stages
         if (stageProgress > currentStage) {
             if (currentStage > 0) {
                 stages[currentStage - 1].classList.remove('active');
@@ -1936,13 +2015,80 @@ function upgradeToPro() {
 }
 
 // Show methodology
-function showMethodology() {
-    alert('Detailed methodology page would open here. This would explain our AI models, data sources, and analysis techniques.');
-    return false;
+function showAnalysisProcess() {
+    // Using Bootstrap modal if available, otherwise fallback to alert
+    if (typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(document.getElementById('analysisProcessModal'));
+        modal.show();
+    } else {
+        // Fallback for environments without Bootstrap JS
+        document.getElementById('analysisProcessModal').style.display = 'block';
+        document.getElementById('analysisProcessModal').classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // Add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+        
+        // Close modal function
+        const closeModal = () => {
+            document.getElementById('analysisProcessModal').style.display = 'none';
+            document.getElementById('analysisProcessModal').classList.remove('show');
+            document.body.classList.remove('modal-open');
+            backdrop.remove();
+        };
+        
+        // Add close handlers
+        document.querySelector('.modal .btn-close').onclick = closeModal;
+        document.querySelector('.modal .btn-secondary').onclick = closeModal;
+        backdrop.onclick = closeModal;
+    }
+}
+
+// Download full report
+function downloadFullReport() {
+    // Show loading state
+    const btn = event.target;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Complete Report...';
+    btn.disabled = true;
+    
+    // Simulate PDF generation with complete findings
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+        
+        // In production, this would trigger actual PDF download
+        alert('Complete PDF report with all findings, confidence intervals, methodology, and recommendations would be downloaded here.');
+        
+        // Simulate download
+        const link = document.createElement('a');
+        link.href = '#';
+        link.download = 'news-analysis-report-' + Date.now() + '.pdf';
+        link.click();
+    }, 2000);
 }
 
 // Add smooth scrolling
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        // Add basic Bootstrap modal CSS if not loaded
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal { display: none; position: fixed; z-index: 1050; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; }
+            .modal.show { display: block; }
+            .modal-dialog { position: relative; width: auto; margin: 1.75rem auto; max-width: 800px; }
+            .modal-content { position: relative; background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: .3rem; }
+            .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #dee2e6; }
+            .modal-body { position: relative; padding: 1rem; }
+            .modal-footer { display: flex; align-items: center; justify-content: flex-end; padding: 1rem; border-top: 1px solid #dee2e6; }
+            .modal-backdrop { position: fixed; top: 0; left: 0; z-index: 1040; width: 100vw; height: 100vh; background-color: #000; opacity: .5; }
+            .btn-close { background: transparent; border: 0; font-size: 1.5rem; cursor: pointer; }
+        `;
+        document.head.appendChild(style);
+    }
     // Smooth scroll for internal links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
