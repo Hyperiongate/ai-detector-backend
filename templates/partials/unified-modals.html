@@ -1,0 +1,575 @@
+<!-- Unified Analysis Modals -->
+
+<!-- Loading Modal -->
+<div id="unifiedLoadingModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content loading-modal">
+        <div class="loading-header">
+            <i class="fas fa-cogs spinning"></i>
+            <h3>Multi-Modal Analysis in Progress</h3>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="unifiedProgressFill"></div>
+            </div>
+            <div class="progress-text" id="unifiedProgressText">Initializing analysis...</div>
+        </div>
+        
+        <div class="loading-stages">
+            <div class="stage" id="stage1">
+                <i class="fas fa-upload"></i>
+                <span>Processing Input</span>
+            </div>
+            <div class="stage" id="stage2">
+                <i class="fas fa-brain"></i>
+                <span>AI Analysis</span>
+            </div>
+            <div class="stage" id="stage3">
+                <i class="fas fa-search"></i>
+                <span>Content Verification</span>
+            </div>
+            <div class="stage" id="stage4">
+                <i class="fas fa-balance-scale"></i>
+                <span>Bias Detection</span>
+            </div>
+            <div class="stage" id="stage5">
+                <i class="fas fa-shield-alt"></i>
+                <span>Authenticity Check</span>
+            </div>
+            <div class="stage" id="stage6">
+                <i class="fas fa-chart-line"></i>
+                <span>Finalizing Report</span>
+            </div>
+        </div>
+        
+        <div class="loading-footer">
+            <p>Analyzing multiple content types for comprehensive verification</p>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div id="unifiedErrorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content error-modal">
+        <div class="error-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Analysis Error</h3>
+        </div>
+        
+        <div class="error-content">
+            <p id="unifiedErrorMessage">An error occurred during analysis. Please try again.</p>
+            
+            <div class="error-suggestions">
+                <h4>Try these solutions:</h4>
+                <ul>
+                    <li>Check your internet connection</li>
+                    <li>Ensure files are in supported formats</li>
+                    <li>Verify URLs are accessible</li>
+                    <li>Reduce file sizes if too large</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="error-actions">
+            <button class="btn btn-secondary" onclick="window.UnifiedApp.ui.closeErrorModal()">
+                <i class="fas fa-times"></i>
+                Close
+            </button>
+            <button class="btn btn-primary" onclick="window.UnifiedApp.ui.retryAnalysis()">
+                <i class="fas fa-redo"></i>
+                Try Again
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div id="unifiedShareModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content share-modal">
+        <div class="share-header">
+            <i class="fas fa-share-alt"></i>
+            <h3>Share Analysis Results</h3>
+            <button class="modal-close" onclick="window.UnifiedApp.ui.closeShareModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="share-content">
+            <div class="share-link-section">
+                <label>Shareable Link:</label>
+                <div class="link-container">
+                    <input type="text" id="unifiedShareLink" readonly>
+                    <button class="copy-btn" onclick="window.UnifiedApp.helpers.copyShareLink()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="social-share">
+                <h4>Share on Social Media:</h4>
+                <div class="social-buttons">
+                    <button class="social-btn twitter" onclick="window.UnifiedApp.helpers.shareOnTwitter()">
+                        <i class="fab fa-twitter"></i>
+                        Twitter
+                    </button>
+                    <button class="social-btn facebook" onclick="window.UnifiedApp.helpers.shareOnFacebook()">
+                        <i class="fab fa-facebook"></i>
+                        Facebook
+                    </button>
+                    <button class="social-btn linkedin" onclick="window.UnifiedApp.helpers.shareOnLinkedIn()">
+                        <i class="fab fa-linkedin"></i>
+                        LinkedIn
+                    </button>
+                </div>
+            </div>
+            
+            <div class="export-options">
+                <h4>Export Options:</h4>
+                <button class="export-btn" onclick="window.downloadUnifiedPDF()">
+                    <i class="fas fa-file-pdf"></i>
+                    Download PDF Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div id="unifiedHelpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content help-modal">
+        <div class="help-header">
+            <i class="fas fa-question-circle"></i>
+            <h3>Multi-Modal Analysis Guide</h3>
+            <button class="modal-close" onclick="window.UnifiedApp.ui.closeHelpModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="help-content">
+            <div class="help-section">
+                <h4><i class="fas fa-upload"></i> How to Upload Content</h4>
+                <ul>
+                    <li><strong>Text:</strong> Paste any text content for AI detection analysis</li>
+                    <li><strong>URLs:</strong> Enter news article or webpage URLs for verification</li>
+                    <li><strong>Images:</strong> Drag and drop or select JPG, PNG, GIF, WebP, or BMP files</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h4><i class="fas fa-chart-line"></i> Understanding Results</h4>
+                <ul>
+                    <li><strong>Trust Score:</strong> Overall credibility rating (0-100%)</li>
+                    <li><strong>AI Detection:</strong> Likelihood content was AI-generated</li>
+                    <li><strong>Bias Analysis:</strong> Political or editorial bias detection</li>
+                    <li><strong>Fact Verification:</strong> Claims checked against reliable sources</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h4><i class="fas fa-shield-alt"></i> Pro Features</h4>
+                <ul>
+                    <li>Advanced AI models with higher accuracy</li>
+                    <li>Detailed forensic image analysis</li>
+                    <li>Comprehensive bias detection</li>
+                    <li>Priority processing and support</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+.loading-modal {
+    width: 500px;
+    padding: 30px;
+    text-align: center;
+}
+
+.loading-header {
+    margin-bottom: 30px;
+}
+
+.loading-header i {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.loading-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.progress-container {
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    background: #f0f0f0;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+.progress-text {
+    font-size: 16px;
+    color: #666;
+    font-weight: 500;
+}
+
+.loading-stages {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stage {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9ff;
+    border-radius: 8px;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.stage.active {
+    opacity: 1;
+    background: #e8ecff;
+    transform: scale(1.05);
+}
+
+.stage.completed {
+    opacity: 1;
+    background: #e8f5e8;
+}
+
+.stage i {
+    color: #667eea;
+    width: 20px;
+}
+
+.stage span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.loading-footer p {
+    margin: 0;
+    color: #666;
+    font-style: italic;
+}
+
+.error-modal, .share-modal, .help-modal {
+    width: 600px;
+    padding: 0;
+}
+
+.error-header, .share-header, .help-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.error-header i {
+    font-size: 24px;
+}
+
+.error-header h3, .share-header h3, .help-header h3 {
+    margin: 0;
+    flex: 1;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+
+.modal-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.error-content, .share-content, .help-content {
+    padding: 30px;
+}
+
+.error-suggestions h4 {
+    color: #333;
+    margin: 20px 0 10px 0;
+}
+
+.error-suggestions ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.error-suggestions li {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.error-actions {
+    padding: 20px 30px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e0;
+}
+
+.share-link-section {
+    margin-bottom: 30px;
+}
+
+.share-link-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #333;
+}
+
+.link-container {
+    display: flex;
+    gap: 10px;
+}
+
+.link-container input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.copy-btn {
+    padding: 12px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.copy-btn:hover {
+    background: #5a67d8;
+}
+
+.social-share h4, .export-options h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.social-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.3s ease;
+}
+
+.social-btn:hover {
+    transform: translateY(-2px);
+}
+
+.social-btn.twitter {
+    background: #1da1f2;
+    color: white;
+}
+
+.social-btn.facebook {
+    background: #4267b2;
+    color: white;
+}
+
+.social-btn.linkedin {
+    background: #0077b5;
+    color: white;
+}
+
+.export-btn {
+    padding: 15px 25px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: #38a169;
+    transform: translateY(-2px);
+}
+
+.help-section {
+    margin-bottom: 25px;
+}
+
+.help-section h4 {
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.help-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.help-section li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.spinning {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 95vw;
+        margin: 20px;
+    }
+    
+    .loading-modal {
+        width: auto;
+        padding: 20px;
+    }
+    
+    .error-modal, .share-modal, .help-modal {
+        width: auto;
+    }
+    
+    .loading-stages {
+        grid-template-columns: 1fr;
+    }
+    
+    .social-buttons {
+        flex-direction: column;
+    }
+    
+    .error-actions {
+        flex-direction: column-reverse;
+    }
+}
+</style>
