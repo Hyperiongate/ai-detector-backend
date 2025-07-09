@@ -1,3557 +1,513 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>  
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Detection & Analysis - Facts & Fakes AI</title>
-    
-    <!-- Google Analytics 4 Integration -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9CLSNV2S8Q"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-9CLSNV2S8Q');
-        
-        // Custom Analytics Events for Image Analysis
-        function trackImageAnalysisEvent(eventName, eventData = {}) {
-            gtag('event', eventName, {
-                event_category: 'Image_Analysis',
-                page_title: 'AI Image Detection & Analysis',
-                ...eventData
-            });
-            
-            // Backend analytics tracking
-            if (typeof backendAnalytics !== 'undefined') {
-                backendAnalytics.track(eventName, {
-                    page: 'image_analysis',
-                    timestamp: new Date().toISOString(),
-                    ...eventData
-                });
-            }
-        }
-        
-        // Track page view
-        gtag('event', 'page_view', {
-            page_title: 'AI Image Detection & Analysis',
-            page_location: window.location.href,
-            content_group1: 'Image Analysis Tools'
-        });
-    </script>
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            line-height: 1.6;
-            padding-top: 60px;
-        }
+{% block title %}Image Authenticity Analyzer - Facts & Fakes AI{% endblock %}
+{% block description %}Advanced AI-powered image analysis to detect deepfakes, AI-generated images, and digital manipulation. Verify image authenticity instantly.{% endblock %}
+{% block keywords %}image verification, deepfake detection, AI image detection, photo authenticity, digital forensics, fake image detector{% endblock %}
 
-        /* Beta Banner */
-        .beta-banner {
-            background: linear-gradient(45deg, #ff6b35, #f7931e);
-            padding: 8px 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .beta-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 3s infinite;
-            transform: rotate(45deg);
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .beta-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            color: white;
-            font-weight: 600;
-        }
-
-        .beta-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .beta-join-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .beta-join-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-
-        /* Navigation Bar */
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .nav-links-secondary {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .nav-links-secondary a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-links-secondary a:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .nav-links-secondary a.active {
-            background: rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-        }
-
-        /* Tool Container */
-        .tool-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        /* Grid layout for info sections */
-        .info-sections-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        /* Compact dropdown sections */
-        .dropdown-section.compact {
-            border: 2px solid rgba(102, 126, 234, 0.15);
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(249, 250, 251, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-section.compact:hover {
-            border-color: rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-        }
-
-        .dropdown-section.compact.active {
-            border-color: #667eea;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
-        }
-
-        /* Compact header styling */
-        .compact-header {
-            background: rgba(102, 126, 234, 0.05);
-            padding: 15px 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-        }
-
-        .compact-header:hover {
-            background: rgba(102, 126, 234, 0.08);
-        }
-
-        .compact-header.open {
-            background: rgba(102, 126, 234, 0.12);
-            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .compact-header-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .compact-header-content i {
-            font-size: 1.3rem;
-            color: #667eea;
-        }
-
-        .compact-header-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .compact-title {
-            font-weight: 700;
-            color: #4a5568;
-            font-size: 1rem;
-        }
-
-        .compact-subtitle {
-            font-size: 0.85rem;
-            color: #6b7280;
-            font-weight: 400;
-        }
-
-        .compact-header .dropdown-icon {
-            font-size: 1rem;
-            color: #6b7280;
-            transition: transform 0.3s ease;
-        }
-
-        .compact-header.open .dropdown-icon {
-            transform: rotate(180deg);
-            color: #667eea;
-        }
-
-        /* Dropdown content */
-        .dropdown-section.compact .dropdown-content {
-            max-height: 0;
-            overflow: hidden;
-            padding: 0;
-            background: white;
-            border-top: 1px solid rgba(102, 126, 234, 0.1);
-            transition: all 0.5s ease;
-        }
-
-        .dropdown-section.compact .dropdown-content.open {
-            max-height: 600px;
-            padding: 25px;
-            overflow-y: auto;
-        }
-
-        /* Tools Section */
-        .tools-employed {
-            background: linear-gradient(145deg, #f8fafc, #ffffff);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tools-employed::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-
-        .tools-title {
-            font-weight: 700;
-            color: #4a5568;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .tool-item {
-            background: rgba(102, 126, 234, 0.05);
-            padding: 15px 20px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #4a5568;
-            transition: all 0.3s ease;
-        }
-
-        .tool-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .tool-item i {
-            margin-right: 8px;
-            color: #667eea;
-        }
-
-        /* Enhanced Progress Section */
-        .progress-section {
-            margin-bottom: 30px;
-            background: linear-gradient(145deg, #f8fafc, #ffffff);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            position: sticky;
-            top: 80px;
-            z-index: 100;
-            overflow: hidden;
-            display: none;
-        }
-
-        .progress-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #10b981, #764ba2, #667eea);
-            background-size: 300% 100%;
-            animation: rainbow-flow 4s ease-in-out infinite;
-        }
-
-        @keyframes rainbow-flow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .progress-title {
-            font-weight: 700;
-            color: #4a5568;
-            margin-bottom: 25px;
-            font-size: 1.3rem;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* Multi-stage progress indicators */
-        .progress-stages {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 0 20px;
-        }
-
-        .progress-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
-        }
-
-        .progress-stage:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 60%;
-            width: 80%;
-            height: 2px;
-            background: #e2e8f0;
-            z-index: -1;
-        }
-
-        .progress-stage.active::after {
-            background: linear-gradient(90deg, #667eea, #10b981);
-        }
-
-        .progress-stage.completed::after {
-            background: #10b981;
-        }
-
-        .stage-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .progress-stage.active .stage-icon {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            animation: stagePulse 1s ease-in-out infinite;
-        }
-
-        .progress-stage.completed .stage-icon {
-            background: #10b981;
-            color: white;
-        }
-
-        @keyframes stagePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .stage-label {
-            font-size: 0.8rem;
-            color: #6b7280;
-            text-align: center;
-            max-width: 100px;
-        }
-
-        .progress-stage.active .stage-label {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .progress-stage.completed .stage-label {
-            color: #10b981;
-        }
-
-        /* Enhanced colorful progress bar */
-        .progress-bar {
-            background: #e2e8f0;
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, 
-                #ff6b6b 0%, 
-                #f06595 14%, 
-                #cc5de8 28%, 
-                #845ef7 42%, 
-                #5c7cfa 56%, 
-                #339af0 70%, 
-                #22b8cf 84%, 
-                #20c997 100%);
-            border-radius: 13px;
-            width: 0%;
-            transition: width 0.5s ease;
-            position: relative;
-            background-size: 200% 100%;
-            animation: gradient-shift 3s ease-in-out infinite;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255,255,255,0.6), 
-                transparent);
-            animation: shine 2s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        /* Progress percentage display */
-        .progress-percentage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            font-size: 1.1rem;
-            z-index: 2;
-        }
-
-        /* Spinning icon and status text */
-        .progress-status {
-            text-align: center;
-            color: #6b7280;
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .progress-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid transparent;
-            border-top: 3px solid #667eea;
-            border-right: 3px solid #10b981;
-            border-bottom: 3px solid #764ba2;
-            border-left: 3px solid #f59e0b;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Input Section */
-        .input-section {
-            margin-bottom: 30px;
-        }
-
-        .input-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .input-tab {
-            padding: 12px 24px;
-            border: none;
-            background: #f8fafc;
-            color: #6b7280;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 10px 10px 0 0;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
-        .input-tab:hover {
-            background: #f1f5f9;
-            color: #374151;
-        }
-
-        .input-tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
-            transform: translateY(2px);
-        }
-
-        .input-content {
-            display: none;
-        }
-
-        .input-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Image Upload Area */
-        .image-upload-area {
-            border: 3px dashed #e0e0e0;
-            border-radius: 15px;
-            padding: 3rem 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .image-upload-area:hover,
-        .image-upload-area.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .upload-icon {
-            font-size: 4rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-
-        .upload-text h4 {
-            color: #333;
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-        }
-
-        .upload-text p {
-            color: #666;
-            margin-bottom: 1rem;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 0.75rem 2rem;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* URL Input */
-        .url-input-section {
-            display: none;
-            margin-top: 1rem;
-        }
-
-        .url-input-section.active {
-            display: block;
-        }
-
-        .url-input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .url-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        /* Button Styles */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 1;
-            justify-content: center;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-test {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .btn-test:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        /* Image Preview */
-        .image-preview {
-            display: none;
-            margin-bottom: 2rem;
-        }
-
-        .image-preview.active {
-            display: block;
-        }
-
-        .preview-container {
-            position: relative;
-            background: white;
-            border-radius: 15px;
-            padding: 1rem;
-            border: 2px solid #e0e0e0;
-        }
-
-        .preview-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: contain;
-            border-radius: 10px;
-        }
-
-        .preview-info {
-            margin-top: 1rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-
-        .info-item {
-            text-align: center;
-            padding: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .info-value {
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .info-label {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        /* Results Section */
-        .results {
-            display: none;
-            margin-top: 30px;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Summary Banner */
-        .summary-banner {
-            background: linear-gradient(135deg, #ffffff, #f8fafc);
-            border-radius: 20px;
-            padding: 35px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(102, 126, 234, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .summary-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #10b981, #667eea, #764ba2);
-            animation: pulse 3s infinite;
-        }
-
-        .authenticity-header {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 25px;
-        }
-
-        .authenticity-score-circle {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-            background: white;
-            border: 8px solid transparent;
-            background-clip: padding-box;
-        }
-
-        .authenticity-score-circle::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #10b981, #667eea, #764ba2);
-            z-index: -1;
-            animation: rotate 3s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .score-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #1f2937;
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .authenticity-details {
-            flex: 1;
-        }
-
-        .authenticity-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-
-        .authenticity-subtitle {
-            font-size: 1.1rem;
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .methodology-note {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(102, 126, 234, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        /* Analysis Section Styles */
-        .analysis-section {
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .analysis-section.expanded {
-            border-color: #667eea;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
-        }
-
-        .analysis-header {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
-            padding: 25px 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-        }
-
-        .analysis-header:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(102, 126, 234, 0.15));
-        }
-
-        .analysis-header.expanded {
-            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .analysis-header-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex: 1;
-        }
-
-        .analysis-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .analysis-title-group {
-            flex: 1;
-        }
-
-        .analysis-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .analysis-summary {
-            font-size: 0.95rem;
-            color: #6b7280;
-        }
-
-        .expand-icon {
-            font-size: 1.2rem;
-            color: #667eea;
-            transition: transform 0.3s ease;
-        }
-
-        .analysis-header.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        .analysis-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-        }
-
-        .analysis-content.expanded {
-            max-height: 2000px;
-        }
-
-        .analysis-body {
-            padding: 30px;
-        }
-
-        /* Analysis explanation box styles - ADDED */
-        .analysis-explanation {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.1));
-            border: 2px solid rgba(99, 102, 241, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .analysis-explanation::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(180deg, #6366f1, #8b5cf6);
-        }
-
-        .analysis-explanation-icon {
-            font-size: 1.3rem;
-            color: #6366f1;
-            margin-right: 10px;
-        }
-
-        .analysis-explanation-text {
-            color: #4b5563;
-            font-size: 1.05rem;
-            line-height: 1.6;
-            font-weight: 500;
-        }
-
-        /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin: 20px 0;
-        }
-
-        /* Model Detection Grid */
-        .model-detection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .model-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .model-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .model-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 15px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .model-name {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        .model-score {
-            font-size: 2rem;
-            font-weight: 900;
-            margin-bottom: 5px;
-        }
-
-        .model-score.authentic {
-            color: #10b981;
-        }
-
-        .model-score.ai {
-            color: #ef4444;
-        }
-
-        .model-score.uncertain {
-            color: #f59e0b;
-        }
-
-        .model-confidence {
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
-        /* Technical Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .metric-card {
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .metric-card:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        /* Anomaly Detection Grid */
-        .anomaly-grid {
-            display: grid;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .anomaly-item {
-            background: rgba(249, 250, 251, 0.5);
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .anomaly-item:hover {
-            background: white;
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .anomaly-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(245, 158, 11, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #d97706;
-            font-size: 1.2rem;
-        }
-
-        .anomaly-content {
-            flex: 1;
-        }
-
-        .anomaly-title {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .anomaly-description {
-            font-size: 0.9rem;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-
-        /* Verification Stats */
-        .verification-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.1));
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .stat-icon {
-            font-size: 2rem;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        /* Heatmap Visualization */
-        .heatmap-container {
-            margin: 30px 0;
-            text-align: center;
-        }
-
-        .heatmap-canvas {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .heatmap-legend {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .legend-color {
-            width: 30px;
-            height: 20px;
-            border-radius: 4px;
-        }
-
-        /* Confidence Meter */
-        .confidence-meter {
-            margin: 30px 0;
-        }
-
-        .confidence-bar {
-            background: #e5e7eb;
-            height: 40px;
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
-            border-radius: 20px;
-            transition: width 1s ease;
-            position: relative;
-        }
-
-        .confidence-marker {
-            position: absolute;
-            top: -10px;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 60px;
-            background: #1f2937;
-        }
-
-        .confidence-marker::before {
-            content: attr(data-value);
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1f2937;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .confidence-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            color: #6b7280;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* NEW STYLES FOR ENHANCED FEATURES */
-        
-        /* Benford's Law Chart */
-        .benford-container {
-            margin: 30px 0;
-        }
-
-        .benford-chart {
-            height: 250px;
-            margin-bottom: 20px;
-        }
-
-        .benford-result {
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .benford-verdict {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .benford-verdict.natural {
-            color: #10b981;
-        }
-
-        .benford-verdict.suspicious {
-            color: #ef4444;
-        }
-
-        /* JPEG Ghost Visualization */
-        .ghost-analysis {
-            margin: 30px 0;
-        }
-
-        .ghost-levels {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .ghost-level {
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .ghost-level.detected {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .ghost-level:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .ghost-quality {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #4b5563;
-        }
-
-        .ghost-label {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* Chromatic Aberration Visualization */
-        .ca-visualization {
-            margin: 30px 0;
-        }
-
-        .ca-indicator {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .ca-visual {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            position: relative;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .ca-visual::before,
-        .ca-visual::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid transparent;
-        }
-
-        .ca-visual::before {
-            border-color: rgba(255, 0, 0, 0.3);
-            transform: translate(-2px, -2px);
-        }
-
-        .ca-visual::after {
-            border-color: rgba(0, 0, 255, 0.3);
-            transform: translate(2px, 2px);
-        }
-
-        .ca-details {
-            flex: 1;
-        }
-
-        .ca-strength {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #4b5563;
-            margin-bottom: 5px;
-        }
-
-        .ca-description {
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
-        /* Lighting Direction Visualization */
-        .lighting-viz {
-            margin: 30px 0;
-            text-align: center;
-        }
-
-        .light-direction {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-            position: relative;
-            background: rgba(249, 250, 251, 0.8);
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .light-arrow {
-            width: 80px;
-            height: 80px;
-            position: relative;
-        }
-
-        .light-arrow::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #f59e0b);
-            transform: translate(-50%, -50%) rotate(var(--light-angle, 45deg));
-            transform-origin: 0 50%;
-        }
-
-        .light-arrow::after {
-            content: '☀️';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            font-size: 2rem;
-            transform: translate(-50%, -50%);
-        }
-
-        .anomaly-regions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-            justify-content: center;
-        }
-
-        .anomaly-region {
-            background: rgba(239, 68, 68, 0.1);
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            color: #dc2626;
-            font-weight: 600;
-        }
-
-        /* Notification styles */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 10000;
-            max-width: 400px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        .notification.success {
-            background: #10b981;
-            color: white;
-        }
-
-        .notification.error {
-            background: #ef4444;
-            color: white;
-        }
-
-        .notification.info {
-            background: #667eea;
-            color: white;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Back to Top Button */
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .back-to-top:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .info-sections-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .model-detection-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .verification-stats {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding-top: 60px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            .tool-container {
-                padding: 20px;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .button-group .btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .nav-links-secondary {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .authenticity-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 20px;
-            }
-
-            .beta-content {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .progress-section {
-                position: relative;
-                top: auto;
-            }
-
-            .progress-stages {
-                padding: 0 10px;
-            }
-
-            .stage-label {
-                font-size: 0.7rem;
-                max-width: 80px;
-            }
-
-            .back-to-top {
-                bottom: 20px;
-                right: 20px;
-                width: 40px;
-                height: 40px;
-            }
-        }
-    </style>
-</head>
-<body>
-    {% include 'header.html' %}
-    
+{% block content %}
+<div class="image-analyzer-container">
     <!-- Beta Banner -->
-    <div class="beta-banner">
-        <div class="beta-content">
-            <span class="beta-badge">BETA</span>
-            <span>Join our exclusive beta program and get free lifetime access to premium features!</span>
-            <a href="#" class="beta-join-btn" onclick="openBetaModal()">Join Beta Now →</a>
-        </div>
-    </div>
-
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>AI Image Detection & Analysis</h1>
-            <p>Advanced AI-powered tool to detect fake images, deepfakes, and manipulated content</p>
+    {% include 'partials/image-beta-banner.html' %}
+    
+    <!-- Main Content -->
+    <div class="analyzer-content">
+        <div class="analyzer-header">
+            <h1>Image Authenticity Analyzer</h1>
+            <p class="header-subtitle">Detect AI-generated images, deepfakes, and digital manipulation</p>
         </div>
 
-        <!-- Navigation Bar -->
-        <nav class="nav-bar">
-            <div class="nav-links-secondary">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/image-detection" class="nav-link active">Image Detection</a>
-                <a href="/text-detection">Text Detection</a>
-                <a href="/audio-detection">Audio Detection</a>
-                <a href="/video-detection">Video Detection</a>
-                <a href="/pricingplan">Pricing</a>
-            </div>
-        </nav>
-
-        <!-- Tool Container -->
-        <div class="tool-container">
-            <!-- Info Sections Grid -->
-            <div class="info-sections-grid">
-                <!-- What is this tool section -->
-                <div class="dropdown-section compact">
-                    <div class="compact-header" onclick="toggleDropdown(this)">
-                        <div class="compact-header-content">
-                            <i class="fas fa-info-circle"></i>
-                            <div class="compact-header-text">
-                                <div class="compact-title">What is this tool?</div>
-                                <div class="compact-subtitle">Learn about our AI detection technology</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <h4 style="color: #667eea; margin-bottom: 15px;">Advanced AI Image Detection</h4>
-                        <p style="color: #4b5563; line-height: 1.8; margin-bottom: 15px;">
-                            Our AI Image Detection tool uses state-of-the-art machine learning algorithms to analyze images 
-                            and determine whether they are authentic photographs or AI-generated/manipulated content.
-                        </p>
-                        <p style="color: #4b5563; line-height: 1.8;">
-                            We examine multiple aspects including pixel patterns, compression artifacts, metadata analysis, 
-                            and AI model signatures to provide you with a comprehensive authenticity assessment.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- How to use section -->
-                <div class="dropdown-section compact">
-                    <div class="compact-header" onclick="toggleDropdown(this)">
-                        <div class="compact-header-content">
-                            <i class="fas fa-question-circle"></i>
-                            <div class="compact-header-text">
-                                <div class="compact-title">How to use this tool?</div>
-                                <div class="compact-subtitle">Simple steps to analyze your images</div>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-icon"></i>
-                    </div>
-                    <div class="dropdown-content">
-                        <ol style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
-                            <li style="margin-bottom: 10px;"><strong>Upload an image:</strong> Click the upload area or drag and drop your image file</li>
-                            <li style="margin-bottom: 10px;"><strong>Or provide a URL:</strong> Switch to the URL tab and paste an image link</li>
-                            <li style="margin-bottom: 10px;"><strong>Start analysis:</strong> Click "Start Free Analysis" for basic detection or "Start Pro Analysis" for comprehensive results</li>
-                            <li style="margin-bottom: 10px;"><strong>Review results:</strong> Examine the detailed analysis including AI detection scores, manipulation indicators, and forensic findings</li>
-                            <li><strong>Take action:</strong> Use the insights to make informed decisions about the image's authenticity</li>
-                        </ol>
-                    </div>
+        <!-- Input Section -->
+        <div class="input-section">
+            <!-- File Upload -->
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <h3>Drop your image here</h3>
+                <p>or click to browse</p>
+                <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                <div class="supported-formats">
+                    Supported: JPG, PNG, GIF, WebP, BMP (max 50MB)
                 </div>
             </div>
+            
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <i class="fas fa-image file-icon"></i>
+                <div class="file-details">
+                    <span class="file-name"></span>
+                    <span class="file-size"></span>
+                </div>
+                <button class="remove-file" onclick="window.removeImageFile()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-            <!-- Tools Employed Section -->
-            <div class="tools-employed">
-                <h3 class="tools-title">
-                    <i class="fas fa-tools"></i>
-                    Analysis Methods Employed
-                </h3>
-                <div class="tools-grid">
-                    <div class="tool-item">
-                        <i class="fas fa-robot"></i>
-                        AI Model Detection
+            <!-- Analyze Button -->
+            <div class="analyze-section">
+                <button id="analyzeImageBtn" class="analyze-button" onclick="window.analyzeImage()" disabled>
+                    <i class="fas fa-microscope"></i>
+                    <span>Analyze Image</span>
+                </button>
+                <div class="tier-indicator">
+                    <span class="tier-badge pro">PRO</span>
+                    <span class="tier-text">Full Analysis Available</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Animation -->
+        <div id="loadingAnimation" class="loading-container" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <h3 class="loading-title">Analyzing Image</h3>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <div class="tool-item">
-                        <i class="fas fa-fingerprint"></i>
-                        Digital Fingerprinting
+                    <div class="progress-text" id="progressText">Initializing...</div>
+                </div>
+                <div class="loading-steps">
+                    <div class="step" id="step1">
+                        <i class="fas fa-upload"></i>
+                        <span>Uploading Image</span>
                     </div>
-                    <div class="tool-item">
-                        <i class="fas fa-microscope"></i>
-                        Pixel Forensics
+                    <div class="step" id="step2">
+                        <i class="fas fa-th"></i>
+                        <span>Extracting Features</span>
                     </div>
-                    <div class="tool-item">
-                        <i class="fas fa-user-secret"></i>
-                        Deepfake Detection
+                    <div class="step" id="step3">
+                        <i class="fas fa-brain"></i>
+                        <span>AI Model Analysis</span>
                     </div>
-                    <div class="tool-item">
-                        <i class="fas fa-chart-line"></i>
-                        Statistical Analysis
+                    <div class="step" id="step4">
+                        <i class="fas fa-search-plus"></i>
+                        <span>Forensic Examination</span>
                     </div>
-                    <div class="tool-item">
+                    <div class="step" id="step5">
                         <i class="fas fa-database"></i>
-                        Metadata Examination
+                        <span>Metadata Analysis</span>
                     </div>
-                    <div class="tool-item">
-                        <i class="fas fa-calculator"></i>
-                        Benford's Law Analysis
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-palette"></i>
-                        Chromatic Aberration
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-ghost"></i>
-                        JPEG Ghost Detection
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-lightbulb"></i>
-                        Lighting Consistency
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-water"></i>
-                        Reflection Analysis
-                    </div>
-                    <div class="tool-item">
-                        <i class="fas fa-cloud"></i>
-                        Shadow Verification
+                    <div class="step" id="step6">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Finalizing Report</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Progress Section -->
-            <div class="progress-section" id="progressSection">
-                <h3 class="progress-title">
-                    <i class="fas fa-cog fa-spin"></i>
-                    Analysis in Progress
-                </h3>
-                
-                <!-- Progress Stages -->
-                <div class="progress-stages">
-                    <div class="progress-stage">
-                        <div class="stage-icon">📷</div>
-                        <div class="stage-label">Loading Image</div>
-                    </div>
-                    <div class="progress-stage">
-                        <div class="stage-icon">🤖</div>
-                        <div class="stage-label">AI Detection</div>
-                    </div>
-                    <div class="progress-stage">
-                        <div class="stage-icon">🔍</div>
-                        <div class="stage-label">Forensic Analysis</div>
-                    </div>
-                    <div class="progress-stage">
-                        <div class="stage-icon">📊</div>
-                        <div class="stage-label">Pixel Analysis</div>
-                    </div>
-                    <div class="progress-stage">
-                        <div class="stage-icon">📄</div>
-                        <div class="stage-label">Generating Report</div>
-                    </div>
-                </div>
-                
-                <!-- Progress Bar -->
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressBar">
-                        <span class="progress-percentage" id="progressPercentage">0%</span>
-                    </div>
-                </div>
-                
-                <!-- Progress Status -->
-                <div class="progress-status">
-                    <span class="progress-spinner"></span>
-                    <span id="progressStatus">Initializing analysis engine...</span>
-                </div>
-            </div>
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <!-- Results will be dynamically inserted here -->
+        </div>
 
-            <!-- Input Section -->
-            <div class="input-section">
-                <div class="input-tabs">
-                    <button class="input-tab active" onclick="switchInputType('upload')">
-                        <i class="fas fa-upload"></i> Upload Image
-                    </button>
-                    <button class="input-tab" onclick="switchInputType('url')">
-                        <i class="fas fa-link"></i> Image URL
-                    </button>
-                </div>
-
-                <!-- Upload Input -->
-                <div class="input-content active" id="uploadInput">
-                    <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <div class="upload-text">
-                            <h4>Drop your image here or click to browse</h4>
-                            <p>Supports JPG, PNG, WEBP, GIF (Max 10MB)</p>
-                            <button class="upload-button">Choose Image</button>
-                        </div>
-                        <input type="file" id="imageInput" class="file-input" accept="image/*">
-                    </div>
-                </div>
-
-                <!-- URL Input -->
-                <div class="input-content" id="urlInput">
-                    <div class="url-input-section active">
-                        <input type="url" id="image-url" class="url-input" placeholder="https://example.com/image.jpg">
-                        <button class="btn btn-primary" onclick="loadFromURL()">
-                            <i class="fas fa-download"></i> Load Image
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Image Preview -->
-            <div class="image-preview" id="imagePreview">
-                <div class="preview-container">
-                    <img id="previewImage" class="preview-image" alt="Preview">
-                    <div class="preview-info">
-                        <div class="info-item">
-                            <div class="info-value" id="imageFormat">JPG</div>
-                            <div class="info-label">Format</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" id="imageSize">1920x1080</div>
-                            <div class="info-label">Dimensions</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" id="fileSize">2.5 MB</div>
-                            <div class="info-label">File Size</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value" id="colorDepth">24-bit</div>
-                            <div class="info-label">Color Depth</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Button Group -->
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="runAnalysis('free')" id="analyzeBtn" disabled>
-                    <i class="fas fa-play"></i> Start Free Analysis
-                </button>
-                <button class="btn btn-primary" onclick="runAnalysis('pro')" style="background: linear-gradient(135deg, #f59e0b, #d97706);" id="analyzeBtnPro" disabled>
-                    <i class="fas fa-crown"></i> Start Pro Analysis
-                </button>
-                <button class="btn btn-test" onclick="loadTestImage()">
-                    <i class="fas fa-flask"></i> Load Sample Image
-                </button>
-                <button class="btn btn-secondary" onclick="resetForm()">
-                    <i class="fas fa-redo"></i> Reset
-                </button>
-            </div>
-
-            <div class="results" id="results">
-                <!-- Results will be populated here -->
-            </div>
+        <!-- Error Display -->
+        <div id="errorDisplay" class="error-display" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Analysis Error</h3>
+            <p id="errorMessage"></p>
+            <button onclick="window.resetImageAnalysis()" class="try-again-btn">
+                <i class="fas fa-redo"></i> Try Again
+            </button>
         </div>
     </div>
 
-    <!-- Back to Top Button -->
-    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <!-- Info Sections -->
+    {% include 'partials/image-info-sections.html' %}
+</div>
 
+<!-- Modals -->
+{% include 'partials/image-modals.html' %}
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Image Analyzer Specific Styles */
+    .image-analyzer-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 20px;
+        position: relative;
+    }
+
+    .analyzer-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 0;
+    }
+
+    .analyzer-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .analyzer-header h1 {
+        font-size: 42px;
+        color: #1a202c;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .header-subtitle {
+        font-size: 18px;
+        color: #718096;
+    }
+
+    /* Input Section */
+    .input-section {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 40px;
+    }
+
+    /* Upload Area */
+    .upload-area {
+        border: 3px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 60px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .upload-area:hover {
+        border-color: #667eea;
+        background: #eef2ff;
+    }
+
+    .upload-icon {
+        font-size: 64px;
+        color: #667eea;
+        margin-bottom: 20px;
+    }
+
+    .upload-area h3 {
+        font-size: 24px;
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+
+    .upload-area p {
+        color: #718096;
+        margin-bottom: 20px;
+    }
+
+    .supported-formats {
+        font-size: 14px;
+        color: #a0aec0;
+    }
+
+    /* File Info */
+    .file-info {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .file-icon {
+        font-size: 40px;
+        color: #667eea;
+        margin-right: 15px;
+    }
+
+    .file-details {
+        flex: 1;
+    }
+
+    .file-name {
+        display: block;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 5px;
+    }
+
+    .file-size {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .remove-file {
+        background: none;
+        border: none;
+        color: #e53e3e;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 10px;
+        transition: color 0.3s ease;
+    }
+
+    .remove-file:hover {
+        color: #c53030;
+    }
+
+    /* Analyze Section */
+    .analyze-section {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .analyze-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 16px 40px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .analyze-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .analyze-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .tier-indicator {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .tier-badge {
+        background: #10b981;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .tier-text {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    /* Loading Container */
+    .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .loading-content {
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .loading-spinner {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+    }
+
+    .spinner-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 3px solid transparent;
+        border-radius: 50%;
+        border-top-color: #667eea;
+        animation: spin 1.5s linear infinite;
+    }
+
+    .spinner-ring:nth-child(2) {
+        width: 80%;
+        height: 80%;
+        top: 10%;
+        left: 10%;
+        border-top-color: #764ba2;
+        animation-duration: 2s;
+        animation-direction: reverse;
+    }
+
+    .spinner-ring:nth-child(3) {
+        width: 60%;
+        height: 60%;
+        top: 20%;
+        left: 20%;
+        border-top-color: #f687b3;
+        animation-duration: 2.5s;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-title {
+        font-size: 28px;
+        color: #1a202c;
+        margin-bottom: 20px;
+    }
+
+    .loading-progress {
+        margin-bottom: 30px;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        margin-top: 10px;
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .loading-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .step {
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .step.active {
+        background: #eef2ff;
+        transform: scale(1.05);
+    }
+
+    .step.completed {
+        background: #d1fae5;
+    }
+
+    .step i {
+        font-size: 24px;
+        color: #a0aec0;
+        margin-bottom: 8px;
+    }
+
+    .step.active i {
+        color: #667eea;
+    }
+
+    .step.completed i {
+        color: #10b981;
+    }
+
+    .step span {
+        display: block;
+        font-size: 14px;
+        color: #718096;
+    }
+
+    /* Error Display */
+    .error-display {
+        background: #fee2e2;
+        border: 1px solid #feb2b2;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .error-display i {
+        font-size: 48px;
+        color: #e53e3e;
+        margin-bottom: 20px;
+    }
+
+    .error-display h3 {
+        color: #c53030;
+        margin-bottom: 10px;
+    }
+
+    .error-display p {
+        color: #742a2a;
+        margin-bottom: 20px;
+    }
+
+    .try-again-btn {
+        background: #e53e3e;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .try-again-btn:hover {
+        background: #c53030;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .analyzer-header h1 {
+            font-size: 32px;
+        }
+
+        .input-section {
+            padding: 25px;
+        }
+
+        .upload-area {
+            padding: 40px 15px;
+        }
+
+        .loading-steps {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Image Analysis Modular Scripts -->
+<script src="/static/js/image-helpers.js"></script>
+<script src="/static/js/image-ui.js"></script>
+<script src="/static/js/image-results.js"></script>
+<script src="/static/js/image-analysis.js"></script>
+<script src="/static/js/image-main.js"></script>
+
+<!-- Initialize Image Analyzer -->
 <script>
-    // ============================================================================
-    // NOTIFICATION HELPER FUNCTION
-    // ============================================================================
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        notification.style.display = 'block';
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
-
-    // ============================================================================
-    // GLOBAL VARIABLES
-    // ============================================================================
-    let currentInputType = 'upload';
-    let currentImage = null;
-    let currentImageData = null;
-    let analysisInProgress = false;
-    let currentTier = 'free';
-
-    // ============================================================================
-    // BACKEND INTEGRATION - UPDATED FOR REAL API
-    // ============================================================================
-    
-    // Helper function to convert blob to base64
-    function blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    // Convert image URL to base64
-    async function imageUrlToBase64(url) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return await blobToBase64(blob);
-        } catch (error) {
-            console.error('Error converting URL to base64:', error);
-            throw error;
-        }
-    }
-
-    // ============================================================================
-    // MAIN ANALYSIS FUNCTION - UPDATED FOR BACKEND
-    // ============================================================================
-    async function runAnalysis(tier) {
-        tier = tier || 'free';
-        currentTier = tier;
-        
-        if (!currentImageData) {
-            showNotification('Please upload or select an image first.', 'error');
-            return;
-        }
-        
-        if (analysisInProgress) {
-            showNotification('Analysis already in progress...', 'info');
-            return;
-        }
-        
-        analysisInProgress = true;
-        
-        // Show progress section
-        const progressSection = document.getElementById('progressSection');
-        const progressBar = document.getElementById('progressBar');
-        const progressPercentage = document.getElementById('progressPercentage');
-        const progressStatus = document.getElementById('progressStatus');
-        
-        progressSection.style.display = 'block';
-        
-        // Reset progress
-        progressBar.style.width = '0%';
-        progressPercentage.textContent = '0%';
-        updateProgressStages(0);
-        
-        // Enhanced progress messages with stages
-        const progressStages = [
-            { message: 'Loading and preprocessing image...', stage: 0 },
-            { message: 'Running AI detection models...', stage: 1 },
-            { message: 'Performing forensic analysis...', stage: 2 },
-            { message: 'Analyzing pixel-level data...', stage: 3 },
-            { message: 'Generating comprehensive report...', stage: 4 }
-        ];
-        
-        let currentProgress = 0;
-        let stageIndex = 0;
-        let progressInterval = null;
-        
-        // Animate progress with stages
-        progressInterval = setInterval(() => {
-            currentProgress += Math.random() * 15 + 5; // Random increment
-            if (currentProgress > 95) currentProgress = 95;
-            
-            progressBar.style.width = currentProgress + '%';
-            progressPercentage.textContent = Math.floor(currentProgress) + '%';
-            
-            if (stageIndex < progressStages.length && currentProgress > (stageIndex * 20)) {
-                const stage = progressStages[stageIndex];
-                progressStatus.textContent = stage.message;
-                updateProgressStages(stage.stage);
-                stageIndex++;
-            }
-        }, 500);
-        
-        try {
-            // Prepare image data for API
-            let base64Image;
-            if (currentImageData.startsWith('data:')) {
-                // It's already a data URL, extract base64
-                base64Image = currentImageData.split(',')[1];
-            } else if (currentImageData.startsWith('http')) {
-                // It's a URL, need to convert
-                showNotification('Converting image URL to base64...', 'info');
-                base64Image = await imageUrlToBase64(currentImageData);
-            } else {
-                // Assume it's already base64
-                base64Image = currentImageData;
-            }
-            
-            // Call the actual backend API
-            const response = await fetch('/api/analyze-image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    image: base64Image,
-                    tier: tier
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const results = await response.json();
-            
-            clearInterval(progressInterval);
-            
-            // Complete progress bar
-            progressBar.style.width = '100%';
-            progressPercentage.textContent = '100%';
-            progressStatus.textContent = 'Analysis complete! Preparing your results...';
-            updateProgressStages(4);
-            
-            // Hide progress and show results
-            setTimeout(() => {
-                progressSection.style.display = 'none';
-                showImageResults(results, tier);
-                analysisInProgress = false;
-            }, 1000);
-            
-            trackImageAnalysisEvent('analysis_completed', {
-                tier: tier,
-                authenticity_score: results.authenticity_score || 0,
-                manipulation_score: results.manipulation_score || 0,
-                ai_probability: results.ai_detection?.overall_probability || 0
-            });
-            
-        } catch (error) {
-            console.error('Analysis error:', error);
-            if (progressInterval) clearInterval(progressInterval);
-            progressSection.style.display = 'none';
-            analysisInProgress = false;
-            
-            showNotification('Analysis failed. Please try again.', 'error');
-            
-            trackImageAnalysisEvent('analysis_failed', {
-                tier: tier,
-                error: error.message
-            });
-        }
-    }
-
-    // ============================================================================
-    // INPUT HANDLING
-    // ============================================================================
-    
-    function switchInputType(type) {
-        currentInputType = type;
-        
-        document.querySelectorAll('.input-tab').forEach((tab, index) => {
-            tab.classList.remove('active');
-            if ((type === 'upload' && index === 0) || (type === 'url' && index === 1)) {
-                tab.classList.add('active');
-            }
-        });
-        
-        document.querySelectorAll('.input-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        const targetContent = document.getElementById(type + 'Input');
-        if (targetContent) {
-            targetContent.classList.add('active');
-        }
-    }
-    
-    // File upload functionality
-    const imageInput = document.getElementById('imageInput');
-    const uploadArea = document.querySelector('.image-upload-area');
-    
-    // Drag and drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
-    
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        handleFiles(e.dataTransfer.files);
-    });
-    
-    imageInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
-    
-    function handleFiles(files) {
-        if (files.length > 0) {
-            const file = files[0];
-            if (file.type.startsWith('image/')) {
-                if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                    showNotification('File size exceeds 10MB limit', 'error');
-                    return;
-                }
-                displayImage(file);
-                trackImageAnalysisEvent('image_uploaded', {
-                    file_type: file.type,
-                    file_size: file.size
-                });
-            } else {
-                showNotification('Please select an image file', 'error');
-            }
-        }
-    }
-    
-    function displayImage(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const previewSection = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            previewImage.src = e.target.result;
-            previewSection.classList.add('active');
-            
-            // Update image info
-            document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
-            document.getElementById('fileSize').textContent = formatFileSize(file.size);
-            
-            // Create image to get dimensions
-            const img = new Image();
-            img.onload = function() {
-                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
-                
-                // Estimate color depth
-                const colorDepth = file.type.includes('png') ? '24/32-bit' : '24-bit';
-                document.getElementById('colorDepth').textContent = colorDepth;
-            };
-            img.src = e.target.result;
-            
-            // Enable analyze buttons
-            document.getElementById('analyzeBtn').disabled = false;
-            document.getElementById('analyzeBtnPro').disabled = false;
-            
-            currentImage = file;
-            currentImageData = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    function formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        else if (bytes < 1048576) return Math.round(bytes / 1024) + ' KB';
-        else return Math.round(bytes / 1048576 * 10) / 10 + ' MB';
-    }
-    
-    // URL loading
-    async function loadFromURL() {
-        const urlInput = document.getElementById('image-url');
-        const url = urlInput.value.trim();
-        
-        if (!url) {
-            showNotification('Please enter an image URL', 'error');
-            return;
-        }
-        
-        try {
-            // Validate URL
-            new URL(url);
-            
-            const previewSection = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            
-            // Create new image to test loading
-            const testImg = new Image();
-            testImg.crossOrigin = 'anonymous'; // Try to enable CORS
-            
-            testImg.onload = function() {
-                previewImage.src = url;
-                previewSection.classList.add('active');
-                
-                // Update image info
-                document.getElementById('imageSize').textContent = `${this.width}x${this.height}`;
-                document.getElementById('imageFormat').textContent = url.split('.').pop().toUpperCase();
-                document.getElementById('fileSize').textContent = 'Unknown';
-                document.getElementById('colorDepth').textContent = '24-bit';
-                
-                // Enable analyze buttons
-                document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('analyzeBtnPro').disabled = false;
-                
-                currentImageData = url;
-                
-                trackImageAnalysisEvent('image_url_loaded', {
-                    url_domain: new URL(url).hostname
-                });
-            };
-            
-            testImg.onerror = function() {
-                showNotification('Failed to load image from URL. Check if the URL is valid and accessible.', 'error');
-            };
-            
-            testImg.src = url;
-            
-        } catch (error) {
-            showNotification('Invalid URL format', 'error');
-        }
-    }
-    
-    // Load test image
-    function loadTestImage() {
-        // Create a sample image data URL
-        const canvas = document.createElement('canvas');
-        canvas.width = 800;
-        canvas.height = 600;
-        const ctx = canvas.getContext('2d');
-        
-        // Create gradient background
-        const gradient = ctx.createLinearGradient(0, 0, 800, 600);
-        gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(1, '#764ba2');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 800, 600);
-        
-        // Add some patterns for testing
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        for (let i = 0; i < 20; i++) {
-            ctx.beginPath();
-            ctx.arc(Math.random() * 800, Math.random() * 600, Math.random() * 50 + 10, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Add text
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 48px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('AI Test Image', 400, 300);
-        ctx.font = '24px Arial';
-        ctx.fillText('For Demonstration Purposes', 400, 350);
-        
-        // Convert to data URL
-        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-        
-        // Display the image
-        const previewSection = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        
-        previewImage.src = dataURL;
-        previewSection.classList.add('active');
-        
-        // Update image info
-        document.getElementById('imageFormat').textContent = 'JPG';
-        document.getElementById('imageSize').textContent = '800x600';
-        document.getElementById('fileSize').textContent = '~50 KB';
-        document.getElementById('colorDepth').textContent = '24-bit';
-        
-        // Enable analyze buttons
-        document.getElementById('analyzeBtn').disabled = false;
-        document.getElementById('analyzeBtnPro').disabled = false;
-        
-        currentImageData = dataURL;
-        
-        showNotification('Sample test image loaded successfully!', 'success');
-        trackImageAnalysisEvent('test_image_loaded');
-    }
-    
-    // Reset form
-    function resetForm() {
-        document.getElementById('imageInput').value = '';
-        document.getElementById('image-url').value = '';
-        document.getElementById('imagePreview').classList.remove('active');
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('results').innerHTML = '';
-        document.getElementById('analyzeBtn').disabled = true;
-        document.getElementById('analyzeBtnPro').disabled = true;
-        currentImage = null;
-        currentImageData = null;
-        showNotification('Form reset successfully', 'success');
-    }
-
-    // ============================================================================
-    // PROGRESS HANDLING
-    // ============================================================================
-    
-    function updateProgressStages(stage) {
-        const stages = document.querySelectorAll('.progress-stage');
-        stages.forEach((stageEl, index) => {
-            if (index < stage) {
-                stageEl.classList.add('completed');
-                stageEl.classList.remove('active');
-            } else if (index === stage) {
-                stageEl.classList.add('active');
-                stageEl.classList.remove('completed');
-            } else {
-                stageEl.classList.remove('active', 'completed');
-            }
-        });
-    }
-
-    // ============================================================================
-    // ENHANCED IMAGE ANALYSIS RESULTS FUNCTION
-    // ============================================================================
-    function showImageResults(results, tier) {
-        const resultsDiv = document.getElementById('results');
-        
-        // Extract data from API response
-        const manipulationScore = results.manipulation_score || 12;
-        const authenticityScore = results.authenticity_score || 88;
-        const aiDetection = results.ai_detection || {};
-        const deepfakeAnalysis = results.deepfake_analysis || {};
-        const pixelForensics = results.pixel_forensics || {};
-        const metadataAnalysis = results.metadata_analysis || {};
-        const technicalSpecs = results.technical_specs || {};
-        const insights = results.insights || [];
-        const advancedForensics = results.advanced_forensics || {};
-        
-        // Calculate overall assessment
-        const assessment = authenticityScore >= 80 ? 'LIKELY AUTHENTIC' : 
-                         authenticityScore >= 50 ? 'POSSIBLY MANIPULATED' : 
-                         'LIKELY AI-GENERATED';
-        
-        // Clear previous results
-        resultsDiv.innerHTML = '';
-        resultsDiv.style.display = 'block';
-        
-        // Summary Banner
-        const summaryBanner = document.createElement('div');
-        summaryBanner.className = 'summary-banner';
-        summaryBanner.innerHTML = `
-            <div class="authenticity-header">
-                <div class="authenticity-score-circle">
-                    <div class="score-number">${authenticityScore}%</div>
-                    <div class="score-label">Authenticity Score</div>
-                </div>
-                <div class="authenticity-details">
-                    <h2 class="authenticity-title">Overall Assessment: ${assessment}</h2>
-                    <p class="authenticity-subtitle">
-                        ${generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection)}
-                    </p>
-                    <div class="methodology-note">
-                        <i class="fas fa-info-circle"></i>
-                        Analyzed using ${tier === 'pro' ? '15' : '5'} advanced detection methods
-                    </div>
-                </div>
-            </div>
-            ${tier === 'free' ? `
-            <div class="pro-upgrade-note" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 15px; padding: 20px; margin-top: 20px; text-align: center;">
-                <p style="color: #d97706; font-weight: 600; font-size: 1.05rem; margin-bottom: 12px;">
-                    <i class="fas fa-crown"></i> For comprehensive results including all 15 AI models, manipulation heatmaps, and forensic reports, upgrade to Pro!
-                </p>
-                <button onclick="window.location.href='/pricingplan'" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-size: 1rem;">
-                    Upgrade to Pro
-                </button>
-            </div>
-            ` : ''}
-        `;
-        resultsDiv.appendChild(summaryBanner);
-        
-        // AI Model Detection Section
-        const aiDetectionSection = createImageAnalysisSection({
-            id: 'ai-detection',
-            icon: '🤖',
-            iconColor: '#667eea',
-            title: 'AI Model Detection Analysis',
-            summary: `AI probability: ${aiDetection.overall_probability || 15}%`,
-            content: `
-                <div class="analysis-explanation">
-                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="analysis-explanation-text">
-                        <strong>What this analysis shows:</strong> We test your image against known patterns from major AI image generation models. 
-                        Each AI model leaves unique "fingerprints" in the images it creates. By analyzing pixel patterns, noise distributions, 
-                        and generation artifacts, we can identify which AI model (if any) was used to create or modify the image.
-                    </span>
-                </div>
-                <div class="analysis-body">
-                    <div class="model-detection-grid">
-                        ${generateModelDetectionCards(results, tier)}
-                    </div>
-                    
-                    <div class="chart-container">
-                        <canvas id="aiDetectionChart"></canvas>
-                    </div>
-                </div>
-            `,
-            locked: false,
-            onExpand: () => {
-                setTimeout(() => createAIDetectionChart(results, tier), 100);
-            }
-        });
-        resultsDiv.appendChild(aiDetectionSection);
-        
-        // Deepfake Analysis Section
-        const deepfakeSection = createImageAnalysisSection({
-            id: 'deepfake-analysis',
-            icon: '👤',
-            iconColor: '#ef4444',
-            title: 'Deepfake & Face Manipulation Detection',
-            summary: deepfakeAnalysis && deepfakeAnalysis.face_detected ? 
-                `Face authenticity: ${Math.round((deepfakeAnalysis.facial_consistency || 0.95) * 100)}%` : 
-                'No faces detected',
-            content: `
-                <div class="analysis-explanation">
-                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="analysis-explanation-text">
-                        <strong>What this analysis shows:</strong> We examine facial features for signs of AI generation or manipulation. 
-                        This includes checking facial symmetry, skin texture consistency, eye reflections, and temporal coherence. 
-                        Deepfakes often have subtle inconsistencies in lighting, shadows, and facial movements that our algorithms can detect.
-                    </span>
-                </div>
-                <div class="analysis-body">
-                    ${generateDeepfakeAnalysis(deepfakeAnalysis, tier)}
-                </div>
-            `,
-            locked: tier === 'free'
-        });
-        resultsDiv.appendChild(deepfakeSection);
-        
-        // Pixel Forensics Section
-        const forensicsSection = createImageAnalysisSection({
-            id: 'pixel-forensics',
-            icon: '🔍',
-            iconColor: '#10b981',
-            title: 'Pixel-Level Forensic Analysis',
-            summary: 'Compression artifacts and manipulation detection',
-            content: `
-                <div class="analysis-explanation">
-                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="analysis-explanation-text">
-                        <strong>What this analysis shows:</strong> We perform deep pixel-level analysis to detect traces of manipulation. 
-                        This includes examining compression patterns, noise distributions, error levels, and cloning artifacts. 
-                        Even sophisticated edits leave microscopic traces that our forensic algorithms can identify.
-                    </span>
-                </div>
-                <div class="analysis-body">
-                    ${generateForensicsAnalysis(pixelForensics, tier)}
-                </div>
-            `,
-            locked: false
-        });
-        resultsDiv.appendChild(forensicsSection);
-        
-        // Metadata Analysis Section
-        const metadataSection = createImageAnalysisSection({
-            id: 'metadata-analysis',
-            icon: '📊',
-            iconColor: '#8b5cf6',
-            title: 'Metadata & Technical Analysis',
-            summary: metadataAnalysis.has_exif ? 'EXIF data present' : 'No metadata found',
-            content: `
-                <div class="analysis-explanation">
-                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="analysis-explanation-text">
-                        <strong>What this analysis shows:</strong> We examine the image's metadata and technical properties. 
-                        Authentic photos contain EXIF data with camera settings, GPS location, and timestamps. AI-generated images 
-                        typically lack this metadata or have suspicious technical signatures that reveal their artificial origin.
-                    </span>
-                </div>
-                <div class="analysis-body">
-                    ${generateMetadataAnalysis(metadataAnalysis, technicalSpecs)}
-                </div>
-            `,
-            locked: false
-        });
-        resultsDiv.appendChild(metadataSection);
-        
-        // Pattern Recognition Section (Pro)
-        if (tier === 'pro' && results.pattern_recognition) {
-            const patternSection = createImageAnalysisSection({
-                id: 'pattern-recognition',
-                icon: '🧬',
-                iconColor: '#f59e0b',
-                title: 'Advanced Pattern Recognition',
-                summary: 'AI-specific signatures and anomalies',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> Advanced pattern recognition identifies subtle AI signatures 
-                            that are invisible to the human eye. This includes GAN fingerprints, diffusion model artifacts, 
-                            VAE reconstruction patterns, and frequency domain anomalies specific to different AI architectures.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generatePatternAnalysis(results.pattern_recognition)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(patternSection);
-        }
-        
-        // Manipulation Detection Section (Pro)
-        if (tier === 'pro' && results.manipulation_detection) {
-            const manipulationSection = createImageAnalysisSection({
-                id: 'manipulation-detection',
-                icon: '🎨',
-                iconColor: '#ec4899',
-                title: 'Advanced Manipulation Detection',
-                summary: 'Clone detection, splicing, and editing artifacts',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We detect various forms of image manipulation including 
-                            copy-move forgery (cloning), splicing from multiple images, blur inconsistencies that hide edits, 
-                            and lighting anomalies that reveal compositing. These techniques can identify even professional photo manipulation.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateManipulationAnalysis(results.manipulation_detection)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(manipulationSection);
-        }
-        
-        // Advanced Forensics Section (Pro) - NEW
-        if (tier === 'pro' && advancedForensics) {
-            const advancedSection = createImageAnalysisSection({
-                id: 'advanced-forensics',
-                icon: '🔬',
-                iconColor: '#14b8a6',
-                title: 'Advanced Forensic Analysis',
-                summary: 'Statistical and physics-based detection',
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We apply advanced forensic techniques including Benford's Law analysis 
-                            for statistical anomalies, chromatic aberration detection for lens effects, JPEG ghost analysis for compression history, 
-                            and lighting consistency checks. These methods reveal subtle manipulation traces that traditional analysis might miss.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateAdvancedForensicsAnalysis(advancedForensics)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(advancedSection);
-        }
-        
-        // Confidence Metrics Section (Pro)
-        if (tier === 'pro' && results.confidence_metrics) {
-            const confidenceSection = createImageAnalysisSection({
-                id: 'confidence-metrics',
-                icon: '📈',
-                iconColor: '#06b6d4',
-                title: 'Analysis Confidence & Model Agreement',
-                summary: `Overall confidence: ${results.confidence_metrics.overall_confidence}%`,
-                content: `
-                    <div class="analysis-explanation">
-                        <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                        <span class="analysis-explanation-text">
-                            <strong>What this analysis shows:</strong> We measure how confident our various detection models are 
-                            in their findings and how well they agree with each other. High confidence with strong model agreement 
-                            indicates reliable results, while disagreement between models suggests ambiguous or borderline cases.
-                        </span>
-                    </div>
-                    <div class="analysis-body">
-                        ${generateConfidenceAnalysis(results.confidence_metrics)}
-                    </div>
-                `,
-                locked: false
-            });
-            resultsDiv.appendChild(confidenceSection);
-        }
-        
-        // Insights Summary
-        const insightsSection = createImageAnalysisSection({
-            id: 'insights-summary',
-            icon: '💡',
-            iconColor: '#06b6d4',
-            title: 'Key Insights & Recommendations',
-            summary: 'Actionable findings from the analysis',
-            content: `
-                <div class="analysis-explanation">
-                    <span class="analysis-explanation-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="analysis-explanation-text">
-                        <strong>What this analysis shows:</strong> Based on all our detection methods, we provide clear insights 
-                        about the image's authenticity and specific recommendations. This summary helps you understand what 
-                        the technical analysis means and what actions you should take based on the findings.
-                    </span>
-                </div>
-                <div class="analysis-body">
-                    ${generateInsightsSummary(insights, authenticityScore)}
-                </div>
-            `,
-            locked: false
-        });
-        resultsDiv.appendChild(insightsSection);
-        
-        // Track completion
-        trackImageAnalysisEvent('image_results_displayed', {
-            tier: tier,
-            authenticity_score: authenticityScore,
-            manipulation_score: manipulationScore,
-            sections_shown: tier === 'pro' ? 10 : 6
-        });
-    }
-    
-    // ============================================================================
-    // HELPER FUNCTIONS FOR CONTENT GENERATION
-    // ============================================================================
-    
-    function generateImageSummaryNarrative(authenticityScore, manipulationScore, aiDetection) {
-        const aiProbability = aiDetection.overall_probability || 15;
-        
-        if (authenticityScore >= 80) {
-            return `This image shows strong indicators of authenticity with ${authenticityScore}% confidence. 
-                    AI detection probability is low at ${aiProbability}%, and manipulation likelihood is minimal at ${manipulationScore}%. 
-                    The image appears to be an authentic photograph with natural characteristics.`;
-        } else if (authenticityScore >= 50) {
-            return `This image shows mixed signals with ${authenticityScore}% authenticity. 
-                    We detected ${aiProbability}% AI probability and ${manipulationScore}% manipulation likelihood. 
-                    The image may have been edited or enhanced, requiring further verification.`;
-        } else {
-            return `This image exhibits significant artificial characteristics with only ${authenticityScore}% authenticity. 
-                    High AI probability (${aiProbability}%) and manipulation indicators (${manipulationScore}%) suggest 
-                    this is likely an AI-generated or heavily manipulated image.`;
-        }
-    }
-    
-    function generateModelDetectionCards(results, tier) {
-        const aiDetection = results.ai_detection || {};
-        const modelScores = aiDetection.model_scores || {};
-        
-        const models = tier === 'pro' ? [
-            { name: 'DALL-E 3', icon: '🎨', score: modelScores.dalle || 8 },
-            { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
-            { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
-            { name: 'StyleGAN', icon: '🎭', score: modelScores.gan_detection || 5 },
-            { name: 'Firefly', icon: '✨', score: Math.floor(Math.random() * 20) + 5 },
-            { name: 'Imagen', icon: '🖼️', score: Math.floor(Math.random() * 20) + 5 },
-            { name: 'DeepAI', icon: '🤖', score: Math.floor(Math.random() * 20) + 5 },
-            { name: 'Craiyon', icon: '🖍️', score: Math.floor(Math.random() * 15) + 2 },
-            { name: 'NightCafe', icon: '🌙', score: Math.floor(Math.random() * 20) + 8 },
-            { name: 'Artbreeder', icon: '🧬', score: Math.floor(Math.random() * 15) + 3 },
-            { name: 'RunwayML', icon: '🛫', score: Math.floor(Math.random() * 25) + 10 },
-            { name: 'Wombo', icon: '🎪', score: Math.floor(Math.random() * 10) + 2 },
-            { name: 'Leonardo', icon: '🎨', score: Math.floor(Math.random() * 20) + 5 },
-            { name: 'Bing Create', icon: '🔍', score: Math.floor(Math.random() * 15) + 8 },
-            { name: 'Adobe Firefly', icon: '🔥', score: Math.floor(Math.random() * 20) + 10 }
-        ] : [
-            { name: 'DALL-E', icon: '🎨', score: modelScores.dalle || 10 },
-            { name: 'Midjourney', icon: '🌌', score: modelScores.midjourney || 12 },
-            { name: 'Stable Diffusion', icon: '🎯', score: modelScores.stable_diffusion || 15 },
-            { name: 'AI Detection', icon: '🤖', score: aiDetection.overall_probability || 11 },
-            { name: 'More Models', icon: '👑', score: 0, locked: true }
-        ];
-        
-        return models.map(model => {
-            const isAuthentic = model.score < 30;
-            const scoreClass = isAuthentic ? 'authentic' : model.score > 70 ? 'ai' : 'uncertain';
-            
-            return `
-                <div class="model-card">
-                    <div class="model-icon">${model.icon}</div>
-                    <div class="model-name">${model.name}</div>
-                    <div class="model-score ${scoreClass}">${model.locked ? '—' : model.score + '%'}</div>
-                    <div class="model-confidence">${model.locked ? 'Pro Only' : isAuthentic ? 'Low Match' : model.score > 70 ? 'High Match' : 'Possible Match'}</div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function generateDeepfakeAnalysis(deepfakeAnalysis, tier) {
-        if (!deepfakeAnalysis || tier === 'free') {
-            return `
-                <div style="text-align: center; padding: 40px;">
-                    <i class="fas fa-crown" style="font-size: 3rem; color: #f59e0b; margin-bottom: 20px;"></i>
-                    <p>Deepfake analysis requires Pro access</p>
-                </div>
-            `;
-        }
-        
-        if (!deepfakeAnalysis.face_detected) {
-            return `
-                <div style="text-align: center; padding: 40px;">
-                    <i class="fas fa-user-slash" style="font-size: 3rem; color: #6b7280; margin-bottom: 20px;"></i>
-                    <p>No faces detected in this image. Deepfake analysis requires facial features to analyze.</p>
-                </div>
-            `;
-        }
-        
-        const confidence = deepfakeAnalysis.confidence || 0.85;
-        const facialConsistency = deepfakeAnalysis.facial_consistency || 0.95;
-        const eyeAnalysis = deepfakeAnalysis.eye_analysis || { natural: true, score: 0.9 };
-        const mouthAnalysis = deepfakeAnalysis.mouth_analysis || { natural: true, score: 0.88 };
-        const skinTexture = deepfakeAnalysis.skin_texture || { consistent: true, score: 0.91 };
-        
-        return `
-            <div class="confidence-meter">
-                <h4 style="color: #1f2937; margin-bottom: 15px; font-weight: 700;">Deepfake Confidence Analysis</h4>
-                <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: ${confidence * 100}%;">
-                        <div class="confidence-marker" style="left: 100%;" data-value="${Math.round(confidence * 100)}%"></div>
-                    </div>
-                </div>
-                <div class="confidence-labels">
-                    <span>Deepfake</span>
-                    <span>Uncertain</span>
-                    <span>Authentic</span>
-                </div>
-            </div>
-            
-            <div class="metrics-grid" style="margin-top: 30px;">
-                <div class="metric-card">
-                    <div class="metric-value">${Math.round(facialConsistency * 100)}%</div>
-                    <div class="metric-label">Facial Consistency</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${Math.round((deepfakeAnalysis.temporal_coherence || 0.92) * 100)}%</div>
-                    <div class="metric-label">Natural Features</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${confidence > 0.8 ? 'Low' : confidence > 0.5 ? 'Moderate' : 'High'}</div>
-                    <div class="metric-label">Deepfake Risk</div>
-                </div>
-            </div>
-            
-            <h4 style="color: #1f2937; margin: 30px 0 20px; font-weight: 700;">Detailed Facial Analysis</h4>
-            <div class="anomaly-grid">
-                <div class="anomaly-item" style="border-left-color: ${eyeAnalysis.natural ? '#10b981' : '#ef4444'};">
-                    <div class="anomaly-icon" style="background: ${eyeAnalysis.natural ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${eyeAnalysis.natural ? '#059669' : '#dc2626'};">
-                        <i class="fas fa-eye"></i>
-                    </div>
-                    <div class="anomaly-content">
-                        <div class="anomaly-title">Eye Analysis</div>
-                        <div class="anomaly-description">
-                            ${eyeAnalysis.natural ? 'Natural eye reflections and symmetry detected' : 'Inconsistent eye reflections or unnatural patterns found'}
-                            (Score: ${Math.round(eyeAnalysis.score * 100)}%)
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="anomaly-item" style="border-left-color: ${mouthAnalysis.natural ? '#10b981' : '#ef4444'};">
-                    <div class="anomaly-icon" style="background: ${mouthAnalysis.natural ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${mouthAnalysis.natural ? '#059669' : '#dc2626'};">
-                        <i class="fas fa-smile"></i>
-                    </div>
-                    <div class="anomaly-content">
-                        <div class="anomaly-title">Mouth Analysis</div>
-                        <div class="anomaly-description">
-                            ${mouthAnalysis.natural ? 'Natural mouth movement patterns' : 'Suspicious mouth area artifacts detected'}
-                            (Score: ${Math.round(mouthAnalysis.score * 100)}%)
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="anomaly-item" style="border-left-color: ${skinTexture.consistent ? '#10b981' : '#ef4444'};">
-                    <div class="anomaly-icon" style="background: ${skinTexture.consistent ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${skinTexture.consistent ? '#059669' : '#dc2626'};">
-                        <i class="fas fa-fingerprint"></i>
-                    </div>
-                    <div class="anomaly-content">
-                        <div class="anomaly-title">Skin Texture</div>
-                        <div class="anomaly-description">
-                            ${skinTexture.consistent ? 'Consistent and natural skin texture' : 'Overly smooth or inconsistent skin texture'}
-                            (Score: ${Math.round(skinTexture.score * 100)}%)
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function generateForensicsAnalysis(forensics, tier) {
-        const artifacts = forensics.artifacts_detected || [];
-        const jpegGhosts = forensics.jpeg_ghost_analysis || null;
-        
-        return `
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${forensics.compression_analysis || 'Normal'}</div>
-                    <div class="metric-label">Compression</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${forensics.noise_pattern || 'Natural'}</div>
-                    <div class="metric-label">Noise Pattern</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${forensics.error_level || 'Low'}</div>
-                    <div class="metric-label">Error Level</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${artifacts.length}</div>
-                    <div class="metric-label">Artifacts Found</div>
-                </div>
-            </div>
-            
-            ${jpegGhosts && tier === 'pro' ? `
-                <h4 style="color: #1f2937; margin: 30px 0 20px; font-weight: 700;">JPEG Ghost Analysis</h4>
-                <div class="ghost-analysis">
-                    <div class="ghost-levels">
-                        ${jpegGhosts.quality_estimates.map(quality => `
-                            <div class="ghost-level ${jpegGhosts.ghost_detected ? 'detected' : ''}">
-                                <div class="ghost-quality">${quality}%</div>
-                                <div class="ghost-label">Quality</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${jpegGhosts.double_compressed ? `
-                        <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                            <h4 style="color: #d97706; margin-bottom: 10px;">
-                                <i class="fas fa-exclamation-triangle"></i> Multiple Compressions Detected
-                            </h4>
-                            <p style="color: #92400e;">
-                                This image has been compressed ${jpegGhosts.compression_levels} times, suggesting it has been edited and re-saved.
-                            </p>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
-            
-            ${artifacts.length > 0 ? `
-                <div style="margin-top: 20px; background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px;">
-                    <h4 style="color: #d97706; margin-bottom: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i> Detected Artifacts
-                    </h4>
-                    <ul style="color: #92400e; margin-left: 20px;">
-                        ${artifacts.map(artifact => `<li>${artifact}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        `;
-    }
-    
-    function generateMetadataAnalysis(metadata, specs) {
-        return `
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${metadata.has_exif ? 'Present' : 'Missing'}</div>
-                    <div class="metric-label">EXIF Data</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${metadata.camera_make || 'Unknown'}</div>
-                    <div class="metric-label">Camera Make</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${specs.resolution || 'Unknown'}</div>
-                    <div class="metric-label">Resolution</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${specs.format || 'Unknown'}</div>
-                    <div class="metric-label">Format</div>
-                </div>
-            </div>
-            ${metadata.warning ? `
-                <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h4 style="color: #d97706; margin-bottom: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i> Metadata Warning
-                    </h4>
-                    <p style="color: #92400e;">
-                        ${metadata.warning}
-                    </p>
-                </div>
-            ` : ''}
-            ${metadata.has_exif ? `
-                <div style="margin-top: 20px;">
-                    <h4 style="color: #4b5563; margin-bottom: 15px;">Additional Metadata</h4>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                        <p><strong>Camera Model:</strong> ${metadata.camera_model || 'Not specified'}</p>
-                        <p><strong>Date Taken:</strong> ${metadata.date_taken || 'Not available'}</p>
-                        <p><strong>Software:</strong> ${metadata.software || 'Not specified'}</p>
-                        <p><strong>Color Space:</strong> ${metadata.color_space || 'Unknown'}</p>
-                    </div>
-                </div>
-            ` : ''}
-        `;
-    }
-    
-    function generatePatternAnalysis(patterns) {
-        return `
-            <div class="anomaly-grid">
-                ${patterns.gan_fingerprints ? `
-                    <div class="anomaly-item">
-                        <div class="anomaly-icon">🧬</div>
-                        <div class="anomaly-content">
-                            <div class="anomaly-title">GAN Fingerprints Detected</div>
-                            <div class="anomaly-description">Found characteristic patterns from Generative Adversarial Networks</div>
-                        </div>
-                    </div>
-                ` : ''}
-                ${patterns.diffusion_artifacts ? `
-                    <div class="anomaly-item">
-                        <div class="anomaly-icon">🌊</div>
-                        <div class="anomaly-content">
-                            <div class="anomaly-title">Diffusion Model Artifacts</div>
-                            <div class="anomaly-description">Detected noise patterns typical of diffusion-based AI models</div>
-                        </div>
-                    </div>
-                ` : ''}
-                ${patterns.vae_patterns ? `
-                    <div class="anomaly-item">
-                        <div class="anomaly-icon">🔄</div>
-                        <div class="anomaly-content">
-                            <div class="anomaly-title">VAE Reconstruction Patterns</div>
-                            <div class="anomaly-description">Found artifacts from Variational Autoencoder processing</div>
-                        </div>
-                    </div>
-                ` : ''}
-                ${patterns.frequency_anomalies ? `
-                    <div class="anomaly-item">
-                        <div class="anomaly-icon">📊</div>
-                        <div class="anomaly-content">
-                            <div class="anomaly-title">Frequency Domain Anomalies</div>
-                            <div class="anomaly-description">Unusual patterns in frequency analysis indicate AI generation</div>
-                        </div>
-                    </div>
-                ` : ''}
-                ${!patterns.gan_fingerprints && !patterns.diffusion_artifacts && !patterns.vae_patterns && !patterns.frequency_anomalies ? `
-                    <div style="text-align: center; padding: 40px; color: #10b981;">
-                        <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <p>No AI-specific patterns detected. Image shows natural characteristics.</p>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-    
-    function generateManipulationAnalysis(manipulation) {
-        return `
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${manipulation.clone_detection ? 'Detected' : 'None'}</div>
-                    <div class="metric-label">Clone Detection</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${manipulation.splicing_detected ? 'Found' : 'Clear'}</div>
-                    <div class="metric-label">Image Splicing</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${manipulation.blur_inconsistencies ? 'Present' : 'Consistent'}</div>
-                    <div class="metric-label">Blur Analysis</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${manipulation.lighting_anomalies ? 'Detected' : 'Natural'}</div>
-                    <div class="metric-label">Lighting Check</div>
-                </div>
-            </div>
-        `;
-    }
-    
-    function generateAdvancedForensicsAnalysis(advancedForensics) {
-        const benford = advancedForensics.benford_law_analysis || {};
-        const chromatic = advancedForensics.chromatic_aberration || {};
-        const lighting = advancedForensics.lighting_consistency || {};
-        const reflection = advancedForensics.reflection_analysis || {};
-        
-        return `
-            <!-- Benford's Law Analysis -->
-            <div class="benford-container">
-                <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">
-                    <i class="fas fa-calculator"></i> Benford's Law Analysis
-                </h4>
-                <div class="benford-result">
-                    <div class="benford-verdict ${benford.follows_benford ? 'natural' : 'suspicious'}">
-                        ${benford.follows_benford ? '✓ Follows Benford\'s Law' : '✗ Violates Benford\'s Law'}
-                    </div>
-                    <p style="color: #6b7280; margin-top: 10px;">
-                        Chi-square value: ${benford.chi_square ? benford.chi_square.toFixed(2) : 'N/A'} 
-                        (deviation: ${benford.benford_deviation ? (benford.benford_deviation * 100).toFixed(1) : 'N/A'}%)
-                    </p>
-                    ${benford.digit_distribution ? `
-                        <div class="benford-chart">
-                            <canvas id="benfordChart"></canvas>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-            
-            <!-- Chromatic Aberration Analysis -->
-            <div class="ca-visualization" style="margin-top: 30px;">
-                <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">
-                    <i class="fas fa-palette"></i> Chromatic Aberration Detection
-                </h4>
-                <div class="ca-indicator">
-                    <div class="ca-visual"></div>
-                    <div class="ca-details">
-                        <div class="ca-strength">
-                            ${chromatic.ca_detected ? 'Chromatic Aberration Detected' : 'No Chromatic Aberration'}
-                        </div>
-                        <div class="ca-description">
-                            Strength: ${(chromatic.ca_strength * 100).toFixed(1)}% | 
-                            Edge fringing: ${(chromatic.edge_fringing * 100).toFixed(1)}% | 
-                            ${chromatic.is_natural ? 'Natural lens effect' : 'Unnatural or missing CA'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Lighting Consistency -->
-            <div class="lighting-viz" style="margin-top: 30px;">
-                <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">
-                    <i class="fas fa-lightbulb"></i> Lighting Direction Analysis
-                </h4>
-                <div class="light-direction" style="--light-angle: ${Math.atan2(lighting.primary_light_direction[1], lighting.primary_light_direction[0]) * 180 / Math.PI}deg;">
-                    <div class="light-arrow"></div>
-                </div>
-                <p style="text-align: center; color: #6b7280; margin-top: 15px;">
-                    Shadow consistency: ${(lighting.shadow_consistency * 100).toFixed(0)}% | 
-                    ${lighting.lighting_consistent ? 'Consistent lighting' : 'Inconsistent lighting detected'}
-                </p>
-                ${lighting.anomaly_regions && lighting.anomaly_regions.length > 0 ? `
-                    <div class="anomaly-regions">
-                        ${lighting.anomaly_regions.map((region, idx) => `
-                            <div class="anomaly-region">Region ${idx + 1}</div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-            </div>
-            
-            <!-- Reflection and Shadow Analysis -->
-            <div style="margin-top: 30px;">
-                <h4 style="color: #1f2937; margin-bottom: 20px; font-weight: 700;">
-                    <i class="fas fa-water"></i> Reflection & Shadow Analysis
-                </h4>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${reflection.reflections_consistent ? 'Consistent' : 'Suspicious'}</div>
-                        <div class="metric-label">Reflections</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${reflection.shadow_direction_consistent ? 'Natural' : 'Inconsistent'}</div>
-                        <div class="metric-label">Shadows</div>
-                    </div>
-                </div>
-                ${reflection.anomalies && reflection.anomalies.length > 0 ? `
-                    <div style="background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px; margin-top: 20px;">
-                        <h4 style="color: #d97706; margin-bottom: 10px;">
-                            <i class="fas fa-exclamation-triangle"></i> Physics Anomalies Detected
-                        </h4>
-                        <ul style="color: #92400e; margin-left: 20px;">
-                            ${reflection.anomalies.map(anomaly => `<li>${anomaly}</li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-    
-    function generateConfidenceAnalysis(confidence) {
-        return `
-            <div class="stat-card" style="margin-bottom: 30px;">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-number">${confidence.overall_confidence}%</div>
-                <div class="stat-label">Overall Analysis Confidence</div>
-            </div>
-            
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${confidence.model_agreement || 85}%</div>
-                    <div class="metric-label">Model Agreement</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${confidence.analysis_quality || 'High'}</div>
-                    <div class="metric-label">Analysis Quality</div>
-                </div>
-            </div>
-            
-            <p style="color: #4b5563; line-height: 1.8; margin-top: 20px;">
-                ${confidence.model_agreement > 80 ? 
-                'All detection models strongly agree on the findings, indicating highly reliable results.' :
-                confidence.model_agreement > 60 ?
-                'Most models agree on the primary findings with some variation in specific details.' :
-                'Models show significant disagreement, suggesting this image has ambiguous characteristics.'}
-            </p>
-        `;
-    }
-    
-    function generateInsightsSummary(insights, authenticityScore) {
-        if (!insights || insights.length === 0) {
-            // Generate insights based on score
-            if (authenticityScore >= 80) {
-                insights = [
-                    {
-                        type: 'positive',
-                        title: 'High Authenticity',
-                        description: 'This image appears to be genuine with no significant signs of AI generation or manipulation.'
-                    }
-                ];
-            } else if (authenticityScore >= 50) {
-                insights = [
-                    {
-                        type: 'warning',
-                        title: 'Possible Modifications',
-                        description: 'Some indicators suggest this image may have been edited or enhanced.'
-                    }
-                ];
-            } else {
-                insights = [
-                    {
-                        type: 'negative',
-                        title: 'Likely AI Generated',
-                        description: 'Multiple indicators suggest this image was created or heavily modified by AI.'
-                    }
-                ];
-            }
-        }
-        
-        return `
-            <div style="display: grid; gap: 20px;">
-                ${insights.map(insight => `
-                    <div style="background: ${
-                        insight.type === 'positive' ? 'rgba(16, 185, 129, 0.1)' : 
-                        insight.type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 
-                        insight.type === 'negative' ? 'rgba(239, 68, 68, 0.1)' :
-                        'rgba(6, 182, 212, 0.1)'
-                    }; 
-                    padding: 20px; border-radius: 12px; 
-                    border-left: 4px solid ${
-                        insight.type === 'positive' ? '#10b981' : 
-                        insight.type === 'warning' ? '#f59e0b' : 
-                        insight.type === 'negative' ? '#ef4444' :
-                        '#06b6d4'
-                    };">
-                        <h4 style="color: ${
-                            insight.type === 'positive' ? '#059669' : 
-                            insight.type === 'warning' ? '#d97706' : 
-                            insight.type === 'negative' ? '#dc2626' :
-                            '#0891b2'
-                        }; margin-bottom: 10px;">
-                            <i class="fas fa-${
-                                insight.type === 'positive' ? 'check-circle' : 
-                                insight.type === 'warning' ? 'exclamation-triangle' : 
-                                insight.type === 'negative' ? 'times-circle' :
-                                'info-circle'
-                            }"></i> ${insight.title}
-                        </h4>
-                        <p style="color: #4b5563; line-height: 1.6;">${insight.description}</p>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background: rgba(6, 182, 212, 0.1); border-radius: 12px;">
-                <h4 style="color: #0891b2; margin-bottom: 15px;">
-                    <i class="fas fa-lightbulb"></i> Recommendations
-                </h4>
-                ${generateRecommendations(authenticityScore)}
-            </div>
-        `;
-    }
-    
-    function generateRecommendations(score) {
-        if (score >= 80) {
-            return `<p style="color: #0e7490;">This image appears authentic. You can use it with confidence for most purposes.</p>`;
-        } else if (score >= 50) {
-            return `<p style="color: #0e7490;">Verify the source of this image before using it for important purposes. Some editing or enhancement may have been applied.</p>`;
-        } else {
-            return `<p style="color: #0e7490;">Exercise caution with this image. It shows strong signs of AI generation or heavy manipulation. Always disclose if sharing.</p>`;
-        }
-    }
-
-    // ============================================================================
-    // CHART CREATION FUNCTIONS
-    // ============================================================================
-    
-    function createAIDetectionChart(results, tier) {
-        const ctx = document.getElementById('aiDetectionChart');
-        if (!ctx) return;
-        
-        const aiDetection = results.ai_detection || {};
-        const modelScores = aiDetection.model_scores || {};
-        
-        const modelNames = tier === 'pro' ? 
-            ['DALL-E 3', 'Midjourney', 'Stable Diffusion', 'StyleGAN', 'Firefly', 'Imagen', 'DeepAI', 'Craiyon'] :
-            ['DALL-E', 'Midjourney', 'Stable Diffusion', 'Overall AI'];
-        
-        const modelData = tier === 'pro' ?
-            [modelScores.dalle || 8, modelScores.midjourney || 12, modelScores.stable_diffusion || 15, 
-             modelScores.gan_detection || 5, Math.floor(Math.random() * 20) + 5, 
-             Math.floor(Math.random() * 20) + 5, Math.floor(Math.random() * 20) + 5, 
-             Math.floor(Math.random() * 15) + 2] :
-            [modelScores.dalle || 10, modelScores.midjourney || 12, 
-             modelScores.stable_diffusion || 15, aiDetection.overall_probability || 11];
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: modelNames,
-                datasets: [{
-                    label: 'AI Probability %',
-                    data: modelData,
-                    backgroundColor: modelData.map(score => 
-                        score < 30 ? 'rgba(16, 185, 129, 0.6)' : 
-                        score < 70 ? 'rgba(245, 158, 11, 0.6)' : 
-                        'rgba(239, 68, 68, 0.6)'
-                    ),
-                    borderColor: modelData.map(score => 
-                        score < 30 ? '#10b981' : 
-                        score < 70 ? '#f59e0b' : 
-                        '#ef4444'
-                    ),
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.parsed.y + '% AI probability';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    function createBenfordChart(digitDistribution) {
-        const ctx = document.getElementById('benfordChart');
-        if (!ctx) return;
-        
-        // Expected Benford's Law distribution
-        const benfordExpected = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6];
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                datasets: [{
-                    label: 'Image Distribution',
-                    data: digitDistribution.map(d => d * 100),
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.1
-                }, {
-                    label: "Benford's Law",
-                    data: benfordExpected,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 35,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // ============================================================================
-    // SECTION CREATION HELPER
-    // ============================================================================
-    
-    function createImageAnalysisSection(config) {
-        const section = document.createElement('div');
-        section.className = 'analysis-section';
-        section.id = config.id;
-        
-        const header = document.createElement('div');
-        header.className = `analysis-header ${config.locked ? 'locked' : ''}`;
-        header.onclick = () => toggleImageAnalysisSection(config.id, config.onExpand);
-        
-        header.innerHTML = `
-            <div class="analysis-header-content">
-                <div class="analysis-icon" style="background: ${config.locked ? '#e5e7eb' : `linear-gradient(135deg, ${config.iconColor}20, ${config.iconColor}30)`};">
-                    ${config.icon}
-                </div>
-                <div class="analysis-title-group">
-                    <h3 class="analysis-title">${config.title}</h3>
-                    <p class="analysis-summary">${config.summary}</p>
-                </div>
-            </div>
-            <i class="fas fa-chevron-down expand-icon"></i>
-            ${config.locked ? '<span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;">PRO ONLY</span>' : ''}
-        `;
-        
-        const content = document.createElement('div');
-        content.className = 'analysis-content';
-        
-        const body = document.createElement('div');
-        body.className = 'analysis-body';
-        
-        if (config.locked) {
-            body.innerHTML = `
-                <div style="text-align: center; padding: 40px 20px; color: #6b7280;">
-                    <i class="fas fa-lock" style="font-size: 3rem; color: #9ca3af; margin-bottom: 20px;"></i>
-                    <h4 style="color: #4b5563; margin-bottom: 10px;">This analysis is available in Pro</h4>
-                    <p>Upgrade to access detailed ${config.title.toLowerCase()}, advanced insights, and forensic reports.</p>
-                    <button onclick="window.location.href='/pricingplan'" style="margin-top: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 700; cursor: pointer;">
-                        Upgrade to Pro
-                    </button>
-                </div>
-            `;
-        } else {
-            body.innerHTML = config.content;
-        }
-        
-        content.appendChild(body);
-        section.appendChild(header);
-        section.appendChild(content);
-        
-        return section;
-    }
-    
-    function toggleImageAnalysisSection(sectionId, onExpand) {
-        const section = document.getElementById(sectionId);
-        const header = section.querySelector('.analysis-header');
-        const content = section.querySelector('.analysis-content');
-        
-        if (header.classList.contains('locked') && currentTier === 'free') {
-            showNotification('Upgrade to Pro to access this analysis', 'info');
-            return;
-        }
-        
-        const isExpanded = section.classList.contains('expanded');
-        
-        if (isExpanded) {
-            section.classList.remove('expanded');
-            header.classList.remove('expanded');
-            content.classList.remove('expanded');
-        } else {
-            section.classList.add('expanded');
-            header.classList.add('expanded');
-            content.classList.add('expanded');
-            
-            // Call onExpand callback if provided
-            if (onExpand && typeof onExpand === 'function') {
-                onExpand();
-            }
-            
-            // Create Benford chart if needed
-            if (sectionId === 'advanced-forensics' && document.getElementById('benfordChart')) {
-                const results = window.lastAnalysisResults;
-                if (results && results.advanced_forensics && results.advanced_forensics.benford_law_analysis) {
-                    setTimeout(() => {
-                        createBenfordChart(results.advanced_forensics.benford_law_analysis.digit_distribution);
-                    }, 100);
-                }
-            }
-        }
-        
-        trackImageAnalysisEvent('analysis_section_toggled', {
-            section: sectionId,
-            action: isExpanded ? 'collapsed' : 'expanded'
-        });
-    }
-
-    // ============================================================================
-    // UI HELPERS
-    // ============================================================================
-    
-    // Dropdown toggle
-    function toggleDropdown(header) {
-        const content = header.nextElementSibling;
-        const isOpen = header.classList.contains('open');
-        
-        header.classList.toggle('open');
-        content.classList.toggle('open');
-        
-        if (!isOpen) {
-            content.style.maxHeight = content.scrollHeight + 'px';
-        } else {
-            content.style.maxHeight = '0';
-        }
-    }
-    
-    // Scroll to top
-    function scrollToTop() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    }
-    
-    // Show/hide back to top button
-    window.addEventListener('scroll', () => {
-        const backToTop = document.getElementById('backToTop');
-        if (window.pageYOffset > 300) {
-            backToTop.classList.add('visible');
-        } else {
-            backToTop.classList.remove('visible');
-        }
-    });
-    
-    // Beta modal
-    function openBetaModal() {
-        showNotification('Beta signup coming soon!', 'info');
-    }
-
-    // ============================================================================
-    // INITIALIZATION
-    // ============================================================================
-    
     document.addEventListener('DOMContentLoaded', function() {
-        // Track page load
-        trackImageAnalysisEvent('image_analysis_page_loaded', {
-            user_agent: navigator.userAgent,
-            screen_resolution: screen.width + 'x' + screen.height,
-            referrer: document.referrer
-        });
+        // Initialize the image analyzer when page loads
+        if (window.ImageApp && window.ImageApp.main) {
+            window.ImageApp.main.initialize();
+        }
     });
-    
-    // Store results globally for chart creation
-    window.lastAnalysisResults = null;
-    const originalShowImageResults = showImageResults;
-    showImageResults = function(results, tier) {
-        window.lastAnalysisResults = results;
-        return originalShowImageResults.call(this, results, tier);
-    };
 </script>
-</body>
-</html>
+{% endblock %}
