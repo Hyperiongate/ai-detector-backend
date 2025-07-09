@@ -769,6 +769,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('News analyzer initialized');
             
+            // Make functions globally available
+            window.switchInputType = switchInputType;
+            window.analyzeArticle = analyzeArticle;
+            window.resetForm = resetForm;
+            window.downloadReport = downloadReport;
+            window.createBiasGauge = createBiasGauge;
+            
             // Add enter key listeners
             document.getElementById('articleUrl').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -794,8 +801,14 @@
             currentInputType = type;
             
             // Update tabs
-            document.querySelectorAll('.input-tab').forEach(tab => {
+            document.querySelectorAll('.input-tab').forEach((tab, index) => {
                 tab.classList.remove('active');
+                // Add active class to clicked tab
+                if ((type === 'url' && index === 0) || 
+                    (type === 'text' && index === 1) || 
+                    (type === 'article' && index === 2)) {
+                    tab.classList.add('active');
+                }
             });
             
             // Update content
@@ -803,15 +816,12 @@
                 content.classList.remove('active');
             });
             
-            // Activate selected
+            // Show selected content
             if (type === 'url') {
-                document.querySelector('.input-tab:nth-child(1)').classList.add('active');
                 document.getElementById('urlInput').classList.add('active');
             } else if (type === 'text') {
-                document.querySelector('.input-tab:nth-child(2)').classList.add('active');
                 document.getElementById('textInput').classList.add('active');
             } else if (type === 'article') {
-                document.querySelector('.input-tab:nth-child(3)').classList.add('active');
                 document.getElementById('articleInput').classList.add('active');
             }
         }
