@@ -8,7 +8,7 @@ from flask import request, jsonify
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
 from utils.text_utils import extract_youtube_video_id
-from analysis.news_analysis import perform_basic_news_analysis
+from analysis.news_analysis import NewsAnalyzer
 
 def extract_claims_from_speech(text, mode='balanced'):
     """
@@ -109,33 +109,67 @@ def batch_factcheck():
         
         results = []
         
+        # Create analyzer instance
+        analyzer = NewsAnalyzer()
+        
         for claim in claims[:10]:  # Limit to 10 claims per batch
-            # Use existing news analysis with some modifications for claims
-            analysis = perform_basic_news_analysis(claim)
+            # Use the new news analyzer
+            analysis_result = analyzer.analyze(claim, content_type='text', is_pro=True)
             
-            # Extract key fact-check data
-            credibility = analysis.get('credibility_score', 50)
-            
-            # Determine verdict based on credibility
-            if credibility > 80:
-                verdict = 'true'
-                confidence = credibility / 100
-            elif credibility < 40:
-                verdict = 'false'
-                confidence = (100 - credibility) / 100
+            # Extract results from the new format
+            if analysis_result.get('success'):
+                analysis = analysis_result.get('results', {})
+                
+                # Extract key fact-check data
+                credibility = analysis.get('credibility', 50)
+                
+                # Determine verdict based on credibility
+                if credibility > 80:
+                    verdict = 'true'
+                    confidence = credibility / 100
+                elif credibility < 40:
+                    verdict = 'false'
+                    confidence = (100 - credibility) / 100
+                else:
+                    verdict = 'unverified'
+                    confidence = 0.5
+                
+                # Get bias info
+                bias_info = analysis.get('bias', {})
+                political_bias = bias_info.get('label', 'unknown') if isinstance(bias_info, dict) else 'unknown'
+                
+                # Get sources
+                sources = []
+                if 'claims' in analysis:
+                    # Extract sources from fact-checked claims
+                    for checked_claim in analysis.get('claims', []):
+                        if checked_claim.get('status'):
+                            sources.append({
+                                'claim': checked_claim.get('claim', ''),
+                                'status': checked_claim.get('status', ''),
+                                'confidence': checked_claim.get('confidence', 0)
+                            })
+                
+                results.append({
+                    'claim': claim,
+                    'verdict': verdict,
+                    'confidence': confidence,
+                    'credibility_score': credibility,
+                    'sources': sources[:3],  # Limit sources
+                    'bias': political_bias,
+                    'timestamp': datetime.utcnow().isoformat()
+                })
             else:
-                verdict = 'unverified'
-                confidence = 0.5
-            
-            results.append({
-                'claim': claim,
-                'verdict': verdict,
-                'confidence': confidence,
-                'credibility_score': credibility,
-                'sources': analysis.get('cross_references', []),
-                'bias': analysis.get('bias_indicators', {}).get('political_bias', 'unknown'),
-                'timestamp': datetime.utcnow().isoformat()
-            })
+                # Fallback if analysis fails
+                results.append({
+                    'claim': claim,
+                    'verdict': 'unverified',
+                    'confidence': 0.5,
+                    'credibility_score': 50,
+                    'sources': [],
+                    'bias': 'unknown',
+                    'timestamp': datetime.utcnow().isoformat()
+                })
         
         return jsonify({
             'success': True,
