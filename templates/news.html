@@ -765,39 +765,8 @@
         let currentAnalysisData = null;
         let analysisInProgress = false;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('News analyzer initialized');
-            
-            // Make functions globally available
-            window.switchInputType = switchInputType;
-            window.analyzeArticle = analyzeArticle;
-            window.resetForm = resetForm;
-            window.downloadReport = downloadReport;
-            window.createBiasGauge = createBiasGauge;
-            
-            // Add enter key listeners
-            document.getElementById('articleUrl').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    analyzeArticle();
-                }
-            });
-            
-            document.getElementById('news-text').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    analyzeArticle();
-                }
-            });
-            
-            document.getElementById('fullArticle').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    analyzeArticle();
-                }
-            });
-        });
-
-        // Switch input type
-        function switchInputType(type) {
+        // Switch input type - GLOBAL FUNCTION
+        window.switchInputType = function(type) {
             currentInputType = type;
             
             // Update tabs
@@ -826,8 +795,8 @@
             }
         }
 
-        // Analyze article with REAL API
-        async function analyzeArticle() {
+        // Analyze article with REAL API - GLOBAL FUNCTION
+        window.analyzeArticle = async function() {
             if (analysisInProgress) {
                 return;
             }
@@ -1343,8 +1312,8 @@
             return 'LOW';
         }
 
-        // Reset form
-        function resetForm() {
+        // Reset form - GLOBAL FUNCTION
+        window.resetForm = function() {
             // Clear all inputs
             document.getElementById('articleUrl').value = '';
             document.getElementById('news-text').value = '';
@@ -1376,8 +1345,8 @@
             showMessage('Form reset successfully', 'success');
         }
 
-        // Download report
-        async function downloadReport() {
+        // Download report - GLOBAL FUNCTION
+        window.downloadReport = async function() {
             if (!currentAnalysisData) {
                 showMessage('No analysis data available', 'error');
                 return;
@@ -1436,6 +1405,37 @@
                 }
             }, 3000);
         }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('News analyzer initialized');
+            
+            // Add enter key listeners
+            document.getElementById('articleUrl').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    window.analyzeArticle();
+                }
+            });
+            
+            document.getElementById('news-text').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    window.analyzeArticle();
+                }
+            });
+            
+            document.getElementById('fullArticle').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    window.analyzeArticle();
+                }
+            });
+        });
+
+        // Test function availability
+        console.log('Functions loaded:', {
+            analyzeArticle: typeof window.analyzeArticle,
+            resetForm: typeof window.resetForm,
+            switchInputType: typeof window.switchInputType
+        });
     </script>
 </body>
 </html>
