@@ -986,12 +986,39 @@
     document.addEventListener('DOMContentLoaded', function() {
         createParticles();
         
-        // Initialize speech UI if available
-        if (typeof window.SpeechApp !== 'undefined' && window.SpeechApp.ui) {
-            window.SpeechApp.ui.init();
+        // Initialize speech modules if available (fix the function calls)
+        try {
+            // Try different initialization methods based on your modular structure
+            if (typeof window.SpeechApp !== 'undefined') {
+                // Try the main init function
+                if (window.SpeechApp.init && typeof window.SpeechApp.init === 'function') {
+                    window.SpeechApp.init();
+                }
+                // Try UI init if it exists
+                else if (window.SpeechApp.ui && typeof window.SpeechApp.ui.init === 'function') {
+                    window.SpeechApp.ui.init();
+                }
+                // Try individual module initialization
+                else if (window.SpeechApp.ui && typeof window.SpeechApp.ui.initialize === 'function') {
+                    window.SpeechApp.ui.initialize();
+                }
+            }
+            
+            // Also try global speech initialization functions
+            if (typeof initializeSpeechUI === 'function') {
+                initializeSpeechUI();
+            }
+        } catch (error) {
+            console.log('Speech module initialization skipped:', error.message);
+            // Continue with basic functionality
         }
         
-        // Set up drag and drop
+        // Set up drag and drop (this should always work)
+        setupDragAndDrop();
+    });
+
+    // Separate drag and drop setup function
+    function setupDragAndDrop() {
         const fileUploadArea = document.querySelector('.file-upload-area');
         const fileInput = document.getElementById('speech-file-input');
         
@@ -1028,7 +1055,7 @@
                 }
             });
         }
-    });
+    }
 
     // Switch between input types
     function switchSpeechInputType(type) {
