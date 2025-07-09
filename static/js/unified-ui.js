@@ -1,496 +1,299 @@
-/**
- * Facts & Fakes AI - Unified UI Module
- * Handles user interface interactions and animations
- */
-
+// unified-ui.js - UI Interactions for AI & Plagiarism Detector
 (function() {
     'use strict';
     
-    // Unified UI Module
-    const UnifiedUI = {
+    // Initialize namespace
+    window.UnifiedApp = window.UnifiedApp || {};
+    window.UnifiedApp.ui = {};
+    
+    // Loading overlay management
+    window.UnifiedApp.ui.showLoading = function() {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = 'flex';
         
-        // Animation and particle system
-        particles: [],
-        animationId: null,
+        // Reset progress
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('loadingStage').textContent = 'Initializing Analysis...';
+    };
+    
+    window.UnifiedApp.ui.hideLoading = function() {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.style.display = 'none';
+    };
+    
+    // Update progress
+    window.UnifiedApp.ui.updateProgress = function(stage, progress) {
+        document.getElementById('loadingStage').textContent = stage;
+        document.getElementById('progressBar').style.width = progress + '%';
+    };
+    
+    // Toast notifications
+    window.UnifiedApp.ui.showToast = function(message, type = 'info') {
+        // Remove existing toasts
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
         
-        /**
-         * Initialize floating particles background
-         */
-        initializeParticles() {
-            const canvas = document.getElementById('unifiedParticleCanvas');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            
-            // Set canvas size
-            this.resizeCanvas(canvas);
-            
-            // Initialize particles
-            this.createParticles(canvas);
-            
-            // Start animation
-            this.animateParticles(canvas, ctx);
-            
-            // Handle window resize
-            window.addEventListener('resize', () => this.resizeCanvas(canvas));
-        },
+        // Create toast
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <i class="fas ${getToastIcon(type)}"></i>
+            <span>${message}</span>
+        `;
         
-        /**
-         * Resize canvas to match container
-         */
-        resizeCanvas(canvas) {
-            const container = canvas.parentElement;
-            canvas.width = container.offsetWidth;
-            canvas.height = container.offsetHeight;
-        },
+        // Add styles
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: ${getToastColor(type)};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
         
-        /**
-         * Create floating particles
-         */
-        createParticles(canvas) {
-            this.particles = [];
-            const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
-            
-            for (let i = 0; i < particleCount; i++) {
-                this.particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 3 + 1,
-                    speedX: (Math.random() - 0.5) * 0.5,
-                    speedY: (Math.random() - 0.5) * 0.5,
-                    opacity: Math.random() * 0.5 + 0.2
-                });
-            }
-        },
+        document.body.appendChild(toast);
         
-        /**
-         * Animate floating particles
-         */
-        animateParticles(canvas, ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            this.particles.forEach(particle => {
-                // Update position
-                particle.x += particle.speedX;
-                particle.y += particle.speedY;
-                
-                // Wrap around edges
-                if (particle.x > canvas.width) particle.x = 0;
-                if (particle.x < 0) particle.x = canvas.width;
-                if (particle.y > canvas.height) particle.y = 0;
-                if (particle.y < 0) particle.y = canvas.height;
-                
-                // Draw particle
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(102, 126, 234, ${particle.opacity})`;
-                ctx.fill();
-            });
-            
-            this.animationId = requestAnimationFrame(() => this.animateParticles(canvas, ctx));
-        },
-        
-        /**
-         * Show loading animation with smooth transitions
-         */
-        showLoadingAnimation() {
-            const container = document.querySelector('.unified-container');
-            if (container) {
-                container.classList.add('analyzing');
-            }
-            
-            // Add pulse effect to analyze button
-            const analyzeBtn = document.getElementById('unifiedAnalyzeBtn');
-            if (analyzeBtn) {
-                analyzeBtn.classList.add('analyzing');
-            }
-        },
-        
-        /**
-         * Hide loading animation
-         */
-        hideLoadingAnimation() {
-            const container = document.querySelector('.unified-container');
-            if (container) {
-                container.classList.remove('analyzing');
-            }
-            
-            const analyzeBtn = document.getElementById('unifiedAnalyzeBtn');
-            if (analyzeBtn) {
-                analyzeBtn.classList.remove('analyzing');
-            }
-        },
-        
-        /**
-         * Show error modal
-         */
-        showError(message) {
-            const modal = document.getElementById('unifiedErrorModal');
-            const errorMessage = document.getElementById('unifiedErrorMessage');
-            
-            if (modal && errorMessage) {
-                errorMessage.textContent = message;
-                modal.style.display = 'flex';
-                
-                // Add entrance animation
-                modal.classList.add('modal-enter');
-                setTimeout(() => modal.classList.remove('modal-enter'), 300);
-            }
-        },
-        
-        /**
-         * Close error modal
-         */
-        closeErrorModal() {
-            const modal = document.getElementById('unifiedErrorModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        },
-        
-        /**
-         * Retry analysis
-         */
-        retryAnalysis() {
-            this.closeErrorModal();
-            if (window.UnifiedApp && window.UnifiedApp.analysis) {
-                window.UnifiedApp.analysis.retryAnalysis();
-            }
-        },
-        
-        /**
-         * Show share modal
-         */
-        showShareModal() {
-            const modal = document.getElementById('unifiedShareModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                
-                // Generate share link
-                this.generateShareLink();
-                
-                // Add entrance animation
-                modal.classList.add('modal-enter');
-                setTimeout(() => modal.classList.remove('modal-enter'), 300);
-            }
-        },
-        
-        /**
-         * Close share modal
-         */
-        closeShareModal() {
-            const modal = document.getElementById('unifiedShareModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        },
-        
-        /**
-         * Generate shareable link
-         */
-        generateShareLink() {
-            const shareLink = document.getElementById('unifiedShareLink');
-            if (shareLink && window.UnifiedApp.state.lastResults) {
-                // In a real implementation, this would generate a unique share ID
-                const shareId = 'unified_' + Date.now();
-                const baseUrl = window.location.origin;
-                shareLink.value = `${baseUrl}/shared/${shareId}`;
-            }
-        },
-        
-        /**
-         * Show help modal
-         */
-        showHelpModal() {
-            const modal = document.getElementById('unifiedHelpModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                
-                // Add entrance animation
-                modal.classList.add('modal-enter');
-                setTimeout(() => modal.classList.remove('modal-enter'), 300);
-            }
-        },
-        
-        /**
-         * Close help modal
-         */
-        closeHelpModal() {
-            const modal = document.getElementById('unifiedHelpModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        },
-        
-        /**
-         * Toggle input section expansion
-         */
-        toggleInputSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.classList.toggle('expanded');
-                
-                // Smooth scroll to section if expanding
-                if (section.classList.contains('expanded')) {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        },
-        
-        /**
-         * Initialize tooltips
-         */
-        initializeTooltips() {
-            const tooltipElements = document.querySelectorAll('[data-tooltip]');
-            
-            tooltipElements.forEach(element => {
-                element.addEventListener('mouseenter', (e) => this.showTooltip(e));
-                element.addEventListener('mouseleave', () => this.hideTooltip());
-                element.addEventListener('mousemove', (e) => this.moveTooltip(e));
-            });
-        },
-        
-        /**
-         * Show tooltip
-         */
-        showTooltip(event) {
-            const text = event.target.getAttribute('data-tooltip');
-            if (!text) return;
-            
-            // Create tooltip element
-            const tooltip = document.createElement('div');
-            tooltip.className = 'custom-tooltip';
-            tooltip.textContent = text;
-            tooltip.id = 'unifiedTooltip';
-            
-            document.body.appendChild(tooltip);
-            
-            // Position tooltip
-            this.moveTooltip(event);
-            
-            // Show with animation
-            setTimeout(() => tooltip.classList.add('visible'), 10);
-        },
-        
-        /**
-         * Move tooltip to follow cursor
-         */
-        moveTooltip(event) {
-            const tooltip = document.getElementById('unifiedTooltip');
-            if (tooltip) {
-                const offset = 10;
-                tooltip.style.left = (event.pageX + offset) + 'px';
-                tooltip.style.top = (event.pageY - tooltip.offsetHeight - offset) + 'px';
-            }
-        },
-        
-        /**
-         * Hide tooltip
-         */
-        hideTooltip() {
-            const tooltip = document.getElementById('unifiedTooltip');
-            if (tooltip) {
-                tooltip.classList.remove('visible');
-                setTimeout(() => tooltip.remove(), 200);
-            }
-        },
-        
-        /**
-         * Initialize smooth scrolling for anchor links
-         */
-        initializeSmoothScrolling() {
-            const anchorLinks = document.querySelectorAll('a[href^="#"]');
-            
-            anchorLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = link.getAttribute('href').substring(1);
-                    const targetElement = document.getElementById(targetId);
-                    
-                    if (targetElement) {
-                        targetElement.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-        },
-        
-        /**
-         * Initialize hover effects
-         */
-        initializeHoverEffects() {
-            // Card hover effects
-            const cards = document.querySelectorAll('.info-card, .feature-card, .analysis-section');
-            
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    card.style.transform = 'translateY(-5px)';
-                });
-                
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = 'translateY(0)';
-                });
-            });
-            
-            // Button hover effects
-            const buttons = document.querySelectorAll('.btn, .social-btn, .export-btn');
-            
-            buttons.forEach(button => {
-                button.addEventListener('mouseenter', () => {
-                    if (!button.disabled) {
-                        button.style.transform = 'translateY(-2px)';
-                    }
-                });
-                
-                button.addEventListener('mouseleave', () => {
-                    button.style.transform = 'translateY(0)';
-                });
-            });
-        },
-        
-        /**
-         * Initialize progressive disclosure
-         */
-        initializeProgressiveDisclosure() {
-            const expandableElements = document.querySelectorAll('.expandable');
-            
-            expandableElements.forEach(element => {
-                const trigger = element.querySelector('.expand-trigger');
-                const content = element.querySelector('.expand-content');
-                
-                if (trigger && content) {
-                    trigger.addEventListener('click', () => {
-                        const isExpanded = element.classList.contains('expanded');
-                        
-                        if (isExpanded) {
-                            content.style.maxHeight = '0';
-                            element.classList.remove('expanded');
-                        } else {
-                            content.style.maxHeight = content.scrollHeight + 'px';
-                            element.classList.add('expanded');
-                        }
-                    });
-                }
-            });
-        },
-        
-        /**
-         * Update progress with smooth animations
-         */
-        updateProgress(percentage, text) {
-            const progressFill = document.getElementById('unifiedProgressFill');
-            const progressText = document.getElementById('unifiedProgressText');
-            
-            if (progressFill) {
-                progressFill.style.width = percentage + '%';
-            }
-            
-            if (progressText && text) {
-                progressText.textContent = text;
-            }
-        },
-        
-        /**
-         * Show success notification
-         */
-        showSuccessNotification(message) {
-            this.showNotification(message, 'success');
-        },
-        
-        /**
-         * Show warning notification
-         */
-        showWarningNotification(message) {
-            this.showNotification(message, 'warning');
-        },
-        
-        /**
-         * Show error notification
-         */
-        showErrorNotification(message) {
-            this.showNotification(message, 'error');
-        },
-        
-        /**
-         * Show notification with type
-         */
-        showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.innerHTML = `
-                <div class="notification-content">
-                    <i class="fas ${this.getNotificationIcon(type)}"></i>
-                    <span>${message}</span>
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    };
+    
+    // Show error modal
+    window.UnifiedApp.ui.showError = function(message) {
+        // Create error modal if it doesn't exist
+        let modal = document.getElementById('errorModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'errorModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-exclamation-circle"></i> Analysis Error</h3>
+                        <button class="modal-close" onclick="UnifiedApp.ui.closeModal('errorModal')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="errorMessage"></div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" onclick="UnifiedApp.ui.closeModal('errorModal')">
+                            Got it
+                        </button>
+                    </div>
                 </div>
-                <button class="notification-close" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
             `;
             
-            // Add to page
-            let container = document.getElementById('notificationContainer');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'notificationContainer';
-                container.className = 'notification-container';
-                document.body.appendChild(container);
-            }
+            // Add styles
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
             
-            container.appendChild(notification);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
-            
-            // Add entrance animation
-            setTimeout(() => notification.classList.add('visible'), 10);
-        },
+            document.body.appendChild(modal);
+        }
         
-        /**
-         * Get notification icon based on type
-         */
-        getNotificationIcon(type) {
-            switch (type) {
-                case 'success': return 'fa-check-circle';
-                case 'warning': return 'fa-exclamation-triangle';
-                case 'error': return 'fa-times-circle';
-                default: return 'fa-info-circle';
-            }
+        // Update message and show
+        document.getElementById('errorMessage').textContent = message;
+        modal.style.display = 'flex';
+    };
+    
+    // Close modal
+    window.UnifiedApp.ui.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
         }
     };
     
-    // Attach to UnifiedApp namespace when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.UnifiedApp) {
-                window.UnifiedApp.ui = UnifiedUI;
-                
-                // Initialize UI components
-                UnifiedUI.initializeTooltips();
-                UnifiedUI.initializeSmoothScrolling();
-                UnifiedUI.initializeHoverEffects();
-                UnifiedUI.initializeProgressiveDisclosure();
-                
-                console.log('Unified UI module loaded');
+    // Helper functions
+    function getToastIcon(type) {
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        return icons[type] || icons.info;
+    }
+    
+    function getToastColor(type) {
+        const colors = {
+            success: '#10b981',
+            error: '#ef4444',
+            warning: '#f59e0b',
+            info: '#3b82f6'
+        };
+        return colors[type] || colors.info;
+    }
+    
+    // Add CSS animations
+    if (!document.getElementById('toastAnimations')) {
+        const style = document.createElement('style');
+        style.id = 'toastAnimations';
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+            
+            .modal-overlay {
+                animation: fadeIn 0.3s ease-out;
+            }
+            
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                animation: scaleIn 0.3s ease-out;
+            }
+            
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+            
+            .modal-header h3 {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--danger-color);
+            }
+            
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--text-secondary);
+                transition: color 0.3s ease;
+            }
+            
+            .modal-close:hover {
+                color: var(--text-primary);
+            }
+            
+            .modal-body {
+                margin-bottom: 1.5rem;
+                color: var(--text-secondary);
+            }
+            
+            .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+            }
+            
+            .btn-primary {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+            
+            .btn-primary:hover {
+                background: #1d4ed8;
+            }
+            
+            @keyframes scaleIn {
+                from {
+                    transform: scale(0.9);
+                    opacity: 0;
+                }
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Initialize UI elements
+    window.UnifiedApp.ui.init = function() {
+        // Add input validation
+        const textInput = document.getElementById('textInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        
+        textInput.addEventListener('input', function() {
+            const hasContent = this.value.trim().length >= 50;
+            analyzeBtn.disabled = !hasContent;
+            
+            if (!hasContent && this.value.trim().length > 0) {
+                analyzeBtn.textContent = `Need ${50 - this.value.trim().length} more characters`;
+            } else {
+                analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Content';
             }
         });
-    } else {
-        if (window.UnifiedApp) {
-            window.UnifiedApp.ui = UnifiedUI;
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to analyze
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (!analyzeBtn.disabled) {
+                    window.analyzeUnified();
+                }
+            }
             
-            // Initialize UI components
-            UnifiedUI.initializeTooltips();
-            UnifiedUI.initializeSmoothScrolling();
-            UnifiedUI.initializeHoverEffects();
-            UnifiedUI.initializeProgressiveDisclosure();
-            
-            console.log('Unified UI module loaded');
-        }
-    }
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal-overlay');
+                modals.forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        });
+    };
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        UnifiedApp.ui.init();
+    });
     
 })();
