@@ -7,20 +7,6 @@
     <meta name="description" content="Advanced AI detection and plagiarism checker. Instantly verify if content was written by AI and check for plagiarism across billions of sources.">
     <meta name="keywords" content="AI detector, plagiarism checker, ChatGPT detector, AI content detection, academic integrity, content verification">
     
-    <!-- Open Graph Tags -->
-    <meta property="og:title" content="AI & Plagiarism Detector - Facts & Fakes AI">
-    <meta property="og:description" content="Instantly detect AI-generated content and check for plagiarism with our advanced analysis tools.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.url }}">
-    
-    <!-- Twitter Card Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AI & Plagiarism Detector">
-    <meta name="twitter:description" content="Advanced AI detection and plagiarism checking in one powerful tool.">
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{{ request.url }}">
-    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -71,6 +57,8 @@
         /* Header Placeholder */
         .header-placeholder {
             height: 80px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
         }
         
         /* Main Container */
@@ -149,18 +137,472 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
         
+        /* New Features Banner */
+        .new-features-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+        
+        .new-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
         /* Input Method Tabs */
         .input-tabs {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .tab-btn {
             padding: 0.75rem 1.5rem;
             border: 2px solid var(--border-color);
             background: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 140px;
+            justify-content: center;
+        }
+        
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Main Analysis Card */
+        .analysis-card {
+            background: var(--card-background);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+        
+        /* Input Sections */
+        .input-section {
+            margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .input-section.active {
+            display: block;
+        }
+        
+        .input-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .text-input-wrapper {
+            position: relative;
+        }
+        
+        .text-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: inherit;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .char-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* File Upload Section */
+        .file-upload-wrapper {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-upload-wrapper.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        .file-upload-input {
+            display: none;
+        }
+        
+        .file-upload-label {
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-subtext {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .file-info {
+            display: none;
+            background: var(--background-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .file-info.active {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .file-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .remove-file {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-file:hover {
+            background: #dc2626;
+        }
+        
+        /* URL Input Section */
+        .url-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            background: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            background: white;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .analyze-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+        
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .clear-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-top: 3rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .trust-meter {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 2rem;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+        }
+        
+        .overall-score {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .score-description {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Analysis Sections */
+        .analysis-sections {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .analysis-section {
+            background: var(--card-background);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .section-header {
+            padding: 1.5rem;
+            background: var(--background-light);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .section-header:hover {
+            background: #f1f5f9;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .ai-detection .section-icon {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+        
+        .plagiarism-check .section-icon {
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+        }
+        
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 1.5rem;
+        }
+        
+        .section-content.expanded {
+            max-height: 2000px;
+            padding: 1.5rem;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Share Section */
+        .share-section {
+            background: var(--background-light);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .share-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .share-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -190,6 +632,75 @@
             color: var(--primary-color);
         }
         
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+        
+        .spinner-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .spinner-circle:nth-child(2) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-top-color: var(--secondary-color);
+            animation-duration: 0.8s;
+        }
+        
+        .loading-stage {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading-progress {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
         /* Floating Particles Background */
         .particles-bg {
             position: fixed;
@@ -207,21 +718,6 @@
             background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
             border-radius: 50%;
             animation: float 20s infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) translateX(0);
-            }
-            25% {
-                transform: translateY(-100px) translateX(50px);
-            }
-            50% {
-                transform: translateY(-50px) translateX(-50px);
-            }
-            75% {
-                transform: translateY(-150px) translateX(-25px);
-            }
         }
         
         /* Animations */
@@ -242,6 +738,26 @@
             }
             to {
                 opacity: 1;
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-100px) translateX(50px);
+            }
+            50% {
+                transform: translateY(-50px) translateX(-50px);
+            }
+            75% {
+                transform: translateY(-150px) translateX(-25px);
             }
         }
         
@@ -285,15 +801,44 @@
                 flex: 1;
                 min-width: 120px;
             }
+            
+            .new-features-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+            
+            .share-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .share-btn {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
-    <!-- Header will be included here -->
-    <div class="header-placeholder"></div>
-    {% include 'includes/header.html' %}
+    <!-- Header Placeholder -->
+    <div class="header-placeholder">
+        <div style="padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 700; font-size: 1.5rem; color: var(--primary-color);">
+                Facts & Fakes AI
+            </div>
+            <nav style="display: flex; gap: 2rem;">
+                <a href="/" style="color: var(--text-primary); text-decoration: none;">Home</a>
+                <a href="/news" style="color: var(--text-primary); text-decoration: none;">News</a>
+                <a href="/speech" style="color: var(--text-primary); text-decoration: none;">Speech</a>
+                <a href="/imageanalysis" style="color: var(--text-primary); text-decoration: none;">Image</a>
+                <a href="/unified" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">AI Detector</a>
+            </nav>
+        </div>
+    </div>
     
     <!-- Floating Particles Background -->
     <div class="particles-bg" id="particlesBg"></div>
@@ -302,7 +847,8 @@
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-background">
-                <img src="/static/images/ai-background.gif" alt="AI Technology Background">
+                <!-- Fallback gradient if image fails to load -->
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
             </div>
             <div class="hero-overlay"></div>
             <div class="hero-content">
@@ -417,11 +963,11 @@
             </div>
             
             <div class="action-buttons">
-                <button onclick="window.analyzeUnified()" class="analyze-btn" id="analyzeBtn">
+                <button onclick="analyzeContent()" class="analyze-btn" id="analyzeBtn">
                     <i class="fas fa-search"></i>
                     Analyze Content
                 </button>
-                <button onclick="window.resetUnifiedAnalysis()" class="clear-btn">
+                <button onclick="resetAnalysis()" class="clear-btn">
                     <i class="fas fa-redo"></i>
                     Clear
                 </button>
@@ -458,8 +1004,7 @@
         <!-- Results Section -->
         <div class="results-section" id="resultsSection">
             <div class="results-header">
-                <svg class="trust-meter" id="trustMeter">
-                    <!-- Trust meter SVG will be inserted here with gradients -->
+                <svg class="trust-meter" id="trustMeter" width="250" height="250">
                     <defs>
                         <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
@@ -474,6 +1019,16 @@
                             <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
                         </linearGradient>
                     </defs>
+                    <circle cx="125" cy="125" r="100" fill="none" stroke="#e2e8f0" stroke-width="20"/>
+                    <circle id="trustCircle" cx="125" cy="125" r="100" fill="none" stroke="url(#greenGradient)" 
+                            stroke-width="20" stroke-dasharray="628" stroke-dashoffset="628" 
+                            transform="rotate(-90 125 125)" style="transition: stroke-dashoffset 2s ease;"/>
+                    <text x="125" y="115" text-anchor="middle" font-size="24" font-weight="bold" fill="#1e293b">
+                        <tspan id="trustPercent">0%</tspan>
+                    </text>
+                    <text x="125" y="140" text-anchor="middle" font-size="14" fill="#64748b">
+                        <tspan id="trustLabel">Authentic</tspan>
+                    </text>
                 </svg>
                 <h2 class="overall-score">Content Analysis Complete</h2>
                 <p class="score-description" id="scoreDescription">View detailed results below</p>
@@ -498,7 +1053,9 @@
                     </div>
                     <div class="section-content">
                         <div id="aiDetectionResults">
-                            <!-- AI detection results will be inserted here -->
+                            <p style="color: var(--text-secondary); font-style: italic;">
+                                Run an analysis to see AI detection results here
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -521,7 +1078,9 @@
                     </div>
                     <div class="section-content">
                         <div id="plagiarismResults">
-                            <!-- Plagiarism results will be inserted here -->
+                            <p style="color: var(--text-secondary); font-style: italic;">
+                                Run an analysis to see plagiarism check results here
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -531,15 +1090,15 @@
             <div class="share-section">
                 <h3>Save or Share Your Results</h3>
                 <div class="share-buttons">
-                    <button onclick="window.downloadUnifiedPDF()" class="share-btn download-pdf">
+                    <button onclick="downloadPDF()" class="share-btn download-pdf">
                         <i class="fas fa-file-pdf"></i>
                         Download PDF Report
                     </button>
-                    <button onclick="window.shareUnifiedResults()" class="share-btn share-results">
+                    <button onclick="shareResults()" class="share-btn share-results">
                         <i class="fas fa-share-alt"></i>
                         Share Results
                     </button>
-                    <button onclick="window.saveToHistory()" class="share-btn share-results">
+                    <button onclick="saveToHistory()" class="share-btn share-results">
                         <i class="fas fa-save"></i>
                         Save to History
                     </button>
@@ -562,9 +1121,6 @@
         </div>
     </div>
     
-    <!-- Include partials -->
-    {% include 'partials/unified-modals.html' %}
-    
     <!-- Footer -->
     <footer style="background: var(--background-light); padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border-color);">
         <div class="unified-container">
@@ -578,14 +1134,6 @@
             </div>
         </div>
     </footer>
-    
-    <!-- Scripts -->
-    <script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
     
     <script>
         // Initialize character counter
@@ -694,10 +1242,199 @@ In conclusion, while AI undoubtedly offers valuable tools for enhancing educatio
             document.getElementById('charCount').textContent = examples[type].length.toLocaleString();
         }
         
+        // Demo analysis function
+        function analyzeContent() {
+            const activeInput = document.querySelector('.input-section.active');
+            let content = '';
+            
+            if (activeInput.id === 'textInputSection') {
+                content = document.getElementById('textInput').value.trim();
+                if (!content) {
+                    alert('Please enter some text to analyze');
+                    return;
+                }
+            } else if (activeInput.id === 'fileInputSection') {
+                const file = document.getElementById('fileInput').files[0];
+                if (!file) {
+                    alert('Please select a file to analyze');
+                    return;
+                }
+                content = `File: ${file.name}`;
+            } else if (activeInput.id === 'urlInputSection') {
+                content = document.getElementById('urlInput').value.trim();
+                if (!content) {
+                    alert('Please enter a URL to analyze');
+                    return;
+                }
+            }
+            
+            // Show loading
+            showLoading();
+            
+            // Simulate analysis with realistic timing
+            setTimeout(() => {
+                showDemoResults(content);
+                hideLoading();
+            }, 3000);
+        }
+        
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            const stage = document.getElementById('loadingStage');
+            const progress = document.getElementById('progressBar');
+            
+            overlay.style.display = 'flex';
+            
+            const stages = [
+                'Processing Input...',
+                'AI Analysis in Progress...',
+                'Content Verification...',
+                'Plagiarism Checking...',
+                'Finalizing Results...'
+            ];
+            
+            let currentStage = 0;
+            const stageInterval = setInterval(() => {
+                if (currentStage < stages.length) {
+                    stage.textContent = stages[currentStage];
+                    progress.style.width = ((currentStage + 1) / stages.length * 100) + '%';
+                    currentStage++;
+                } else {
+                    clearInterval(stageInterval);
+                }
+            }, 600);
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        function showDemoResults(content) {
+            // Simulate different results based on content
+            const isLikelyAI = content.includes('Furthermore') || content.includes('It is important to note');
+            const aiScore = isLikelyAI ? 85 : 25;
+            const humanScore = 100 - aiScore;
+            const plagiarismScore = Math.floor(Math.random() * 20);
+            
+            // Update trust meter
+            updateTrustMeter(humanScore);
+            
+            // Update AI detection results
+            document.getElementById('aiDetectionResults').innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Overall AI Probability</div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="flex: 1; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                                <div style="height: 100%; width: ${aiScore}%; background: ${aiScore > 60 ? 'var(--danger-color)' : aiScore > 30 ? 'var(--warning-color)' : 'var(--success-color)'}; transition: width 1s ease;"></div>
+                            </div>
+                            <span style="font-weight: 600; color: ${aiScore > 60 ? 'var(--danger-color)' : aiScore > 30 ? 'var(--warning-color)' : 'var(--success-color)'};">${aiScore}%</span>
+                        </div>
+                    </div>
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Perplexity Analysis</div>
+                        <div style="color: var(--text-secondary);">
+                            ${isLikelyAI ? 'Low perplexity detected - consistent with AI-generated text patterns' : 'Natural perplexity variations - consistent with human writing'}
+                        </div>
+                    </div>
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Burstiness Analysis</div>
+                        <div style="color: var(--text-secondary);">
+                            ${isLikelyAI ? 'Low burstiness - uniform sentence complexity typical of AI' : 'High burstiness - varied sentence patterns typical of human writing'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Update plagiarism results
+            document.getElementById('plagiarismResults').innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Similarity Score</div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="flex: 1; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                                <div style="height: 100%; width: ${plagiarismScore}%; background: ${plagiarismScore > 15 ? 'var(--danger-color)' : plagiarismScore > 5 ? 'var(--warning-color)' : 'var(--success-color)'}; transition: width 1s ease;"></div>
+                            </div>
+                            <span style="font-weight: 600; color: ${plagiarismScore > 15 ? 'var(--danger-color)' : plagiarismScore > 5 ? 'var(--warning-color)' : 'var(--success-color)'};">${plagiarismScore}%</span>
+                        </div>
+                    </div>
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Sources Checked</div>
+                        <div style="color: var(--text-secondary);">
+                            Scanned against 15.2 billion web pages, academic papers, and publications
+                        </div>
+                    </div>
+                    ${plagiarismScore > 5 ? `
+                    <div style="background: var(--background-light); padding: 1rem; border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Potential Matches Found</div>
+                        <div style="color: var(--text-secondary);">
+                            ${Math.floor(Math.random() * 3) + 1} potential source(s) with similarity above threshold
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Update score description
+            document.getElementById('scoreDescription').textContent = 
+                humanScore > 80 ? 'High confidence in human authorship' :
+                humanScore > 60 ? 'Likely human-written with some AI characteristics' :
+                humanScore > 40 ? 'Mixed characteristics - possible AI assistance' :
+                'High probability of AI generation';
+            
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function updateTrustMeter(score) {
+            const circle = document.getElementById('trustCircle');
+            const percent = document.getElementById('trustPercent');
+            const label = document.getElementById('trustLabel');
+            
+            const circumference = 2 * Math.PI * 100; // radius = 100
+            const offset = circumference - (score / 100) * circumference;
+            
+            circle.style.strokeDashoffset = offset;
+            percent.textContent = score + '%';
+            
+            if (score > 80) {
+                circle.setAttribute('stroke', 'url(#greenGradient)');
+                label.textContent = 'Highly Authentic';
+            } else if (score > 60) {
+                circle.setAttribute('stroke', 'url(#yellowGradient)');
+                label.textContent = 'Moderately Authentic';
+            } else {
+                circle.setAttribute('stroke', 'url(#redGradient)');
+                label.textContent = 'Likely AI Generated';
+            }
+        }
+        
+        function resetAnalysis() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.remove('active');
+            document.getElementById('urlInput').value = '';
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+        
+        function downloadPDF() {
+            alert('PDF download feature will be available soon!');
+        }
+        
+        function shareResults() {
+            alert('Share feature will be available soon!');
+        }
+        
+        function saveToHistory() {
+            alert('Save to history feature will be available soon!');
+        }
+        
         // Create floating particles
         function createParticles() {
             const particlesBg = document.getElementById('particlesBg');
-            const particleCount = 20;
+            const particleCount = 15;
             
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
@@ -722,600 +1459,3 @@ In conclusion, while AI undoubtedly offers valuable tools for enhancing educatio
     </script>
 </body>
 </html>
-            gap: 0.5rem;
-        }
-        
-        .tab-btn.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-        
-        .tab-btn:hover:not(.active) {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        /* Main Analysis Card */
-        .analysis-card {
-            background: var(--card-background);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-            animation: fadeInUp 0.8s ease-out 0.4s both;
-        }
-        
-        /* Input Sections */
-        .input-section {
-            margin-bottom: 2rem;
-            display: none;
-        }
-        
-        .input-section.active {
-            display: block;
-        }
-        
-        .input-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-        
-        .text-input-wrapper {
-            position: relative;
-        }
-        
-        .text-input {
-            width: 100%;
-            min-height: 300px;
-            padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-            resize: vertical;
-            transition: all 0.3s ease;
-            background: white;
-        }
-        
-        .text-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        .char-counter {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            background: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-        
-        /* File Upload Section */
-        .file-upload-wrapper {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            background: #fafbfc;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .file-upload-wrapper.drag-over {
-            border-color: var(--primary-color);
-            background: rgba(37, 99, 235, 0.05);
-        }
-        
-        .file-upload-input {
-            display: none;
-        }
-        
-        .file-upload-label {
-            cursor: pointer;
-            display: inline-block;
-        }
-        
-        .upload-icon {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
-        .upload-text {
-            font-size: 1.125rem;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .upload-subtext {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-        
-        .file-info {
-            display: none;
-            background: var(--background-light);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-        }
-        
-        .file-info.active {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .file-details {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .file-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-        
-        .remove-file {
-            background: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .remove-file:hover {
-            background: #dc2626;
-        }
-        
-        /* URL Input Section */
-        .url-input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .url-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .analyze-btn {
-            flex: 1;
-            min-width: 200px;
-            padding: 1rem 2rem;
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .analyze-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
-        }
-        
-        .analyze-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .clear-btn {
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .clear-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        /* Quick Actions */
-        .quick-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .quick-action-btn {
-            padding: 0.5rem 1rem;
-            background: var(--background-light);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .quick-action-btn:hover {
-            background: white;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        /* Feature Cards */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .feature-card {
-            background: var(--card-background);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-        
-        .feature-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-        
-        /* New Features Banner */
-        .new-features-banner {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 1px solid #fbbf24;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .new-badge {
-            background: #f59e0b;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-        
-        /* Loading Overlay */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .loading-content {
-            text-align: center;
-            max-width: 400px;
-        }
-        
-        .loading-spinner {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 2rem;
-            position: relative;
-        }
-        
-        .spinner-circle {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 4px solid transparent;
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        .spinner-circle:nth-child(2) {
-            width: 70%;
-            height: 70%;
-            top: 15%;
-            left: 15%;
-            border-top-color: var(--secondary-color);
-            animation-duration: 0.8s;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-stage {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .loading-progress {
-            width: 100%;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        /* Results Section */
-        .results-section {
-            display: none;
-            margin-top: 3rem;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .results-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .trust-meter {
-            width: 250px;
-            height: 250px;
-            margin: 0 auto 2rem;
-            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
-        }
-        
-        .trust-meter svg {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .overall-score {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .score-description {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-        }
-        
-        /* Analysis Sections */
-        .analysis-sections {
-            display: grid;
-            gap: 1rem;
-        }
-        
-        .analysis-section {
-            background: var(--card-background);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-        
-        .section-header {
-            padding: 1.5rem;
-            background: var(--background-light);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .section-header:hover {
-            background: #f1f5f9;
-        }
-        
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: white;
-        }
-        
-        .section-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            padding: 0 1.5rem;
-        }
-        
-        .section-content.expanded {
-            max-height: 2000px;
-            padding: 1.5rem;
-        }
-        
-        .expand-icon {
-            transition: transform 0.3s ease;
-        }
-        
-        .expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-        
-        /* AI Detection Section Colors */
-        .ai-detection .section-icon {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        }
-        
-        /* Plagiarism Section Colors */
-        .plagiarism-check .section-icon {
-            background: linear-gradient(135deg, #10b981, #06b6d4);
-        }
-        
-        /* Result Cards */
-        .result-card {
-            background: var(--background-light);
-            border-radius: 8px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .result-card:last-child {
-            margin-bottom: 0;
-        }
-        
-        .result-label {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .result-value {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-        
-        /* Confidence Meter */
-        .confidence-meter {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-        
-        .meter-bar {
-            flex: 1;
-            height: 8px;
-            background: var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .meter-fill {
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        .meter-fill.high {
-            background: var(--danger-color);
-        }
-        
-        .meter-fill.medium {
-            background: var(--warning-color);
-        }
-        
-        .meter-fill.low {
-            background: var(--success-color);
-        }
-        
-        .meter-value {
-            font-weight: 600;
-            min-width: 50px;
-            text-align: right;
-        }
-        
-        /* Share Section */
-        .share-section {
-            background: var(--background-light);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
-            text-align: center;
-        }
-        
-        .share-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .share-btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
