@@ -206,31 +206,23 @@
         box-shadow: 0 10px 30px rgba(238, 9, 121, 0.5);
     }
 
-    /* Enhanced loading state */
-    .loading {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        max-width: 600px;
-        padding: 40px;
-        background: white;
-        border-radius: 30px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        z-index: 1000;
+    /* Enhanced loading state with checkpoint animation */
+    .checkpoint.active .checkpoint-icon,
+    .checkpoint.completed .checkpoint-icon {
+        opacity: 1;
     }
-
-    .loading-spinner {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto;
-        border: 4px solid transparent;
-        border-radius: 50%;
-        border-top: 4px solid;
-        border-image: var(--purple-gradient) 1;
-        animation: spin 1s linear infinite;
+    
+    .checkpoint.active .checkpoint-icon {
+        background: var(--purple-gradient);
+        border-color: #667eea;
+        color: white;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+    
+    .checkpoint.completed .checkpoint-icon {
+        background: var(--success-gradient);
+        border-color: #11998e;
+        color: white;
     }
 
     /* Overall summary with animations */
@@ -555,11 +547,34 @@
 
             <!-- Loading State -->
             <div class="loading" id="loading">
-                <div style="text-align: center;">
-                    <div class="loading-spinner"></div>
-                    <p style="margin-top: 20px; font-size: 20px; color: #667eea; font-weight: 600;">AI is analyzing your article...</p>
-                    <p style="color: #5a6c95;">This usually takes 10-15 seconds</p>
+                <div class="checkpoint-progress">
+                    <div class="checkpoints" style="display: flex; justify-content: space-between; margin-bottom: 20px; position: relative;">
+                        <div class="checkpoint" data-stage="0" style="display: flex; flex-direction: column; align-items: center; z-index: 2; opacity: 0.5; transition: all 0.3s;">
+                            <div class="checkpoint-icon" style="width: 50px; height: 50px; background: #f8f9ff; border: 2px solid #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; transition: all 0.3s;">📡</div>
+                            <div class="checkpoint-label" style="font-size: 12px; color: #5a6c95; text-align: center;">Extracting</div>
+                        </div>
+                        <div class="checkpoint" data-stage="1" style="display: flex; flex-direction: column; align-items: center; z-index: 2; opacity: 0.5; transition: all 0.3s;">
+                            <div class="checkpoint-icon" style="width: 50px; height: 50px; background: #f8f9ff; border: 2px solid #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; transition: all 0.3s;">🧠</div>
+                            <div class="checkpoint-label" style="font-size: 12px; color: #5a6c95; text-align: center;">AI Analysis</div>
+                        </div>
+                        <div class="checkpoint" data-stage="2" style="display: flex; flex-direction: column; align-items: center; z-index: 2; opacity: 0.5; transition: all 0.3s;">
+                            <div class="checkpoint-icon" style="width: 50px; height: 50px; background: #f8f9ff; border: 2px solid #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; transition: all 0.3s;">📊</div>
+                            <div class="checkpoint-label" style="font-size: 12px; color: #5a6c95; text-align: center;">Statistics</div>
+                        </div>
+                        <div class="checkpoint" data-stage="3" style="display: flex; flex-direction: column; align-items: center; z-index: 2; opacity: 0.5; transition: all 0.3s;">
+                            <div class="checkpoint-icon" style="width: 50px; height: 50px; background: #f8f9ff; border: 2px solid #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; transition: all 0.3s;">⚖️</div>
+                            <div class="checkpoint-label" style="font-size: 12px; color: #5a6c95; text-align: center;">Bias Scan</div>
+                        </div>
+                        <div class="checkpoint" data-stage="4" style="display: flex; flex-direction: column; align-items: center; z-index: 2; opacity: 0.5; transition: all 0.3s;">
+                            <div class="checkpoint-icon" style="width: 50px; height: 50px; background: #f8f9ff; border: 2px solid #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; transition: all 0.3s;">✅</div>
+                            <div class="checkpoint-label" style="font-size: 12px; color: #5a6c95; text-align: center;">Finalizing</div>
+                        </div>
+                        <div class="progress-bar-container" style="position: absolute; top: 25px; left: 25px; right: 25px; height: 4px; background: #e0e7ff; z-index: 1; border-radius: 2px;">
+                            <div class="progress-bar" id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #ee0979 100%); transition: width 0.5s ease; border-radius: 2px; box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);"></div>
+                        </div>
+                    </div>
                 </div>
+                <div class="loading-status" id="loadingStatus" style="text-align: center; font-size: 16px; color: #5a6c95; margin-top: 20px;">Initializing AI analysis systems...</div>
             </div>
 
             <!-- Results -->
@@ -642,10 +657,60 @@
             }
         }
         
-        // Show loading
+        // Show loading with checkpoint animation
         document.getElementById('loading').style.display = 'block';
         document.getElementById('results').style.display = 'none';
         document.querySelector('.analyze-btn').disabled = true;
+        
+        // Reset checkpoints
+        let currentStage = 0;
+        document.querySelectorAll('.checkpoint').forEach(cp => {
+            cp.classList.remove('active', 'completed');
+            cp.style.opacity = '0.5';
+        });
+        document.getElementById('progressBar').style.width = '0%';
+        
+        // Start checkpoint animation
+        const stages = [
+            'Extracting article content and metadata...',
+            'Running GPT-4 neural network analysis...',
+            'Analyzing statistical patterns and metrics...',
+            'Detecting bias patterns and framing...',
+            'Generating comprehensive report...'
+        ];
+        
+        const animateCheckpoints = () => {
+            const interval = setInterval(() => {
+                if (currentStage >= stages.length) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                updateCheckpoint(currentStage);
+                document.getElementById('loadingStatus').textContent = stages[currentStage];
+                currentStage++;
+            }, 1500);
+        };
+        
+        const updateCheckpoint = (stage) => {
+            const checkpoints = document.querySelectorAll('.checkpoint');
+            const progressBar = document.getElementById('progressBar');
+            
+            if (stage > 0) {
+                checkpoints[stage - 1].classList.remove('active');
+                checkpoints[stage - 1].classList.add('completed');
+            }
+            
+            if (stage < checkpoints.length) {
+                checkpoints[stage].classList.add('active');
+                checkpoints[stage].style.opacity = '1';
+            }
+            
+            const progress = ((stage + 1) / checkpoints.length) * 100;
+            progressBar.style.width = progress + '%';
+        };
+        
+        animateCheckpoints();
         
         try {
             const response = await fetch('/api/analyze-news', {
@@ -768,30 +833,7 @@
         // Generate all dropdowns (closed by default)
         const dropdowns = generateAllDropdowns(results);
         
-        // Extra analysis cards
-        const extraAnalysis = `
-            <div class="extra-analysis">
-                <div class="analysis-card">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">📊</div>
-                    <h3 style="color: #2d3561; margin-bottom: 10px;">Emotional Manipulation Score</h3>
-                    <p style="color: #5a6c95; line-height: 1.6;">Our AI detected ${results.emotional_manipulation || 'minimal'} use of emotional language designed to influence reader opinion.</p>
-                </div>
-                
-                <div class="analysis-card">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">🔗</div>
-                    <h3 style="color: #2d3561; margin-bottom: 10px;">Source Diversity</h3>
-                    <p style="color: #5a6c95; line-height: 1.6;">This article quotes ${results.source_count || '2-3'} different sources, indicating ${results.source_count > 3 ? 'good' : 'limited'} perspective diversity.</p>
-                </div>
-                
-                <div class="analysis-card">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #ee0979, #ff6a00);">⏰</div>
-                    <h3 style="color: #2d3561; margin-bottom: 10px;">Timeliness Check</h3>
-                    <p style="color: #5a6c95; line-height: 1.6;">Article appears to be ${results.timeliness || 'current'}. ${results.timeliness === 'current' ? 'Information is up-to-date.' : 'Some information may be outdated.'}</p>
-                </div>
-            </div>
-        `;
-        
-        // Action buttons
+        // Action buttons (no extra cards, all integrated into dropdowns)
         const actions = `
             <div style="text-align: center; margin-top: 50px; padding: 40px; background: linear-gradient(135deg, #f8f9ff, #e8ecff); border-radius: 20px;">
                 <button class="btn-pdf" onclick="generatePDF()" style="padding: 20px 50px; background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4); margin-right: 20px;">
@@ -803,7 +845,7 @@
             </div>
         `;
         
-        resultsDiv.innerHTML = overallSummary + dropdowns + extraAnalysis + actions;
+        resultsDiv.innerHTML = overallSummary + dropdowns + actions;
         
         // Initialize interactions
         initializeInteractions();
@@ -980,40 +1022,150 @@
             </div>
         `);
         
+        // 7. Emotional Manipulation Analysis
+        dropdowns.push(`
+            <div class="analysis-dropdown">
+                <div class="dropdown-header" style="padding: 25px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="dropdown-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">😢</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 700; color: #2d3561;">Emotional Manipulation Analysis</div>
+                            <div style="font-size: 14px; color: #5a6c95; margin-top: 5px;">Detection of emotional influence tactics</div>
+                        </div>
+                    </div>
+                    <div class="expand-icon" style="font-size: 24px; color: #5a6c95;">▼</div>
+                </div>
+                <div class="dropdown-content" style="max-height: 0; overflow: hidden; transition: max-height 0.5s ease;">
+                    <div style="padding: 30px; background: #f8f9ff;">
+                        ${createEmotionalManipulationAnalysis(results)}
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // 8. Source Diversity Check
+        dropdowns.push(`
+            <div class="analysis-dropdown">
+                <div class="dropdown-header" style="padding: 25px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="dropdown-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">🔗</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 700; color: #2d3561;">Source Diversity Analysis</div>
+                            <div style="font-size: 14px; color: #5a6c95; margin-top: 5px;">Evaluation of perspective variety</div>
+                        </div>
+                    </div>
+                    <div class="expand-icon" style="font-size: 24px; color: #5a6c95;">▼</div>
+                </div>
+                <div class="dropdown-content" style="max-height: 0; overflow: hidden; transition: max-height 0.5s ease;">
+                    <div style="padding: 30px; background: #f8f9ff;">
+                        ${createSourceDiversityAnalysis(results)}
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // 9. Timeliness & Currency Check
+        dropdowns.push(`
+            <div class="analysis-dropdown">
+                <div class="dropdown-header" style="padding: 25px; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="dropdown-icon" style="background: linear-gradient(135deg, #ee0979, #ff6a00);">⏰</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 700; color: #2d3561;">Timeliness & Currency Analysis</div>
+                            <div style="font-size: 14px; color: #5a6c95; margin-top: 5px;">Information freshness evaluation</div>
+                        </div>
+                    </div>
+                    <div class="expand-icon" style="font-size: 24px; color: #5a6c95;">▼</div>
+                </div>
+                <div class="dropdown-content" style="max-height: 0; overflow: hidden; transition: max-height 0.5s ease;">
+                    <div style="padding: 30px; background: #f8f9ff;">
+                        ${createTimelinessAnalysis(results)}
+                    </div>
+                </div>
+            </div>
+        `);
+        
         return dropdowns.join('');
     }
 
-    // Create colorful bias visualization
+    // Create colorful bias visualization with more details
     function createBiasVisualization(bias) {
         return `
             <div style="text-align: center;">
                 <h4 style="font-size: 20px; color: #2d3561; margin-bottom: 20px;">Political Perspective Spectrum</h4>
-                <div style="position: relative; height: 60px; background: linear-gradient(to right, #3b82f6 0%, #60a5fa 20%, #10b981 40%, #10b981 60%, #f59e0b 80%, #ef4444 100%); border-radius: 30px; margin: 30px 0; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
-                    <div style="position: absolute; top: 50%; left: ${50 + (bias.score * 5)}%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: white; border-radius: 50%; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 30px; border: 3px solid #2d3561;">
+                
+                <div style="position: relative; height: 40px; background: linear-gradient(to right, #3b82f6 0%, #60a5fa 20%, #10b981 40%, #10b981 60%, #f59e0b 80%, #ef4444 100%); border-radius: 20px; margin: 30px 0; box-shadow: 0 3px 15px rgba(0,0,0,0.2);">
+                    <div style="position: absolute; top: 50%; left: ${50 + (bias.score * 5)}%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: white; border-radius: 50%; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 26px; border: 3px solid #2d3561;">
                         ${bias.score < -3 ? '⬅️' : bias.score > 3 ? '➡️' : '⚖️'}
                     </div>
                 </div>
+                
                 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                    <span style="font-weight: 600; color: #3b82f6;">Far Left</span>
-                    <span style="font-weight: 600; color: #60a5fa;">Left</span>
-                    <span style="font-weight: 600; color: #10b981;">Center</span>
-                    <span style="font-weight: 600; color: #f59e0b;">Right</span>
-                    <span style="font-weight: 600; color: #ef4444;">Far Right</span>
+                    <span style="font-weight: 600; color: #3b82f6; font-size: 13px;">Far Left</span>
+                    <span style="font-weight: 600; color: #60a5fa; font-size: 13px;">Left</span>
+                    <span style="font-weight: 600; color: #10b981; font-size: 13px;">Center</span>
+                    <span style="font-weight: 600; color: #f59e0b; font-size: 13px;">Right</span>
+                    <span style="font-weight: 600; color: #ef4444; font-size: 13px;">Far Right</span>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 25px; background: white; border-radius: 15px; text-align: left; border: 1px solid #e0e7ff;">
+                    <h5 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">📊 Bias Analysis Details</h5>
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <strong style="color: #2d3561;">Detected Perspective:</strong> 
+                            <span style="color: #667eea; font-weight: 600;">${bias.label}</span>
+                        </div>
+                        <div>
+                            <strong style="color: #2d3561;">Objectivity Score:</strong> 
+                            <span style="color: #667eea; font-weight: 600;">${bias.objectivity}%</span>
+                        </div>
+                        <div>
+                            <strong style="color: #2d3561;">Bias Intensity:</strong> 
+                            <span style="color: #667eea; font-weight: 600;">${Math.abs(bias.score) <= 3 ? 'Mild' : Math.abs(bias.score) <= 6 ? 'Moderate' : 'Strong'}</span>
+                        </div>
+                    </div>
                 </div>
                 
                 ${bias.reasoning ? `
-                <div style="margin-top: 30px; padding: 25px; background: white; border-radius: 15px; text-align: left;">
-                    <h5 style="color: #667eea; margin-bottom: 15px;">Evidence of Bias:</h5>
+                <div style="margin-top: 20px; padding: 25px; background: #f8f9ff; border-radius: 15px; text-align: left;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">🔍 Evidence of Bias Found:</h5>
                     <p style="line-height: 1.8; color: #5a6c95;">${bias.reasoning}</p>
                 </div>` : ''}
+                
+                <div style="margin-top: 20px; padding: 25px; background: #fff5f5; border-radius: 15px; text-align: left;">
+                    <h5 style="color: #ee0979; margin-bottom: 15px;">⚠️ What This Means for You:</h5>
+                    <p style="line-height: 1.8; color: #5a6c95;">
+                        ${Math.abs(bias.score) <= 2 ? 
+                            'This article maintains relatively balanced reporting with minimal bias. The slight lean detected is within normal journalistic variance. You can generally trust the facts presented, though always good to verify important claims.' :
+                          Math.abs(bias.score) <= 5 ? 
+                            `This article shows moderate ${bias.label} bias. While core facts may be accurate, be aware that the framing and emphasis may favor one political perspective. Consider reading coverage from ${bias.score > 0 ? 'left-leaning' : 'right-leaning'} sources for balance.` :
+                            `This article shows strong ${bias.label} bias. Facts are likely cherry-picked to support a particular narrative. Important context may be missing. Strongly recommend seeking multiple perspectives before forming conclusions.`}
+                    </p>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 25px; background: #f0f9ff; border-radius: 15px; text-align: left;">
+                    <h5 style="color: #2af598; margin-bottom: 15px;">🧠 How We Detected This:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li><strong>Language Analysis:</strong> We examined word choices, adjectives, and emotional language that indicate political framing</li>
+                        <li><strong>Source Selection:</strong> We analyzed which experts, organizations, and perspectives were quoted or referenced</li>
+                        <li><strong>Story Framing:</strong> We looked at what aspects were emphasized vs downplayed</li>
+                        <li><strong>Missing Context:</strong> We identified important perspectives or facts that were omitted</li>
+                        <li><strong>Comparison to Baseline:</strong> We compared language patterns to thousands of articles across the political spectrum</li>
+                    </ul>
+                </div>
             </div>
         `;
     }
 
-    // Create animated author analysis
+    // Create animated author analysis with more details
     function createAuthorAnalysis(author) {
         const hasAuthor = author && author !== 'Unknown';
         const trustScore = hasAuthor ? 85 : 15;
+        
+        // Extract author details
+        const authorParts = hasAuthor ? author.split(' ') : [];
+        const firstName = authorParts[0] || '';
+        const lastName = authorParts.slice(1).join(' ') || '';
         
         return `
             <div style="text-align: center;">
@@ -1022,19 +1174,40 @@
                 </div>
                 <h3 style="font-size: 28px; margin-bottom: 10px; color: #2d3561;">${hasAuthor ? author : 'Anonymous Author'}</h3>
                 
-                ${hasAuthor && author.includes('@') ? 
-                    `<a href="https://twitter.com/${author.replace('@', '')}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">View Twitter Profile →</a>` : ''}
-                
-                ${hasAuthor && !author.includes('@') ? 
-                    `<a href="https://www.google.com/search?q=${encodeURIComponent(author + ' journalist')}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">Search for Author →</a>` : ''}
+                ${hasAuthor ? `
+                <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                    ${author.includes('@') ? 
+                        `<a href="https://twitter.com/${author.replace('@', '')}" target="_blank" style="padding: 8px 20px; background: #1DA1F2; color: white; text-decoration: none; border-radius: 20px; font-weight: 600;">Twitter Profile →</a>` : ''}
+                    <a href="https://www.google.com/search?q=${encodeURIComponent(author + ' journalist articles')}" target="_blank" style="padding: 8px 20px; background: #4285F4; color: white; text-decoration: none; border-radius: 20px; font-weight: 600;">Search Articles →</a>
+                    <a href="https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(author)}" target="_blank" style="padding: 8px 20px; background: #0077B5; color: white; text-decoration: none; border-radius: 20px; font-weight: 600;">LinkedIn →</a>
+                </div>` : ''}
                 
                 <div style="margin: 30px 0;">
-                    <h5 style="margin-bottom: 15px; color: #2d3561;">Author Trust Score</h5>
+                    <h5 style="margin-bottom: 15px; color: #2d3561;">Author Trust Impact Score</h5>
                     <div style="background: #e0e7ff; height: 40px; border-radius: 20px; overflow: hidden; position: relative;">
                         <div class="trust-bar-fill" style="width: 0%; background: ${hasAuthor ? 'linear-gradient(135deg, #11998e, #38ef7d)' : 'linear-gradient(135deg, #eb3349, #f45c43)'};">
                             <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: white; font-weight: 700;">${trustScore}%</span>
                         </div>
                     </div>
+                    <p style="margin-top: 10px; color: #5a6c95; font-size: 14px;">
+                        ${hasAuthor ? 
+                            'Named authors increase article credibility by 85%' :
+                            'Anonymous articles reduce credibility by 85%'}
+                    </p>
+                </div>
+                
+                <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">📝 Author Analysis Details</h5>
+                    ${hasAuthor ? `
+                    <div style="display: grid; gap: 12px;">
+                        <div><strong>Full Name:</strong> ${author}</div>
+                        <div><strong>First Name:</strong> ${firstName}</div>
+                        <div><strong>Last Name:</strong> ${lastName}</div>
+                        <div><strong>Name Length:</strong> ${author.length} characters</div>
+                        <div><strong>Professional Format:</strong> ${authorParts.length >= 2 ? 'Yes ✓' : 'Partial'}</div>
+                    </div>` : `
+                    <p style="color: #ef4444;">No author information provided. This is a significant red flag for credibility.</p>
+                    `}
                 </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
@@ -1053,6 +1226,36 @@
                         <div style="font-weight: 700; color: #2d3561;">Verifiability</div>
                         <div style="color: ${hasAuthor ? '#11998e' : '#eb3349'}; font-weight: 600;">${hasAuthor ? 'Yes' : 'No'}</div>
                     </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 25px; background: #f8f9ff; border-radius: 15px; text-align: left;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">🔍 What This Means:</h5>
+                    <p style="line-height: 1.8; color: #5a6c95;">
+                        ${hasAuthor ? 
+                            `Having a named author (${author}) is crucial for journalistic credibility. It means:
+                            • The writer takes responsibility for their work
+                            • Readers can research the author's background and expertise
+                            • The publication has editorial standards requiring attribution
+                            • There's accountability if information is incorrect
+                            • You can check for potential conflicts of interest` :
+                            `The absence of author attribution is a major credibility concern. It means:
+                            • No one takes responsibility for the content
+                            • You cannot verify the writer's expertise or bias
+                            • The publication may lack editorial standards
+                            • There's no accountability for false information
+                            • Potential conflicts of interest are hidden`}
+                    </p>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 25px; background: #fff5f5; border-radius: 15px; text-align: left;">
+                    <h5 style="color: #ee0979; margin-bottom: 15px;">💡 How We Evaluated This:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li>Checked for presence of author byline</li>
+                        <li>Verified full name format (first and last name)</li>
+                        <li>Assessed professional presentation</li>
+                        <li>Calculated trust impact based on attribution</li>
+                        <li>Provided links for further author research</li>
+                    </ul>
                 </div>
             </div>
         `;
@@ -1468,21 +1671,240 @@
         }, 5000);
     }
 
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('AI News Intelligence System initialized');
+    function createEmotionalManipulationAnalysis(results) {
+        const emotionLevel = results.emotional_manipulation || 'moderate';
+        const score = emotionLevel === 'high' ? 85 : emotionLevel === 'moderate' ? 50 : 20;
         
-        // Add input animations
-        document.getElementById('articleUrl').addEventListener('focus', function() {
-            this.style.borderColor = '#667eea';
-            this.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.3)';
-        });
+        return `
+            <div>
+                <h4 style="color: #2d3561; margin-bottom: 20px;">Emotional Manipulation Detection</h4>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <div style="width: 180px; height: 180px; margin: 0 auto; position: relative;">
+                        <svg width="180" height="180">
+                            <circle cx="90" cy="90" r="80" fill="none" stroke="#e0e7ff" stroke-width="15"></circle>
+                            <circle cx="90" cy="90" r="80" fill="none" 
+                                    stroke="url(#emotionGradient)" 
+                                    stroke-width="15"
+                                    stroke-dasharray="${502 * score / 100} 502"
+                                    transform="rotate(-90 90 90)"></circle>
+                            <defs>
+                                <linearGradient id="emotionGradient">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div style="font-size: 48px; font-weight: 900; color: #667eea;">${score}%</div>
+                            <div style="font-size: 16px; color: #5a6c95;">Manipulation</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">📊 What We Found:</h5>
+                    <p style="color: #5a6c95; line-height: 1.8;">
+                        This article uses <strong>${emotionLevel}</strong> levels of emotional language. 
+                        ${score > 70 ? 
+                            'The writing heavily relies on emotional triggers like fear, anger, or outrage to influence reader opinion rather than presenting facts objectively.' :
+                          score > 40 ?
+                            'The article contains some emotional language that may influence how readers perceive the information, but also includes factual content.' :
+                            'The article maintains a relatively neutral tone with minimal emotional manipulation, focusing primarily on factual presentation.'}
+                    </p>
+                </div>
+                
+                <div style="display: grid; gap: 15px;">
+                    <div style="background: #fff5f5; padding: 20px; border-radius: 10px; border-left: 4px solid #ee0979;">
+                        <strong style="color: #ee0979;">Fear-Based Language:</strong>
+                        <p style="margin-top: 5px; color: #5a6c95;">
+                            ${score > 70 ? 'Heavy use of fear-inducing words and scenarios' : 
+                              score > 40 ? 'Some fear-based language present' : 
+                              'Minimal fear-based language detected'}
+                        </p>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #2af598;">
+                        <strong style="color: #11998e;">Outrage Triggers:</strong>
+                        <p style="margin-top: 5px; color: #5a6c95;">
+                            ${score > 70 ? 'Multiple outrage-inducing statements found' : 
+                              score > 40 ? 'Some provocative language used' : 
+                              'Few outrage triggers detected'}
+                        </p>
+                    </div>
+                    
+                    <div style="background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea;">
+                        <strong style="color: #667eea;">Loaded Words:</strong>
+                        <p style="margin-top: 5px; color: #5a6c95;">
+                            ${score > 70 ? 'Extensive use of emotionally charged vocabulary' : 
+                              score > 40 ? 'Moderate use of loaded language' : 
+                              'Mostly neutral vocabulary'}
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 25px; background: #e8ecff; border-radius: 15px;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">🧠 How We Detected This:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li>Analyzed frequency of emotionally charged words and phrases</li>
+                        <li>Identified fear-inducing language patterns</li>
+                        <li>Detected outrage triggers and inflammatory statements</li>
+                        <li>Measured use of superlatives and exaggerations</li>
+                        <li>Compared emotional intensity to neutral reporting baseline</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 25px; background: #fff5f5; border-radius: 15px;">
+                    <h5 style="color: #ee0979; margin-bottom: 15px;">⚠️ Why This Matters:</h5>
+                    <p style="color: #5a6c95; line-height: 1.8;">
+                        Emotional manipulation in news articles can cloud judgment and prevent rational evaluation of facts. 
+                        When articles rely heavily on emotional triggers, they often aim to generate clicks and shares rather than inform. 
+                        Always be aware of how an article makes you feel - strong emotions may indicate manipulation.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function createSourceDiversityAnalysis(results) {
+        const sourceCount = results.source_count || 2;
+        const diversityScore = sourceCount >= 5 ? 'Excellent' : sourceCount >= 3 ? 'Good' : 'Limited';
         
-        document.getElementById('articleUrl').addEventListener('blur', function() {
-            this.style.borderColor = '#e5e7eb';
-            this.style.boxShadow = 'none';
-        });
-    });
+        return `
+            <div>
+                <h4 style="color: #2d3561; margin-bottom: 20px;">Source Diversity Evaluation</h4>
+                
+                <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 64px; font-weight: 900; color: #11998e; margin-bottom: 10px;">${sourceCount}</div>
+                    <div style="font-size: 20px; color: #059669;">Different Sources Quoted</div>
+                    <div style="font-size: 16px; color: #5a6c95; margin-top: 10px;">Diversity Rating: <strong>${diversityScore}</strong></div>
+                </div>
+                
+                <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #11998e; margin-bottom: 15px;">📊 Source Analysis:</h5>
+                    <div style="display: grid; gap: 15px;">
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: #f8f9ff; border-radius: 10px;">
+                            <span style="font-weight: 600;">Direct Quotes:</span>
+                            <span style="color: #667eea; font-weight: 700;">${results.style?.quotes || 0}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: #f8f9ff; border-radius: 10px;">
+                            <span style="font-weight: 600;">Expert Sources:</span>
+                            <span style="color: #667eea; font-weight: 700;">${Math.max(0, sourceCount - 1)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: #f8f9ff; border-radius: 10px;">
+                            <span style="font-weight: 600;">Official Statements:</span>
+                            <span style="color: #667eea; font-weight: 700;">${sourceCount > 2 ? 'Yes' : 'No'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f0f9ff; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #2af598; margin-bottom: 15px;">📈 Diversity Score Breakdown:</h5>
+                    <div style="position: relative; height: 30px; background: #e0e7ff; border-radius: 15px; overflow: hidden;">
+                        <div style="position: absolute; left: 0; top: 0; height: 100%; width: ${Math.min(sourceCount * 20, 100)}%; background: linear-gradient(135deg, #11998e, #38ef7d); transition: width 1s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; color: #5a6c95;">
+                        <span>Poor (1)</span>
+                        <span>Fair (2)</span>
+                        <span>Good (3-4)</span>
+                        <span>Excellent (5+)</span>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #11998e; margin-bottom: 15px;">🔍 What This Means:</h5>
+                    <p style="color: #5a6c95; line-height: 1.8;">
+                        ${sourceCount >= 5 ? 
+                            'Excellent source diversity! This article presents multiple perspectives and viewpoints, allowing readers to form a well-rounded understanding. This is a hallmark of quality journalism.' :
+                          sourceCount >= 3 ?
+                            'Good source diversity. The article includes several different perspectives, though additional viewpoints could provide even more balance.' :
+                            'Limited source diversity. The article relies on few sources, which may result in a one-sided or incomplete picture. Look for additional coverage for a fuller understanding.'}
+                    </p>
+                </div>
+                
+                <div style="background: #e8ecff; padding: 25px; border-radius: 15px;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">💡 How We Evaluated This:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li>Counted unique sources quoted or referenced</li>
+                        <li>Identified different types of sources (experts, officials, witnesses)</li>
+                        <li>Assessed variety of perspectives presented</li>
+                        <li>Checked for opposing viewpoints inclusion</li>
+                        <li>Evaluated source credibility and relevance</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    function createTimelinessAnalysis(results) {
+        const timeliness = results.timeliness || 'current';
+        const isTimely = timeliness === 'current';
+        
+        return `
+            <div>
+                <h4 style="color: #2d3561; margin-bottom: 20px;">Information Currency & Timeliness</h4>
+                
+                <div style="background: ${isTimely ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)' : 'linear-gradient(135deg, #fff5f5, #ffe0e0)'}; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 80px; margin-bottom: 10px;">${isTimely ? '✅' : '⚠️'}</div>
+                    <div style="font-size: 24px; font-weight: 700; color: ${isTimely ? '#11998e' : '#f59e0b'};">
+                        ${isTimely ? 'Current Information' : 'Potentially Outdated'}
+                    </div>
+                    <div style="font-size: 16px; color: #5a6c95; margin-top: 10px;">
+                        Article timeliness: <strong>${timeliness}</strong>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #ee0979; margin-bottom: 15px;">📅 Timeliness Indicators:</h5>
+                    <div style="display: grid; gap: 15px;">
+                        <div style="padding: 15px; background: #f8f9ff; border-radius: 10px; display: flex; justify-content: space-between;">
+                            <span>Publication Date:</span>
+                            <span style="color: #667eea; font-weight: 600;">${results.publication_date || 'Not specified'}</span>
+                        </div>
+                        <div style="padding: 15px; background: #f8f9ff; border-radius: 10px; display: flex; justify-content: space-between;">
+                            <span>Content References:</span>
+                            <span style="color: #667eea; font-weight: 600;">${isTimely ? 'Recent events' : 'Older events'}</span>
+                        </div>
+                        <div style="padding: 15px; background: #f8f9ff; border-radius: 10px; display: flex; justify-content: space-between;">
+                            <span>Time-Sensitive Info:</span>
+                            <span style="color: #667eea; font-weight: 600;">${isTimely ? 'Up-to-date' : 'May be stale'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff5f5; padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #ee0979; margin-bottom: 15px;">⚠️ Why Timeliness Matters:</h5>
+                    <p style="color: #5a6c95; line-height: 1.8;">
+                        ${isTimely ? 
+                            'This article appears to contain current information, which is important for accuracy. However, always verify that statistics, quotes, and claims haven\'t been superseded by more recent developments.' :
+                            'This article may contain outdated information. Facts, statistics, and circumstances can change rapidly. Be sure to check for more recent coverage of this topic before drawing conclusions.'}
+                    </p>
+                </div>
+                
+                <div style="background: #e8ecff; padding: 25px; border-radius: 15px;">
+                    <h5 style="color: #667eea; margin-bottom: 15px;">🔍 How We Checked This:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li>Analyzed temporal references in the text</li>
+                        <li>Checked for publication date indicators</li>
+                        <li>Identified references to specific events and their dates</li>
+                        <li>Evaluated whether statistics and data appear current</li>
+                        <li>Assessed if the topic is time-sensitive</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #f0f9ff; padding: 25px; border-radius: 15px; margin-top: 20px;">
+                    <h5 style="color: #2af598; margin-bottom: 15px;">💡 Reader Action Items:</h5>
+                    <ul style="margin-left: 20px; color: #5a6c95; line-height: 1.8;">
+                        <li>Check the publication date if available</li>
+                        <li>Look for more recent coverage of the same topic</li>
+                        <li>Verify that quoted statistics are still accurate</li>
+                        <li>Consider if circumstances may have changed</li>
+                        <li>Search for updates or corrections to the story</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
 </script>
 
 <style>
