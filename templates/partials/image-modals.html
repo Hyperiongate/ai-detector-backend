@@ -1,0 +1,466 @@
+<!-- Image Analysis Modals -->
+
+<!-- Process Overview Modal -->
+<div id="processModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Our Image Analysis Process</h2>
+            <button class="modal-close" onclick="window.ImageApp.ui.closeModal('processModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="process-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>1. Image Upload & Preprocessing</h3>
+                        <p>Your image is securely uploaded and prepared for analysis. We extract metadata, normalize the image format, and prepare it for our AI models.</p>
+                        <ul>
+                            <li>Secure HTTPS upload</li>
+                            <li>Format validation</li>
+                            <li>Resolution optimization</li>
+                            <li>Metadata extraction</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>2. AI Detection Models</h3>
+                        <p>Multiple specialized AI models analyze your image for signs of artificial generation or manipulation.</p>
+                        <ul>
+                            <li>GAN detection algorithms</li>
+                            <li>Diffusion model signatures</li>
+                            <li>Style transfer detection</li>
+                            <li>Deepfake identification</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>3. Forensic Analysis</h3>
+                        <p>Deep pixel-level examination to detect editing, cloning, or other manipulations.</p>
+                        <ul>
+                            <li>Error level analysis</li>
+                            <li>Clone detection</li>
+                            <li>Compression artifacts</li>
+                            <li>Noise pattern analysis</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>4. Metadata Examination</h3>
+                        <p>Comprehensive analysis of embedded data to verify authenticity and origin.</p>
+                        <ul>
+                            <li>EXIF data validation</li>
+                            <li>Timestamp verification</li>
+                            <li>Camera signature matching</li>
+                            <li>Editing software traces</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3>5. Confidence Scoring</h3>
+                        <p>All findings are combined using our proprietary algorithm to generate trust scores and confidence levels.</p>
+                        <ul>
+                            <li>Weighted evidence scoring</li>
+                            <li>Cross-validation checks</li>
+                            <li>Uncertainty quantification</li>
+                            <li>Final verdict calculation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Results Modal -->
+<div id="shareModal" class="modal" style="display: none;">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Share Analysis Results</h2>
+            <button class="modal-close" onclick="window.ImageApp.ui.closeModal('shareModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="share-options">
+                <button class="share-button" onclick="window.ImageApp.helpers.shareToTwitter()">
+                    <i class="fab fa-twitter"></i>
+                    Share on Twitter
+                </button>
+                <button class="share-button" onclick="window.ImageApp.helpers.shareToFacebook()">
+                    <i class="fab fa-facebook"></i>
+                    Share on Facebook
+                </button>
+                <button class="share-button" onclick="window.ImageApp.helpers.shareToLinkedIn()">
+                    <i class="fab fa-linkedin"></i>
+                    Share on LinkedIn
+                </button>
+                <button class="share-button" onclick="window.ImageApp.helpers.copyShareLink()">
+                    <i class="fas fa-link"></i>
+                    Copy Link
+                </button>
+            </div>
+            <div class="share-link-input">
+                <input type="text" id="shareLink" readonly>
+                <button onclick="window.ImageApp.helpers.copyShareLink()" class="copy-btn">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="modal" style="display: none;">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Send Feedback</h2>
+            <button class="modal-close" onclick="window.ImageApp.ui.closeModal('feedbackModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="feedbackForm" onsubmit="window.ImageApp.helpers.submitFeedback(event)">
+                <div class="form-group">
+                    <label for="feedbackType">Feedback Type</label>
+                    <select id="feedbackType" required>
+                        <option value="">Select type...</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="accuracy">Accuracy Issue</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="feedbackMessage">Your Feedback</label>
+                    <textarea id="feedbackMessage" rows="5" required 
+                              placeholder="Please share your thoughts..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="feedbackEmail">Email (optional)</label>
+                    <input type="email" id="feedbackEmail" 
+                           placeholder="your@email.com">
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Send Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-small {
+    max-width: 500px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    max-height: calc(90vh - 80px);
+}
+
+/* Process Timeline */
+.process-timeline {
+    position: relative;
+    padding-left: 50px;
+}
+
+.process-timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.timeline-content h3 {
+    margin: 0 0 15px 0;
+    color: #2d3748;
+    font-size: 20px;
+}
+
+.timeline-content p {
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.timeline-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline-content li {
+    padding: 8px 0 8px 25px;
+    position: relative;
+    color: #718096;
+}
+
+.timeline-content li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+/* Share Options */
+.share-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.share-button {
+    padding: 15px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.share-button:hover {
+    border-color: #667eea;
+    background: #f7fafc;
+    transform: translateY(-2px);
+}
+
+.share-button i {
+    font-size: 20px;
+}
+
+.share-link-input {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+.share-link-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+.copy-btn {
+    padding: 10px 15px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.copy-btn:hover {
+    background: #5a67d8;
+}
+
+/* Feedback Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .share-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .process-timeline {
+        padding-left: 30px;
+    }
+    
+    .timeline-icon {
+        left: -15px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+}
+</style>
