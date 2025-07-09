@@ -13,13 +13,13 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0f1b;
+            background: #1a1f2e;
             color: #ffffff;
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Animated Background */
+        /* Static gradient background - no animation */
         body::before {
             content: '';
             position: fixed;
@@ -28,16 +28,10 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
             z-index: -1;
-            animation: backgroundShift 20s ease-in-out infinite;
-        }
-
-        @keyframes backgroundShift {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(5deg); }
         }
 
         .container {
@@ -48,7 +42,7 @@
             z-index: 1;
         }
 
-        /* Header */
+        /* Header - removed animated glow */
         .header {
             text-align: center;
             margin-bottom: 50px;
@@ -56,48 +50,27 @@
             position: relative;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(120, 119, 198, 0.5) 0%, transparent 70%);
-            filter: blur(60px);
-            z-index: -1;
-        }
-
         .header h1 {
             font-size: 3.5em;
             font-weight: 900;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
-            background-size: 200% 200%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientShift 5s ease infinite;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         .header p {
             font-size: 1.3em;
-            color: #a0aec0;
+            color: #b0bec5;
             margin-bottom: 20px;
         }
 
         /* State of the Art Section */
         .tech-intro {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 40px;
@@ -107,14 +80,14 @@
         }
 
         .tech-intro:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             border-color: rgba(120, 119, 198, 0.5);
             transform: translateY(-2px);
             box-shadow: 0 10px 40px rgba(120, 119, 198, 0.3);
         }
 
         .tech-intro h3 {
-            color: #4facfe;
+            color: #64b5f6;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
@@ -133,8 +106,8 @@
 
         /* Input Section */
         .input-section {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: 40px;
             margin-bottom: 40px;
@@ -143,37 +116,19 @@
             overflow: hidden;
         }
 
-        .input-section::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
-            border-radius: 20px;
-            opacity: 0.5;
-            z-index: -1;
-            animation: borderRotate 3s linear infinite;
-        }
-
-        @keyframes borderRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .input-tabs {
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .input-tab {
             padding: 12px 30px;
             border: 2px solid rgba(255, 255, 255, 0.2);
             background: rgba(255, 255, 255, 0.05);
-            color: #a0aec0;
+            color: #b0bec5;
             font-weight: 600;
             cursor: pointer;
             border-radius: 50px;
@@ -194,6 +149,22 @@
             box-shadow: 0 5px 20px rgba(120, 119, 198, 0.5);
         }
 
+        /* Analysis type explanation */
+        .analysis-explanation {
+            background: rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .analysis-explanation h4 {
+            color: #64b5f6;
+            margin-bottom: 10px;
+        }
+
         .input-content {
             display: none;
         }
@@ -211,9 +182,9 @@
         .url-input, .text-input {
             flex: 1;
             padding: 18px 24px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             border-radius: 15px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
             font-size: 16px;
             transition: all 0.3s;
@@ -229,12 +200,12 @@
         .url-input:focus, .text-input:focus {
             outline: none;
             border-color: rgba(120, 119, 198, 0.5);
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             box-shadow: 0 0 30px rgba(120, 119, 198, 0.3);
         }
 
         .url-input::placeholder, .text-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .analyze-btn {
@@ -264,15 +235,22 @@
             box-shadow: none;
         }
 
-        /* Loading State with Checkpoints */
+        /* Loading State - Fixed position at top */
         .loading {
             display: none;
-            padding: 60px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            background: rgba(30, 35, 50, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             backdrop-filter: blur(10px);
-            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
 
         .loading.active {
@@ -280,13 +258,13 @@
         }
 
         .checkpoint-progress {
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         .checkpoints {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             position: relative;
         }
 
@@ -308,24 +286,23 @@
         }
 
         .checkpoint-icon {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            margin-bottom: 8px;
             transition: all 0.3s;
         }
 
         .checkpoint.active .checkpoint-icon {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-color: transparent;
-            box-shadow: 0 0 30px rgba(120, 119, 198, 0.6);
-            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(120, 119, 198, 0.6);
         }
 
         .checkpoint.completed .checkpoint-icon {
@@ -333,22 +310,17 @@
             border-color: transparent;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
         .checkpoint-label {
-            font-size: 14px;
-            color: #a0aec0;
+            font-size: 12px;
+            color: #b0bec5;
             text-align: center;
         }
 
         .progress-bar-container {
             position: absolute;
-            top: 30px;
-            left: 30px;
-            right: 30px;
+            top: 25px;
+            left: 25px;
+            right: 25px;
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
             z-index: 1;
@@ -359,13 +331,13 @@
             width: 0%;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             transition: width 0.5s ease;
-            box-shadow: 0 0 20px rgba(120, 119, 198, 0.6);
+            box-shadow: 0 0 10px rgba(120, 119, 198, 0.6);
         }
 
         .loading-status {
             text-align: center;
-            font-size: 18px;
-            color: #a0aec0;
+            font-size: 16px;
+            color: #b0bec5;
         }
 
         /* Results Section */
@@ -377,10 +349,10 @@
             display: block;
         }
 
-        /* Overall Summary (Free Tier) */
+        /* Overall Summary - All in one box */
         .overall-summary {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: 40px;
             margin-bottom: 40px;
@@ -390,6 +362,8 @@
         .summary-header {
             text-align: center;
             margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .trust-score-container {
@@ -425,26 +399,24 @@
 
         .summary-sections {
             display: grid;
-            gap: 30px;
-            margin-top: 40px;
+            gap: 25px;
         }
 
         .summary-section {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
             padding: 25px;
+            border-left: 4px solid rgba(79, 172, 254, 0.5);
         }
 
         .summary-section h3 {
-            color: #4facfe;
+            color: #64b5f6;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 1.3em;
         }
 
-        /* Analysis Cards (Pro Features) */
+        /* Analysis Dropdowns - Full width with colored borders */
         .pro-section {
             margin-top: 40px;
         }
@@ -465,108 +437,117 @@
             margin-bottom: 20px;
         }
 
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-        }
-
-        .analysis-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+        .analysis-dropdown {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid;
+            border-radius: 15px;
+            margin-bottom: 20px;
             overflow: hidden;
             transition: all 0.3s;
+        }
+
+        /* Different colors for each dropdown */
+        .analysis-dropdown:nth-child(1) { border-color: #667eea; }
+        .analysis-dropdown:nth-child(2) { border-color: #4facfe; }
+        .analysis-dropdown:nth-child(3) { border-color: #f093fb; }
+        .analysis-dropdown:nth-child(4) { border-color: #48bb78; }
+        .analysis-dropdown:nth-child(5) { border-color: #fa709a; }
+        .analysis-dropdown:nth-child(6) { border-color: #6a11cb; }
+        .analysis-dropdown:nth-child(7) { border-color: #f56565; }
+        .analysis-dropdown:nth-child(8) { border-color: #11998e; }
+
+        .analysis-dropdown:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .analysis-dropdown.expanded {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .dropdown-header {
+            padding: 25px 30px;
+            background: rgba(255, 255, 255, 0.05);
             cursor: pointer;
-        }
-
-        .analysis-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(120, 119, 198, 0.3);
-            border-color: rgba(120, 119, 198, 0.5);
-        }
-
-        .analysis-card.expanded {
-            grid-column: 1 / -1;
-        }
-
-        .card-header {
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .card-icon-wrapper {
+        .dropdown-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .dropdown-icon-wrapper {
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .card-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 5px 20px rgba(120, 119, 198, 0.4);
-        }
-
-        .card-title-section {
             flex: 1;
         }
 
-        .card-title {
-            font-size: 20px;
+        .dropdown-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--icon-color-1), var(--icon-color-2));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .dropdown-title-section {
+            flex: 1;
+        }
+
+        .dropdown-title {
+            font-size: 18px;
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 5px;
         }
 
-        .card-preview {
+        .dropdown-preview {
             font-size: 14px;
-            color: #a0aec0;
+            color: #b0bec5;
         }
 
         .expand-icon {
-            font-size: 24px;
-            color: #a0aec0;
+            font-size: 20px;
+            color: #b0bec5;
             transition: transform 0.3s;
         }
 
-        .analysis-card.expanded .expand-icon {
+        .analysis-dropdown.expanded .expand-icon {
             transform: rotate(180deg);
         }
 
-        .card-content {
+        .dropdown-content {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.5s ease-out;
         }
 
-        .analysis-card.expanded .card-content {
+        .analysis-dropdown.expanded .dropdown-content {
             max-height: 2000px;
         }
 
-        .card-body {
+        .dropdown-body {
             padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .analysis-intro {
             background: rgba(79, 172, 254, 0.1);
-            border-left: 4px solid #4facfe;
+            border-left: 4px solid #64b5f6;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 25px;
         }
 
         .analysis-intro h4 {
-            color: #4facfe;
+            color: #64b5f6;
             margin-bottom: 10px;
         }
 
@@ -593,14 +574,35 @@
 
         .metric-value {
             font-weight: 500;
-            color: #4facfe;
+            color: #64b5f6;
+        }
+
+        /* Visual indicators for metrics */
+        .metric-visual {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+            transition: width 0.5s ease;
         }
 
         /* Bias Gauge */
         .bias-gauge {
             margin: 25px 0;
             padding: 25px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
         }
 
@@ -625,11 +627,23 @@
 
         /* Claim Cards */
         .claim-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .claim-icon {
+            font-size: 30px;
+            flex-shrink: 0;
+        }
+
+        .claim-content {
+            flex: 1;
         }
 
         .claim-text {
@@ -662,38 +676,26 @@
             color: #ed8936;
         }
 
-        /* Key Findings */
+        /* Key Findings with icons */
         .finding-item {
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-
-        .finding-item.success {
-            background: rgba(72, 187, 120, 0.1);
-            border: 1px solid rgba(72, 187, 120, 0.3);
-        }
-
-        .finding-item.warning {
-            background: rgba(237, 137, 54, 0.1);
-            border: 1px solid rgba(237, 137, 54, 0.3);
-        }
-
-        .finding-item.danger {
-            background: rgba(245, 101, 101, 0.1);
-            border: 1px solid rgba(245, 101, 101, 0.3);
-        }
-
-        .finding-item.info {
-            background: rgba(79, 172, 254, 0.1);
-            border: 1px solid rgba(79, 172, 254, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .finding-icon {
-            font-size: 20px;
+            font-size: 30px;
+            flex-shrink: 0;
+        }
+
+        .finding-text {
+            flex: 1;
+            line-height: 1.6;
         }
 
         /* Action Buttons */
@@ -775,10 +777,6 @@
                 width: 100%;
             }
             
-            .analysis-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .checkpoints {
                 flex-wrap: wrap;
                 gap: 20px;
@@ -801,14 +799,14 @@
         <div class="tech-intro" onclick="toggleTechIntro()">
             <h3>🚀 Cutting-Edge AI Technology - Click to Learn More</h3>
             <div class="tech-intro-content">
-                <p style="margin-bottom: 20px;">Our system leverages the most advanced AI technologies available:</p>
+                <p style="margin-bottom: 20px;">Our system leverages the most advanced AI technologies available to provide you with comprehensive news analysis:</p>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 15px;">🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context, detecting bias, and fact-checking</li>
-                    <li style="margin-bottom: 15px;">📊 <strong>Multi-Source Verification:</strong> Cross-references claims against multiple databases and knowledge sources</li>
-                    <li style="margin-bottom: 15px;">🔍 <strong>Deep Learning Analysis:</strong> Neural networks trained on millions of articles to detect patterns</li>
-                    <li style="margin-bottom: 15px;">⚡ <strong>Real-Time Processing:</strong> Instant analysis with comprehensive results in seconds</li>
-                    <li style="margin-bottom: 15px;">🎯 <strong>Bias Detection AI:</strong> Advanced algorithms to identify political lean and emotional manipulation</li>
-                    <li style="margin-bottom: 15px;">📈 <strong>Credibility Scoring:</strong> Proprietary algorithms combining source history, author credentials, and content quality</li>
+                    <li style="margin-bottom: 15px;">🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context, detecting bias, and fact-checking with human-level comprehension</li>
+                    <li style="margin-bottom: 15px;">📊 <strong>Multi-Source Verification:</strong> Cross-references claims against multiple databases and knowledge sources to ensure accuracy</li>
+                    <li style="margin-bottom: 15px;">🔍 <strong>Deep Learning Analysis:</strong> Neural networks trained on millions of articles to detect manipulation patterns and writing techniques</li>
+                    <li style="margin-bottom: 15px;">⚡ <strong>Real-Time Processing:</strong> Instant analysis with comprehensive results in seconds, providing immediate insights</li>
+                    <li style="margin-bottom: 15px;">🎯 <strong>Bias Detection AI:</strong> Advanced algorithms to identify political lean, emotional manipulation, and perspective framing</li>
+                    <li style="margin-bottom: 15px;">📈 <strong>Credibility Scoring:</strong> Proprietary algorithms combining source history, author credentials, content quality, and fact accuracy</li>
                 </ul>
             </div>
         </div>
@@ -822,6 +820,10 @@
             
             <!-- URL Input -->
             <div class="input-content active" id="urlInput">
+                <div class="analysis-explanation">
+                    <h4>🔗 URL Analysis - Recommended for Best Results</h4>
+                    <p>URL analysis provides the most accurate results by accessing the full article context, including metadata, publication date, author information, and source credibility. Our system can extract all relevant information directly from the webpage, ensuring nothing is missed. This method also allows us to verify the source domain and check for any updates or corrections to the article.</p>
+                </div>
                 <div class="input-group">
                     <input type="url" 
                            id="articleUrl" 
@@ -832,8 +834,12 @@
             
             <!-- Text Input -->
             <div class="input-content" id="textInput">
+                <div class="analysis-explanation">
+                    <h4>📝 Text Analysis - Alternative Method</h4>
+                    <p>Text analysis is useful when you have article text but no URL, or when a website blocks automated access. While still highly accurate, this method may miss some context like publication date, author credentials, or source domain verification. For best results, include the complete article text including title, author name, publication date, and all content. The more complete the text, the more accurate our analysis will be.</p>
+                </div>
                 <textarea id="articleText" 
-                          placeholder="Paste complete article text including title, author, and content..."
+                          placeholder="Paste complete article text including title, author, date, and full content for most accurate analysis..."
                           class="text-input"></textarea>
             </div>
             
@@ -844,7 +850,7 @@
             </div>
         </div>
 
-        <!-- Advanced Loading State -->
+        <!-- Advanced Loading State - Fixed at top -->
         <div class="loading" id="loading">
             <div class="checkpoint-progress">
                 <div class="checkpoints">
@@ -920,13 +926,13 @@
             if (currentInputType === 'url') {
                 content = document.getElementById('articleUrl').value.trim();
                 if (!content) {
-                    showMessage('Please enter a URL', 'error');
+                    showMessage('Please enter a valid URL to analyze. The URL should be a complete web address starting with http:// or https://', 'error');
                     return;
                 }
             } else {
                 content = document.getElementById('articleText').value.trim();
                 if (!content) {
-                    showMessage('Please enter article text', 'error');
+                    showMessage('Please enter the article text to analyze. Include as much information as possible for accurate results.', 'error');
                     return;
                 }
                 contentType = 'text';
@@ -986,9 +992,11 @@
                 let errorMessage = 'Analysis failed: ';
                 
                 if (error.message.includes('403') || error.message.includes('Forbidden')) {
-                    errorMessage = '⚠️ Website blocks automated access. Use Text Analysis instead.';
+                    errorMessage = '⚠️ This website blocks automated access for security reasons. Please use the Text Analysis option instead by copying and pasting the article content.';
+                } else if (error.message.includes('Invalid URL')) {
+                    errorMessage = '⚠️ The URL appears to be invalid. Please check that it\'s a complete web address starting with http:// or https://';
                 } else {
-                    errorMessage += error.message;
+                    errorMessage += error.message + '. Please try again or contact support if the issue persists.';
                 }
                 
                 showMessage(errorMessage, 'error');
@@ -1002,11 +1010,11 @@
         // Checkpoint animation
         function animateCheckpoints() {
             const stages = [
-                'Extracting article content...',
-                'Running GPT-4 neural analysis...',
-                'Fact-checking claims against databases...',
-                'Detecting bias patterns...',
-                'Generating comprehensive report...'
+                'Extracting article content and metadata from source...',
+                'Running GPT-4 neural network analysis on content...',
+                'Cross-referencing claims against fact-checking databases...',
+                'Analyzing writing patterns for bias detection...',
+                'Generating comprehensive intelligence report...'
             ];
             
             const interval = setInterval(() => {
@@ -1045,7 +1053,7 @@
             
             resultsDiv.classList.add('active');
             
-            // Generate overall summary (FREE TIER)
+            // Generate overall summary - all in one box
             const overallSummary = `
                 <div class="overall-summary">
                     <div class="summary-header">
@@ -1073,38 +1081,39 @@
                     <div class="summary-sections">
                         <!-- Source & Author -->
                         <div class="summary-section">
-                            <h3>📰 Source & Author</h3>
-                            <p><strong>Source:</strong> ${results.sources?.name || 'Unknown'} 
+                            <h3>📰 Source & Author Information</h3>
+                            <p><strong>News Source:</strong> ${results.sources?.name || 'Unknown'} 
                                ${results.sources?.domain && results.sources.domain !== 'Direct Input' ? `(${results.sources.domain})` : ''}</p>
-                            <p><strong>Author:</strong> ${results.author && results.author !== 'Unknown' ? results.author : 'Not identified'}</p>
-                            ${results.sources?.credibility ? `<p><strong>Source Credibility:</strong> ${results.sources.credibility}%</p>` : ''}
+                            <p><strong>Article Author:</strong> ${results.author && results.author !== 'Unknown' ? results.author : 'No author attribution found - this may indicate lower credibility'}</p>
+                            ${results.sources?.credibility ? `<p><strong>Source Credibility Score:</strong> ${results.sources.credibility}% - ${getCredibilityDescription(results.sources.credibility)}</p>` : ''}
                         </div>
                         
                         <!-- What the Article is About -->
                         <div class="summary-section">
-                            <h3>📋 What the Article is About</h3>
-                            <p>${results.summary || 'Article summary not available. The content appears to cover news or current events.'}</p>
+                            <h3>📋 Article Summary & Main Points</h3>
+                            <p>${results.summary || 'The article content covers current events and news topics. Our AI system has analyzed the full content to provide detailed insights below.'}</p>
                         </div>
                         
-                        <!-- Key Findings -->
+                        <!-- Key Findings with graphics -->
                         <div class="summary-section">
-                            <h3>🔍 Key Findings</h3>
+                            <h3>🔍 Key Analysis Findings</h3>
                             ${generateKeyFindings(results)}
                         </div>
                     </div>
                 </div>
             `;
             
-            // Generate pro analysis cards
+            // Generate pro analysis dropdowns
             const proAnalysis = `
                 <div class="pro-section">
                     <div class="pro-header">
                         <span class="pro-badge">PRO ANALYSIS</span>
                         <h2 style="color: #ffffff; font-size: 2em; margin-top: 10px;">Deep AI Intelligence Report</h2>
+                        <p style="color: #b0bec5; margin-top: 10px;">Click on any section below to expand detailed analysis</p>
                     </div>
                     
-                    <div class="analysis-grid">
-                        ${generateAnalysisCards(results)}
+                    <div class="analysis-list">
+                        ${generateAnalysisDropdowns(results)}
                     </div>
                 </div>
             `;
@@ -1112,11 +1121,11 @@
             // Action buttons
             const actions = `
                 <div class="action-section">
-                    <button class="btn btn-primary" onclick="generatePDF()">
-                        📄 Download Full Report
+                    <button class="btn btn-primary" onclick="shareResults()">
+                        📤 Share Analysis Results
                     </button>
                     <button class="btn btn-secondary" onclick="resetAnalysis()">
-                        🔄 New Analysis
+                        🔄 Analyze Another Article
                     </button>
                 </div>
             `;
@@ -1126,110 +1135,171 @@
             // Animate trust score
             animateTrustScore(results.credibility || 0);
             
-            // Add click handlers
-            document.querySelectorAll('.analysis-card').forEach(card => {
-                const header = card.querySelector('.card-header');
-                header.addEventListener('click', () => {
-                    card.classList.toggle('expanded');
+            // Add click handlers for dropdowns
+            document.querySelectorAll('.dropdown-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const dropdown = this.closest('.analysis-dropdown');
+                    dropdown.classList.toggle('expanded');
                 });
             });
+            
+            // Animate metric bars
+            setTimeout(() => {
+                document.querySelectorAll('.metric-bar-fill').forEach(bar => {
+                    const width = bar.getAttribute('data-width');
+                    if (width) {
+                        bar.style.width = width;
+                    }
+                });
+            }, 100);
             
             resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Generate key findings
+        // Generate key findings with visual indicators
         function generateKeyFindings(results) {
             const findings = [];
             
-            // Source credibility
+            // Source credibility with icon
             if (results.sources?.credibility >= 80) {
-                findings.push({ icon: '✅', text: `Highly credible source: ${results.sources.name}`, type: 'success' });
+                findings.push({ 
+                    icon: '✅', 
+                    text: `Highly credible and trustworthy news source: ${results.sources.name}. This source has a strong track record of accurate reporting and journalistic integrity.`, 
+                    type: 'success' 
+                });
             } else if (results.sources?.credibility >= 60) {
-                findings.push({ icon: '⚠️', text: `Moderately credible source: ${results.sources.name}`, type: 'warning' });
+                findings.push({ 
+                    icon: '⚠️', 
+                    text: `Moderately credible source: ${results.sources.name}. This source generally provides reliable information but may have occasional accuracy issues or bias.`, 
+                    type: 'warning' 
+                });
             } else {
-                findings.push({ icon: '❌', text: 'Low credibility or unverified source', type: 'danger' });
+                findings.push({ 
+                    icon: '❌', 
+                    text: 'Low credibility or unverified source detected. Information from this source should be cross-referenced with other reliable sources before accepting as fact.', 
+                    type: 'danger' 
+                });
             }
             
-            // Author
+            // Author information
             if (results.author && results.author !== 'Unknown') {
-                findings.push({ icon: '✅', text: `Author identified: ${results.author}`, type: 'success' });
+                findings.push({ 
+                    icon: '👤', 
+                    text: `Author properly identified as ${results.author}. Author attribution is a positive sign of accountability and transparency in journalism.`, 
+                    type: 'success' 
+                });
             } else {
-                findings.push({ icon: '⚠️', text: 'No author attribution found', type: 'warning' });
+                findings.push({ 
+                    icon: '❓', 
+                    text: 'No author attribution found in this article. Anonymous or unattributed articles may be less reliable as there is no accountability for the content.', 
+                    type: 'warning' 
+                });
             }
             
-            // Bias
+            // Bias detection
             if (results.bias?.objectivity >= 80) {
-                findings.push({ icon: '✅', text: 'Highly objective reporting', type: 'success' });
+                findings.push({ 
+                    icon: '⚖️', 
+                    text: 'Highly objective and balanced reporting detected. The article presents facts without significant bias or emotional manipulation.', 
+                    type: 'success' 
+                });
             } else if (results.bias?.label) {
-                findings.push({ icon: '⚠️', text: `${results.bias.label} bias detected`, type: 'warning' });
+                findings.push({ 
+                    icon: '📊', 
+                    text: `${results.bias.label} perspective detected in the article. While bias doesn\'t necessarily mean inaccuracy, readers should be aware of the political or ideological framing.`, 
+                    type: 'warning' 
+                });
             }
             
-            // Overall accuracy
+            // Overall accuracy assessment
             if (results.overall_accuracy >= 80) {
-                findings.push({ icon: '✅', text: `High factual accuracy: ${results.overall_accuracy}%`, type: 'success' });
+                findings.push({ 
+                    icon: '🎯', 
+                    text: `High factual accuracy verified: ${results.overall_accuracy}% of claims are supported by evidence. This article appears to be well-researched and factually reliable.`, 
+                    type: 'success' 
+                });
             } else if (results.overall_accuracy >= 60) {
-                findings.push({ icon: '⚠️', text: `Moderate accuracy: ${results.overall_accuracy}%`, type: 'warning' });
+                findings.push({ 
+                    icon: '📈', 
+                    text: `Moderate factual accuracy: ${results.overall_accuracy}% of claims verified. Some statements may require additional verification from other sources.`, 
+                    type: 'warning' 
+                });
             }
             
-            // Add GPT-4 findings
+            // Add GPT-4 specific findings
             if (results.key_findings?.length > 0) {
-                results.key_findings.slice(0, 2).forEach(finding => {
-                    findings.push({ icon: 'ℹ️', text: finding, type: 'info' });
+                results.key_findings.slice(0, 3).forEach(finding => {
+                    findings.push({ 
+                        icon: '🧠', 
+                        text: finding, 
+                        type: 'info' 
+                    });
                 });
             }
             
             return findings.map(f => `
-                <div class="finding-item ${f.type}">
+                <div class="finding-item">
                     <span class="finding-icon">${f.icon}</span>
-                    <span>${f.text}</span>
+                    <span class="finding-text">${f.text}</span>
                 </div>
             `).join('');
         }
 
-        // Generate analysis cards
-        function generateAnalysisCards(results) {
-            const cards = [];
+        // Generate analysis dropdowns with colored borders
+        function generateAnalysisDropdowns(results) {
+            const dropdowns = [];
             
-            // Author Credibility Card
-            if (results.author && results.author !== 'Unknown') {
-                cards.push({
+            // Author Credibility Analysis
+            if (results.author || results.author === 'Unknown') {
+                dropdowns.push({
                     icon: '👤',
-                    title: 'Author Credibility Analysis',
-                    preview: results.author,
-                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    title: 'Author Credibility & Background Analysis',
+                    preview: results.author !== 'Unknown' ? `Author: ${results.author}` : 'No author attribution found',
+                    iconColors: ['#667eea', '#764ba2'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>Evaluates the author's professional background, expertise in the subject matter, and track record of accurate reporting. High author credibility indicates established journalists with relevant experience.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>Author credibility is a crucial factor in determining article reliability. We evaluate the author's professional background, expertise in the subject matter, track record of accurate reporting, and any potential conflicts of interest. Established journalists with relevant expertise and transparent affiliations typically produce more trustworthy content.</p>
                         </div>
                         <div class="analysis-details">
                             <div class="metric-item">
                                 <span class="metric-label">Author Name:</span>
-                                <span class="metric-value">${results.author}</span>
+                                <span class="metric-value">${results.author !== 'Unknown' ? results.author : 'Not Provided'}</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Attribution Status:</span>
-                                <span class="metric-value">Verified ✓</span>
+                                <span class="metric-value">${results.author !== 'Unknown' ? 'Verified ✓' : 'Missing ✗'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Credibility Impact:</span>
+                                <div class="metric-visual">
+                                    <span class="metric-value">${results.author !== 'Unknown' ? 'Positive' : 'Negative'}</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-bar-fill" data-width="${results.author !== 'Unknown' ? '80%' : '20%'}" style="background: ${results.author !== 'Unknown' ? '#48bb78' : '#f56565'};"></div>
+                                    </div>
+                                </div>
                             </div>
                             <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                                <strong>Note:</strong> Author attribution is a positive credibility indicator. Anonymous or unattributed articles are generally less trustworthy.
+                                <strong>Why this matters:</strong> ${results.author !== 'Unknown' ? 
+                                'Author attribution demonstrates accountability and allows readers to verify the writer\'s credentials and potential biases. This transparency is a hallmark of quality journalism.' : 
+                                'The absence of author attribution is a red flag. Anonymous articles lack accountability and make it impossible to verify the writer\'s expertise or identify potential conflicts of interest.'}
                             </p>
                         </div>
                     `
                 });
             }
             
-            // Source Verification Card
+            // Source Verification & History
             if (results.sources) {
-                cards.push({
+                dropdowns.push({
                     icon: '🏛️',
-                    title: 'Source Verification',
-                    preview: `${results.sources.name} - ${results.sources.credibility || 'Unknown'}% credibility`,
-                    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    title: 'News Source Verification & Credibility Assessment',
+                    preview: `${results.sources.name} - ${results.sources.credibility || 'Unknown'}% credibility score`,
+                    iconColors: ['#4facfe', '#00f2fe'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>Verifies the news source against our database of thousands of media outlets, checking their historical accuracy, editorial standards, transparency, and correction policies.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>We verify news sources against our comprehensive database of thousands of media outlets worldwide. This analysis examines the source's historical accuracy, editorial standards, transparency policies, correction practices, ownership structure, and any known political affiliations. Sources with consistent track records of accurate reporting and transparent correction policies score higher.</p>
                         </div>
                         <div class="analysis-details">
                             <div class="metric-item">
@@ -1237,214 +1307,267 @@
                                 <span class="metric-value">${results.sources.name}</span>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Domain:</span>
+                                <span class="metric-label">Website Domain:</span>
                                 <span class="metric-value">${results.sources.domain}</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Credibility Score:</span>
-                                <span class="metric-value">${results.sources.credibility || 'N/A'}%</span>
+                                <div class="metric-visual">
+                                    <span class="metric-value">${results.sources.credibility || 'N/A'}%</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-bar-fill" data-width="${results.sources.credibility || 0}%" style="background: ${getScoreColor(results.sources.credibility)};"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Known Political Bias:</span>
-                                <span class="metric-value">${results.sources.bias || 'Unknown'}</span>
+                                <span class="metric-value">${results.sources.bias || 'Not detected'}</span>
                             </div>
                             ${results.sources.assessment ? `
                             <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
                                 <strong>AI Assessment:</strong> ${results.sources.assessment}
                             </p>` : ''}
+                            <p style="margin-top: 20px; padding: 20px; background: rgba(79,172,254,0.1); border-radius: 10px;">
+                                <strong>Credibility factors considered:</strong> Historical accuracy, editorial independence, transparency about funding and ownership, correction policies, journalistic standards adherence, and peer recognition in the media industry.
+                            </p>
                         </div>
                     `
                 });
             }
             
-            // Bias Detection Card
+            // Bias & Objectivity Detection
             if (results.bias) {
-                cards.push({
+                dropdowns.push({
                     icon: '⚖️',
-                    title: 'Bias & Objectivity Analysis',
-                    preview: `${results.bias.label} - ${results.bias.objectivity}% objective`,
-                    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    title: 'Political Bias & Objectivity Analysis',
+                    preview: `${results.bias.label} perspective - ${results.bias.objectivity}% objective reporting`,
+                    iconColors: ['#f093fb', '#f5576c'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>Uses advanced AI to detect political bias by analyzing word choice, source selection, framing, and emotional language. Bias doesn't mean inaccuracy - it indicates perspective.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>Our advanced AI examines linguistic patterns, word choices, source selection, story framing, and emotional language to detect political bias. We analyze whether all sides of an issue are presented fairly, if loaded language is used, and whether facts are cherry-picked to support a particular narrative. Remember: bias doesn't necessarily mean inaccuracy - it indicates perspective and framing.</p>
                         </div>
                         ${createBiasGauge(results.bias)}
                         <div class="analysis-details">
                             ${results.bias.reasoning ? `
                             <p style="margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                                <strong>GPT-4 Analysis:</strong> ${results.bias.reasoning}
+                                <strong>GPT-4 Detailed Analysis:</strong> ${results.bias.reasoning}
                             </p>` : ''}
                             <div class="metric-item">
-                                <span class="metric-label">Political Lean:</span>
+                                <span class="metric-label">Political Lean Detected:</span>
                                 <span class="metric-value">${results.bias.label}</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Objectivity Score:</span>
-                                <span class="metric-value">${results.bias.objectivity}%</span>
+                                <div class="metric-visual">
+                                    <span class="metric-value">${results.bias.objectivity}%</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-bar-fill" data-width="${results.bias.objectivity}%" style="background: ${getScoreColor(results.bias.objectivity)};"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Bias Score:</span>
-                                <span class="metric-value">${results.bias.score > 0 ? '+' : ''}${results.bias.score}</span>
+                                <span class="metric-label">Bias Intensity Score:</span>
+                                <span class="metric-value">${results.bias.score > 0 ? '+' : ''}${results.bias.score} (${Math.abs(results.bias.score) <= 3 ? 'Mild' : Math.abs(results.bias.score) <= 6 ? 'Moderate' : 'Strong'})</span>
                             </div>
+                            <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <strong>Understanding bias scores:</strong> Negative scores indicate left-leaning bias, positive scores indicate right-leaning bias. The magnitude indicates intensity. Quality journalism can exist across the political spectrum - what matters is transparency about perspective and fair representation of facts.
+                            </p>
                         </div>
                     `
                 });
             }
             
-            // Fact Verification Card
+            // Fact Verification Results
             if (results.claims && results.claims.length > 0) {
-                cards.push({
+                dropdowns.push({
                     icon: '✓',
-                    title: 'Fact Verification Results',
-                    preview: `${results.claims.length} claims analyzed`,
-                    gradient: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
+                    title: 'Fact-Checking & Claim Verification Results',
+                    preview: `${results.claims.length} factual claims analyzed and verified`,
+                    iconColors: ['#48bb78', '#38a169'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>GPT-4 identifies and verifies specific factual claims made in the article, checking them against its vast knowledge base and evaluating their logical consistency.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>GPT-4 identifies specific factual claims made in the article and verifies them against its vast knowledge base trained on millions of reliable sources. Each claim is evaluated for accuracy, logical consistency, and supporting evidence. We also check for common misinformation patterns and logical fallacies. High confidence scores indicate strong evidence supporting the claim.</p>
                         </div>
                         <div class="analysis-details">
                             ${results.claims.map(claim => `
                                 <div class="claim-card">
-                                    <div class="claim-text">"${claim.claim}"</div>
-                                    <div>
-                                        <span class="claim-verdict ${getClaimClass(claim.status)}">
-                                            ${getClaimLabel(claim.status)}
-                                        </span>
-                                        <span style="color: #a0aec0;">Confidence: ${claim.confidence}%</span>
+                                    <span class="claim-icon">${getClaimIcon(claim.status)}</span>
+                                    <div class="claim-content">
+                                        <div class="claim-text">"${claim.claim}"</div>
+                                        <div>
+                                            <span class="claim-verdict ${getClaimClass(claim.status)}">
+                                                ${getClaimLabel(claim.status)}
+                                            </span>
+                                            <span style="color: #b0bec5;">AI Confidence: ${claim.confidence}%</span>
+                                        </div>
                                     </div>
                                 </div>
                             `).join('')}
                             ${results.overall_accuracy ? `
                             <div style="margin-top: 20px; padding: 20px; background: rgba(72,187,120,0.1); border-radius: 10px; text-align: center;">
-                                <strong style="color: #48bb78;">Overall Factual Accuracy: ${results.overall_accuracy}%</strong>
+                                <strong style="color: #48bb78; font-size: 1.2em;">Overall Factual Accuracy Score: ${results.overall_accuracy}%</strong>
+                                <p style="margin-top: 10px; color: #b0bec5;">This score represents the percentage of verifiable claims that our AI confirmed as accurate based on available evidence.</p>
                             </div>` : ''}
                         </div>
                     `
                 });
             }
             
-            // Writing Quality Card
+            // Writing Quality & Journalistic Standards
             if (results.style) {
-                cards.push({
+                dropdowns.push({
                     icon: '✍️',
-                    title: 'Writing Quality Analysis',
-                    preview: `${results.style.tone || 'Unknown'} tone - ${results.style.balanced ? 'Balanced' : 'Unbalanced'}`,
-                    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                    title: 'Writing Quality & Journalistic Standards Analysis',
+                    preview: `${results.style.tone || 'Unknown'} tone - ${results.style.balanced ? 'Balanced' : 'Unbalanced'} reporting`,
+                    iconColors: ['#fa709a', '#fee140'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>Evaluates journalistic quality by analyzing the use of sources, statistical evidence, writing complexity, and balanced presentation. High-quality journalism includes multiple sources and verifiable data.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>Quality journalism follows specific standards: multiple sources, verifiable data, balanced perspectives, and clear attribution. We analyze the article's use of direct quotes (indicating primary sourcing), statistical evidence (showing research depth), complexity of language (accessibility vs sophistication), and whether multiple viewpoints are presented fairly. High-quality articles typically include diverse sources and concrete evidence.</p>
                         </div>
                         <div class="analysis-details">
                             <div class="metric-item">
-                                <span class="metric-label">Direct Quotes:</span>
-                                <span class="metric-value">${results.style.quotes} ${results.style.quotes >= 2 ? '✅' : '⚠️'}</span>
+                                <span class="metric-label">Direct Quote Usage:</span>
+                                <div class="metric-visual">
+                                    <span class="metric-value">${results.style.quotes} quotes ${results.style.quotes >= 2 ? '✅' : '⚠️'}</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-bar-fill" data-width="${Math.min(results.style.quotes * 20, 100)}%" style="background: ${results.style.quotes >= 2 ? '#48bb78' : '#ed8936'};"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Statistical References:</span>
-                                <span class="metric-value">${results.style.statistics} ${results.style.statistics >= 2 ? '✅' : '⚠️'}</span>
+                                <span class="metric-label">Statistical Evidence:</span>
+                                <div class="metric-visual">
+                                    <span class="metric-value">${results.style.statistics} references ${results.style.statistics >= 2 ? '✅' : '⚠️'}</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-bar-fill" data-width="${Math.min(results.style.statistics * 20, 100)}%" style="background: ${results.style.statistics >= 2 ? '#48bb78' : '#ed8936'};"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Reading Level:</span>
-                                <span class="metric-value">Grade ${results.style.readingLevel}</span>
+                                <span class="metric-label">Reading Complexity:</span>
+                                <span class="metric-value">Grade ${results.style.readingLevel} level (${results.style.readingLevel <= 8 ? 'Easy' : results.style.readingLevel <= 12 ? 'Moderate' : 'Advanced'})</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Writing Tone:</span>
-                                <span class="metric-value">${results.style.tone || 'Unknown'}</span>
+                                <span class="metric-value">${results.style.tone || 'Not analyzed'}</span>
                             </div>
                             <div class="metric-item">
-                                <span class="metric-label">Balanced Reporting:</span>
-                                <span class="metric-value">${results.style.balanced ? 'Yes ✅' : 'No ❌'}</span>
+                                <span class="metric-label">Balanced Perspective:</span>
+                                <span class="metric-value">${results.style.balanced ? 'Yes ✅ - Multiple viewpoints presented' : 'No ❌ - Single perspective dominates'}</span>
                             </div>
+                            <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <strong>Quality indicators:</strong> High-quality journalism typically includes at least 2-3 direct quotes from relevant sources, statistical evidence to support claims, accessible language (8th-12th grade level), neutral tone, and balanced presentation of different perspectives on controversial topics.
+                            </p>
                         </div>
                     `
                 });
             }
             
-            // AI Insights Card
+            // AI Deep Insights & Pattern Recognition
             if (results.key_findings && results.key_findings.length > 0) {
-                cards.push({
+                dropdowns.push({
                     icon: '🧠',
-                    title: 'AI Deep Insights',
-                    preview: `${results.key_findings.length} key observations`,
-                    gradient: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+                    title: 'AI Deep Insights & Pattern Recognition',
+                    preview: `${results.key_findings.length} advanced observations detected`,
+                    iconColors: ['#6a11cb', '#2575fc'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>GPT-4's advanced neural networks identify subtle patterns, logical inconsistencies, and important context that human readers might miss.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>GPT-4's advanced neural networks can identify subtle patterns, logical inconsistencies, missing context, and manipulation techniques that human readers might miss. This includes detecting cherry-picked data, false equivalencies, strawman arguments, emotional manipulation, missing crucial context, and coordinated messaging patterns. These insights help readers understand not just what is said, but what is left unsaid.</p>
                         </div>
                         <div class="analysis-details">
                             ${results.key_findings.map((finding, i) => `
-                                <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; border-left: 4px solid #4facfe;">
-                                    <strong>Finding ${i + 1}:</strong> ${finding}
+                                <div style="margin-bottom: 15px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px; border-left: 4px solid #64b5f6;">
+                                    <strong style="color: #64b5f6;">Key Insight ${i + 1}:</strong>
+                                    <p style="margin-top: 10px; line-height: 1.6;">${finding}</p>
                                 </div>
                             `).join('')}
+                            <p style="margin-top: 20px; padding: 20px; background: rgba(106,17,203,0.1); border-radius: 10px;">
+                                <strong>How AI helps:</strong> These insights are generated by analyzing thousands of linguistic patterns, comparing against known manipulation techniques, and identifying what information might be missing or misrepresented. This helps readers develop a more complete understanding of the topic.
+                            </p>
                         </div>
                     `
                 });
             }
             
-            // Red Flags Card
+            // Warning Signs & Red Flags
             if (results.red_flags && results.red_flags.length > 0) {
-                cards.push({
+                dropdowns.push({
                     icon: '⚠️',
-                    title: 'Warning Signs Detected',
-                    preview: `${results.red_flags.length} concerns identified`,
-                    gradient: 'linear-gradient(135deg, #f56565 0%, #ed8936 100%)',
+                    title: 'Warning Signs & Credibility Red Flags',
+                    preview: `${results.red_flags.length} potential issues identified`,
+                    iconColors: ['#f56565', '#ed8936'],
                     content: `
                         <div class="analysis-intro">
-                            <h4>What this analysis does:</h4>
-                            <p>Identifies potential issues that may affect the article's credibility, including missing information, logical flaws, or manipulation techniques.</p>
+                            <h4>What this analysis reveals:</h4>
+                            <p>Our system identifies specific warning signs that may indicate unreliable information, manipulation tactics, or poor journalistic practices. These include missing attribution, unverifiable claims, emotional manipulation, logical fallacies, selective fact presentation, and signs of coordinated disinformation. Each red flag doesn't necessarily mean the article is false, but readers should approach with extra scrutiny.</p>
                         </div>
                         <div class="analysis-details">
                             ${results.red_flags.map(flag => `
-                                <div style="margin-bottom: 15px; padding: 15px; background: rgba(245,101,101,0.1); border-radius: 10px; border-left: 4px solid #f56565;">
-                                    ${flag}
+                                <div style="margin-bottom: 15px; padding: 20px; background: rgba(245,101,101,0.1); border-radius: 10px; border-left: 4px solid #f56565;">
+                                    <strong style="color: #f56565;">⚠️ Warning:</strong>
+                                    <p style="margin-top: 10px; line-height: 1.6;">${flag}</p>
                                 </div>
                             `).join('')}
+                            <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <strong>What to do with red flags:</strong> When you see these warnings, take extra care to verify information from multiple independent sources. Look for original documents or primary sources, check if other reputable outlets are reporting the same information, and be aware of your own biases when evaluating controversial claims.
+                            </p>
                         </div>
                     `
                 });
             }
             
-            // Cross-Reference Analysis
-            cards.push({
+            // Cross-Reference & Multi-Source Analysis
+            dropdowns.push({
                 icon: '🔄',
-                title: 'Cross-Reference Verification',
-                preview: 'Multi-source validation analysis',
-                gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                title: 'Cross-Reference & Multi-Source Verification',
+                preview: 'Comparative analysis across multiple news sources',
+                iconColors: ['#11998e', '#38ef7d'],
                 content: `
                     <div class="analysis-intro">
-                        <h4>What this analysis does:</h4>
-                        <p>Checks if other reputable sources are reporting the same story, verifying consistency of facts across multiple outlets to identify potential misinformation.</p>
+                        <h4>What this analysis reveals:</h4>
+                        <p>One of the most effective ways to verify news is to check if multiple independent, credible sources are reporting the same information. This analysis examines whether the key claims in this article appear in other reputable outlets, whether the facts align across sources, and if there are any significant discrepancies. Stories that appear only in one source or in a cluster of ideologically aligned sources may require extra scrutiny.</p>
                     </div>
                     <div class="analysis-details">
-                        <p style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                            Cross-reference verification helps identify isolated claims that may be false or misleading. Stories reported by multiple credible sources are generally more reliable.
+                        <div class="metric-item">
+                            <span class="metric-label">Cross-Reference Status:</span>
+                            <span class="metric-value">Analysis based on single source</span>
+                        </div>
+                        <p style="margin-top: 20px; padding: 20px; background: rgba(79,172,254,0.1); border-radius: 10px;">
+                            <strong>💡 Pro tip for readers:</strong> Always verify important news by checking 2-3 additional sources with different political perspectives. Look for original documents, official statements, or primary sources referenced in articles. Be especially cautious of stories that seem designed to provoke strong emotional reactions.
+                        </p>
+                        <p style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <strong>Signs of reliable multi-source verification:</strong>
+                            <br>• Story appears in outlets across the political spectrum
+                            <br>• Key facts remain consistent across sources
+                            <br>• Original documents or recordings are available
+                            <br>• Multiple independent witnesses or experts quoted
+                            <br>• Timeline of events is clear and consistent
                         </p>
                     </div>
                 `
             });
             
-            return cards.map(card => `
-                <div class="analysis-card">
-                    <div class="card-header">
-                        <div class="card-icon-wrapper">
-                            <div class="card-icon" style="background: ${card.gradient}">
-                                ${card.icon}
+            return dropdowns.map((dropdown, index) => `
+                <div class="analysis-dropdown" style="--icon-color-1: ${dropdown.iconColors[0]}; --icon-color-2: ${dropdown.iconColors[1]};">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon">
+                                ${dropdown.icon}
                             </div>
-                            <div class="card-title-section">
-                                <div class="card-title">${card.title}</div>
-                                <div class="card-preview">${card.preview}</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">${dropdown.title}</div>
+                                <div class="dropdown-preview">${dropdown.preview}</div>
                             </div>
                         </div>
                         <div class="expand-icon">▼</div>
                     </div>
-                    <div class="card-content">
-                        <div class="card-body">
-                            ${card.content}
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${dropdown.content}
                         </div>
                     </div>
                 </div>
@@ -1461,8 +1584,21 @@
         function getTrustLabel(score) {
             if (score >= 80) return 'HIGHLY TRUSTWORTHY';
             if (score >= 60) return 'MODERATELY TRUSTWORTHY';
-            if (score >= 40) return 'QUESTIONABLE';
-            return 'LOW TRUST';
+            if (score >= 40) return 'QUESTIONABLE RELIABILITY';
+            return 'LOW TRUST - VERIFY CAREFULLY';
+        }
+
+        function getCredibilityDescription(score) {
+            if (score >= 80) return 'This source has an excellent track record of accurate reporting';
+            if (score >= 60) return 'This source is generally reliable but may have occasional issues';
+            if (score >= 40) return 'This source has mixed credibility and should be cross-referenced';
+            return 'This source has poor credibility or is unverified';
+        }
+
+        function getScoreColor(score) {
+            if (score >= 80) return '#48bb78';
+            if (score >= 60) return '#ed8936';
+            return '#f56565';
         }
 
         function getClaimClass(status) {
@@ -1472,9 +1608,15 @@
         }
 
         function getClaimLabel(status) {
-            if (status.toLowerCase().includes('verif')) return 'VERIFIED';
-            if (status.toLowerCase().includes('false')) return 'FALSE';
-            return 'UNVERIFIED';
+            if (status.toLowerCase().includes('verif')) return 'VERIFIED AS TRUE';
+            if (status.toLowerCase().includes('false')) return 'FALSE OR MISLEADING';
+            return 'CANNOT BE VERIFIED';
+        }
+
+        function getClaimIcon(status) {
+            if (status.toLowerCase().includes('verif')) return '✅';
+            if (status.toLowerCase().includes('false')) return '❌';
+            return '❓';
         }
 
         function createBiasGauge(biasData) {
@@ -1483,17 +1625,19 @@
             
             return `
                 <div class="bias-gauge">
-                    <h5 style="text-align: center; color: #e2e8f0; margin-bottom: 20px;">Political Bias Spectrum</h5>
+                    <h5 style="text-align: center; color: #e2e8f0; margin-bottom: 20px;">Political Bias Spectrum Visualization</h5>
                     <div class="gauge-container">
                         <div class="gauge-marker" style="left: ${position}%;"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px;">
-                        <span style="color: #3b82f6;">← Left</span>
+                        <span style="color: #3b82f6;">← Far Left</span>
+                        <span style="color: #3b82f6;">Left</span>
                         <span style="color: #a78bfa;">Center</span>
-                        <span style="color: #ef4444;">Right →</span>
+                        <span style="color: #ef4444;">Right</span>
+                        <span style="color: #ef4444;">Far Right →</span>
                     </div>
-                    <p style="text-align: center; margin-top: 20px; color: #a0aec0; font-size: 14px;">
-                        Bias indicates perspective, not accuracy. Quality journalism exists across the spectrum.
+                    <p style="text-align: center; margin-top: 20px; color: #b0bec5; font-size: 14px;">
+                        Political bias indicates the ideological perspective from which news is presented. Quality journalism can exist across the political spectrum - what matters most is transparency about perspective, factual accuracy, and fair representation of different viewpoints.
                     </p>
                 </div>
             `;
@@ -1520,42 +1664,29 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.generatePDF = async function() {
+        window.shareResults = function() {
             if (!currentAnalysisData) {
-                showMessage('No analysis data available', 'error');
+                showMessage('No analysis results to share. Please analyze an article first.', 'error');
                 return;
             }
             
-            try {
-                const response = await fetch('/api/generate-pdf', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        analysisData: currentAnalysisData
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('PDF generation failed');
-                }
-                
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `news-analysis-${Date.now()}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                showMessage('PDF report downloaded successfully!', 'success');
-                
-            } catch (error) {
-                console.error('PDF error:', error);
-                showMessage('PDF generation requires ReportLab installation', 'error');
+            const shareText = `I analyzed this article with AI News Intelligence System. Trust Score: ${currentAnalysisData.results.credibility || 0}%`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI News Analysis Results',
+                    text: shareText,
+                    url: window.location.href
+                }).catch(err => console.log('Share failed:', err));
+            } else {
+                // Fallback - copy to clipboard
+                const textArea = document.createElement('textarea');
+                textArea.value = shareText + '\n' + window.location.href;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessage('Analysis link copied to clipboard! You can now share it.', 'success');
             }
         }
 
@@ -1578,7 +1709,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('AI News Intelligence System initialized');
+            console.log('AI News Intelligence System initialized successfully');
             
             document.getElementById('articleUrl').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') analyzeArticle();
