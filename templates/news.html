@@ -4,499 +4,435 @@
 
 {% block styles %}
 <style>
-    /* Enhanced contrast for better visibility */
+    /* Enhanced color scheme with better contrast */
     :root {
-        --card-background: #ffffff;
-        --card-border: #e2e8f0;
-        --section-background: #f8fafc;
-        --hover-background: #f1f5f9;
+        --primary-gradient: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+        --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        
+        --card-bg: #ffffff;
+        --section-bg: #f0f4f8;
+        --accent-bg: #e0e7ff;
+        --hover-bg: #ddd6fe;
+        --border-strong: #c7d2fe;
         --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --primary-blue: #2563eb;
-        --primary-hover: #1d4ed8;
+        --text-secondary: #475569;
+    }
+
+    /* Main content wrapper */
+    .main-content {
+        background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+        min-height: 100vh;
+    }
+
+    /* Header styling */
+    .news-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 60px 0;
+        margin-bottom: -30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .news-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,96C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') bottom no-repeat;
+        background-size: cover;
+    }
+
+    .news-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .news-header h1 {
+        font-size: 3.5em;
+        font-weight: 900;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .news-header p {
+        font-size: 1.4em;
+        opacity: 0.95;
+        animation: fadeInUp 0.8s ease-out 0.2s;
+        animation-fill-mode: both;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* Container adjustments */
     .container {
-        padding-top: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
     }
 
-    /* Header styling */
-    .page-header {
-        text-align: center;
-        margin-bottom: 50px;
+    .content-wrapper {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        margin-top: -30px;
+        position: relative;
+        z-index: 10;
         padding: 40px;
-        background: var(--section-background);
-        border-radius: 12px;
-        border: 1px solid var(--card-border);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
-    .page-header h1 {
-        font-size: 3.5em;
-        font-weight: 900;
-        margin-bottom: 10px;
-        background: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #2563eb 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-
-    .page-header p {
-        font-size: 1.3em;
-        color: var(--text-secondary);
-        margin-bottom: 20px;
-    }
-
-    /* Tech intro section with visible borders */
+    /* Tech intro with gradient border */
     .tech-intro {
-        background: var(--card-background);
-        border: 2px solid var(--card-border);
-        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent-bg), var(--section-bg));
+        border: 2px solid var(--border-strong);
+        border-radius: 16px;
         padding: 30px;
         margin-bottom: 40px;
         cursor: pointer;
         transition: all 0.3s;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tech-intro::before {
+        content: '🚀';
+        position: absolute;
+        right: 30px;
+        top: 30px;
+        font-size: 60px;
+        opacity: 0.1;
     }
 
     .tech-intro:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-        border-color: var(--primary-blue);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        border-color: #6366f1;
     }
 
     .tech-intro h3 {
-        color: var(--primary-blue);
+        color: #4f46e5;
         margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        font-size: 1.3em;
     }
 
-    .tech-intro-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.5s ease-out;
-        color: var(--text-secondary);
-    }
-
-    .tech-intro.expanded .tech-intro-content {
-        max-height: 500px;
-        padding-top: 20px;
-    }
-
-    .tech-intro-content li {
-        margin-bottom: 15px;
-        line-height: 1.6;
-    }
-
-    /* Input section with clear boundaries */
+    /* Input section with gradient accents */
     .input-section {
-        background: var(--card-background);
-        border: 2px solid var(--card-border);
-        border-radius: 12px;
+        background: white;
+        border: 2px solid var(--border-strong);
+        border-radius: 16px;
         padding: 40px;
         margin-bottom: 40px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        position: relative;
+    }
+
+    .input-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 16px 16px 0 0;
     }
 
     .input-tabs {
         display: flex;
         gap: 15px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         justify-content: center;
-        flex-wrap: wrap;
     }
 
     .input-tab {
         padding: 12px 30px;
-        border: 2px solid var(--card-border);
-        background: var(--section-background);
+        border: 2px solid #e5e7eb;
+        background: white;
         color: var(--text-secondary);
         font-weight: 600;
         cursor: pointer;
-        border-radius: 50px;
+        border-radius: 12px;
         transition: all 0.3s;
         font-size: 16px;
     }
 
     .input-tab:hover {
-        background: var(--hover-background);
-        border-color: var(--primary-blue);
-        color: var(--primary-blue);
+        background: var(--accent-bg);
+        border-color: #6366f1;
+        color: #4f46e5;
+        transform: translateY(-2px);
     }
 
     .input-tab.active {
-        background: var(--primary-blue);
-        border-color: var(--primary-blue);
+        background: var(--primary-gradient);
+        border-color: transparent;
         color: white;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
     }
 
-    /* Analysis explanation with visible background */
-    .analysis-explanation {
-        background: var(--section-background);
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 25px;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-
-    .analysis-explanation h4 {
-        color: var(--primary-blue);
-        margin-bottom: 10px;
-    }
-
-    .input-content {
-        display: none;
-    }
-
-    .input-content.active {
-        display: block;
-    }
-
-    .input-group {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .url-input, .text-input {
-        flex: 1;
-        padding: 18px 24px;
-        border: 2px solid var(--card-border);
-        border-radius: 8px;
-        background: var(--section-background);
-        color: var(--text-primary);
-        font-size: 16px;
-        transition: all 0.3s;
-        font-family: inherit;
-    }
-
-    .text-input {
-        min-height: 200px;
-        resize: vertical;
-        width: 100%;
-    }
-
-    .url-input:focus, .text-input:focus {
-        outline: none;
-        border-color: var(--primary-blue);
-        background: white;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .url-input::placeholder, .text-input::placeholder {
-        color: #94a3b8;
-    }
-
-    .analyze-btn {
-        padding: 18px 40px;
-        background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        font-size: 18px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
-
-    .analyze-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-    }
-
-    .analyze-btn:disabled {
-        background: var(--hover-background);
-        color: var(--text-secondary);
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-
-    /* Loading state with clear visibility */
+    /* Enhanced loading state */
     .loading {
         display: none;
         position: fixed;
-        top: 20px;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
         width: 90%;
-        max-width: 800px;
-        padding: 30px;
+        max-width: 600px;
+        padding: 40px;
         background: white;
-        border: 2px solid var(--card-border);
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         z-index: 1000;
-    }
-
-    .loading.active {
-        display: block;
-    }
-
-    .checkpoint {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        z-index: 2;
-        opacity: 0.5;
-        transition: all 0.3s;
-    }
-
-    .checkpoint.active,
-    .checkpoint.completed {
-        opacity: 1;
-    }
-
-    .checkpoint-icon {
-        width: 50px;
-        height: 50px;
-        background: var(--section-background);
-        border: 2px solid var(--card-border);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        margin-bottom: 8px;
-        transition: all 0.3s;
-    }
-
-    .checkpoint.active .checkpoint-icon {
-        background: var(--primary-blue);
-        border-color: var(--primary-blue);
-        color: white;
-        box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
-    }
-
-    .checkpoint.completed .checkpoint-icon {
-        background: #10b981;
-        border-color: #10b981;
-        color: white;
-    }
-
-    .checkpoint-label {
-        font-size: 12px;
-        color: var(--text-secondary);
-        text-align: center;
-    }
-
-    .checkpoints {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        position: relative;
-    }
-
-    .progress-bar-container {
-        position: absolute;
-        top: 25px;
-        left: 25px;
-        right: 25px;
-        height: 4px;
-        background: var(--hover-background);
-        z-index: 1;
-        border-radius: 2px;
-    }
-
-    .progress-bar {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #2563eb 0%, #6366f1 50%, #2563eb 100%);
-        transition: width 0.5s ease;
-        border-radius: 2px;
-        box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
-    }
-
-    .loading-status {
-        text-align: center;
-        font-size: 16px;
-        color: var(--text-secondary);
-        margin-top: 20px;
     }
 
     /* Results section */
     .results {
         display: none;
+        animation: fadeIn 0.5s ease-out;
     }
 
     .results.active {
         display: block;
     }
 
-    /* Overall summary with clear sections */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Compact Overall Summary */
     .overall-summary {
         background: white;
-        border: 2px solid var(--card-border);
-        border-radius: 12px;
-        padding: 40px;
-        margin-bottom: 40px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 2px solid var(--border-strong);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
     }
 
-    .summary-header {
-        text-align: center;
-        margin-bottom: 40px;
-        padding-bottom: 30px;
-        border-bottom: 2px solid var(--card-border);
-    }
-
-    .trust-score-container {
+    .overall-label {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 30px;
         display: inline-block;
-        position: relative;
+        font-weight: 600;
         margin-bottom: 20px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .trust-score {
-        width: 200px;
-        height: 200px;
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+        align-items: center;
+    }
+
+    /* Enhanced trust score visualization */
+    .trust-visual {
+        text-align: center;
         position: relative;
     }
 
-    .trust-score svg {
-        transform: rotate(-90deg);
+    .trust-meter {
+        width: 250px;
+        height: 250px;
+        position: relative;
+        margin: 0 auto;
     }
 
-    .trust-score-text {
+    .trust-meter svg {
+        transform: rotate(-90deg);
+        filter: drop-shadow(0 4px 15px rgba(0,0,0,0.1));
+    }
+
+    .trust-meter-bg {
+        fill: none;
+        stroke: #f3f4f6;
+        stroke-width: 25;
+    }
+
+    .trust-meter-fill {
+        fill: none;
+        stroke-width: 25;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease-in-out;
+    }
+
+    .trust-meter-center {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        font-size: 48px;
-        font-weight: bold;
-    }
-
-    .trust-label {
-        font-size: 20px;
-        font-weight: 600;
-        margin-top: 10px;
-    }
-
-    .summary-sections {
-        display: grid;
-        gap: 25px;
-    }
-
-    .summary-section {
-        padding: 25px;
-        border-left: 4px solid var(--primary-blue);
-        background: var(--section-background);
-        border-radius: 8px;
-        border: 1px solid var(--card-border);
-        border-left: 4px solid var(--primary-blue);
-    }
-
-    .summary-section h3 {
-        color: var(--primary-blue);
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.3em;
-    }
-
-    .summary-section p {
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    .summary-section strong {
-        color: var(--text-primary);
-    }
-
-    /* Pro section */
-    .pro-section {
-        margin-top: 40px;
-    }
-
-    .pro-header {
         text-align: center;
-        margin-bottom: 30px;
     }
 
-    .pro-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        color: white;
-        padding: 8px 20px;
-        border-radius: 50px;
-        font-weight: 600;
-        font-size: 14px;
-        margin-bottom: 20px;
+    .trust-score-number {
+        font-size: 64px;
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    /* Analysis dropdowns with visible borders */
-    .analysis-dropdown {
-        background: white;
-        border: 2px solid;
+    .trust-score-label {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .trust-indicators {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .trust-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+
+    .trust-indicator.active {
+        background: var(--primary-gradient);
+    }
+
+    /* Summary key points */
+    .summary-content {
+        flex: 1;
+    }
+
+    .summary-highlight {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-left: 4px solid #f59e0b;
+        padding: 20px;
         border-radius: 12px;
         margin-bottom: 20px;
+    }
+
+    .summary-highlight h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .stat-card {
+        background: var(--section-bg);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid var(--border-strong);
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 900;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 5px;
+    }
+
+    /* Compact dropdown styling */
+    .analysis-dropdown {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 15px;
         overflow: hidden;
         transition: all 0.3s;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .analysis-dropdown:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        border-color: var(--border-strong);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     .analysis-dropdown.expanded {
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+        border-color: #6366f1;
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
     }
 
-    /* Different colors for each dropdown */
-    .analysis-dropdown:nth-child(1) { border-color: #2563eb; }
-    .analysis-dropdown:nth-child(2) { border-color: #0ea5e9; }
-    .analysis-dropdown:nth-child(3) { border-color: #6366f1; }
-    .analysis-dropdown:nth-child(4) { border-color: #10b981; }
-    .analysis-dropdown:nth-child(5) { border-color: #f59e0b; }
-    .analysis-dropdown:nth-child(6) { border-color: #8b5cf6; }
-    .analysis-dropdown:nth-child(7) { border-color: #ef4444; }
-    .analysis-dropdown:nth-child(8) { border-color: #14b8a6; }
+    /* Priority styling for Political Bias (first dropdown) */
+    .analysis-dropdown.priority {
+        border-color: #6366f1;
+        background: linear-gradient(to right, #fef3c7 0%, white 100%);
+    }
 
     .dropdown-header {
-        padding: 25px 30px;
-        background: var(--section-background);
+        padding: 20px 25px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid var(--card-border);
+        background: white;
+        transition: all 0.3s;
     }
 
     .dropdown-header:hover {
-        background: var(--hover-background);
+        background: #fafafa;
     }
 
     .dropdown-icon-wrapper {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
         flex: 1;
     }
 
     .dropdown-icon {
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, var(--icon-color-1), var(--icon-color-2));
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        background: var(--primary-gradient);
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        flex-shrink: 0;
+        font-size: 20px;
         color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .dropdown-title-section {
@@ -504,376 +440,492 @@
     }
 
     .dropdown-title {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 3px;
+    }
+
+    .dropdown-preview {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    /* Enhanced Political Bias Visualization */
+    .bias-visualization {
+        background: linear-gradient(135deg, #eff6ff, #e0f2fe);
+        border-radius: 16px;
+        padding: 30px;
+        margin: 20px 0;
+        border: 1px solid #bfdbfe;
+    }
+
+    .bias-spectrum {
+        position: relative;
+        height: 80px;
+        background: linear-gradient(to right, 
+            #1e40af 0%, 
+            #3b82f6 25%, 
+            #a78bfa 50%, 
+            #f87171 75%, 
+            #dc2626 100%);
+        border-radius: 40px;
+        margin: 20px 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .bias-marker {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        border: 3px solid #1e293b;
+    }
+
+    .bias-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        font-weight: 600;
+    }
+
+    .bias-label {
+        font-size: 14px;
+        padding: 5px 10px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Author Credibility Infographic */
+    .author-infographic {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border-radius: 16px;
+        padding: 30px;
+        margin: 20px 0;
+        border: 1px solid #86efac;
+        text-align: center;
+    }
+
+    .author-avatar {
+        width: 100px;
+        height: 100px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: white;
+        box-shadow: 0 5px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .author-details {
+        margin-bottom: 20px;
+    }
+
+    .author-name {
+        font-size: 24px;
+        font-weight: 800;
         color: var(--text-primary);
         margin-bottom: 5px;
     }
 
-    .dropdown-preview {
-        font-size: 14px;
-        color: var(--text-secondary);
+    .author-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 20px;
     }
 
-    .expand-icon {
-        font-size: 20px;
-        color: var(--text-secondary);
-        transition: transform 0.3s;
-    }
-
-    .analysis-dropdown.expanded .expand-icon {
-        transform: rotate(180deg);
-    }
-
-    .dropdown-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.5s ease-out;
-    }
-
-    .analysis-dropdown.expanded .dropdown-content {
-        max-height: 2000px;
-    }
-
-    .dropdown-body {
-        padding: 30px;
+    .author-metric {
         background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
-    .analysis-intro {
-        background: var(--section-background);
-        border-left: 4px solid var(--primary-blue);
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 25px;
-        border: 1px solid var(--card-border);
-        border-left: 4px solid var(--primary-blue);
-    }
-
-    .analysis-intro h4 {
-        color: var(--primary-blue);
-        margin-bottom: 10px;
-    }
-
-    .analysis-intro p {
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    .analysis-details {
-        margin-top: 25px;
-    }
-
-    .metric-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid var(--card-border);
-    }
-
-    .metric-item:last-child {
-        border-bottom: none;
-    }
-
-    .metric-label {
-        font-weight: 600;
-        color: var(--text-primary);
+    .metric-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
     }
 
     .metric-value {
-        font-weight: 500;
-        color: var(--primary-blue);
-    }
-
-    .metric-visual {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .metric-bar {
-        width: 100px;
-        height: 8px;
-        background: var(--hover-background);
-        border-radius: 4px;
-        overflow: hidden;
-        border: 1px solid var(--card-border);
-    }
-
-    .metric-bar-fill {
-        height: 100%;
-        background: #10b981;
-        transition: width 0.5s ease;
-    }
-
-    /* Bias gauge */
-    .bias-gauge {
-        margin: 25px 0;
-        padding: 25px;
-        background: var(--section-background);
-        border-radius: 8px;
-        border: 1px solid var(--card-border);
-    }
-
-    .gauge-container {
-        position: relative;
-        height: 50px;
-        background: linear-gradient(to right, #3b82f6 0%, #a78bfa 50%, #ef4444 100%);
-        border-radius: 25px;
-        margin: 20px 0;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .gauge-marker {
-        position: absolute;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 30px;
-        height: 30px;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        border: 2px solid var(--text-primary);
-    }
-
-    /* Claim cards */
-    .claim-card {
-        background: var(--section-background);
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .claim-icon {
-        font-size: 30px;
-        flex-shrink: 0;
-    }
-
-    .claim-content {
-        flex: 1;
-    }
-
-    .claim-text {
-        font-weight: 600;
-        margin-bottom: 10px;
-        color: var(--text-primary);
-    }
-
-    .claim-verdict {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-        margin-right: 10px;
-    }
-
-    .claim-verdict.true {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .claim-verdict.false {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .claim-verdict.unverified {
-        background: rgba(245, 158, 11, 0.1);
-        color: #f59e0b;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    /* Finding items */
-    .finding-item {
-        padding: 20px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        background: var(--section-background);
-        border: 1px solid var(--card-border);
-    }
-
-    .finding-icon {
-        font-size: 30px;
-        flex-shrink: 0;
-    }
-
-    .finding-text {
-        flex: 1;
-        line-height: 1.6;
-        color: var(--text-secondary);
-    }
-
-    /* Action section */
-    .action-section {
-        text-align: center;
-        margin-top: 40px;
-        padding: 40px;
-        background: var(--section-background);
-        border-radius: 12px;
-        border: 1px solid var(--card-border);
-    }
-
-    /* Messages */
-    .message {
-        padding: 20px;
-        border-radius: 8px;
-        margin: 20px 0;
-        text-align: center;
-        font-weight: 500;
-        border: 1px solid;
-    }
-
-    .message.error {
-        background: rgba(239, 68, 68, 0.05);
-        border-color: rgba(239, 68, 68, 0.3);
-        color: #dc2626;
-    }
-
-    .message.success {
-        background: rgba(16, 185, 129, 0.05);
-        border-color: rgba(16, 185, 129, 0.3);
+        font-size: 20px;
+        font-weight: 700;
         color: #059669;
     }
 
-    /* Responsive design */
+    .metric-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    /* Fact Check Visualization */
+    .fact-check-summary {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border-radius: 16px;
+        padding: 25px;
+        margin: 20px 0;
+        border: 1px solid #7dd3fc;
+    }
+
+    .fact-check-chart {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .fact-stat {
+        text-align: center;
+        position: relative;
+    }
+
+    .fact-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 900;
+        color: white;
+        margin: 0 auto 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .fact-circle.true {
+        background: var(--success-gradient);
+    }
+
+    .fact-circle.false {
+        background: var(--danger-gradient);
+    }
+
+    .fact-circle.unverified {
+        background: var(--warning-gradient);
+    }
+
+    .fact-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    /* Expandable claims */
+    .claims-list {
+        margin-top: 20px;
+    }
+
+    .claim-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+
+    .claim-header {
+        padding: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.3s;
+    }
+
+    .claim-header:hover {
+        background: #fafafa;
+    }
+
+    .claim-status {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .claim-text {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    .claim-details {
+        padding: 0 15px 15px 55px;
+        display: none;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .claim-item.expanded .claim-details {
+        display: block;
+    }
+
+    /* AI Insights with visual appeal */
+    .ai-insights {
+        background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+        border-radius: 16px;
+        padding: 30px;
+        margin: 20px 0;
+        border: 1px solid #d8b4fe;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-insights::before {
+        content: '🧠';
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 80px;
+        opacity: 0.1;
+    }
+
+    .insight-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 10px rgba(147, 51, 234, 0.1);
+        border-left: 4px solid #9333ea;
+        position: relative;
+    }
+
+    .insight-number {
+        position: absolute;
+        left: -15px;
+        top: 15px;
+        width: 30px;
+        height: 30px;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .insight-content {
+        margin-left: 10px;
+    }
+
+    .insight-title {
+        font-weight: 700;
+        color: #6b21a8;
+        margin-bottom: 5px;
+    }
+
+    /* Enhanced warning signs */
+    .warning-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .warning-card {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        padding-left: 50px;
+    }
+
+    .warning-icon {
+        position: absolute;
+        left: 15px;
+        top: 20px;
+        font-size: 24px;
+    }
+
+    .warning-title {
+        font-weight: 700;
+        color: #991b1b;
+        margin-bottom: 5px;
+    }
+
+    .warning-description {
+        font-size: 13px;
+        color: #7f1d1d;
+        line-height: 1.5;
+    }
+
+    /* Action buttons */
+    .action-section {
+        text-align: center;
+        margin-top: 40px;
+        padding: 30px;
+        background: var(--section-bg);
+        border-radius: 16px;
+    }
+
+    .btn-pdf {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 40px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-pdf:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 40px;
+        background: white;
+        color: var(--text-primary);
+        border: 2px solid var(--border-strong);
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-left: 15px;
+    }
+
+    .btn-secondary:hover {
+        background: var(--section-bg);
+        transform: translateY(-3px);
+    }
+
+    /* Responsive adjustments */
     @media (max-width: 768px) {
-        .page-header h1 {
-            font-size: 2.5em;
+        .summary-grid {
+            grid-template-columns: 1fr;
         }
         
-        .input-group {
+        .summary-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .fact-check-chart {
             flex-direction: column;
-        }
-        
-        .analyze-btn {
-            width: 100%;
-        }
-        
-        .checkpoints {
-            flex-wrap: wrap;
             gap: 20px;
         }
         
-        .progress-bar-container {
-            display: none;
+        .warning-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <h1>AI News Intelligence System</h1>
-        <p>State-of-the-Art Neural Analysis Powered by GPT-4</p>
-    </div>
+<!-- Include header -->
+{% include 'includes/header.html' %}
 
-    <!-- State of the Art Explanation -->
-    <div class="tech-intro" onclick="toggleTechIntro()">
-        <h3>🚀 How Our Analysis Works - Click to Learn More</h3>
-        <div class="tech-intro-content">
-            <p style="margin-bottom: 20px;">Our system provides comprehensive news analysis using advanced AI technology:</p>
-            <ul style="list-style: none; padding: 0;">
-                <li>🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context, detecting bias, and evaluating claims with human-level comprehension</li>
-                <li>📊 <strong>Statistical Content Analysis:</strong> Real-time counting of sources, quotes, statistics, and other journalistic quality indicators</li>
-                <li>🔍 <strong>Pattern Detection:</strong> Advanced algorithms to identify manipulation patterns, emotional language, and missing context</li>
-                <li>⚡ <strong>Real-Time Processing:</strong> Instant analysis with comprehensive results in seconds, providing immediate insights</li>
-                <li>🎯 <strong>Bias Detection AI:</strong> Sophisticated analysis to identify political lean, emotional manipulation, and perspective framing</li>
-                <li>📈 <strong>Source Credibility Database:</strong> Comprehensive database of news sources with historical accuracy ratings and bias assessments</li>
-            </ul>
-            <p style="margin-top: 20px; padding: 15px; background: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
-                <strong>Transparency Note:</strong> All analysis is performed by AI and should be used as one tool among many for evaluating news. We recommend verifying important information with multiple sources.
-            </p>
+<!-- Main content wrapper -->
+<div class="main-content">
+    <!-- Hero Header -->
+    <div class="news-header">
+        <div class="container">
+            <h1>AI News Intelligence System</h1>
+            <p>Advanced Neural Analysis Powered by GPT-4</p>
         </div>
     </div>
 
-    <!-- Input Section -->
-    <div class="input-section">
-        <div class="input-tabs">
-            <button class="input-tab active" onclick="switchInputType('url')">🔗 URL Analysis</button>
-            <button class="input-tab" onclick="switchInputType('text')">📝 Text Analysis</button>
-        </div>
-        
-        <!-- URL Input -->
-        <div class="input-content active" id="urlInput">
-            <div class="analysis-explanation">
-                <h4>🔗 URL Analysis - Recommended for Best Results</h4>
-                <p>URL analysis provides the most accurate results by accessing the full article context, including metadata, publication date, author information, and source credibility. Our system can extract all relevant information directly from the webpage, ensuring nothing is missed. This method also allows us to verify the source domain and check for any updates or corrections to the article.</p>
+    <!-- Content wrapper with rounded top -->
+    <div class="container">
+        <div class="content-wrapper">
+            <!-- Tech intro -->
+            <div class="tech-intro" onclick="toggleTechIntro()">
+                <h3>🚀 How Our Analysis Works - Click to Learn More</h3>
+                <div class="tech-intro-content" style="display: none;">
+                    <p style="margin-bottom: 20px;">Our system provides comprehensive news analysis using advanced AI technology:</p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px;">🧠 <strong>GPT-4 Language Model:</strong> OpenAI's most sophisticated AI for understanding context and detecting bias</li>
+                        <li style="margin-bottom: 15px;">📊 <strong>Statistical Analysis:</strong> Real-time counting of sources, quotes, and quality indicators</li>
+                        <li style="margin-bottom: 15px;">🔍 <strong>Pattern Detection:</strong> Advanced algorithms to identify manipulation and missing context</li>
+                        <li style="margin-bottom: 15px;">📈 <strong>Source Database:</strong> Comprehensive credibility ratings based on historical accuracy</li>
+                    </ul>
+                </div>
             </div>
-            <div class="input-group">
-                <input type="url" 
-                       id="articleUrl" 
-                       placeholder="Enter news article URL for deep analysis..." 
-                       class="url-input">
-            </div>
-        </div>
-        
-        <!-- Text Input -->
-        <div class="input-content" id="textInput">
-            <div class="analysis-explanation">
-                <h4>📝 Text Analysis - Alternative Method</h4>
-                <p>Text analysis is useful when you have article text but no URL, or when a website blocks automated access. While still highly accurate, this method may miss some context like publication date, author credentials, or source domain verification. For best results, include the complete article text including title, author name, publication date, and all content. The more complete the text, the more accurate our analysis will be.</p>
-            </div>
-            <textarea id="articleText" 
-                      placeholder="Paste complete article text including title, author, date, and full content for most accurate analysis..."
-                      class="text-input"></textarea>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="analyze-btn" onclick="analyzeArticle()">
-                🤖 INITIATE AI ANALYSIS
-            </button>
-        </div>
-    </div>
 
-    <!-- Advanced Loading State -->
-    <div class="loading" id="loading">
-        <div class="checkpoint-progress">
-            <div class="checkpoints">
-                <div class="checkpoint" data-stage="0">
-                    <div class="checkpoint-icon">📡</div>
-                    <div class="checkpoint-label">Extracting</div>
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="switchInputType('url')">🔗 URL Analysis</button>
+                    <button class="input-tab" onclick="switchInputType('text')">📝 Text Analysis</button>
                 </div>
-                <div class="checkpoint" data-stage="1">
-                    <div class="checkpoint-icon">🧠</div>
-                    <div class="checkpoint-label">AI Analysis</div>
+                
+                <div class="input-content active" id="urlInput">
+                    <input type="url" 
+                           id="articleUrl" 
+                           placeholder="Enter news article URL..." 
+                           class="url-input" 
+                           style="width: 100%; padding: 18px 24px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px;">
                 </div>
-                <div class="checkpoint" data-stage="2">
-                    <div class="checkpoint-icon">📊</div>
-                    <div class="checkpoint-label">Statistics</div>
+                
+                <div class="input-content" id="textInput" style="display: none;">
+                    <textarea id="articleText" 
+                              placeholder="Paste article text here..."
+                              style="width: 100%; min-height: 200px; padding: 18px 24px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px;"></textarea>
                 </div>
-                <div class="checkpoint" data-stage="3">
-                    <div class="checkpoint-icon">⚖️</div>
-                    <div class="checkpoint-label">Bias Scan</div>
-                </div>
-                <div class="checkpoint" data-stage="4">
-                    <div class="checkpoint-icon">✅</div>
-                    <div class="checkpoint-label">Finalizing</div>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="progressBar"></div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="analyze-btn" onclick="analyzeArticle()" 
+                            style="padding: 18px 40px; background: linear-gradient(135deg, #2563eb, #6366f1); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer;">
+                        🤖 ANALYZE ARTICLE
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="loading-status" id="loadingStatus">Initializing analysis systems...</div>
-    </div>
 
-    <!-- Results -->
-    <div class="results" id="results">
-        <!-- Will be dynamically populated -->
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="loading-content">
+                    <div style="text-align: center;">
+                        <div class="spinner" style="width: 60px; height: 60px; border: 4px solid #f3f4f6; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        <p style="margin-top: 20px; font-size: 18px; color: var(--text-secondary);">Analyzing article with GPT-4...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <!-- Will be dynamically populated -->
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -881,11 +933,19 @@
     // State management
     let currentInputType = 'url';
     let currentAnalysisData = null;
-    let currentStage = 0;
 
     // Toggle functions
     window.toggleTechIntro = function() {
-        document.querySelector('.tech-intro').classList.toggle('expanded');
+        const intro = document.querySelector('.tech-intro');
+        const content = intro.querySelector('.tech-intro-content');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            intro.style.background = 'linear-gradient(135deg, #ddd6fe, #e0e7ff)';
+        } else {
+            content.style.display = 'none';
+            intro.style.background = 'linear-gradient(135deg, #e0e7ff, #f0f4f8)';
+        }
     }
 
     window.switchInputType = function(type) {
@@ -897,13 +957,13 @@
         event.target.classList.add('active');
         
         document.querySelectorAll('.input-content').forEach(content => {
-            content.classList.remove('active');
+            content.style.display = 'none';
         });
         
         if (type === 'url') {
-            document.getElementById('urlInput').classList.add('active');
+            document.getElementById('urlInput').style.display = 'block';
         } else {
-            document.getElementById('textInput').classList.add('active');
+            document.getElementById('textInput').style.display = 'block';
         }
     }
 
@@ -915,33 +975,21 @@
         if (currentInputType === 'url') {
             content = document.getElementById('articleUrl').value.trim();
             if (!content) {
-                showMessage('Please enter a valid URL to analyze. The URL should be a complete web address starting with http:// or https://', 'error');
+                showMessage('Please enter a valid URL', 'error');
                 return;
             }
         } else {
             content = document.getElementById('articleText').value.trim();
             if (!content) {
-                showMessage('Please enter the article text to analyze. Include as much information as possible for accurate results.', 'error');
+                showMessage('Please enter article text', 'error');
                 return;
             }
-            contentType = 'text';
         }
         
-        // Reset and show loading
-        currentStage = 0;
-        document.querySelector('.analyze-btn').disabled = true;
-        document.querySelector('.analyze-btn').textContent = '⏳ ANALYZING...';
-        document.getElementById('loading').classList.add('active');
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
         document.getElementById('results').classList.remove('active');
-        
-        // Reset checkpoints
-        document.querySelectorAll('.checkpoint').forEach(cp => {
-            cp.classList.remove('active', 'completed');
-        });
-        document.getElementById('progressBar').style.width = '0%';
-        
-        // Start checkpoint animation
-        animateCheckpoints();
+        document.querySelector('.analyze-btn').disabled = true;
         
         try {
             const response = await fetch('/api/analyze-news', {
@@ -963,730 +1011,637 @@
             }
             
             currentAnalysisData = data;
-            
-            // Complete remaining stages quickly
-            while (currentStage < 5) {
-                await new Promise(resolve => setTimeout(resolve, 200));
-                updateCheckpoint(currentStage);
-                currentStage++;
-            }
-            
-            // Display results
-            setTimeout(() => {
-                displayResults(data);
-            }, 500);
+            displayResults(data);
             
         } catch (error) {
             console.error('Analysis error:', error);
-            let errorMessage = 'Analysis failed: ';
-            
-            if (error.message.includes('403') || error.message.includes('Forbidden')) {
-                errorMessage = '⚠️ This website blocks automated access for security reasons. Please use the Text Analysis option instead by copying and pasting the article content.';
-            } else if (error.message.includes('Invalid URL')) {
-                errorMessage = '⚠️ The URL appears to be invalid. Please check that it\'s a complete web address starting with http:// or https://';
-            } else {
-                errorMessage += error.message + '. Please try again or contact support if the issue persists.';
-            }
-            
-            showMessage(errorMessage, 'error');
+            showMessage(error.message, 'error');
         } finally {
+            document.getElementById('loading').style.display = 'none';
             document.querySelector('.analyze-btn').disabled = false;
-            document.querySelector('.analyze-btn').textContent = '🤖 INITIATE AI ANALYSIS';
-            document.getElementById('loading').classList.remove('active');
         }
     }
 
-    // Checkpoint animation
-    function animateCheckpoints() {
-        const stages = [
-            'Extracting article content and metadata from source...',
-            'Running GPT-4 neural network analysis on content...',
-            'Analyzing statistical patterns and content metrics...',
-            'Detecting bias patterns and framing techniques...',
-            'Generating comprehensive intelligence report...'
-        ];
-        
-        const interval = setInterval(() => {
-            if (currentStage >= stages.length) {
-                clearInterval(interval);
-                return;
-            }
-            
-            updateCheckpoint(currentStage);
-            document.getElementById('loadingStatus').textContent = stages[currentStage];
-            currentStage++;
-        }, 1500);
-    }
-
-    function updateCheckpoint(stage) {
-        const checkpoints = document.querySelectorAll('.checkpoint');
-        const progressBar = document.getElementById('progressBar');
-        
-        if (stage > 0) {
-            checkpoints[stage - 1].classList.remove('active');
-            checkpoints[stage - 1].classList.add('completed');
-        }
-        
-        if (stage < checkpoints.length) {
-            checkpoints[stage].classList.add('active');
-        }
-        
-        const progress = ((stage + 1) / checkpoints.length) * 100;
-        progressBar.style.width = progress + '%';
-    }
-
-    // Display results - keeping ALL original features
+    // Display results with all enhancements
     function displayResults(data) {
         const results = data.results;
         const resultsDiv = document.getElementById('results');
         
-        resultsDiv.classList.add('active');
-        
-        // Generate overall summary - all in one box
+        // Overall Summary with compact design
         const overallSummary = `
             <div class="overall-summary">
-                <div class="summary-header">
-                    <div class="trust-score-container">
-                        <div class="trust-score">
-                            <svg width="200" height="200">
-                                <circle cx="100" cy="100" r="90" fill="none" stroke="#e2e8f0" stroke-width="20"/>
-                                <circle id="trustCircle" cx="100" cy="100" r="90" fill="none" 
-                                        stroke="${getTrustColor(results.credibility)}" 
-                                        stroke-width="20" 
-                                        stroke-dasharray="565.5" 
-                                        stroke-dashoffset="565.5"
-                                        style="filter: drop-shadow(0 0 20px ${getTrustColor(results.credibility)})"/>
-                            </svg>
-                            <div class="trust-score-text" style="color: ${getTrustColor(results.credibility)}">
-                                ${results.credibility || 0}%
+                <span class="overall-label">OVERALL ASSESSMENT</span>
+                <div class="summary-grid">
+                    <div class="trust-visual">
+                        ${createEnhancedTrustMeter(results.credibility || 0)}
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-highlight">
+                            <h3>📋 Quick Summary</h3>
+                            <p>${results.summary || 'Analysis complete. See detailed findings below.'}</p>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-card">
+                                <div class="stat-number">${results.sources?.credibility || 50}%</div>
+                                <div class="stat-label">Source Credibility</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${results.bias?.objectivity || 50}%</div>
+                                <div class="stat-label">Objectivity Score</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${results.overall_accuracy || 0}%</div>
+                                <div class="stat-label">Fact Accuracy</div>
                             </div>
                         </div>
-                        <div class="trust-label" style="color: ${getTrustColor(results.credibility)}">
-                            ${getTrustLabel(results.credibility)}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="summary-sections">
-                    <!-- Source & Author -->
-                    <div class="summary-section">
-                        <h3>📰 Source & Author Information</h3>
-                        <p><strong>News Source:</strong> ${results.sources?.name || 'Unknown'} 
-                           ${results.sources?.domain && results.sources.domain !== 'Direct Input' ? `(${results.sources.domain})` : ''}</p>
-                        <p><strong>Article Author:</strong> ${results.author && results.author !== 'Unknown' ? results.author : 'No author attribution found - this may indicate lower credibility'}</p>
-                        ${results.sources?.credibility ? `<p><strong>Source Credibility Score:</strong> ${results.sources.credibility}% - ${getCredibilityDescription(results.sources.credibility)}</p>` : ''}
-                    </div>
-                    
-                    <!-- What the Article is About -->
-                    <div class="summary-section">
-                        <h3>📋 Article Summary & Main Points</h3>
-                        <p>${results.summary || 'The article content covers current events and news topics. Our AI system has analyzed the full content to provide detailed insights below.'}</p>
-                    </div>
-                    
-                    <!-- Key Findings with graphics -->
-                    <div class="summary-section">
-                        <h3>🔍 Key Analysis Findings</h3>
-                        ${generateKeyFindings(results)}
                     </div>
                 </div>
             </div>
         `;
         
-        // Generate pro analysis dropdowns - KEEPING ALL 8 SECTIONS
-        const proAnalysis = `
-            <div class="pro-section">
-                <div class="pro-header">
-                    <span class="pro-badge">PRO ANALYSIS</span>
-                    <h2 style="color: var(--text-primary); font-size: 2em; margin-top: 10px;">Deep AI Intelligence Report</h2>
-                    <p style="color: var(--text-secondary); margin-top: 10px;">Click on any section below to expand detailed analysis</p>
-                </div>
-                
-                <div class="analysis-list">
-                    ${generateAnalysisDropdowns(results)}
-                </div>
-            </div>
-        `;
+        // Generate dropdowns with Political Bias first
+        const dropdowns = generateAllDropdowns(results);
         
-        // Action buttons
+        // Action buttons with PDF functionality
         const actions = `
             <div class="action-section">
-                <button class="btn btn-primary" onclick="shareResults()">
-                    📤 Share Analysis Results
+                <button class="btn-pdf" onclick="generatePDF()">
+                    📄 Save as PDF Report
                 </button>
-                <button class="btn btn-secondary" onclick="resetAnalysis()">
+                <button class="btn-secondary" onclick="resetAnalysis()">
                     🔄 Analyze Another Article
                 </button>
             </div>
         `;
         
-        resultsDiv.innerHTML = overallSummary + proAnalysis + actions;
+        resultsDiv.innerHTML = overallSummary + dropdowns + actions;
+        resultsDiv.classList.add('active');
         
-        // Animate trust score
-        animateTrustScore(results.credibility || 0);
+        // Add interactivity
+        initializeInteractions();
         
-        // Add click handlers for dropdowns
-        document.querySelectorAll('.dropdown-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const dropdown = this.closest('.analysis-dropdown');
-                dropdown.classList.toggle('expanded');
-            });
-        });
-        
-        // Animate metric bars
-        setTimeout(() => {
-            document.querySelectorAll('.metric-bar-fill').forEach(bar => {
-                const width = bar.getAttribute('data-width');
-                if (width) {
-                    bar.style.width = width;
-                }
-            });
-        }, 100);
-        
-        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Animate trust meter
+        setTimeout(() => animateTrustMeter(results.credibility || 0), 100);
     }
 
-    // Generate key findings with visual indicators
-    function generateKeyFindings(results) {
-        const findings = [];
-        
-        // Source credibility with icon
-        if (results.sources?.credibility >= 80) {
-            findings.push({ 
-                icon: '✅', 
-                text: `Highly credible and trustworthy news source: ${results.sources.name}. This source has a strong track record of accurate reporting and journalistic integrity.`, 
-                type: 'success' 
-            });
-        } else if (results.sources?.credibility >= 60) {
-            findings.push({ 
-                icon: '⚠️', 
-                text: `Moderately credible source: ${results.sources.name}. This source generally provides reliable information but may have occasional accuracy issues or bias.`, 
-                type: 'warning' 
-            });
-        } else {
-            findings.push({ 
-                icon: '❌', 
-                text: 'Low credibility or unverified source detected. Information from this source should be cross-referenced with other reliable sources before accepting as fact.', 
-                type: 'danger' 
-            });
-        }
-        
-        // Author information
-        if (results.author && results.author !== 'Unknown') {
-            findings.push({ 
-                icon: '👤', 
-                text: `Author properly identified as ${results.author}. Author attribution is a positive sign of accountability and transparency in journalism.`, 
-                type: 'success' 
-            });
-        } else {
-            findings.push({ 
-                icon: '❓', 
-                text: 'No author attribution found in this article. Anonymous or unattributed articles may be less reliable as there is no accountability for the content.', 
-                type: 'warning' 
-            });
-        }
-        
-        // Bias detection
-        if (results.bias?.objectivity >= 80) {
-            findings.push({ 
-                icon: '⚖️', 
-                text: 'Highly objective and balanced reporting detected. The article presents facts without significant bias or emotional manipulation.', 
-                type: 'success' 
-            });
-        } else if (results.bias?.label) {
-            findings.push({ 
-                icon: '📊', 
-                text: `${results.bias.label} perspective detected in the article. While bias doesn\'t necessarily mean inaccuracy, readers should be aware of the political or ideological framing.`, 
-                type: 'warning' 
-            });
-        }
-        
-        // Overall accuracy assessment
-        if (results.overall_accuracy >= 80) {
-            findings.push({ 
-                icon: '🎯', 
-                text: `High factual accuracy verified: ${results.overall_accuracy}% of claims are supported by evidence. This article appears to be well-researched and factually reliable.`, 
-                type: 'success' 
-            });
-        } else if (results.overall_accuracy >= 60) {
-            findings.push({ 
-                icon: '📈', 
-                text: `Moderate factual accuracy: ${results.overall_accuracy}% of claims verified. Some statements may require additional verification from other sources.`, 
-                type: 'warning' 
-            });
-        }
-        
-        // Add GPT-4 specific findings
-        if (results.key_findings?.length > 0) {
-            results.key_findings.slice(0, 3).forEach(finding => {
-                findings.push({ 
-                    icon: '🧠', 
-                    text: finding, 
-                    type: 'info' 
-                });
-            });
-        }
-        
-        return findings.map(f => `
-            <div class="finding-item">
-                <span class="finding-icon">${f.icon}</span>
-                <span class="finding-text">${f.text}</span>
-            </div>
-        `).join('');
-    }
-
-    // Generate ALL 8 analysis dropdowns with proper data
-    function generateAnalysisDropdowns(results) {
-        const dropdowns = [];
-        
-        // 1. Author Credibility Analysis
-        if (results.author || results.author === 'Unknown') {
-            dropdowns.push({
-                icon: '👤',
-                title: 'Author Credibility & Background Analysis',
-                preview: results.author !== 'Unknown' ? `Author: ${results.author}` : 'No author attribution found',
-                iconColors: ['#2563eb', '#6366f1'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>Author credibility is a crucial factor in determining article reliability. We evaluate the author's professional background, expertise in the subject matter, track record of accurate reporting, and any potential conflicts of interest.</p>
-                    </div>
-                    <div class="analysis-details">
-                        <div class="metric-item">
-                            <span class="metric-label">Author Name:</span>
-                            <span class="metric-value">${results.author !== 'Unknown' ? results.author : 'Not Provided'}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Attribution Status:</span>
-                            <span class="metric-value">${results.author !== 'Unknown' ? 'Verified ✓' : 'Missing ✗'}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Credibility Impact:</span>
-                            <div class="metric-visual">
-                                <span class="metric-value">${results.author !== 'Unknown' ? 'Positive' : 'Negative'}</span>
-                                <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${results.author !== 'Unknown' ? '80%' : '20%'}" style="background: ${results.author !== 'Unknown' ? '#10b981' : '#ef4444'};"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <p style="margin-top: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
-                            <strong>Why this matters:</strong> ${results.author !== 'Unknown' ? 
-                            'Author attribution demonstrates accountability and allows readers to verify the writer\'s credentials and potential biases.' : 
-                            'The absence of author attribution is a red flag. Anonymous articles lack accountability and make it impossible to verify expertise.'}
-                        </p>
-                    </div>
-                `
-            });
-        }
-        
-        // 2. Source Verification & History
-        if (results.sources) {
-            dropdowns.push({
-                icon: '🏛️',
-                title: 'News Source Verification & Credibility Assessment',
-                preview: `${results.sources.name} - ${results.sources.credibility || 'Unknown'}% credibility score`,
-                iconColors: ['#0ea5e9', '#06b6d4'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>We verify news sources against our comprehensive database of media outlets. This analysis examines the source's historical accuracy, editorial standards, transparency policies, and any known political affiliations.</p>
-                    </div>
-                    <div class="analysis-details">
-                        <div class="metric-item">
-                            <span class="metric-label">Source Name:</span>
-                            <span class="metric-value">${results.sources.name}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Website Domain:</span>
-                            <span class="metric-value">${results.sources.domain}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Credibility Score:</span>
-                            <div class="metric-visual">
-                                <span class="metric-value">${results.sources.credibility || 'N/A'}%</span>
-                                <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${results.sources.credibility || 0}%" style="background: ${getScoreColor(results.sources.credibility)};"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Known Political Bias:</span>
-                            <span class="metric-value">${results.sources.bias || 'Not detected'}</span>
-                        </div>
-                        ${results.sources.assessment ? `
-                        <p style="margin-top: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
-                            <strong>AI Assessment:</strong> ${results.sources.assessment}
-                        </p>` : ''}
-                    </div>
-                `
-            });
-        }
-        
-        // 3. Bias & Objectivity Detection
-        if (results.bias) {
-            dropdowns.push({
-                icon: '⚖️',
-                title: 'Political Bias & Objectivity Analysis',
-                preview: `${results.bias.label} perspective - ${results.bias.objectivity}% objective reporting`,
-                iconColors: ['#6366f1', '#8b5cf6'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>Our AI examines linguistic patterns, word choices, source selection, and story framing to detect political bias. Remember: bias doesn't necessarily mean inaccuracy.</p>
-                    </div>
-                    ${createBiasGauge(results.bias)}
-                    <div class="analysis-details">
-                        ${results.bias.reasoning ? `
-                        <p style="margin-bottom: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
-                            <strong>GPT-4 Analysis:</strong> ${results.bias.reasoning}
-                        </p>` : ''}
-                        <div class="metric-item">
-                            <span class="metric-label">Political Lean Detected:</span>
-                            <span class="metric-value">${results.bias.label}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Objectivity Score:</span>
-                            <div class="metric-visual">
-                                <span class="metric-value">${results.bias.objectivity}%</span>
-                                <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${results.bias.objectivity}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Bias Intensity:</span>
-                            <span class="metric-value">${results.bias.score > 0 ? '+' : ''}${results.bias.score} (${Math.abs(results.bias.score) <= 3 ? 'Mild' : Math.abs(results.bias.score) <= 6 ? 'Moderate' : 'Strong'})</span>
-                        </div>
-                    </div>
-                `
-            });
-        }
-        
-        // 4. Fact Verification Results
-        if (results.claims && results.claims.length > 0) {
-            dropdowns.push({
-                icon: '✓',
-                title: 'Fact-Checking & Claim Verification Results',
-                preview: `${results.claims.length} factual claims analyzed and verified`,
-                iconColors: ['#10b981', '#059669'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>GPT-4 identifies specific factual claims made in the article and evaluates them based on its training data. High confidence scores indicate strong evidence supporting the claim.</p>
-                    </div>
-                    <div class="analysis-details">
-                        ${results.claims.map(claim => `
-                            <div class="claim-card">
-                                <span class="claim-icon">${getClaimIcon(claim.status)}</span>
-                                <div class="claim-content">
-                                    <div class="claim-text">"${claim.claim}"</div>
-                                    <div>
-                                        <span class="claim-verdict ${getClaimClass(claim.status)}">
-                                            ${getClaimLabel(claim.status)}
-                                        </span>
-                                        <span style="color: var(--text-secondary);">AI Confidence: ${claim.confidence}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                        ${results.overall_accuracy ? `
-                        <div style="margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.3);">
-                            <strong style="color: #10b981; font-size: 1.2em;">Overall Factual Accuracy Score: ${results.overall_accuracy}%</strong>
-                            <p style="margin-top: 10px; color: var(--text-secondary);">This score represents the percentage of verifiable claims that our AI confirmed as accurate.</p>
-                        </div>` : ''}
-                    </div>
-                `
-            });
-        }
-        
-        // 5. Writing Quality & Journalistic Standards
-        if (results.style) {
-            dropdowns.push({
-                icon: '✍️',
-                title: 'Writing Quality & Journalistic Standards Analysis',
-                preview: `${results.style.tone || 'Unknown'} tone - ${results.style.balanced ? 'Balanced' : 'Unbalanced'} reporting`,
-                iconColors: ['#f59e0b', '#f97316'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>Quality journalism follows specific standards: multiple sources, verifiable data, balanced perspectives, and clear attribution. We analyze these factors in detail.</p>
-                    </div>
-                    <div class="analysis-details">
-                        <div class="metric-item">
-                            <span class="metric-label">Direct Quote Usage:</span>
-                            <div class="metric-visual">
-                                <span class="metric-value">${results.style.quotes} quotes ${results.style.quotes >= 2 ? '✅' : '⚠️'}</span>
-                                <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${Math.min(results.style.quotes * 20, 100)}%" style="background: ${results.style.quotes >= 2 ? '#10b981' : '#f59e0b'};"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Statistical Evidence:</span>
-                            <div class="metric-visual">
-                                <span class="metric-value">${results.style.statistics} references ${results.style.statistics >= 2 ? '✅' : '⚠️'}</span>
-                                <div class="metric-bar">
-                                    <div class="metric-bar-fill" data-width="${Math.min(results.style.statistics * 20, 100)}%" style="background: ${results.style.statistics >= 2 ? '#10b981' : '#f59e0b'};"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Reading Complexity:</span>
-                            <span class="metric-value">Grade ${results.style.readingLevel} level</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Writing Tone:</span>
-                            <span class="metric-value">${results.style.tone || 'Not analyzed'}</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-label">Balanced Perspective:</span>
-                            <span class="metric-value">${results.style.balanced ? 'Yes ✅' : 'No ❌'}</span>
-                        </div>
-                    </div>
-                `
-            });
-        }
-        
-        // 6. AI Deep Insights & Pattern Recognition
-        if (results.key_findings && results.key_findings.length > 0) {
-            dropdowns.push({
-                icon: '🧠',
-                title: 'AI Deep Insights & Pattern Recognition',
-                preview: `${results.key_findings.length} advanced observations detected`,
-                iconColors: ['#8b5cf6', '#a855f7'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>GPT-4 can identify subtle patterns, logical inconsistencies, missing context, and manipulation techniques that readers might miss.</p>
-                    </div>
-                    <div class="analysis-details">
-                        ${results.key_findings.map((finding, i) => `
-                            <div style="margin-bottom: 15px; padding: 20px; background: var(--section-background); border-radius: 8px; border-left: 4px solid var(--primary-blue); border: 1px solid var(--card-border); border-left: 4px solid var(--primary-blue);">
-                                <strong style="color: var(--primary-blue);">Key Insight ${i + 1}:</strong>
-                                <p style="margin-top: 10px; line-height: 1.6; color: var(--text-secondary);">${finding}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                `
-            });
-        }
-        
-        // 7. Warning Signs & Red Flags
-        if (results.red_flags && results.red_flags.length > 0) {
-            dropdowns.push({
-                icon: '⚠️',
-                title: 'Warning Signs & Credibility Red Flags',
-                preview: `${results.red_flags.length} potential issues identified`,
-                iconColors: ['#ef4444', '#dc2626'],
-                content: `
-                    <div class="analysis-intro">
-                        <h4>What this analysis reveals:</h4>
-                        <p>Our system identifies specific warning signs that may indicate unreliable information or poor journalistic practices.</p>
-                    </div>
-                    <div class="analysis-details">
-                        ${results.red_flags.map(flag => `
-                            <div style="margin-bottom: 15px; padding: 20px; background: rgba(239, 68, 68, 0.05); border-radius: 8px; border-left: 4px solid #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444;">
-                                <strong style="color: #ef4444;">⚠️ Warning:</strong>
-                                <p style="margin-top: 10px; line-height: 1.6; color: var(--text-secondary);">${flag}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                `
-            });
-        }
-        
-        // 8. Recommendations for Readers
-        dropdowns.push({
-            icon: '💡',
-            title: 'Recommendations & Best Practices for Verification',
-            preview: 'How to verify this information independently',
-            iconColors: ['#14b8a6', '#0d9488'],
-            content: `
-                <div class="analysis-intro">
-                    <h4>What we recommend:</h4>
-                    <p>Based on our analysis, here are specific steps you can take to verify this information and develop a complete understanding of the topic.</p>
-                </div>
-                <div class="analysis-details">
-                    <div style="margin-bottom: 20px; padding: 20px; background: var(--section-background); border-radius: 8px; border: 1px solid var(--card-border);">
-                        <strong>🔍 Verification Steps:</strong>
-                        <ul style="margin-top: 10px; margin-left: 20px; color: var(--text-secondary);">
-                            <li>Search for this story on 2-3 other reputable news sources</li>
-                            <li>Check if sources with different political leanings report similar facts</li>
-                            <li>Look for original documents or primary sources mentioned</li>
-                            <li>Verify quotes by searching for the original context</li>
-                            <li>Check fact-checking websites for any disputed claims</li>
-                        </ul>
-                    </div>
-                    <div style="padding: 20px; background: rgba(37, 99, 235, 0.05); border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.2);">
-                        <strong>💡 Remember:</strong>
-                        <p style="margin-top: 10px; color: var(--text-secondary);">This AI analysis is one tool among many. Always think critically, consider multiple perspectives, and verify important information through multiple independent sources before forming conclusions.</p>
-                    </div>
-                </div>
-            `
-        });
-        
-        return dropdowns.map((dropdown, index) => `
-            <div class="analysis-dropdown" style="--icon-color-1: ${dropdown.iconColors[0]}; --icon-color-2: ${dropdown.iconColors[1]};">
-                <div class="dropdown-header">
-                    <div class="dropdown-icon-wrapper">
-                        <div class="dropdown-icon">
-                            ${dropdown.icon}
-                        </div>
-                        <div class="dropdown-title-section">
-                            <div class="dropdown-title">${dropdown.title}</div>
-                            <div class="dropdown-preview">${dropdown.preview}</div>
-                        </div>
-                    </div>
-                    <div class="expand-icon">▼</div>
-                </div>
-                <div class="dropdown-content">
-                    <div class="dropdown-body">
-                        ${dropdown.content}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // Helper functions
-    function getTrustColor(score) {
-        if (score >= 80) return '#10b981';
-        if (score >= 60) return '#f59e0b';
-        return '#ef4444';
-    }
-
-    function getTrustLabel(score) {
-        if (score >= 80) return 'HIGHLY TRUSTWORTHY';
-        if (score >= 60) return 'MODERATELY TRUSTWORTHY';
-        if (score >= 40) return 'QUESTIONABLE RELIABILITY';
-        return 'LOW TRUST - VERIFY CAREFULLY';
-    }
-
-    function getCredibilityDescription(score) {
-        if (score >= 80) return 'This source has an excellent track record of accurate reporting';
-        if (score >= 60) return 'This source is generally reliable but may have occasional issues';
-        if (score >= 40) return 'This source has mixed credibility and should be cross-referenced';
-        return 'This source has poor credibility or is unverified';
-    }
-
-    function getScoreColor(score) {
-        if (score >= 80) return '#10b981';
-        if (score >= 60) return '#f59e0b';
-        return '#ef4444';
-    }
-
-    function getClaimClass(status) {
-        if (status.toLowerCase().includes('verif')) return 'true';
-        if (status.toLowerCase().includes('false')) return 'false';
-        return 'unverified';
-    }
-
-    function getClaimLabel(status) {
-        if (status.toLowerCase().includes('verif')) return 'VERIFIED AS TRUE';
-        if (status.toLowerCase().includes('false')) return 'FALSE OR MISLEADING';
-        return 'CANNOT BE VERIFIED';
-    }
-
-    function getClaimIcon(status) {
-        if (status.toLowerCase().includes('verif')) return '✅';
-        if (status.toLowerCase().includes('false')) return '❌';
-        return '❓';
-    }
-
-    function createBiasGauge(biasData) {
-        const biasScore = biasData.score || 0;
-        const position = 50 + (biasScore * 5);
+    function createEnhancedTrustMeter(score) {
+        const color = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
+        const gradientId = `trustGradient${Date.now()}`;
         
         return `
-            <div class="bias-gauge">
-                <h5 style="text-align: center; color: var(--text-primary); margin-bottom: 20px;">Political Bias Spectrum Visualization</h5>
-                <div class="gauge-container">
-                    <div class="gauge-marker" style="left: ${position}%;"></div>
+            <div class="trust-meter">
+                <svg width="250" height="250" viewBox="0 0 250 250">
+                    <defs>
+                        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:${color};stop-opacity:0.7" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="125" cy="125" r="110" class="trust-meter-bg"></circle>
+                    <circle cx="125" cy="125" r="110" class="trust-meter-fill" 
+                            stroke="url(#${gradientId})"
+                            stroke-dasharray="691.15" 
+                            stroke-dashoffset="691.15"></circle>
+                </svg>
+                <div class="trust-meter-center">
+                    <div class="trust-score-number">${score}</div>
+                    <div class="trust-score-label" style="color: ${color}">
+                        ${score >= 80 ? 'RELIABLE' : score >= 60 ? 'MODERATE' : 'CAUTION'}
+                    </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px;">
-                    <span style="color: #3b82f6;">← Far Left</span>
-                    <span style="color: #3b82f6;">Left</span>
-                    <span style="color: #a78bfa;">Center</span>
-                    <span style="color: #ef4444;">Right</span>
-                    <span style="color: #ef4444;">Far Right →</span>
-                </div>
-                <p style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 14px;">
-                    Political bias indicates the ideological perspective from which news is presented. Quality journalism can exist across the political spectrum.
-                </p>
+            </div>
+            <div class="trust-indicators">
+                ${[...Array(5)].map((_, i) => 
+                    `<div class="trust-indicator ${i < Math.floor(score/20) ? 'active' : ''}"></div>`
+                ).join('')}
             </div>
         `;
     }
 
-    function animateTrustScore(score) {
-        const circle = document.getElementById('trustCircle');
-        const circumference = 2 * Math.PI * 90;
-        const offset = circumference - (score / 100) * circumference;
+    function generateAllDropdowns(results) {
+        const dropdowns = [];
         
-        setTimeout(() => {
-            circle.style.strokeDashoffset = offset;
-            circle.style.transition = 'stroke-dashoffset 1.5s ease-in-out';
-        }, 100);
+        // 1. Political Bias - FIRST and PRIORITY
+        if (results.bias) {
+            dropdowns.push(`
+                <div class="analysis-dropdown priority expanded">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">⚖️</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">Political Bias & Perspective Analysis</div>
+                                <div class="dropdown-preview">${results.bias.label} - ${results.bias.objectivity}% objective</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content" style="max-height: 2000px;">
+                        <div class="dropdown-body">
+                            ${createEnhancedBiasAnalysis(results.bias)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // 2. Author Credibility with infographic
+        if (results.author) {
+            dropdowns.push(`
+                <div class="analysis-dropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #10b981, #059669);">👤</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">Author Credibility & Background</div>
+                                <div class="dropdown-preview">${results.author !== 'Unknown' ? results.author : 'No author found'}</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${createAuthorInfographic(results.author)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // 3. Source Verification with enhanced visuals
+        if (results.sources) {
+            dropdowns.push(`
+                <div class="analysis-dropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">🏛️</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">News Source Verification</div>
+                                <div class="dropdown-preview">${results.sources.name} - ${results.sources.credibility}% credibility</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${createSourceVerification(results.sources)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // 4. Fact Checking with visual summary
+        if (results.claims && results.claims.length > 0) {
+            dropdowns.push(`
+                <div class="analysis-dropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">✓</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">Fact-Checking Results</div>
+                                <div class="dropdown-preview">${results.claims.length} claims analyzed</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${createFactCheckVisualization(results.claims, results.overall_accuracy)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // 5. AI Deep Insights with visual appeal
+        if (results.key_findings && results.key_findings.length > 0) {
+            dropdowns.push(`
+                <div class="analysis-dropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">🧠</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">AI Deep Insights</div>
+                                <div class="dropdown-preview">${results.key_findings.length} key patterns detected</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${createAIInsights(results.key_findings)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // 6. Warning Signs with enhanced content
+        if (results.red_flags && results.red_flags.length > 0) {
+            dropdowns.push(`
+                <div class="analysis-dropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-icon-wrapper">
+                            <div class="dropdown-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">⚠️</div>
+                            <div class="dropdown-title-section">
+                                <div class="dropdown-title">Warning Signs & Red Flags</div>
+                                <div class="dropdown-preview">${results.red_flags.length} issues identified</div>
+                            </div>
+                        </div>
+                        <div class="expand-icon">▼</div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="dropdown-body">
+                            ${createWarningSignsGrid(results.red_flags)}
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        return dropdowns.join('');
     }
 
-    // Action functions
+    function createEnhancedBiasAnalysis(bias) {
+        return `
+            <div class="bias-visualization">
+                <h4 style="font-size: 20px; color: #1e293b; margin-bottom: 20px;">Political Perspective Analysis</h4>
+                <p style="margin-bottom: 20px; line-height: 1.6;">
+                    Our AI analyzed word choice, framing, source selection, and emotional language to determine political perspective.
+                    This article shows <strong>${bias.label}</strong> characteristics with ${bias.objectivity}% objective reporting.
+                </p>
+                
+                <div class="bias-spectrum">
+                    <div class="bias-marker" style="left: ${50 + (bias.score * 5)}%;">
+                        ${bias.score < -3 ? '←' : bias.score > 3 ? '→' : '•'}
+                    </div>
+                </div>
+                
+                <div class="bias-labels">
+                    <span class="bias-label" style="color: #1e40af;">Far Left</span>
+                    <span class="bias-label" style="color: #3b82f6;">Left</span>
+                    <span class="bias-label" style="color: #a78bfa;">Center</span>
+                    <span class="bias-label" style="color: #f87171;">Right</span>
+                    <span class="bias-label" style="color: #dc2626;">Far Right</span>
+                </div>
+                
+                ${bias.reasoning ? `
+                <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+                    <h5 style="color: #6366f1; margin-bottom: 10px;">AI Analysis Details:</h5>
+                    <p style="line-height: 1.6; color: #475569;">${bias.reasoning}</p>
+                </div>` : ''}
+                
+                <div style="margin-top: 20px; padding: 20px; background: #fef3c7; border-radius: 12px;">
+                    <strong>What this means:</strong> ${
+                        Math.abs(bias.score) <= 2 ? 'This article maintains relatively balanced reporting with minimal bias.' :
+                        Math.abs(bias.score) <= 5 ? 'This article shows moderate bias. Consider reading perspectives from the other side.' :
+                        'This article shows strong bias. Seek out multiple sources for a complete picture.'
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    function createAuthorInfographic(author) {
+        const hasAuthor = author && author !== 'Unknown';
+        
+        return `
+            <div class="author-infographic">
+                <div class="author-avatar">
+                    ${hasAuthor ? '👤' : '❓'}
+                </div>
+                <div class="author-details">
+                    <div class="author-name">${hasAuthor ? author : 'Anonymous Author'}</div>
+                    <div style="color: #64748b; margin-bottom: 10px;">
+                        ${hasAuthor ? 'Author attribution found' : 'No author attribution provided'}
+                    </div>
+                </div>
+                
+                <div class="author-metrics">
+                    <div class="author-metric">
+                        <div class="metric-icon">✓</div>
+                        <div class="metric-value">${hasAuthor ? 'Yes' : 'No'}</div>
+                        <div class="metric-label">Attribution</div>
+                    </div>
+                    <div class="author-metric">
+                        <div class="metric-icon">🏆</div>
+                        <div class="metric-value">${hasAuthor ? '+20%' : '-20%'}</div>
+                        <div class="metric-label">Trust Impact</div>
+                    </div>
+                    <div class="author-metric">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-value">${hasAuthor ? 'High' : 'Low'}</div>
+                        <div class="metric-label">Accountability</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; text-align: left;">
+                    <strong>Why author attribution matters:</strong>
+                    <p style="margin-top: 10px; color: #64748b; line-height: 1.6;">
+                        ${hasAuthor ? 
+                        'Named authors take responsibility for their work and can be held accountable for accuracy. This transparency is a key indicator of journalistic integrity.' :
+                        'Anonymous articles lack accountability. Without knowing who wrote it, we cannot verify expertise, check for conflicts of interest, or hold anyone responsible for false information.'}
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function createSourceVerification(sources) {
+        const credibilityColor = sources.credibility >= 80 ? '#10b981' : 
+                                sources.credibility >= 60 ? '#f59e0b' : '#ef4444';
+        
+        return `
+            <div style="background: linear-gradient(135deg, #eff6ff, #e0f2fe); padding: 30px; border-radius: 16px;">
+                <h4 style="font-size: 20px; margin-bottom: 20px;">Source Credibility Analysis</h4>
+                
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 48px; font-weight: 900; color: ${credibilityColor};">
+                        ${sources.credibility}%
+                    </div>
+                    <div style="font-size: 18px; color: #64748b;">Credibility Score</div>
+                </div>
+                
+                <div style="display: grid; gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span style="font-weight: 600;">Source Name:</span>
+                        <span style="color: #6366f1;">${sources.name}</span>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span style="font-weight: 600;">Domain:</span>
+                        <span style="color: #6366f1;">${sources.domain}</span>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between;">
+                        <span style="font-weight: 600;">Known Bias:</span>
+                        <span style="color: #6366f1;">${sources.bias || 'Not detected'}</span>
+                    </div>
+                </div>
+                
+                ${sources.assessment ? `
+                <div style="margin-top: 20px; padding: 20px; background: white; border-radius: 12px;">
+                    <strong>Assessment:</strong>
+                    <p style="margin-top: 10px; line-height: 1.6; color: #475569;">${sources.assessment}</p>
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    function createFactCheckVisualization(claims, overallAccuracy) {
+        const trueCount = claims.filter(c => c.status.toLowerCase().includes('verif')).length;
+        const falseCount = claims.filter(c => c.status.toLowerCase().includes('false')).length;
+        const unverifiedCount = claims.length - trueCount - falseCount;
+        
+        return `
+            <div class="fact-check-summary">
+                <h4 style="font-size: 20px; margin-bottom: 20px;">Fact-Checking Summary</h4>
+                
+                <div class="fact-check-chart">
+                    <div class="fact-stat">
+                        <div class="fact-circle true">${trueCount}</div>
+                        <div class="fact-label">Verified True</div>
+                    </div>
+                    <div class="fact-stat">
+                        <div class="fact-circle false">${falseCount}</div>
+                        <div class="fact-label">False/Misleading</div>
+                    </div>
+                    <div class="fact-stat">
+                        <div class="fact-circle unverified">${unverifiedCount}</div>
+                        <div class="fact-label">Unverified</div>
+                    </div>
+                </div>
+                
+                ${overallAccuracy ? `
+                <div style="text-align: center; margin: 20px 0; padding: 20px; background: white; border-radius: 12px;">
+                    <div style="font-size: 36px; font-weight: 900; color: ${overallAccuracy >= 80 ? '#10b981' : overallAccuracy >= 60 ? '#f59e0b' : '#ef4444'};">
+                        ${overallAccuracy}%
+                    </div>
+                    <div style="color: #64748b;">Overall Factual Accuracy</div>
+                </div>` : ''}
+                
+                <div class="claims-list">
+                    <h5 style="margin-bottom: 15px;">Individual Claims Analysis:</h5>
+                    ${claims.map((claim, i) => `
+                        <div class="claim-item" data-index="${i}">
+                            <div class="claim-header" onclick="toggleClaim(${i})">
+                                <div class="claim-status" style="background: ${
+                                    claim.status.toLowerCase().includes('verif') ? '#10b981' :
+                                    claim.status.toLowerCase().includes('false') ? '#ef4444' : '#f59e0b'
+                                }; color: white;">
+                                    ${claim.status.toLowerCase().includes('verif') ? '✓' :
+                                      claim.status.toLowerCase().includes('false') ? '✗' : '?'}
+                                </div>
+                                <div class="claim-text">${claim.claim}</div>
+                                <div style="font-size: 12px; color: #64748b;">▼</div>
+                            </div>
+                            <div class="claim-details">
+                                <strong>Status:</strong> ${claim.status}<br>
+                                <strong>Confidence:</strong> ${claim.confidence}%<br>
+                                ${claim.explanation ? `<strong>Explanation:</strong> ${claim.explanation}` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function createAIInsights(findings) {
+        return `
+            <div class="ai-insights">
+                <h4 style="font-size: 20px; margin-bottom: 20px; position: relative; z-index: 1;">
+                    🧠 AI-Powered Pattern Recognition
+                </h4>
+                <p style="margin-bottom: 20px; color: #6b21a8; position: relative; z-index: 1;">
+                    Our AI identified these subtle patterns and insights that human readers might miss:
+                </p>
+                
+                ${findings.map((finding, i) => `
+                    <div class="insight-card">
+                        <div class="insight-number">${i + 1}</div>
+                        <div class="insight-content">
+                            <div class="insight-title">Key Insight #${i + 1}</div>
+                            <p style="margin-top: 8px; line-height: 1.6;">${finding}</p>
+                        </div>
+                    </div>
+                `).join('')}
+                
+                <div style="margin-top: 20px; padding: 20px; background: white; border-radius: 12px; text-align: center;">
+                    <strong style="color: #6b21a8;">Why AI insights matter:</strong>
+                    <p style="margin-top: 10px; color: #64748b; line-height: 1.6;">
+                        GPT-4 can detect manipulation tactics, missing context, logical fallacies, and emotional triggers 
+                        that are designed to influence readers subconsciously.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    function createWarningSignsGrid(redFlags) {
+        const warningTypes = {
+            'bias': { icon: '📊', title: 'Bias Indicator' },
+            'source': { icon: '🔍', title: 'Source Issue' },
+            'claim': { icon: '❌', title: 'False Claim' },
+            'manipulation': { icon: '🎭', title: 'Manipulation' },
+            'missing': { icon: '❓', title: 'Missing Info' },
+            'emotion': { icon: '😤', title: 'Emotional' }
+        };
+        
+        return `
+            <div>
+                <h4 style="font-size: 20px; margin-bottom: 20px;">Credibility Concerns Identified</h4>
+                <div class="warning-grid">
+                    ${redFlags.map(flag => {
+                        const type = detectWarningType(flag);
+                        const warning = warningTypes[type] || { icon: '⚠️', title: 'Warning' };
+                        
+                        return `
+                            <div class="warning-card">
+                                <div class="warning-icon">${warning.icon}</div>
+                                <div>
+                                    <div class="warning-title">${warning.title}</div>
+                                    <div class="warning-description">${flag}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div style="margin-top: 20px; padding: 20px; background: #fef2f2; border-radius: 12px; border: 1px solid #fecaca;">
+                    <strong style="color: #991b1b;">What to do with these warnings:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px; color: #7f1d1d;">
+                        <li>Verify claims with multiple independent sources</li>
+                        <li>Look for original documents or primary sources</li>
+                        <li>Be aware of emotional manipulation tactics</li>
+                        <li>Check if important context is missing</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    function detectWarningType(flag) {
+        const lower = flag.toLowerCase();
+        if (lower.includes('bias') || lower.includes('lean')) return 'bias';
+        if (lower.includes('source') || lower.includes('credib')) return 'source';
+        if (lower.includes('false') || lower.includes('incorrect')) return 'claim';
+        if (lower.includes('manipul') || lower.includes('mislead')) return 'manipulation';
+        if (lower.includes('missing') || lower.includes('omit')) return 'missing';
+        if (lower.includes('emotion') || lower.includes('fear')) return 'emotion';
+        return 'general';
+    }
+
+    // Initialize interactions
+    function initializeInteractions() {
+        // Toggle dropdowns
+        document.querySelectorAll('.dropdown-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const dropdown = this.closest('.analysis-dropdown');
+                const content = dropdown.querySelector('.dropdown-content');
+                const icon = this.querySelector('.expand-icon');
+                
+                if (dropdown.classList.contains('expanded')) {
+                    dropdown.classList.remove('expanded');
+                    content.style.maxHeight = '0';
+                    icon.textContent = '▼';
+                } else {
+                    dropdown.classList.add('expanded');
+                    content.style.maxHeight = '2000px';
+                    icon.textContent = '▲';
+                }
+            });
+        });
+    }
+
+    // Toggle individual claims
+    window.toggleClaim = function(index) {
+        const claim = document.querySelector(`.claim-item[data-index="${index}"]`);
+        claim.classList.toggle('expanded');
+    }
+
+    // Animate trust meter
+    function animateTrustMeter(score) {
+        const circle = document.querySelector('.trust-meter-fill');
+        if (circle) {
+            const circumference = 691.15;
+            const offset = circumference - (score / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+    }
+
+    // PDF Generation
+    window.generatePDF = async function() {
+        if (!currentAnalysisData) {
+            showMessage('No analysis to save', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    analysis_data: currentAnalysisData.results,
+                    article_url: document.getElementById('articleUrl').value || 'Text Analysis'
+                })
+            });
+            
+            if (!response.ok) throw new Error('PDF generation failed');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `news-analysis-${Date.now()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showMessage('PDF report generated successfully!', 'success');
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            showMessage('Failed to generate PDF report', 'error');
+        }
+    }
+
+    // Reset analysis
     window.resetAnalysis = function() {
         document.getElementById('articleUrl').value = '';
         document.getElementById('articleText').value = '';
         document.getElementById('results').classList.remove('active');
         currentAnalysisData = null;
-        switchInputType('url');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    window.shareResults = function() {
-        if (!currentAnalysisData) {
-            showMessage('No analysis results to share. Please analyze an article first.', 'error');
-            return;
-        }
-        
-        const shareText = `I analyzed this article with AI News Intelligence System. Trust Score: ${currentAnalysisData.results.credibility || 0}%`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'AI News Analysis Results',
-                text: shareText,
-                url: window.location.href
-            }).catch(err => console.log('Share failed:', err));
-        } else {
-            // Fallback - copy to clipboard
-            const textArea = document.createElement('textarea');
-            textArea.value = shareText + '\n' + window.location.href;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showMessage('Analysis link copied to clipboard! You can now share it.', 'success');
-        }
-    }
-
+    // Show messages
     function showMessage(text, type) {
-        const existing = document.querySelector('.message');
-        if (existing) existing.remove();
-        
         const message = document.createElement('div');
-        message.className = `message ${type}`;
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'error' ? '#fee2e2' : '#dcfce7'};
+            color: ${type === 'error' ? '#991b1b' : '#166534'};
+            border: 1px solid ${type === 'error' ? '#fecaca' : '#bbf7d0'};
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 9999;
+        `;
         message.textContent = text;
-        
-        document.querySelector('.input-section').after(message);
+        document.body.appendChild(message);
         
         setTimeout(() => {
-            if (message.parentNode) {
-                message.remove();
-            }
+            message.remove();
         }, 5000);
     }
 
-    // Initialize
+    // Initialize on load
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('AI News Intelligence System initialized successfully');
-        
-        document.getElementById('articleUrl').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') analyzeArticle();
-        });
+        console.log('AI News Intelligence System initialized');
     });
 </script>
 {% endblock %}
