@@ -80,6 +80,26 @@ class APIClient {
         return this.handleResponse(response);
     }
 
+    // Unified Analysis API (AI Detection & Plagiarism)
+    async analyzeUnified(data) {
+        const response = await fetch(`${this.baseURL}/analyze-unified`, {
+            method: 'POST',
+            headers: this.headers,
+            body: JSON.stringify(data)
+        });
+        return this.handleResponse(response);
+    }
+
+    // Generate Unified PDF Report
+    async generateUnifiedPDF(data) {
+        const response = await fetch(`${this.baseURL}/generate-unified-pdf`, {
+            method: 'POST',
+            headers: this.headers,
+            body: JSON.stringify(data)
+        });
+        return this.handleResponse(response);
+    }
+
     // User Authentication APIs
     async getUserStatus() {
         const response = await fetch(`${this.baseURL}/user/status`);
