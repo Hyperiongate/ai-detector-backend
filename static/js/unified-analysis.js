@@ -1,386 +1,168 @@
-/**
- * Facts & Fakes AI - Unified Analysis Module
- * Handles multi-modal content analysis processing
- */
-
+// unified-analysis.js - AI Detection and Plagiarism Check
 (function() {
     'use strict';
     
-    // Unified Analysis Module
-    const UnifiedAnalysis = {
-        
-        /**
-         * Run comprehensive multi-modal analysis
-         */
-        async runAnalysis(inputData, tier = 'free') {
-            console.log('Starting unified analysis...', { inputData, tier });
+    // Initialize namespace
+    window.UnifiedApp = window.UnifiedApp || {};
+    window.UnifiedApp.analysis = {};
+    
+    // Analysis stages for progress tracking
+    const ANALYSIS_STAGES = [
+        { stage: 'Preparing text for analysis...', progress: 15 },
+        { stage: 'Analyzing writing patterns...', progress: 30 },
+        { stage: 'Detecting AI signatures...', progress: 45 },
+        { stage: 'Checking for plagiarism...', progress: 60 },
+        { stage: 'Comparing with sources...', progress: 80 },
+        { stage: 'Finalizing report...', progress: 100 }
+    ];
+    
+    // Main analysis function
+    window.UnifiedApp.analysis.runAnalysis = async function(text, tier = 'pro') {
+        try {
+            // Show loading overlay
+            UnifiedApp.ui.showLoading();
             
-            try {
-                // Show loading modal
-                this.showLoadingModal();
-                
-                // Prepare form data
-                const formData = await this.prepareFormData(inputData, tier);
-                
-                // Start progress animation
-                this.startProgressAnimation();
-                
-                // Make API request
-                const response = await this.makeAPIRequest(formData);
-                
-                // Process results
-                if (response.success) {
-                    console.log('Analysis completed successfully');
-                    window.UnifiedApp.state.lastResults = response.results;
-                    
-                    // Hide loading modal
-                    this.hideLoadingModal();
-                    
-                    // Display results
-                    if (window.UnifiedApp.results && window.UnifiedApp.results.displayResults) {
-                        window.UnifiedApp.results.displayResults(response.results);
-                    }
-                    
-                } else {
-                    throw new Error(response.error || 'Analysis failed');
-                }
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                this.hideLoadingModal();
-                this.showErrorModal(error.message);
-            }
-        },
-        
-        /**
-         * Prepare form data for API request
-         */
-        async prepareFormData(inputData, tier) {
-            const formData = new FormData();
-            
-            // Add analysis tier
-            formData.append('tier', tier);
-            formData.append('is_pro', tier === 'pro');
-            
-            // Determine analysis types needed
-            const analysisTypes = [];
-            
-            if (inputData.textContent && inputData.textContent.trim()) {
-                analysisTypes.push('text');
-                formData.append('text_content', inputData.textContent.trim());
+            // Validate input
+            if (!text || text.trim().length < 50) {
+                throw new Error('Please enter at least 50 characters for analysis');
             }
             
-            if (inputData.urlContent && inputData.urlContent.trim()) {
-                analysisTypes.push('news');
-                formData.append('url_content', inputData.urlContent.trim());
-            }
-            
-            if (inputData.imageFile) {
-                analysisTypes.push('image');
-                formData.append('image_file', inputData.imageFile);
-                formData.append('image_filename', inputData.imageFile.name);
-            }
-            
-            formData.append('analysis_types', JSON.stringify(analysisTypes));
-            formData.append('timestamp', Date.now().toString());
-            
-            console.log('Form data prepared for analysis types:', analysisTypes);
-            return formData;
-        },
-        
-        /**
-         * Make API request to unified analysis endpoint
-         */
-        async makeAPIRequest(formData) {
-            const response = await fetch(window.UnifiedApp.config.apiEndpoint, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('Access forbidden. Please check your subscription status.');
-                } else if (response.status === 429) {
-                    throw new Error('Rate limit exceeded. Please try again later.');
-                } else if (response.status >= 500) {
-                    throw new Error('Server error. Please try again later.');
-                } else {
-                    throw new Error(`Request failed with status ${response.status}`);
-                }
-            }
-            
-            const data = await response.json();
-            console.log('API response received:', data);
-            return data;
-        },
-        
-        /**
-         * Show loading modal with progress animation
-         */
-        showLoadingModal() {
-            const modal = document.getElementById('unifiedLoadingModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                
-                // Reset progress
-                const progressFill = document.getElementById('unifiedProgressFill');
-                const progressText = document.getElementById('unifiedProgressText');
-                
-                if (progressFill) progressFill.style.width = '0%';
-                if (progressText) progressText.textContent = 'Initializing analysis...';
-                
-                // Reset stages
-                const stages = document.querySelectorAll('.stage');
-                stages.forEach(stage => {
-                    stage.classList.remove('active', 'completed');
-                });
-            }
-        },
-        
-        /**
-         * Hide loading modal
-         */
-        hideLoadingModal() {
-            const modal = document.getElementById('unifiedLoadingModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        },
-        
-        /**
-         * Start progress animation
-         */
-        startProgressAnimation() {
-            let currentStage = 0;
-            const stages = window.UnifiedApp.config.progressStages;
-            
-            const interval = setInterval(() => {
-                if (currentStage >= stages.length) {
-                    clearInterval(interval);
-                    return;
-                }
-                
-                const stage = stages[currentStage];
-                
-                // Update progress bar
-                const progressFill = document.getElementById('unifiedProgressFill');
-                const progressText = document.getElementById('unifiedProgressText');
-                
-                if (progressFill) {
-                    progressFill.style.width = stage.progress + '%';
-                }
-                
-                if (progressText) {
-                    progressText.textContent = stage.text;
-                }
-                
-                // Update stage indicators
-                const stageElement = document.getElementById(stage.id);
-                if (stageElement) {
-                    // Mark previous stages as completed
-                    for (let i = 0; i < currentStage; i++) {
-                        const prevStage = document.getElementById(stages[i].id);
-                        if (prevStage) {
-                            prevStage.classList.remove('active');
-                            prevStage.classList.add('completed');
-                        }
-                    }
-                    
-                    // Mark current stage as active
-                    stageElement.classList.add('active');
-                }
-                
-                currentStage++;
-            }, 1000); // Update every second
-            
-            // Store interval for cleanup
-            this.progressInterval = interval;
-        },
-        
-        /**
-         * Show error modal
-         */
-        showErrorModal(message) {
-            const modal = document.getElementById('unifiedErrorModal');
-            const errorMessage = document.getElementById('unifiedErrorMessage');
-            
-            if (modal && errorMessage) {
-                errorMessage.textContent = message;
-                modal.style.display = 'flex';
-            }
-        },
-        
-        /**
-         * Retry analysis
-         */
-        async retryAnalysis() {
-            if (window.UnifiedApp.ui && window.UnifiedApp.ui.closeErrorModal) {
-                window.UnifiedApp.ui.closeErrorModal();
-            }
-            
-            // Retry with current input data
-            await this.runAnalysis(
-                window.UnifiedApp.state.inputData,
-                window.UnifiedApp.state.currentTier
-            );
-        },
-        
-        /**
-         * Process and validate analysis results
-         */
-        processResults(results) {
-            const processedResults = {
-                timestamp: new Date().toISOString(),
-                overall: {
-                    trustScore: 0,
-                    riskLevel: 'low',
-                    summary: 'Analysis completed'
-                },
-                textAnalysis: null,
-                newsAnalysis: null,
-                imageAnalysis: null,
-                combinedInsights: []
+            // Prepare analysis data
+            const analysisData = {
+                content: text.trim(),
+                type: 'text',
+                is_pro: tier === 'pro',
+                analysis_type: 'ai_plagiarism' // New analysis type for backend
             };
             
-            // Process text analysis results
-            if (results.text_analysis) {
-                processedResults.textAnalysis = {
-                    aiDetected: results.text_analysis.ai_detected || false,
-                    confidence: results.text_analysis.confidence || 0,
-                    aiProbability: results.text_analysis.ai_probability || 0,
-                    patterns: results.text_analysis.patterns || [],
-                    recommendations: results.text_analysis.recommendations || []
-                };
-            }
+            // Simulate progress stages
+            let stageIndex = 0;
+            const progressInterval = setInterval(() => {
+                if (stageIndex < ANALYSIS_STAGES.length) {
+                    const stage = ANALYSIS_STAGES[stageIndex];
+                    UnifiedApp.ui.updateProgress(stage.stage, stage.progress);
+                    stageIndex++;
+                }
+            }, 800);
             
-            // Process news analysis results
-            if (results.news_analysis) {
-                processedResults.newsAnalysis = {
-                    trustScore: results.news_analysis.trust_score || 0,
-                    biasScore: results.news_analysis.bias_score || 0,
-                    factChecks: results.news_analysis.fact_checks || [],
-                    sourceCredibility: results.news_analysis.source_credibility || {},
-                    claims: results.news_analysis.claims || []
-                };
-            }
+            // Call API
+            const response = await window.ffAPI.analyzeUnified(analysisData);
             
-            // Process image analysis results
-            if (results.image_analysis) {
-                processedResults.imageAnalysis = {
-                    trustScore: results.image_analysis.trust_score || 0,
-                    aiGenerated: results.image_analysis.ai_generated || false,
-                    manipulated: results.image_analysis.manipulated || false,
-                    confidence: results.image_analysis.confidence || 0,
-                    metadata: results.image_analysis.metadata || {},
-                    forensics: results.image_analysis.forensics || {}
-                };
-            }
+            // Clear progress interval
+            clearInterval(progressInterval);
             
-            // Calculate overall trust score
-            const trustScores = [];
-            if (processedResults.textAnalysis) {
-                trustScores.push(100 - (processedResults.textAnalysis.aiProbability * 100));
-            }
-            if (processedResults.newsAnalysis) {
-                trustScores.push(processedResults.newsAnalysis.trustScore);
-            }
-            if (processedResults.imageAnalysis) {
-                trustScores.push(processedResults.imageAnalysis.trustScore);
-            }
+            // Ensure we're at 100%
+            UnifiedApp.ui.updateProgress('Analysis complete!', 100);
             
-            if (trustScores.length > 0) {
-                processedResults.overall.trustScore = Math.round(
-                    trustScores.reduce((a, b) => a + b, 0) / trustScores.length
-                );
-            }
-            
-            // Determine risk level
-            if (processedResults.overall.trustScore >= 80) {
-                processedResults.overall.riskLevel = 'low';
-            } else if (processedResults.overall.trustScore >= 60) {
-                processedResults.overall.riskLevel = 'medium';
+            // Process response
+            if (response.success && response.results) {
+                // Add analysis metadata
+                response.results.timestamp = new Date().toISOString();
+                response.results.textLength = text.length;
+                response.results.wordCount = text.trim().split(/\s+/).length;
+                
+                // Display results
+                setTimeout(() => {
+                    UnifiedApp.ui.hideLoading();
+                    UnifiedApp.results.displayResults(response.results);
+                }, 500);
+                
+                return response.results;
             } else {
-                processedResults.overall.riskLevel = 'high';
+                throw new Error(response.error || 'Analysis failed');
             }
             
-            // Generate combined insights
-            processedResults.combinedInsights = this.generateCombinedInsights(processedResults);
-            
-            return processedResults;
-        },
-        
-        /**
-         * Generate combined insights from multi-modal analysis
-         */
-        generateCombinedInsights(results) {
-            const insights = [];
-            
-            // Cross-reference text and news analysis
-            if (results.textAnalysis && results.newsAnalysis) {
-                if (results.textAnalysis.aiDetected && results.newsAnalysis.trustScore < 70) {
-                    insights.push({
-                        type: 'warning',
-                        title: 'AI Content in Low-Trust Source',
-                        description: 'The text appears to be AI-generated and comes from a source with credibility concerns.'
-                    });
-                }
-            }
-            
-            // Cross-reference image and news analysis
-            if (results.imageAnalysis && results.newsAnalysis) {
-                if (results.imageAnalysis.manipulated && results.newsAnalysis.factChecks.some(fc => fc.verdict === 'false')) {
-                    insights.push({
-                        type: 'alert',
-                        title: 'Manipulated Image with False Claims',
-                        description: 'The image shows signs of manipulation and the associated claims have been fact-checked as false.'
-                    });
-                }
-            }
-            
-            // Overall consistency check
-            const scores = [results.textAnalysis?.confidence, results.newsAnalysis?.trustScore, results.imageAnalysis?.trustScore]
-                .filter(score => score !== null && score !== undefined);
-            
-            if (scores.length > 1) {
-                const variance = this.calculateVariance(scores);
-                if (variance > 30) {
-                    insights.push({
-                        type: 'info',
-                        title: 'Inconsistent Content Quality',
-                        description: 'Different aspects of the content show varying levels of trustworthiness.'
-                    });
-                }
-            }
-            
-            return insights;
-        },
-        
-        /**
-         * Calculate variance for consistency checking
-         */
-        calculateVariance(values) {
-            const mean = values.reduce((a, b) => a + b, 0) / values.length;
-            const squaredDifferences = values.map(value => Math.pow(value - mean, 2));
-            return Math.sqrt(squaredDifferences.reduce((a, b) => a + b, 0) / values.length);
+        } catch (error) {
+            console.error('Analysis error:', error);
+            UnifiedApp.ui.hideLoading();
+            UnifiedApp.ui.showError(error.message || 'An error occurred during analysis');
+            return null;
         }
     };
     
-    // Attach to UnifiedApp namespace when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.UnifiedApp) {
-                window.UnifiedApp.analysis = UnifiedAnalysis;
-                console.log('Unified Analysis module loaded');
+    // Export PDF report
+    window.UnifiedApp.analysis.generatePDF = async function() {
+        try {
+            UnifiedApp.ui.showToast('Generating PDF report...');
+            
+            const results = UnifiedApp.results.getCurrentResults();
+            if (!results) {
+                throw new Error('No results to export');
             }
-        });
-    } else {
-        if (window.UnifiedApp) {
-            window.UnifiedApp.analysis = UnifiedAnalysis;
-            console.log('Unified Analysis module loaded');
+            
+            const response = await window.ffAPI.generateUnifiedPDF({
+                results: results,
+                analysis_type: 'ai_plagiarism'
+            });
+            
+            if (response.success && response.pdf_url) {
+                // Download PDF
+                const a = document.createElement('a');
+                a.href = response.pdf_url;
+                a.download = `AI_Plagiarism_Report_${new Date().getTime()}.pdf`;
+                a.click();
+                
+                UnifiedApp.ui.showToast('PDF downloaded successfully!', 'success');
+            } else {
+                throw new Error('Failed to generate PDF');
+            }
+            
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            UnifiedApp.ui.showToast(error.message || 'Failed to generate PDF', 'error');
         }
-    }
+    };
+    
+    // Share results
+    window.UnifiedApp.analysis.shareResults = async function() {
+        try {
+            const results = UnifiedApp.results.getCurrentResults();
+            if (!results) {
+                UnifiedApp.ui.showToast('No results to share', 'error');
+                return;
+            }
+            
+            // Create shareable URL
+            const shareData = {
+                title: 'AI & Plagiarism Check Results',
+                text: `Content Analysis: ${results.ai_probability}% AI probability, ${results.plagiarism_score}% plagiarism detected`,
+                url: window.location.href
+            };
+            
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback to copy link
+                await navigator.clipboard.writeText(window.location.href);
+                UnifiedApp.ui.showToast('Link copied to clipboard!', 'success');
+            }
+            
+        } catch (error) {
+            console.error('Share error:', error);
+            UnifiedApp.ui.showToast('Failed to share results', 'error');
+        }
+    };
+    
+    // Global functions
+    window.analyzeUnified = function() {
+        const text = document.getElementById('textInput').value;
+        UnifiedApp.analysis.runAnalysis(text, 'pro');
+    };
+    
+    window.downloadUnifiedPDF = function() {
+        UnifiedApp.analysis.generatePDF();
+    };
+    
+    window.shareUnifiedResults = function() {
+        UnifiedApp.analysis.shareResults();
+    };
+    
+    window.resetUnifiedAnalysis = function() {
+        document.getElementById('textInput').value = '';
+        document.getElementById('charCount').textContent = '0';
+        document.getElementById('resultsSection').style.display = 'none';
+        UnifiedApp.results.clearResults();
+        UnifiedApp.ui.showToast('Form cleared', 'info');
+    };
     
 })();
