@@ -152,6 +152,7 @@
         const probability = aiData.probability || 0;
         const patterns = aiData.patterns || [];
         const confidence = aiData.confidence || 0;
+        const metrics = aiData.linguistic_metrics || {};
         
         // Determine AI model likelihood
         let modelAnalysis = '';
@@ -223,7 +224,7 @@
                     <strong>${confidence}%</strong>
                 </div>
                 <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-                    Based on analysis of ${results.word_count || 0} words across ${Math.floor((results.word_count || 0) / 20)} sentences
+                    Based on analysis of ${currentResults?.document_statistics?.word_count || 0} words across ${currentResults?.document_statistics?.sentence_count || 0} sentences
                 </p>
             </div>
             
@@ -243,18 +244,30 @@
             </div>
             
             <div class="result-card">
-                <div class="result-label">🧠 Deep Learning Analysis</div>
+                <div class="result-label">🧠 Advanced Metrics Analysis</div>
                 <div style="margin-top: 1rem;">
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                         <div style="text-align: center; padding: 1rem; background: #faf5ff; border-radius: 8px;">
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
-                            <div style="font-weight: 600; color: #7c3aed;">Vocabulary Diversity</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #6d28d9;">${Math.round(Math.random() * 30 + 60)}%</div>
+                            <div style="font-weight: 600; color: #7c3aed;">Perplexity</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #6d28d9;">${metrics.perplexity_score || 'N/A'}%</div>
+                            <div style="font-size: 0.75rem; color: #6d28d9; margin-top: 0.25rem;">
+                                ${metrics.perplexity_score < 40 ? 'Low (AI-like)' : metrics.perplexity_score > 70 ? 'High (Human-like)' : 'Medium'}
+                            </div>
                         </div>
                         <div style="text-align: center; padding: 1rem; background: #eff6ff; border-radius: 8px;">
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
-                            <div style="font-weight: 600; color: #2563eb;">Sentence Complexity</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #1d4ed8;">${Math.round(Math.random() * 25 + 65)}%</div>
+                            <div style="font-weight: 600; color: #2563eb;">Burstiness</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #1d4ed8;">${metrics.burstiness_score || 'N/A'}%</div>
+                            <div style="font-size: 0.75rem; color: #1d4ed8; margin-top: 0.25rem;">
+                                ${metrics.burstiness_score < 30 ? 'Low (AI-like)' : metrics.burstiness_score > 60 ? 'High (Human-like)' : 'Medium'}
+                            </div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
+                            <div style="font-weight: 600; color: #16a34a;">Vocabulary</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #15803d;">${metrics.vocabulary_diversity || 0}%</div>
+                            <div style="font-size: 0.75rem; color: #15803d; margin-top: 0.25rem;">Diversity Score</div>
                         </div>
                     </div>
                 </div>
@@ -271,6 +284,7 @@
                         <li>Sentence structure consistency: ${probability > 60 ? 'High' : 'Variable'}</li>
                         <li>Emotional tone: ${probability > 70 ? 'Neutral/Formal' : 'Natural variations detected'}</li>
                         <li>Transition usage: ${probability > 50 ? 'Formulaic patterns' : 'Organic flow'}</li>
+                        <li>Coherence score: ${metrics.coherence_score || 0}%</li>
                     </ul>
                 </div>
             </div>
@@ -278,7 +292,7 @@
             <div class="result-card" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
                 <div class="result-label">🤖 AI Model Signatures</div>
                 <div class="model-detection-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                    ${renderModelDetection(probability)}
+                    ${renderModelDetection(probability, aiData.detected_models)}
                 </div>
             </div>
         `;
@@ -293,6 +307,8 @@
         const score = plagiarismData.score || 0;
         const matches = plagiarismData.matches || [];
         const sources = plagiarismData.sources || 0;
+        const sourceBreakdown = plagiarismData.source_breakdown || {};
+        const databases = plagiarismData.databases_queried || [];
         
         let statusBanner = '';
         if (score < 10) {
@@ -356,13 +372,30 @@
                     </div>
                     <div style="text-align: right;">
                         <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-bottom: 0.5rem;">
-                            <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">Web Pages</span>
-                            <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">Academic</span>
-                            <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">News</span>
+                            ${databases.length > 0 ? databases.map(db => 
+                                `<span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.75rem;">${db}</span>`
+                            ).join('') : `
+                                <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">Web Pages</span>
+                                <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">Academic</span>
+                                <span style="padding: 0.25rem 0.75rem; background: #dbeafe; border-radius: 4px; font-size: 0.875rem;">News</span>
+                            `}
                         </div>
                         <div style="font-size: 0.875rem; color: #64748b;">Real-time analysis</div>
                     </div>
                 </div>
+                ${Object.keys(sourceBreakdown).length > 0 ? `
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0f2fe;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Source Distribution:</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
+                            ${Object.entries(sourceBreakdown).map(([type, count]) => `
+                                <div style="text-align: center; padding: 0.5rem; background: white; border-radius: 6px;">
+                                    <div style="font-weight: 600; color: #0284c7;">${count}</div>
+                                    <div style="font-size: 0.875rem; color: #64748b;">${type}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
             
             <div class="result-card">
@@ -384,8 +417,13 @@
                                 </div>
                                 <div style="margin-left: 2rem;">
                                     <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
-                                        ${getSourceTypeIcon(match.source)} ${getSourceType(match.source)} • Checked ${getTimeAgo()}
+                                        ${getSourceTypeIcon(match.source_type || match.source)} ${match.source_type || getSourceType(match.source)} • Checked ${plagiarismData.scan_time ? plagiarismData.scan_time + 's ago' : getTimeAgo()}
                                     </div>
+                                    ${match.text_excerpt ? `
+                                        <div style="font-size: 0.875rem; color: #475569; font-style: italic; margin: 0.5rem 0; padding: 0.5rem; background: #f8fafc; border-left: 3px solid #e2e8f0;">
+                                            "${match.text_excerpt}"
+                                        </div>
+                                    ` : ''}
                                     ${match.url ? `
                                         <a href="${match.url}" target="_blank" style="color: var(--primary-color); text-decoration: none; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.25rem;">
                                             View source <span style="font-size: 0.75rem;">↗</span>
@@ -487,7 +525,12 @@
             'Moderate formality': '👔',
             'Natural language variations': '🌿',
             'Personal voice detected': '👤',
-            'Human-like irregularities': '✍️'
+            'Human-like irregularities': '✍️',
+            'Algorithm-like patterns': '⚙️',
+            'Limited stylistic variation': '📏',
+            'Natural language flow': '🌊',
+            'Human writing variations': '🎭',
+            'Personal voice present': '💭'
         };
         return icons[pattern] || '📌';
     }
@@ -507,28 +550,53 @@
             'Moderate formality': 'Business-like tone with some casual elements',
             'Natural language variations': 'Irregular patterns typical of human writing',
             'Personal voice detected': 'Individual style and personality evident in writing',
-            'Human-like irregularities': 'Natural inconsistencies in style and structure'
+            'Human-like irregularities': 'Natural inconsistencies in style and structure',
+            'Algorithm-like patterns': 'Systematic and predictable writing structure',
+            'Limited stylistic variation': 'Little change in writing style throughout',
+            'Natural language flow': 'Organic progression of ideas with natural transitions',
+            'Human writing variations': 'Diverse sentence structures and vocabulary use',
+            'Personal voice present': 'Clear individual perspective and personality'
         };
         return explanations[pattern] || 'Pattern detected in content analysis';
     }
     
-    function renderModelDetection(probability) {
-        const models = [
-            { name: 'ChatGPT', icon: '🟢', likelihood: probability > 70 ? 90 : probability > 40 ? 45 : 10 },
-            { name: 'Claude', icon: '🔵', likelihood: probability > 70 ? 85 : probability > 40 ? 40 : 8 },
-            { name: 'Gemini', icon: '🟣', likelihood: probability > 70 ? 75 : probability > 40 ? 35 : 5 },
-            { name: 'Other AI', icon: '⚪', likelihood: probability > 60 ? 60 : probability > 30 ? 30 : 3 }
-        ];
-        
-        return models.map(model => `
-            <div style="text-align: center; padding: 1rem; background: white; border-radius: 8px;">
-                <div style="font-size: 2rem;">${model.icon}</div>
-                <div style="font-weight: 600; margin: 0.5rem 0;">${model.name}</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: ${getScoreColor(100 - model.likelihood)};">
-                    ${model.likelihood}%
+    function renderModelDetection(probability, detectedModels) {
+        if (!detectedModels || detectedModels.length === 0) {
+            // Default model detection based on probability
+            const models = [
+                { name: 'ChatGPT', icon: '🟢', likelihood: probability > 70 ? 90 : probability > 40 ? 45 : 10 },
+                { name: 'Claude', icon: '🔵', likelihood: probability > 70 ? 85 : probability > 40 ? 40 : 8 },
+                { name: 'Gemini', icon: '🟣', likelihood: probability > 70 ? 75 : probability > 40 ? 35 : 5 },
+                { name: 'Other AI', icon: '⚪', likelihood: probability > 60 ? 60 : probability > 30 ? 30 : 3 }
+            ];
+            
+            return models.map(model => `
+                <div style="text-align: center; padding: 1rem; background: white; border-radius: 8px;">
+                    <div style="font-size: 2rem;">${model.icon}</div>
+                    <div style="font-weight: 600; margin: 0.5rem 0;">${model.name}</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: ${getScoreColor(100 - model.likelihood)};">
+                        ${model.likelihood}%
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            // Use detected models from analysis
+            return detectedModels.map(model => {
+                const [name, confidence] = model.includes('(') ? model.split(' (') : [model, 'Medium'];
+                const confidenceLevel = confidence.replace(')', '');
+                const icon = name.includes('ChatGPT') ? '🟢' : 
+                           name.includes('Claude') ? '🔵' : 
+                           name.includes('Gemini') ? '🟣' : '⚪';
+                
+                return `
+                    <div style="text-align: center; padding: 1rem; background: white; border-radius: 8px;">
+                        <div style="font-size: 2rem;">${icon}</div>
+                        <div style="font-weight: 600; margin: 0.5rem 0;">${name}</div>
+                        <div style="font-size: 0.875rem; color: #64748b;">${confidenceLevel}</div>
+                    </div>
+                `;
+            }).join('');
+        }
     }
     
     function getMatchColor(percentage) {
@@ -546,10 +614,11 @@
     }
     
     function getSourceTypeIcon(source) {
-        if (source.includes('Wikipedia')) return '📚';
+        if (source.includes('Wikipedia') || source.includes('Encyclopedia')) return '📚';
         if (source.includes('Academic')) return '🎓';
         if (source.includes('News')) return '📰';
         if (source.includes('Database')) return '🗄️';
+        if (source.includes('Social')) return '💬';
         return '🌐';
     }
     
@@ -612,6 +681,29 @@
         currentResults = null;
         const resultsSection = document.getElementById('resultsSection');
         resultsSection.style.display = 'none';
+    };
+    
+    // Save to history (placeholder)
+    window.saveToHistory = function() {
+        if (!currentResults) {
+            alert('No results to save');
+            return;
+        }
+        
+        // In a real implementation, this would save to a database
+        const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+        history.unshift({
+            timestamp: new Date().toISOString(),
+            results: currentResults
+        });
+        
+        // Keep only last 10 analyses
+        if (history.length > 10) {
+            history.pop();
+        }
+        
+        localStorage.setItem('analysisHistory', JSON.stringify(history));
+        UnifiedApp.ui.showToast('Results saved to history', 'success');
     };
     
 })();
