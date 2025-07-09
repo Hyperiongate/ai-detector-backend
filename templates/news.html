@@ -700,8 +700,12 @@
                     <input type="url" 
                            id="articleUrl" 
                            placeholder="Insert target article URL for deep analysis..." 
-                           class="url-input">
+                           class="url-input"
+                           value="">
                 </div>
+                <p style="color: #888; font-size: 14px; margin-top: 10px;">
+                    💡 Tip: If a website blocks access, use the "News Text Analysis" tab to paste the article content
+                </p>
             </div>
             
             <!-- Text Input -->
@@ -891,7 +895,21 @@
             } catch (error) {
                 console.error('Analysis error:', error);
                 clearInterval(statusInterval);
-                showMessage('Analysis failed: ' + error.message, 'error');
+                
+                // Better error messages for common issues
+                let errorMessage = 'Analysis failed: ';
+                
+                if (error.message.includes('403') || error.message.includes('Forbidden')) {
+                    errorMessage = '⚠️ This website blocks automated access. Try copying and pasting the article text instead.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = '❌ Article not found. Please check the URL.';
+                } else if (error.message.includes('Could not extract content')) {
+                    errorMessage = '⚠️ Unable to access this article. Try using the "Analyze Text" option and paste the article content.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
             } finally {
                 // Reset UI
                 analysisInProgress = false;
