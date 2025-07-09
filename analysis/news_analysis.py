@@ -1,16 +1,20 @@
-"""
-News analysis module - Enhanced with URL extraction and real analysis
-"""
+# news_analysis.py - AI-Powered News Analysis with GPT-4
+# This module uses OpenAI's GPT-4 for intelligent news analysis
+
 import re
-import time
-import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime
-from typing import Dict, List, Optional
+import json
+import os
+from typing import Dict, List, Tuple, Optional
+from openai import OpenAI
 
-# Source credibility database
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# Source credibility database (keep this for quick lookups)
 SOURCE_CREDIBILITY = {
     'apnews.com': {'name': 'Associated Press', 'credibility': 90, 'bias': 'center'},
     'reuters.com': {'name': 'Reuters', 'credibility': 90, 'bias': 'center'},
@@ -24,55 +28,258 @@ SOURCE_CREDIBILITY = {
     'npr.org': {'name': 'NPR', 'credibility': 85, 'bias': 'left-center'},
     'politico.com': {'name': 'Politico', 'credibility': 75, 'bias': 'center'},
     'theguardian.com': {'name': 'The Guardian', 'credibility': 75, 'bias': 'left'},
-    'bloomberg.com': {'name': 'Bloomberg', 'credibility': 80, 'bias': 'center'},
-    'usatoday.com': {'name': 'USA Today', 'credibility': 70, 'bias': 'center'},
+    'dailywire.com': {'name': 'The Daily Wire', 'credibility': 55, 'bias': 'right'},
+    'huffpost.com': {'name': 'HuffPost', 'credibility': 60, 'bias': 'left'},
 }
 
 class NewsAnalyzer:
-    """Enhanced news analyzer with real content extraction and analysis"""
+    """AI-powered news analyzer using GPT-4 for intelligent analysis"""
     
     def __init__(self):
-        self.bias_keywords = {
-            'left': ['progressive', 'inequality', 'social justice', 'climate crisis', 'systemic', 
-                    'marginalized', 'equity', 'inclusion', 'oppression', 'activism'],
-            'right': ['conservative', 'freedom', 'traditional', 'free market', 'patriotic',
-                     'liberty', 'constitution', 'heritage', 'values', 'sovereignty'],
-            'emotional': ['shocking', 'outrageous', 'devastating', 'horrifying', 'unbelievable',
-                         'bombshell', 'explosive', 'stunning', 'terrifying', 'incredible']
-        }
-    
+        self.client = client
+        
     def analyze(self, content: str, content_type: str = 'text', is_pro: bool = False) -> Dict:
-        """Main analysis function"""
+        """Main analysis function using AI"""
         
         # Extract content based on type
         if content_type == 'url':
             article_data = self.extract_from_url(content)
             if not article_data['success']:
-                # If URL extraction fails, use basic analysis
-                return perform_basic_news_analysis(content)
+                return self._generate_error_response(article_data['error'])
             
             text = article_data['text']
             metadata = article_data['metadata']
+            url = content
         else:
             text = content
             metadata = self.extract_metadata_from_text(text)
+            url = None
         
-        # Perform comprehensive analysis
-        analysis_results = {
-            'success': True,
-            'results': {
-                'credibility': self.calculate_credibility(text, metadata),
-                'bias': self.analyze_bias(text),
-                'sources': self.analyze_sources(metadata, content if content_type == 'url' else None),
-                'author': self.extract_author(text, metadata),
-                'style': self.analyze_writing_style(text),
-                'claims': self.extract_claims(text) if is_pro else [],
-                'cross_references': self.find_cross_references(text) if is_pro else []
+        # Limit text length for API calls (GPT-4 can handle ~8k tokens)
+        text_for_analysis = text[:6000] if len(text) > 6000 else text
+        
+        try:
+            # Get AI analysis
+            ai_analysis = self.get_ai_analysis(text_for_analysis, metadata, url)
+            
+            # Combine AI analysis with source database info
+            if url and metadata.get('domain') in SOURCE_CREDIBILITY:
+                source_info = SOURCE_CREDIBILITY[metadata['domain']]
+                ai_analysis['sources']['credibility'] = source_info['credibility']
+                ai_analysis['sources']['known_bias'] = source_info['bias']
+            
+            # Build response
+            analysis_results = {
+                'success': True,
+                'results': ai_analysis,
+                'original_content': text[:500] + '...' if len(text) > 500 else text
+            }
+            
+            return analysis_results
+            
+        except Exception as e:
+            print(f"AI Analysis Error: {str(e)}")
+            # Fallback to basic analysis if AI fails
+            return self.fallback_analysis(text, metadata)
+    
+    def get_ai_analysis(self, text: str, metadata: Dict, url: Optional[str] = None) -> Dict:
+        """Use GPT-4 to analyze the article"""
+        
+        # Construct the analysis prompt
+        prompt = f"""You are an expert news analyst. Analyze this article and provide a detailed assessment.
+
+Article URL: {url or 'Direct text input'}
+Source: {metadata.get('domain', 'Unknown')}
+Author: {metadata.get('author', 'Not specified')}
+
+Article Text:
+{text}
+
+Provide your analysis in the following JSON format (be accurate and specific):
+{{
+    "credibility": <number 0-100>,
+    "bias": {{
+        "label": "<one of: far-left, left, left-center, center, right-center, right, far-right>",
+        "score": <number -10 to +10, negative=left, positive=right>,
+        "objectivity": <number 0-100>,
+        "reasoning": "<brief explanation of bias detection>"
+    }},
+    "sources": {{
+        "name": "<source name>",
+        "credibility": <number 0-100>,
+        "domain": "<domain>",
+        "assessment": "<brief source assessment>"
+    }},
+    "author": "<author name or 'Unknown'>",
+    "style": {{
+        "quotes": <number of direct quotes found>,
+        "statistics": <number of statistics/data points>,
+        "readingLevel": <approximate grade level>,
+        "balanced": <boolean>,
+        "tone": "<professional/casual/sensational/academic>"
+    }},
+    "fact_check": {{
+        "claims": [
+            {{
+                "claim": "<specific claim from article>",
+                "verifiable": <boolean>,
+                "confidence": <number 0-100>,
+                "assessment": "<brief assessment>"
+            }}
+        ],
+        "overall_accuracy": <number 0-100>
+    }},
+    "summary": "<2-3 sentence summary of the article>",
+    "key_findings": [
+        "<finding 1>",
+        "<finding 2>",
+        "<finding 3>"
+    ],
+    "red_flags": [
+        "<any concerns or issues found>"
+    ]
+}}
+
+Be objective and thorough in your analysis. Base credibility on:
+- Source reputation and track record
+- Author credentials
+- Use of evidence and citations
+- Balanced reporting
+- Factual accuracy
+- Transparent corrections policy"""
+
+        try:
+            # Make API call to GPT-4
+            response = self.client.chat.completions.create(
+                model="gpt-4",  # or "gpt-3.5-turbo" for faster/cheaper
+                messages=[
+                    {"role": "system", "content": "You are an expert news analyst providing objective article assessments."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,  # Lower temperature for more consistent analysis
+                max_tokens=1500
+            )
+            
+            # Parse the response
+            analysis_text = response.choices[0].message.content
+            
+            # Extract JSON from response (GPT sometimes adds extra text)
+            json_match = re.search(r'\{.*\}', analysis_text, re.DOTALL)
+            if json_match:
+                analysis_data = json.loads(json_match.group())
+            else:
+                # If no JSON found, try to parse the whole response
+                analysis_data = json.loads(analysis_text)
+            
+            # Convert to expected format
+            return self.format_ai_response(analysis_data, metadata)
+            
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {e}")
+            print(f"Response was: {analysis_text if 'analysis_text' in locals() else 'No response'}")
+            raise
+        except Exception as e:
+            print(f"GPT-4 API error: {e}")
+            raise
+    
+    def format_ai_response(self, ai_data: Dict, metadata: Dict) -> Dict:
+        """Format AI response to match expected structure"""
+        
+        # Ensure all required fields exist with defaults
+        return {
+            'credibility': ai_data.get('credibility', 50),
+            'bias': {
+                'label': ai_data.get('bias', {}).get('label', 'unknown'),
+                'score': ai_data.get('bias', {}).get('score', 0),
+                'objectivity': ai_data.get('bias', {}).get('objectivity', 50),
+                'left_indicators': abs(ai_data.get('bias', {}).get('score', 0)) if ai_data.get('bias', {}).get('score', 0) < 0 else 0,
+                'right_indicators': ai_data.get('bias', {}).get('score', 0) if ai_data.get('bias', {}).get('score', 0) > 0 else 0,
+                'emotional_indicators': max(0, 100 - ai_data.get('bias', {}).get('objectivity', 100)) // 10,
+                'reasoning': ai_data.get('bias', {}).get('reasoning', '')
             },
-            'original_content': text[:500] + '...' if len(text) > 500 else text
+            'sources': {
+                'name': ai_data.get('sources', {}).get('name', metadata.get('domain', 'Unknown')),
+                'credibility': ai_data.get('sources', {}).get('credibility', 50),
+                'bias': ai_data.get('bias', {}).get('label', 'unknown'),
+                'domain': ai_data.get('sources', {}).get('domain', metadata.get('domain', '')),
+                'assessment': ai_data.get('sources', {}).get('assessment', '')
+            },
+            'author': ai_data.get('author', metadata.get('author', 'Unknown')),
+            'style': {
+                'quotes': ai_data.get('style', {}).get('quotes', 0),
+                'statistics': ai_data.get('style', {}).get('statistics', 0),
+                'readingLevel': ai_data.get('style', {}).get('readingLevel', 10),
+                'balanced': ai_data.get('style', {}).get('balanced', False),
+                'tone': ai_data.get('style', {}).get('tone', 'unknown')
+            },
+            'claims': [
+                {
+                    'claim': claim.get('claim', ''),
+                    'confidence': claim.get('confidence', 50),
+                    'status': f"{'Verifiable' if claim.get('verifiable', False) else 'Unverifiable'} - {claim.get('assessment', '')}"
+                }
+                for claim in ai_data.get('fact_check', {}).get('claims', [])[:5]
+            ],
+            'cross_references': [],  # Would need separate API call
+            'summary': ai_data.get('summary', ''),
+            'key_findings': ai_data.get('key_findings', []),
+            'red_flags': ai_data.get('red_flags', []),
+            'overall_accuracy': ai_data.get('fact_check', {}).get('overall_accuracy', 50)
         }
+    
+    def fallback_analysis(self, text: str, metadata: Dict) -> Dict:
+        """Fallback to basic analysis if AI fails"""
+        print("Using fallback analysis due to AI error")
         
-        return analysis_results
+        # Basic keyword analysis as fallback
+        text_lower = text.lower()
+        
+        # Count basic indicators
+        quotes = len(re.findall(r'"[^"]{10,}"', text))
+        stats = len(re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text))
+        
+        # Very basic bias detection
+        left_words = ['progressive', 'inequality', 'social justice', 'climate crisis']
+        right_words = ['conservative', 'freedom', 'traditional', 'free market']
+        emotional_words = ['shocking', 'outrageous', 'devastating', 'unbelievable']
+        
+        left_count = sum(1 for word in left_words if word in text_lower)
+        right_count = sum(1 for word in right_words if word in text_lower)
+        emotional_count = sum(1 for word in emotional_words if word in text_lower)
+        
+        bias_score = (right_count - left_count) * 2
+        bias_label = 'center'
+        if bias_score <= -3:
+            bias_label = 'left'
+        elif bias_score >= 3:
+            bias_label = 'right'
+        
+        return {
+            'credibility': 50,  # Default middle score
+            'bias': {
+                'label': bias_label,
+                'score': bias_score,
+                'objectivity': max(0, 100 - (emotional_count * 10)),
+                'left_indicators': left_count,
+                'right_indicators': right_count,
+                'emotional_indicators': emotional_count
+            },
+            'sources': {
+                'name': metadata.get('domain', 'Unknown'),
+                'credibility': 50,
+                'bias': 'unknown',
+                'domain': metadata.get('domain', '')
+            },
+            'author': metadata.get('author', 'Unknown'),
+            'style': {
+                'quotes': quotes,
+                'statistics': stats,
+                'readingLevel': 10,
+                'balanced': quotes >= 2
+            },
+            'claims': [],
+            'cross_references': []
+        }
     
     def extract_from_url(self, url: str) -> Dict:
         """Extract article content from URL"""
@@ -89,7 +296,7 @@ class NewsAnalyzer:
             # Extract text content
             article_text = ""
             
-            # Try multiple selectors
+            # Common article selectors
             selectors = [
                 'article', 'main', '[role="main"]', '.article-body',
                 '.story-body', '.entry-content', 'div[itemprop="articleBody"]'
@@ -102,11 +309,10 @@ class NewsAnalyzer:
                     if len(article_text) > 100:
                         break
             
-            # Fallback to paragraphs
+            # If no article found, try paragraphs
             if len(article_text) < 100:
                 paragraphs = soup.find_all('p')
-                article_text = ' '.join([p.get_text(strip=True) for p in paragraphs 
-                                       if len(p.get_text(strip=True)) > 20])
+                article_text = ' '.join([p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 20])
             
             # Extract metadata
             metadata = {
@@ -125,20 +331,19 @@ class NewsAnalyzer:
         except Exception as e:
             return {
                 'success': False,
-                'error': str(e),
+                'error': f"Could not extract content from URL: {str(e)}",
                 'text': '',
                 'metadata': {}
             }
     
     def _extract_author_from_html(self, soup: BeautifulSoup) -> str:
         """Extract author from HTML"""
-        # Meta tags
-        author_meta = soup.find('meta', {'name': 'author'}) or \
-                     soup.find('meta', {'property': 'author'})
+        # Try meta tags first
+        author_meta = soup.find('meta', {'name': 'author'}) or soup.find('meta', {'property': 'author'})
         if author_meta:
             return author_meta.get('content', '')
         
-        # Common selectors
+        # Try common author selectors
         selectors = [
             '[rel="author"]', '.author-name', '.by-author',
             '.ArticleHeader-byline', 'span[itemprop="author"]', '.author'
@@ -153,7 +358,8 @@ class NewsAnalyzer:
     
     def _extract_date_from_html(self, soup: BeautifulSoup) -> str:
         """Extract publication date from HTML"""
-        date_meta = soup.find('meta', {'property': 'article:published_time'})
+        date_meta = soup.find('meta', {'property': 'article:published_time'}) or \
+                   soup.find('meta', {'name': 'publication_date'})
         if date_meta:
             return date_meta.get('content', '')
         
@@ -175,6 +381,7 @@ class NewsAnalyzer:
         # Extract author
         author_patterns = [
             r'^By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
+            r'^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)\n',
             r'By:\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
         ]
         
@@ -192,541 +399,22 @@ class NewsAnalyzer:
         
         return metadata
     
-    def extract_author(self, text: str, metadata: Dict) -> str:
-        """Extract and return author name"""
-        if metadata.get('author'):
-            return metadata['author']
-        
-        # Try text extraction
-        from utils.text_utils import extract_author_from_text
-        author = extract_author_from_text(text)
-        return author if author else 'Unknown Author'
-    
-    def calculate_credibility(self, text: str, metadata: Dict) -> int:
-        """Calculate overall credibility score"""
-        score = 50  # Base score
-        
-        # Check source credibility
-        domain = metadata.get('domain', '')
-        if domain in SOURCE_CREDIBILITY:
-            score = SOURCE_CREDIBILITY[domain]['credibility']
-        
-        # Author attribution
-        if metadata.get('author') and metadata['author'] != 'Unknown Author':
-            score += 5
-        
-        # Has date
-        if metadata.get('date'):
-            score += 5
-        
-        # Has quotes
-        quote_count = text.count('"')
-        if quote_count >= 4:
-            score += 10
-        
-        # Has statistics
-        numbers = re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text)
-        if len(numbers) >= 3:
-            score += 5
-        
-        # Not too emotional
-        emotional_words = sum(1 for word in self.bias_keywords['emotional'] 
-                            if word.lower() in text.lower())
-        if emotional_words < 2:
-            score += 5
-        
-        return min(score, 95)
-    
-    def analyze_bias(self, text: str) -> Dict:
-        """Analyze political bias"""
-        text_lower = text.lower()
-        
-        # Count bias indicators
-        left_count = sum(1 for word in self.bias_keywords['left'] if word in text_lower)
-        right_count = sum(1 for word in self.bias_keywords['right'] if word in text_lower)
-        
-        # Calculate bias score
-        bias_score = (right_count - left_count) * 2
-        bias_score = max(-10, min(10, bias_score))
-        
-        # Determine label
-        if bias_score <= -7:
-            bias_label = 'far-left'
-        elif bias_score <= -3:
-            bias_label = 'left'
-        elif bias_score <= -1:
-            bias_label = 'left-center'
-        elif bias_score <= 1:
-            bias_label = 'center'
-        elif bias_score <= 3:
-            bias_label = 'right-center'
-        elif bias_score <= 7:
-            bias_label = 'right'
-        else:
-            bias_label = 'far-right'
-        
-        # Calculate objectivity
-        emotional_count = sum(1 for word in self.bias_keywords['emotional'] 
-                            if word in text_lower)
-        objectivity = max(0, 100 - (emotional_count * 10))
-        
+    def _generate_error_response(self, error: str) -> Dict:
+        """Generate error response"""
         return {
-            'label': bias_label,
-            'score': bias_score,
-            'objectivity': objectivity,
-            'left_indicators': left_count,
-            'right_indicators': right_count,
-            'emotional_indicators': emotional_count
-        }
-    
-    def analyze_sources(self, metadata: Dict, url: Optional[str] = None) -> Dict:
-        """Analyze source credibility"""
-        domain = metadata.get('domain', '')
-        
-        if domain in SOURCE_CREDIBILITY:
-            source_info = SOURCE_CREDIBILITY[domain]
-            return {
-                'name': source_info['name'],
-                'credibility': source_info['credibility'],
-                'bias': source_info['bias'],
-                'domain': domain,
-                'matches': 3
+            'success': False,
+            'error': error,
+            'results': {
+                'credibility': 50,
+                'bias': {'label': 'unknown', 'score': 0, 'objectivity': 50},
+                'sources': {'name': 'Unknown', 'credibility': 50},
+                'author': 'Unknown',
+                'style': {'quotes': 0, 'statistics': 0, 'readingLevel': 10, 'balanced': False}
             }
-        
-        return {
-            'name': domain or 'Unknown Source',
-            'credibility': 50,
-            'bias': 'unknown',
-            'domain': domain,
-            'matches': 0
         }
-    
-    def analyze_writing_style(self, text: str) -> Dict:
-        """Analyze writing style"""
-        quote_count = len(re.findall(r'"[^"]{10,}"', text))
-        stats_count = len(re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text))
-        
-        sentences = re.split(r'[.!?]+', text)
-        words = text.split()
-        avg_words = len(words) / max(len(sentences), 1)
-        
-        reading_level = 12 if avg_words > 25 else 11 if avg_words > 20 else 10
-        
-        return {
-            'quotes': quote_count,
-            'statistics': stats_count,
-            'readingLevel': reading_level,
-            'balanced': quote_count >= 2 and stats_count >= 2
-        }
-    
-    def extract_claims(self, text: str) -> List[Dict]:
-        """Extract claims for fact-checking"""
-        claims = []
-        sentences = re.split(r'[.!?]+', text)
-        
-        for sentence in sentences[:10]:
-            sentence = sentence.strip()
-            if len(sentence) < 20:
-                continue
-                
-            if any(indicator in sentence.lower() for indicator in 
-                  ['will', 'would', 'has', 'have', 'announced', 'said']):
-                claims.append({
-                    'claim': sentence,
-                    'confidence': 80 if re.search(r'\d+', sentence) else 60,
-                    'status': 'Identified for verification'
-                })
-        
-        return claims[:5]
-    
-    def find_cross_references(self, text: str) -> List[Dict]:
-        """Find cross-references"""
-        references = []
-        
-        if 'tariff' in text.lower():
-            references.extend([
-                {'source': 'Reuters', 'title': 'Analysis: Trump tariff threats', 'relevance': 85},
-                {'source': 'BBC', 'title': 'US trade policy updates', 'relevance': 75}
-            ])
-        
-        if 'trump' in text.lower():
-            references.append({'source': 'CNN', 'title': 'Trump administration policies', 'relevance': 70})
-        
-        return references
 
-# Keep your existing functions
-def calculate_basic_credibility(content):
-    """Calculate basic credibility score based on text characteristics"""
-    # Start with base score
-    credibility_score = 65
-    
-    # Basic text statistics
-    word_count = len(content.split())
-    sentence_count = len([s for s in content.split('.') if s.strip()])
-    
-    # Length indicators (longer, well-structured content tends to be more credible)
-    if word_count > 100:
-        credibility_score += 5
-    if word_count > 300:
-        credibility_score += 5
-    if sentence_count > 5:
-        credibility_score += 5
-    
-    # Check for ALL CAPS (sensationalism indicator)
-    if len(content) > 0:
-        caps_ratio = sum(1 for c in content if c.isupper()) / len(content)
-        if caps_ratio > 0.3:
-            credibility_score -= 15
-        elif caps_ratio > 0.2:
-            credibility_score -= 10
-    
-    # Check for excessive punctuation
-    exclamation_count = content.count('!')
-    question_count = content.count('?')
-    
-    if exclamation_count > 3:
-        credibility_score -= 10
-    elif exclamation_count > 1:
-        credibility_score -= 5
-    
-    if question_count > 5:
-        credibility_score -= 5
-    
-    # Check for credibility indicators
-    credibility_phrases = ['according to', 'study shows', 'research indicates', 'officials say', 'data shows']
-    for phrase in credibility_phrases:
-        if phrase.lower() in content.lower():
-            credibility_score += 2
-    
-    # Check for unreliable indicators
-    unreliable_phrases = ['shocking', 'you won\'t believe', 'breaking:', 'urgent:', 'conspiracy']
-    for phrase in unreliable_phrases:
-        if phrase.lower() in content.lower():
-            credibility_score -= 3
-    
-    return max(0, min(100, credibility_score))
 
-def detect_simple_bias(content):
-    """Simple keyword-based bias detection"""
-    content_lower = content.lower()
-    
-    # Expanded keyword lists
-    left_keywords = [
-        'progressive', 'inequality', 'social justice', 'diversity', 
-        'inclusion', 'systemic', 'marginalized', 'equity',
-        'climate change', 'renewable', 'universal healthcare'
-    ]
-    
-    right_keywords = [
-        'traditional', 'freedom', 'liberty', 'patriot', 
-        'constitutional', 'free market', 'individual rights',
-        'law and order', 'border security', 'fiscal responsibility'
-    ]
-    
-    neutral_keywords = [
-        'report', 'announced', 'stated', 'according to',
-        'data shows', 'study finds', 'officials say'
-    ]
-    
-    # Count occurrences
-    left_count = sum(1 for word in left_keywords if word in content_lower)
-    right_count = sum(1 for word in right_keywords if word in content_lower)
-    neutral_count = sum(1 for word in neutral_keywords if word in content_lower)
-    
-    # Calculate bias score (-10 to +10)
-    total_political = left_count + right_count
-    if total_political > 0:
-        bias_score = ((right_count - left_count) / total_political) * 10
-    else:
-        bias_score = 0
-    
-    # Determine label
-    if bias_score < -3:
-        bias_label = 'left'
-    elif bias_score < -1:
-        bias_label = 'center-left'
-    elif bias_score > 3:
-        bias_label = 'right'
-    elif bias_score > 1:
-        bias_label = 'center-right'
-    else:
-        bias_label = 'center'
-    
-    # Calculate objectivity based on neutral vs political language
-    total_keywords = left_count + right_count + neutral_count
-    if total_keywords > 0:
-        objectivity_score = int((neutral_count / total_keywords) * 100)
-    else:
-        objectivity_score = 75
-    
-    return {
-        'bias_score': round(bias_score, 1),
-        'bias_label': bias_label,
-        'left_indicators': left_count,
-        'right_indicators': right_count,
-        'objectivity_score': objectivity_score
-    }
-
-def analyze_emotional_language(content):
-    """Analyze emotional language and loaded terms"""
-    emotional_words = [
-        'shocking', 'devastating', 'incredible', 'unbelievable',
-        'outrageous', 'disgusting', 'amazing', 'horrible',
-        'disaster', 'catastrophe', 'miracle', 'tragedy'
-    ]
-    
-    loaded_terms = []
-    content_lower = content.lower()
-    
-    for word in emotional_words:
-        if word in content_lower:
-            loaded_terms.append(word)
-    
-    # Calculate emotional language score
-    word_count = len(content.split())
-    if word_count > 0:
-        emotional_score = min(100, (len(loaded_terms) / word_count) * 1000)
-    else:
-        emotional_score = 0
-    
-    return int(emotional_score), loaded_terms
-
-def perform_basic_news_analysis(content):
-    """
-    Fixed news analysis with better detection
-    """
-    from utils.text_utils import extract_author_from_text, extract_dates_from_text, extract_source_from_url
-    
-    # Extract text content properly
-    text = content if isinstance(content, str) else str(content)
-    
-    # 1. AUTHOR DETECTION
-    author_name = extract_author_from_text(text)
-    
-    # 2. SOURCE DETECTION
-    source_domain = "Unknown Source"
-    
-    # Check if content is a URL
-    if text.startswith('http'):
-        source_domain = extract_source_from_url(text) or "Unknown Source"
-    else:
-        # Try multiple patterns to extract source from content
-        source_patterns = [
-            # Pattern for "SOURCE -" at beginning
-            r'^([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*[-–—]\s*',
-            # Pattern for common news sources
-            r'\b(Reuters|CNN|BBC|Fox News|NPR|AP|Bloomberg|CNBC|ABC|NBC|CBS|The New York Times|Washington Post|Wall Street Journal|Guardian|Associated Press)\b',
-            # Pattern for "from SOURCE"
-            r'(?:from|via|source:|at)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*(?:\.|,|\s)',
-            # Copyright pattern
-            r'©\s*\d{4}\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)',
-            # News/Media/Press pattern
-            r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:News|Media|Press|Journal)',
-            # Pattern for parentheses (SOURCE)
-            r'\(([A-Za-z]+(?:\s+[A-Za-z]+)?)\)',
-        ]
-        
-        for pattern in source_patterns:
-            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
-            if match:
-                source_domain = match.group(1).strip()
-                # Clean up the source name
-                if source_domain.lower() in ['reuters', 'cnn', 'bbc', 'ap']:
-                    source_domain = source_domain.upper()
-                elif source_domain.lower() == 'associated press':
-                    source_domain = 'AP'
-                break
-    
-    # 3. TEMPORAL DETECTION
-    dates_found = extract_dates_from_text(text)
-    
-    # 4. CONTENT ANALYSIS
-    word_count = len(text.split())
-    sentence_count = len([s for s in re.split(r'[.!?]+', text) if s.strip()])
-    
-    # Calculate credibility score
-    credibility_score = calculate_basic_credibility(content)
-    
-    # Detect bias
-    bias_analysis = detect_simple_bias(content)
-    
-    # Analyze emotional language
-    emotional_score, loaded_terms = analyze_emotional_language(content)
-    
-    # Build response with actual detected data
-    return {
-        'credibility_score': credibility_score,
-        'bias_indicators': {
-            'political_bias': bias_analysis['bias_label'],
-            'emotional_language': emotional_score,
-            'factual_claims': sentence_count,
-            'unsupported_claims': max(0, sentence_count // 4)
-        },
-        'political_bias': {
-            'bias_score': bias_analysis['bias_score'],
-            'bias_label': bias_analysis['bias_label'],
-            'objectivity_score': bias_analysis['objectivity_score'],
-            'confidence': 75,
-            'left_indicators': bias_analysis['left_indicators'],
-            'right_indicators': bias_analysis['right_indicators'],
-            'loaded_terms': loaded_terms[:5]
-        },
-        'source_analysis': {
-            'domain': source_domain,
-            'credibility_score': 70 if source_domain != "Unknown Source" else 50,
-            'source_type': 'news outlet',
-            'political_bias': 'center',
-            'founded': 'Unknown',
-            'author': {
-                'name': author_name or 'Not Specified',
-                'credentials': 'Unknown',
-                'years_experience': '5+',
-                'article_count': '150+',
-                'correction_rate': '2.1%'
-            }
-        },
-        'temporal_analysis': {
-            'dates_found': dates_found,
-            'date_count': len(dates_found),
-            'has_temporal_markers': len(dates_found) > 0
-        },
-        'content_stats': {
-            'word_count': word_count,
-            'sentence_count': sentence_count,
-            'avg_sentence_length': round(word_count / max(sentence_count, 1), 1)
-        },
-        'fact_check_results': [],
-        'cross_references': [
-            {
-                'source': 'Reuters',
-                'title': 'Similar story coverage',
-                'relevance': 85
-            }
-        ],
-        'methodology': {
-            'analysis_type': 'basic',
-            'confidence_level': 75,
-            'processing_time': '0.8 seconds',
-            'factors_analyzed': [
-                'text_structure',
-                'keyword_analysis', 
-                'emotional_language',
-                'basic_credibility_indicators',
-                'author_detection',
-                'temporal_analysis'
-            ]
-        }
-    }
-
-def perform_advanced_news_analysis(content):
-    """
-    Perform advanced news analysis - Phase 2 with full OpenAI integration
-    """
-    # Import OpenAI functions if available
-    try:
-        from services.openai_service import enhance_with_openai_analysis, extract_claims_with_ai, OPENAI_AVAILABLE, client
-    except ImportError:
-        OPENAI_AVAILABLE = False
-        client = None
-    
-    # Start with basic analysis
-    basic_results = perform_basic_news_analysis(content)
-    
-    # For pro tier, always attempt full AI analysis
-    if OPENAI_AVAILABLE and client:
-        print("Performing advanced AI-powered analysis...")
-        
-        # Get comprehensive AI analysis
-        enhanced_results = enhance_with_openai_analysis(basic_results, content, is_pro=True)
-        
-        # Extract claims with AI for fact-checking
-        ai_claims = extract_claims_with_ai(content)
-        if ai_claims:
-            enhanced_results['fact_check_results'] = [
-                {
-                    'claim': claim.get('claim', ''),
-                    'status': 'Identified for verification',
-                    'confidence': 70,
-                    'sources': ['Pending fact-check'],
-                    'type': claim.get('type', 'general'),
-                    'context': claim.get('context', '')
-                }
-                for claim in ai_claims[:5]  # Limit to 5 claims
-            ]
-        
-        # Additional pro enhancements from Phase 1
-        quote_count = content.count('"')
-        if quote_count >= 4:
-            enhanced_results['credibility_score'] = min(100, enhanced_results['credibility_score'] + 5)
-        
-        # Check for numbers/statistics
-        numbers = re.findall(r'\b\d+(?:\.\d+)?%?\b', content)
-        if len(numbers) > 2:
-            enhanced_results['credibility_score'] = min(100, enhanced_results['credibility_score'] + 5)
-        
-        # Add detailed analysis section
-        enhanced_results['detailed_analysis'] = {
-            'quote_analysis': {
-                'quote_count': quote_count // 2,
-                'attribution_quality': 'Good' if quote_count >= 4 else 'Limited'
-            },
-            'statistical_claims': len(numbers),
-            'readability_score': 'Grade 10' if len(content.split()) > 200 else 'Grade 8',
-            'journalism_indicators': {
-                'has_quotes': quote_count >= 2,
-                'has_statistics': len(numbers) > 0,
-                'has_attribution': 'according to' in content.lower(),
-                'balanced_coverage': enhanced_results['political_bias']['objectivity_score'] > 70
-            },
-            'ai_confidence': enhanced_results['political_bias'].get('confidence', 85)
-        }
-        
-        # Update methodology
-        enhanced_results['methodology'].update({
-            'analysis_type': 'advanced_ai',
-            'confidence_level': 90,
-            'processing_time': '2.3 seconds',
-            'ai_enhanced': True,
-            'factors_analyzed': [
-                'comprehensive_bias_detection',
-                'ai_powered_credibility_assessment',
-                'claim_extraction_with_nlp',
-                'source_verification',
-                'journalism_quality_metrics',
-                'statistical_analysis',
-                'contextual_understanding'
-            ]
-        })
-        
-        return enhanced_results
-    
-    else:
-        # Fallback to enhanced basic analysis if no OpenAI
-        print("OpenAI not available, using enhanced basic analysis")
-        return basic_results
-
-def perform_realistic_unified_news_check(content):
-    """
-    Fixed news verification for unified page
-    """
-    # Use the improved basic analysis
-    basic_news = perform_basic_news_analysis(content)
-    
-    # Add unified-specific enhancements
-    basic_news['unified_summary'] = {
-        'is_news_content': True,
-        'news_indicators': {
-            'has_quotes': content.count('"') >= 2,
-            'has_dates': len(basic_news['temporal_analysis']['dates_found']) > 0,
-            'has_sources': 'according to' in content.lower() or 'reported' in content.lower(),
-            'journalistic_style': basic_news['credibility_score'] > 70
-        },
-        'recommended_action': 'Verify with multiple sources' if basic_news['credibility_score'] < 80 else 'Appears credible'
-    }
-    
-    return basic_news
-
-# NEW: Flask route handler for the enhanced analyzer
+# Flask route handler
 def analyze_news_route(request_data: Dict) -> Dict:
     """Flask route handler for news analysis"""
     
@@ -743,15 +431,6 @@ def analyze_news_route(request_data: Dict) -> Dict:
     # Perform analysis
     try:
         results = analyzer.analyze(content, content_type, is_pro)
-        
-        # If the new analyzer returns the new format, convert it to match frontend expectations
-        if 'results' in results:
-            return results
-        else:
-            # Fallback to basic analysis format
-            return perform_basic_news_analysis(content)
-            
+        return results
     except Exception as e:
-        print(f"Analysis error: {e}")
-        # Fallback to basic analysis
-        return perform_basic_news_analysis(content)
+        return {'error': f'Analysis failed: {str(e)}'}, 500
