@@ -1,227 +1,180 @@
 {% extends "base.html" %}
 
-{% block title %}Speech Fact-Checker - Real-Time Verification | Facts & Fakes AI{% endblock %}
+{% block title %}Speech Fact-Checker - Facts & Fakes AI{% endblock %}
+{% block description %}Advanced AI-powered speech analysis and fact-checking. Analyze political speeches, podcasts, and YouTube videos for misinformation.{% endblock %}
+{% block keywords %}speech fact checking, political speech analysis, podcast verification, YouTube fact check, audio analysis AI{% endblock %}
 
-{% block description %}Real-time speech fact-checking and verification. Analyze speeches, presentations, and conversations with AI-powered accuracy. Support for live recording, YouTube videos, and audio files.{% endblock %}
+{% block content %}
+<div class="speech-analyzer-container">
+    <!-- Beta Banner -->
+    {% include 'partials/speech-beta-banner.html' %}
+    
+    <!-- Main Content -->
+    <div class="analyzer-content">
+        <div class="analyzer-header">
+            <h1>Speech Fact-Checker</h1>
+            <p class="header-subtitle">Analyze speeches, podcasts, and videos with advanced AI</p>
+        </div>
 
-{% block keywords %}speech fact checker, real-time fact verification, speech analysis, YouTube fact check, audio transcription, AI speech verification, live fact checking{% endblock %}
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="input-tabs">
+                <button class="tab-button active" onclick="window.switchSpeechInputType('file')">
+                    <i class="fas fa-upload"></i> Upload File
+                </button>
+                <button class="tab-button" onclick="window.switchSpeechInputType('youtube')">
+                    <i class="fab fa-youtube"></i> YouTube URL
+                </button>
+            </div>
 
-{% block og_title %}Speech Fact-Checker - Verify Claims in Real-Time | Facts & Fakes AI{% endblock %}
+            <!-- File Upload -->
+            <div id="fileInput" class="input-content active">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Drop your audio or video file here</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="speechFile" accept="audio/*,video/*" style="display: none;">
+                    <div class="supported-formats">
+                        Supported: MP3, WAV, M4A, MP4, AVI, MOV (max 500MB)
+                    </div>
+                </div>
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <i class="fas fa-file-audio file-icon"></i>
+                    <div class="file-details">
+                        <span class="file-name"></span>
+                        <span class="file-size"></span>
+                    </div>
+                    <button class="remove-file" onclick="window.removeSpeechFile()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
 
-{% block og_description %}AI-powered speech fact-checking tool. Verify claims in speeches, presentations, and conversations in real-time. Supports live recording, YouTube videos, and audio files.{% endblock %}
+            <!-- YouTube Input -->
+            <div id="youtubeInput" class="input-content">
+                <div class="youtube-input-wrapper">
+                    <i class="fab fa-youtube youtube-icon"></i>
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." 
+                           class="youtube-input">
+                </div>
+                <div class="youtube-preview" id="youtubePreview" style="display: none;">
+                    <img id="youtubeThumbnail" alt="Video thumbnail">
+                    <div class="preview-info">
+                        <h4 id="youtubeTitle"></h4>
+                        <p id="youtubeChannel"></p>
+                    </div>
+                </div>
+            </div>
 
-{% block og_image %}https://factsandfakes.ai/static/images/og-speech-checker.png{% endblock %}
+            <!-- Analyze Button -->
+            <div class="analyze-section">
+                <button id="analyzeSpeechBtn" class="analyze-button" onclick="window.analyzeSpeech()">
+                    <i class="fas fa-microscope"></i>
+                    <span>Analyze Speech</span>
+                </button>
+                <div class="tier-indicator">
+                    <span class="tier-badge pro">PRO</span>
+                    <span class="tier-text">Full Analysis Available</span>
+                </div>
+            </div>
+        </div>
 
-{% block structured_data %}
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Speech Fact-Checker",
-    "url": "https://factsandfakes.ai/speech",
-    "applicationCategory": "UtilityApplication",
-    "description": "Real-time speech fact-checking and verification tool powered by AI",
-    "featureList": [
-        "Live speech recording and transcription",
-        "Real-time fact verification",
-        "YouTube video analysis",
-        "Audio file transcription",
-        "Multi-language support",
-        "Export reports in multiple formats"
-    ],
-    "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock"
-    }
-}
-</script>
+        <!-- Loading Animation -->
+        <div id="loadingAnimation" class="loading-container" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <h3 class="loading-title">Analyzing Speech</h3>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Initializing...</div>
+                </div>
+                <div class="loading-steps">
+                    <div class="step" id="step1">
+                        <i class="fas fa-microphone"></i>
+                        <span>Transcribing Audio</span>
+                    </div>
+                    <div class="step" id="step2">
+                        <i class="fas fa-quote-right"></i>
+                        <span>Extracting Claims</span>
+                    </div>
+                    <div class="step" id="step3">
+                        <i class="fas fa-search"></i>
+                        <span>Fact-Checking Claims</span>
+                    </div>
+                    <div class="step" id="step4">
+                        <i class="fas fa-user-check"></i>
+                        <span>Analyzing Speaker</span>
+                    </div>
+                    <div class="step" id="step5">
+                        <i class="fas fa-brain"></i>
+                        <span>Detecting Manipulation</span>
+                    </div>
+                    <div class="step" id="step6">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Finalizing Report</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorDisplay" class="error-display" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Analysis Error</h3>
+            <p id="errorMessage"></p>
+            <button onclick="window.resetSpeechAnalysis()" class="try-again-btn">
+                <i class="fas fa-redo"></i> Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Info Sections -->
+    {% include 'partials/speech-info-sections.html' %}
+</div>
+
+<!-- Modals -->
+{% include 'partials/speech-modals.html' %}
 {% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/speech-tool.css') }}">
 <style>
-    /* Critical inline styles for initial render */
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Include all the Speech Analysis specific styles here */
+    /* This is a placeholder - the actual styles should be comprehensive */
+    .speech-analyzer-container {
         min-height: 100vh;
-        color: #333;
-        line-height: 1.6;
-        padding-top: 0;
-    }
-
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 20px;
     }
-
-    .header {
-        text-align: center;
-        margin-bottom: 30px;
-        color: white;
-    }
-
-    .header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .tool-container {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* Navigation bar - integrated with existing site */
-    .ff-nav {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding: 15px 0;
-    }
-
-    .ff-nav-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .ff-nav-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: #667eea;
-        font-weight: 700;
-        font-size: 1.3rem;
-    }
-
-    .ff-nav-links {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-    }
-
-    .ff-nav-link {
-        color: #4a5568;
-        text-decoration: none;
-        padding: 8px 16px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .ff-nav-link:hover {
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-    }
-
-    .ff-nav-link.active {
-        background: rgba(102, 126, 234, 0.15);
-        color: #667eea;
-        font-weight: 600;
-    }
+    
+    /* Add all other necessary styles for the speech analyzer */
 </style>
 {% endblock %}
 
-{% block content %}
-<!-- Navigation -->
-<nav class="ff-nav">
-    <div class="ff-nav-container">
-        <a href="/" class="ff-nav-logo">
-            <i class="fas fa-shield-alt"></i>
-            <span>Facts & Fakes AI</span>
-        </a>
-        
-        <div class="ff-nav-links">
-            <a href="/" class="ff-nav-link">
-                <i class="fas fa-home"></i> Home
-            </a>
-            <a href="/news" class="ff-nav-link">
-                <i class="fas fa-newspaper"></i> News Verify
-            </a>
-            <a href="/speech" class="ff-nav-link active">
-                <i class="fas fa-microphone"></i> Speech Check
-            </a>
-            <a href="/unified" class="ff-nav-link">
-                <i class="fas fa-search"></i> Content Check
-            </a>
-            <a href="/imageanalysis" class="ff-nav-link">
-                <i class="fas fa-image"></i> Image Analysis
-            </a>
-        </div>
-    </div>
-</nav>
-
-<!-- Main Content -->
-<div class="container">
-    <div class="header">
-        <h1><i class="fas fa-microphone-alt"></i> Speech Fact-Checker</h1>
-        <p>Real-time fact verification for speeches, presentations, and conversations</p>
-        <p style="font-size: 0.95rem; opacity: 0.8;">Powered by AI • Cross-references 12+ verification methods • Export detailed reports</p>
-    </div>
-
-    <div class="tool-container">
-        <!-- All the speech tool content goes here -->
-        <!-- I'll include just the essential parts to keep this manageable -->
-        
-        <div id="speech-tool-content">
-            <!-- This content will be loaded dynamically or included as needed -->
-            <p>Loading speech fact-checker...</p>
-        </div>
-    </div>
-</div>
-
-<!-- Modals and overlays will be added by JavaScript -->
-<div id="modals-container"></div>
-{% endblock %}
-
-{% block breadcrumbs %}
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [{
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://factsandfakes.ai"
-    },{
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Speech Fact-Checker",
-        "item": "https://factsandfakes.ai/speech"
-    }]
-}
-</script>
-{% endblock %}
-
 {% block scripts %}
-<!-- Load speech tool functionality -->
-<script src="{{ url_for('static', filename='js/speech-tool-bundle.js') }}"></script>
+<!-- Speech Analysis Modular Scripts -->
+<script src="/static/js/speech-helpers.js"></script>
+<script src="/static/js/speech-ui.js"></script>
+<script src="/static/js/speech-results.js"></script>
+<script src="/static/js/speech-analysis.js"></script>
+<script src="/static/js/speech-main.js"></script>
+
+<!-- Initialize Speech Analyzer -->
 <script>
-    // Initialize the speech tool after page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if speech tool module exists
-        if (window.SpeechFactChecker) {
-            window.SpeechFactChecker.init();
-        } else {
-            console.error('Speech tool module not loaded');
+        // Initialize the speech analyzer when page loads
+        if (window.SpeechApp && window.SpeechApp.main) {
+            window.SpeechApp.main.initialize();
         }
     });
 </script>
