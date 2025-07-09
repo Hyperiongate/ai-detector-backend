@@ -1,0 +1,174 @@
+<!-- Speech Analysis Beta Banner -->
+<div class="beta-banner">
+    <div class="beta-content">
+        <span class="beta-tag">BETA</span>
+        <span class="beta-text">Speech Analysis is in beta - We're fine-tuning our fact-checking algorithms</span>
+        <button class="beta-learn-more" onclick="showSpeechBetaInfo()">Learn More</button>
+    </div>
+</div>
+
+<style>
+.beta-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.beta-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.beta-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.beta-tag {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.beta-text {
+    color: white;
+    font-size: 14px;
+}
+
+.beta-learn-more {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.beta-learn-more:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+/* Beta Info Modal */
+.beta-info-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.beta-info-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 40px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.beta-info-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.beta-info-close:hover {
+    color: #000;
+}
+
+@media (max-width: 768px) {
+    .beta-content {
+        padding: 0 15px;
+    }
+    
+    .beta-text {
+        font-size: 12px;
+    }
+}
+</style>
+
+<!-- Beta Info Modal -->
+<div id="speechBetaInfoModal" class="beta-info-modal">
+    <div class="beta-info-content">
+        <span class="beta-info-close" onclick="closeSpeechBetaInfo()">&times;</span>
+        <h2 style="color: #667eea; margin-bottom: 20px;">🎙️ Speech Analysis Beta</h2>
+        <p style="line-height: 1.8; color: #333; margin-bottom: 15px;">
+            Our Speech Analysis tool is currently in beta testing. Here's what you can expect:
+        </p>
+        <ul style="line-height: 2; color: #555; margin-left: 20px;">
+            <li>✅ <strong>Real-time transcription</strong> of audio and video content</li>
+            <li>✅ <strong>Automated fact-checking</strong> of claims in speeches</li>
+            <li>✅ <strong>Speaker credibility analysis</strong> based on historical accuracy</li>
+            <li>✅ <strong>Emotional tone detection</strong> and persuasion techniques</li>
+            <li>✅ <strong>YouTube integration</strong> for easy video analysis</li>
+        </ul>
+        <p style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; color: #666;">
+            <strong>Note:</strong> As a beta feature, results may vary in accuracy. We're continuously improving our algorithms based on user feedback.
+        </p>
+        <button onclick="closeSpeechBetaInfo()" style="margin-top: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px;">
+            Got It!
+        </button>
+    </div>
+</div>
+
+<script>
+function showSpeechBetaInfo() {
+    document.getElementById('speechBetaInfoModal').style.display = 'block';
+}
+
+function closeSpeechBetaInfo() {
+    document.getElementById('speechBetaInfoModal').style.display = 'none';
+}
+
+// Close modal if clicking outside
+window.addEventListener('click', function(event) {
+    var modal = document.getElementById('speechBetaInfoModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+});
+</script>
