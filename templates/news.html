@@ -618,6 +618,87 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('News page initialized with enhanced results');
 });
 
+// Reset function - FIXED
+function resetForm() {
+    console.log('Reset button clicked');
+    
+    // Clear all input fields
+    document.getElementById('articleUrl').value = '';
+    document.getElementById('news-text').value = '';
+    document.getElementById('fullArticle').value = '';
+    
+    // Hide results section
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+    }
+    
+    // Hide progress section
+    const progressSection = document.getElementById('progressSection');
+    if (progressSection) {
+        progressSection.style.display = 'none';
+    }
+    
+    // Reset progress bar
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+    
+    const progressPercentage = document.getElementById('progressPercentage');
+    if (progressPercentage) {
+        progressPercentage.textContent = '0%';
+    }
+    
+    // Reset progress stages
+    document.querySelectorAll('.progress-stage').forEach(stage => {
+        stage.classList.remove('active', 'completed');
+    });
+    
+    // Reset to URL tab
+    switchInputType('url');
+    
+    // Clear any stored analysis data
+    if (window.NewsApp && window.NewsApp.analysis) {
+        window.NewsApp.analysis.currentData = null;
+    }
+    
+    // Enable analyze buttons
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeBtnPro').disabled = false;
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    console.log('Form reset completed');
+}
+
+// Input type switching function
+function switchInputType(type) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.input-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all content
+    document.querySelectorAll('.input-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Add active class to selected tab and content
+    if (type === 'url') {
+        document.querySelector('.input-tab:nth-child(1)').classList.add('active');
+        document.getElementById('urlInput').classList.add('active');
+    } else if (type === 'text') {
+        document.querySelector('.input-tab:nth-child(2)').classList.add('active');
+        document.getElementById('textInput').classList.add('active');
+    } else if (type === 'article') {
+        document.querySelector('.input-tab:nth-child(3)').classList.add('active');
+        document.getElementById('articleInput').classList.add('active');
+    }
+}
+
 // Tab switching function for results
 function switchTab(tabName) {
     // Update tab buttons
