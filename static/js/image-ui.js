@@ -366,3 +366,115 @@ window.ImageApp.ui = (function() {
         closeModal: closeModal,
         closeAllModals: closeAllModals,
         showProcessModal: showProcessModal,
+        showShareModal: showShareModal,
+        showFeedbackModal: showFeedbackModal,
+        updateUserStatus: updateUserStatus,
+        showLoading: showLoading,
+        hideLoading: hideLoading
+    };
+})();
+
+// Add required styles for UI components
+const style = document.createElement('style');
+style.textContent = `
+    /* Particle Container */
+    .particle-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 50%;
+        animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+        from {
+            transform: translateY(100vh) translateX(0);
+        }
+        to {
+            transform: translateY(-100px) translateX(100px);
+        }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        color: white;
+    }
+
+    .loading-spinner .spinner {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Tooltip */
+    .tooltip {
+        position: absolute;
+        background: #1a202c;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 10000;
+        pointer-events: none;
+        white-space: nowrap;
+        animation: tooltipFadeIn 0.3s ease;
+    }
+
+    @keyframes tooltipFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Drag and Drop Hover */
+    .upload-area.drag-hover {
+        background: #eef2ff !important;
+        border-color: #667eea !important;
+        transform: scale(1.02);
+    }
+
+    /* Smooth transitions */
+    .info-card, .detection-item, .use-case {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
