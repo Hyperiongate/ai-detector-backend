@@ -19,7 +19,10 @@ from services.openai_service import OPENAI_AVAILABLE, client
 
 # Import analysis modules
 from analysis.text_analysis import perform_realistic_unified_text_analysis, perform_basic_text_analysis, perform_advanced_text_analysis
-from analysis.news_analysis import perform_basic_news_analysis, perform_advanced_news_analysis, perform_realistic_unified_news_check, analyze_news_route
+
+# FIXED: Import only what exists in the new news_analysis.py
+from analysis.news_analysis import analyze_news_route, NewsAnalyzer
+
 from analysis.image_analysis import perform_realistic_image_analysis, perform_basic_image_analysis
 from analysis.speech_analysis import (
     extract_claims_from_speech,
@@ -174,7 +177,10 @@ def analyze_unified():
             result['ai_analysis'] = perform_realistic_unified_text_analysis(text)
         
         if analysis_type in ['news', 'all']:
-            result['news_analysis'] = perform_realistic_unified_news_check(text)
+            # FIXED: Use the new NewsAnalyzer for news analysis
+            analyzer = NewsAnalyzer()
+            news_result = analyzer.analyze(text, content_type='text', is_pro=True)
+            result['news_analysis'] = news_result
         
         if analysis_type in ['image'] and data.get('image'):
             result['image_analysis'] = perform_basic_image_analysis(data.get('image'))
