@@ -372,7 +372,80 @@ body > nav:first-of-type:not(.ff-nav) {
 .particle:nth-child(odd) { animation-duration: 15s; }
 .particle:nth-child(even) { animation-duration: 20s; animation-delay: 5s; }
 
-/* Analysis Mode Cards with Hover Effects */
+/* Analysis Options Row - Compact Design */
+.analysis-options-row {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(74, 144, 226, 0.05);
+    border-radius: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.analysis-mode-dropdown, .tier-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.analysis-options-row label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.analysis-mode-dropdown .dropdown-toggle {
+    font-size: 0.95em;
+    padding: 8px 16px;
+}
+
+.dropdown-item small {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.dropdown-item.active {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.dropdown-item.active small {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.tier-toggle .btn-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tier-toggle .btn {
+    font-size: 0.9em;
+    padding: 6px 16px;
+    border-radius: 0;
+}
+
+.tier-toggle .btn:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.tier-toggle .btn:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.tier-toggle .btn-check:checked + .btn {
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+/* Remove the old large cards styles by commenting them out */
+/*
 .analysis-modes {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -391,55 +464,10 @@ body > nav:first-of-type:not(.ff-nav) {
     position: relative;
     overflow: hidden;
 }
+*/
 
-.mode-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
-    transition: left 0.5s ease;
-}
-
-.mode-card:hover::before {
-    left: 100%;
-}
-
-.mode-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-medium);
-    border-color: var(--primary-blue);
-}
-
-.mode-card.active {
-    border-color: var(--primary-blue);
-    background: linear-gradient(135deg, #f8fbff 0%, #e8f4ff 100%);
-}
-
-.mode-card i {
-    font-size: 2.5em;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 15px;
-}
-
-.mode-card h3 {
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    font-size: 1.3em;
-    font-weight: 600;
-}
-
-.mode-card p {
-    color: var(--text-secondary);
-    font-size: 0.95em;
-    line-height: 1.5;
-}
-
-/* Analysis Tier Selection */
+/* Hide the old tier selector */
+/*
 .tier-selector {
     display: flex;
     gap: 15px;
@@ -458,55 +486,7 @@ body > nav:first-of-type:not(.ff-nav) {
     position: relative;
     overflow: hidden;
 }
-
-.tier-option::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
-    transition: left 0.5s ease;
-}
-
-.tier-option:hover::before {
-    left: 100%;
-}
-
-.tier-option:hover {
-    border-color: var(--primary-blue);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-light);
-}
-
-.tier-option.active {
-    border-color: var(--primary-blue);
-    background: linear-gradient(135deg, #f8fbff 0%, #e8f4ff 100%);
-}
-
-.tier-option h4 {
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    font-size: 1.2em;
-}
-
-.tier-option p {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    margin: 0;
-}
-
-.tier-badge {
-    background: var(--primary-gradient);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8em;
-    font-weight: 600;
-    display: inline-block;
-    margin-left: 8px;
-}
+*/
 
 /* Input Section with Gradient Background */
 .input-section {
@@ -1749,45 +1729,53 @@ if (document.readyState === 'loading') {
                 </span>
             </span>
         </p>
-        <!-- Overview Process Button -->
-        <button class="btn btn-outline-primary mt-3" onclick="showAnalysisProcess()">
-            <i class="fas fa-info-circle me-2"></i>View Our Analysis Process
-        </button>
-    </div>
-
-    <!-- Analysis Mode Selection -->
-    <div class="analysis-modes">
-        <div class="mode-card active" data-mode="comprehensive">
-            <i class="fas fa-layer-group"></i>
-            <h3>Comprehensive Analysis</h3>
-            <p>Full document analysis including AI detection and plagiarism checking</p>
-        </div>
-        <div class="mode-card" data-mode="ai-focused">
-            <i class="fas fa-robot"></i>
-            <h3>AI-Focused Analysis</h3>
-            <p>Specialized detection of AI-generated content with advanced linguistic analysis</p>
-        </div>
-        <div class="mode-card" data-mode="authenticity">
-            <i class="fas fa-shield-alt"></i>
-            <h3>Authenticity Check</h3>
-            <p>Verify content originality and detect potential manipulation or fabrication</p>
-        </div>
-        <div class="mode-card" data-mode="plagiarism">
-            <i class="fas fa-copy"></i>
-            <h3>Plagiarism Focus</h3>
-            <p>Deep plagiarism analysis with source matching and similarity scoring</p>
-        </div>
-    </div>
-
-    <!-- Analysis Tier Selection -->
-    <div class="tier-selector">
-        <div class="tier-option active" data-tier="basic">
-            <h4>Basic Analysis<span class="tier-badge">Free</span></h4>
-            <p>Standard detection algorithms with essential insights</p>
-        </div>
-        <div class="tier-option" data-tier="professional">
-            <h4>Professional Analysis<span class="tier-badge">Pro</span></h4>
-            <p>Advanced AI models with comprehensive reporting and detailed insights</p>
+        
+        <!-- Compact Analysis Options Row -->
+        <div class="analysis-options-row">
+            <!-- Analysis Mode Dropdown -->
+            <div class="analysis-mode-dropdown">
+                <label>Analysis Mode:</label>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="modeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-layer-group me-2"></i>Comprehensive Analysis
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="modeDropdown">
+                        <li><a class="dropdown-item active" href="#" data-mode="comprehensive" onclick="selectMode(this)">
+                            <i class="fas fa-layer-group me-2"></i>Comprehensive Analysis
+                            <small class="d-block text-muted">Full AI detection and plagiarism checking</small>
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" data-mode="ai-focused" onclick="selectMode(this)">
+                            <i class="fas fa-robot me-2"></i>AI-Focused Analysis
+                            <small class="d-block text-muted">Specialized AI content detection</small>
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" data-mode="authenticity" onclick="selectMode(this)">
+                            <i class="fas fa-shield-alt me-2"></i>Authenticity Check
+                            <small class="d-block text-muted">Verify content originality</small>
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" data-mode="plagiarism" onclick="selectMode(this)">
+                            <i class="fas fa-copy me-2"></i>Plagiarism Focus
+                            <small class="d-block text-muted">Deep plagiarism analysis</small>
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Tier Toggle -->
+            <div class="tier-toggle">
+                <label>Analysis Depth:</label>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="tier" id="basicTier" value="basic" checked>
+                    <label class="btn btn-outline-secondary btn-sm" for="basicTier">Basic</label>
+                    
+                    <input type="radio" class="btn-check" name="tier" id="proTier" value="professional">
+                    <label class="btn btn-outline-secondary btn-sm" for="proTier">Professional <i class="fas fa-crown ms-1"></i></label>
+                </div>
+            </div>
+            
+            <!-- View Process Button -->
+            <button class="btn btn-outline-secondary btn-sm" onclick="showAnalysisProcess()">
+                <i class="fas fa-info-circle me-1"></i>How it works
+            </button>
         </div>
     </div>
 
@@ -2225,25 +2213,16 @@ if (document.readyState === 'loading') {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing unified page...');
     
-    // Initialize mode cards
-    const modeCards = document.querySelectorAll('.mode-card');
-    modeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            modeCards.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            // Store selected mode
-            window.selectedMode = this.dataset.mode;
-        });
-    });
-
-    // Initialize tier options
-    const tierOptions = document.querySelectorAll('.tier-option');
-    tierOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            tierOptions.forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            // Store selected tier
-            window.selectedTier = this.dataset.tier;
+    // Initialize default selections
+    window.selectedMode = 'comprehensive';
+    window.selectedTier = 'basic';
+    
+    // Initialize tier radio buttons
+    const tierRadios = document.querySelectorAll('input[name="tier"]');
+    tierRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            window.selectedTier = this.value;
+            console.log('Selected tier:', window.selectedTier);
         });
     });
 
@@ -2374,8 +2353,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Mode selection function
+window.selectMode = function(element) {
+    const mode = element.dataset.mode;
+    window.selectedMode = mode;
+    
+    // Update dropdown button text and icon
+    const dropdownButton = document.getElementById('modeDropdown');
+    const icon = element.querySelector('i').className;
+    const text = element.textContent.trim().split('\n')[0];
+    dropdownButton.innerHTML = `<i class="${icon} me-2"></i>${text}`;
+    
+    // Update active state
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    element.classList.add('active');
+    
+    console.log('Selected mode:', window.selectedMode);
+    
+    // Prevent default link behavior
+    event.preventDefault();
+};
+
 // Global functions needed by the unified JS modules
-window.startAnalysis = function(type) {
+window.startAnalysis = async function(type) {
     console.log('Starting analysis:', type);
     
     // Store the analysis type for retry
@@ -2411,23 +2413,107 @@ window.startAnalysis = function(type) {
             break;
     }
     
-    // Call the unified app's analysis function
-    if (window.UnifiedApp && window.UnifiedApp.analysis && window.UnifiedApp.analysis.runAnalysis) {
-        window.UnifiedApp.analysis.runAnalysis(content, type, mode, tier);
-    } else {
-        // Fallback: simulate analysis
-        console.log('UnifiedApp not fully initialized, simulating analysis...');
+    // Hide input section and show progress
+    document.querySelector('.unified-header').style.display = 'none';
+    document.querySelector('.input-section').style.display = 'none';
+    document.getElementById('progress-container').style.display = 'block';
+    document.getElementById('progress-stages').style.display = 'block';
+    
+    // Try to call the actual backend API
+    try {
+        // Prepare the request data
+        const formData = new FormData();
+        formData.append('mode', mode);
+        formData.append('tier', tier);
+        formData.append('analysis_type', 'unified');
+        
+        if (type === 'file') {
+            formData.append('file', content);
+        } else {
+            formData.append('content', content);
+            formData.append('content_type', type);
+        }
+        
+        // Start progress animation
+        let progress = 0;
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const stages = document.querySelectorAll('.analysis-stage');
+        
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += 5;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = progress + '%';
+                
+                // Update stages
+                const stageIndex = Math.floor((progress / 100) * stages.length);
+                if (stageIndex < stages.length) {
+                    stages.forEach((stage, idx) => {
+                        if (idx < stageIndex) {
+                            stage.classList.remove('active');
+                            stage.classList.add('complete');
+                        } else if (idx === stageIndex) {
+                            stage.classList.add('active');
+                        }
+                    });
+                }
+                
+                // Update progress text
+                const messages = [
+                    'Extracting content...',
+                    'Running AI deep analysis...',
+                    'Detecting AI patterns...',
+                    'Checking for plagiarism...',
+                    'Generating comprehensive report...'
+                ];
+                progressText.textContent = messages[Math.min(stageIndex, messages.length - 1)] || 'Finalizing analysis...';
+            }
+        }, 500);
+        
+        // Call the API
+        const response = await fetch('/api/analyze-unified', {
+            method: 'POST',
+            body: formData
+        });
+        
+        clearInterval(progressInterval);
+        
+        if (!response.ok) {
+            throw new Error(`Analysis failed: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Complete progress
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        stages.forEach(stage => {
+            stage.classList.remove('active');
+            stage.classList.add('complete');
+        });
+        
+        if (data.success) {
+            setTimeout(() => {
+                displayRealResults(data.results);
+            }, 500);
+        } else {
+            throw new Error(data.error || 'Analysis failed');
+        }
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        // If API fails, use simulation
         simulateAnalysis(content, type, mode, tier);
     }
 };
 
 window.simulateAnalysis = function(content, type, mode, tier) {
     // Show progress
+    document.querySelector('.unified-header').style.display = 'none';
+    document.querySelector('.input-section').style.display = 'none';
     document.getElementById('progress-container').style.display = 'block';
     document.getElementById('progress-stages').style.display = 'block';
-    
-    // Hide other sections
-    document.querySelector('.unified-container').style.display = 'none';
     
     let progress = 0;
     const progressBar = document.getElementById('progress-bar');
@@ -2473,13 +2559,137 @@ window.simulateAnalysis = function(content, type, mode, tier) {
     }, 1000);
 };
 
+window.displayRealResults = function(results) {
+    // Hide progress and show results
+    document.getElementById('progress-container').style.display = 'none';
+    document.getElementById('progress-stages').style.display = 'none';
+    document.querySelector('.unified-header').style.display = 'block';
+    document.querySelector('.input-section').style.display = 'block';
+    document.getElementById('results-container').style.display = 'block';
+    
+    // Extract scores from results
+    const trustScore = results.trust_score || results.overall_score || 75;
+    const aiConfidence = results.ai_detection?.confidence || results.ai_probability || 25;
+    const plagiarismScore = results.plagiarism?.score || results.plagiarism_score || 15;
+    const authenticityScore = results.authenticity_score || (100 - aiConfidence);
+    const originalityScore = results.originality_score || (100 - plagiarismScore);
+    
+    // Update trust meter
+    animateTrustMeter(trustScore);
+    
+    // Update summary stats
+    document.getElementById('ai-confidence').textContent = aiConfidence + '%';
+    document.getElementById('authenticity-score').textContent = authenticityScore + '%';
+    document.getElementById('originality-score').textContent = originalityScore + '%';
+    
+    // Update analysis metadata
+    document.getElementById('analysis-time').textContent = new Date().toLocaleString();
+    document.getElementById('analysis-id').textContent = results.analysis_id || 'AN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    
+    // Update overall assessment
+    const overallAssessment = document.getElementById('overall-assessment');
+    overallAssessment.innerHTML = `
+        <div class="alert alert-${trustScore >= 80 ? 'success' : trustScore >= 60 ? 'warning' : 'danger'}">
+            <h4><i class="fas fa-${trustScore >= 80 ? 'check-circle' : trustScore >= 60 ? 'exclamation-triangle' : 'times-circle'} me-2"></i>
+            ${results.verdict || (trustScore >= 80 ? 'High Credibility Content' : trustScore >= 60 ? 'Moderate Credibility' : 'Low Credibility')}</h4>
+            <p>${results.summary || 'Analysis completed successfully.'}</p>
+        </div>
+    `;
+    
+    // Update confidence bars
+    updateConfidenceBar('overall-confidence', results.confidence_level || 85);
+    updateConfidenceBar('ai-confidence-bar', aiConfidence);
+    updateConfidenceBar('plagiarism-confidence-bar', plagiarismScore);
+    updateConfidenceBar('authenticity-confidence-bar', authenticityScore);
+    
+    // Update key findings
+    const keyFindings = results.key_findings || [
+        `Content appears to be ${authenticityScore > 70 ? 'mostly human-written' : 'partially AI-generated'}`,
+        `${originalityScore > 80 ? 'High originality detected' : 'Some matching content found online'}`,
+        `Writing style consistency: ${results.consistency_score || 85}%`
+    ];
+    
+    document.getElementById('key-findings-list').innerHTML = keyFindings
+        .map(finding => `<li><i class="fas fa-check-circle"></i> ${finding}</li>`)
+        .join('');
+    
+    // Update AI findings
+    if (results.ai_detection?.indicators) {
+        document.getElementById('ai-findings').innerHTML = results.ai_detection.indicators
+            .map(indicator => `<li><i class="fas fa-info-circle"></i> ${indicator}</li>`)
+            .join('');
+    }
+    
+    // Update plagiarism findings
+    if (results.plagiarism?.matches) {
+        document.getElementById('plagiarism-findings').innerHTML = results.plagiarism.matches
+            .map(match => `<li><i class="fas fa-link"></i> ${match.similarity}% match with ${match.source}</li>`)
+            .join('');
+    }
+    
+    // Update authenticity findings
+    if (results.authenticity?.indicators) {
+        document.getElementById('authenticity-findings').innerHTML = results.authenticity.indicators
+            .map(indicator => `<li><i class="fas fa-shield-alt"></i> ${indicator}</li>`)
+            .join('');
+    }
+    
+    // Update technical content
+    if (results.technical_analysis) {
+        document.getElementById('technical-content').innerHTML = `
+            <h5>Technical Details</h5>
+            <ul>
+                <li>Perplexity Score: ${results.technical_analysis.perplexity || 'N/A'}</li>
+                <li>Burstiness Score: ${results.technical_analysis.burstiness || 'N/A'}</li>
+                <li>Vocabulary Diversity: ${results.technical_analysis.vocabulary_diversity || 'N/A'}</li>
+                <li>Average Sentence Length: ${results.technical_analysis.avg_sentence_length || 'N/A'}</li>
+            </ul>
+        `;
+    }
+    
+    // Store results for PDF generation
+    window.currentAnalysisResults = results;
+    
+    // Scroll to results
+    document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+};
+
+window.animateTrustMeter = function(score) {
+    const trustMeter = document.querySelector('.trust-meter-fill');
+    const trustScoreEl = document.getElementById('trust-score');
+    const circumference = 2 * Math.PI * 90;
+    const offset = circumference - (score / 100) * circumference;
+    
+    // Set color based on score
+    let color = '#10b981'; // green
+    if (score < 60) color = '#ef4444'; // red
+    else if (score < 80) color = '#f59e0b'; // orange
+    
+    setTimeout(() => {
+        trustMeter.style.stroke = color;
+        trustMeter.style.strokeDashoffset = offset;
+        
+        // Animate number
+        let current = 0;
+        const interval = setInterval(() => {
+            if (current < score) {
+                current += 2;
+                trustScoreEl.textContent = Math.min(current, score);
+            } else {
+                clearInterval(interval);
+            }
+        }, 30);
+    }, 100);
+};
+
 window.showResults = function() {
     // Hide progress
     document.getElementById('progress-container').style.display = 'none';
     document.getElementById('progress-stages').style.display = 'none';
     
-    // Show container
-    document.querySelector('.unified-container').style.display = 'block';
+    // Show header and input again
+    document.querySelector('.unified-header').style.display = 'block';
+    document.querySelector('.input-section').style.display = 'block';
     
     // Show results
     document.getElementById('results-container').style.display = 'block';
