@@ -1506,8 +1506,12 @@
 <script>
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-    // No more sticky upgrade button or promotional features
+    // Initialize any needed components
+    console.log('News analyzer ready');
 });
+
+// Global variable to store current analysis results
+let currentAnalysisResults = null;
 
 // Switch between URL and text input
 function switchInputType(type) {
@@ -1528,7 +1532,7 @@ function switchInputType(type) {
     }
 }
 
-// Main analysis function
+// REAL analysis function that calls YOUR backend
 async function analyzeArticle() {
     const urlInput = document.getElementById('news-url');
     const textInput = document.getElementById('news-text');
@@ -1553,541 +1557,511 @@ async function analyzeArticle() {
         stage.classList.remove('active', 'complete');
     });
     
-    // Animate progress
-    let progress = 0;
-    const progressBar = document.getElementById('analysis-progress');
-    const stages = document.querySelectorAll('.analysis-stage');
-    const stageTexts = [
-        'Extracting article content...',
-        'Running AI deep analysis...',
-        'Cross-referencing facts...',
-        'Detecting bias patterns...',
-        'Analyzing source reliability...',
-        'Generating comprehensive report...'
-    ];
-    let currentStage = 0;
-    
-    const progressInterval = setInterval(() => {
-        progress += 2;
-        progressBar.style.width = progress + '%';
-        progressBar.textContent = progress + '%';
+    try {
+        // Start progress animation
+        let progress = 0;
+        const progressBar = document.getElementById('analysis-progress');
+        const stages = document.querySelectorAll('.analysis-stage');
+        let currentStage = 0;
         
-        // Update stage text
-        const stageProgress = Math.floor((progress / 100) * stages.length);
-        if (stageProgress > currentStage && stageProgress <= stages.length) {
-            document.getElementById('current-stage-text').textContent = stageTexts[stageProgress - 1];
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += 5;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = progress + '%';
+                
+                // Update stages
+                const stageProgress = Math.floor((progress / 100) * stages.length);
+                if (stageProgress > currentStage && currentStage < stages.length) {
+                    if (currentStage > 0) {
+                        stages[currentStage - 1].classList.remove('active');
+                        stages[currentStage - 1].classList.add('complete');
+                    }
+                    stages[currentStage].classList.add('active');
+                    currentStage = stageProgress;
+                }
+            }
+        }, 200);
+        
+        // CALL YOUR ACTUAL BACKEND
+        const response = await fetch('/api/analyze-news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: input,
+                type: isUrlMode ? 'url' : 'text',
+                is_pro: true
+            })
+        });
+        
+        clearInterval(progressInterval);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // Activate stages
-        if (stageProgress > currentStage) {
-            if (currentStage > 0) {
-                stages[currentStage - 1].classList.remove('active');
-                stages[currentStage - 1].classList.add('complete');
-            }
-            if (currentStage < stages.length) {
-                stages[currentStage].classList.add('active');
-            }
-            currentStage = stageProgress;
-        }
+        const data = await response.json();
         
-        if (progress >= 100) {
-            clearInterval(progressInterval);
+        // Complete progress
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        stages.forEach(stage => {
+            stage.classList.remove('active');
+            stage.classList.add('complete');
+        });
+        
+        if (data.success && data.results) {
+            // Store results globally for PDF generation
+            currentAnalysisResults = data.results;
             
-            // Complete last stage
-            stages[stages.length - 1].classList.remove('active');
-            stages[stages.length - 1].classList.add('complete');
-            
-            // Show results
+            // Display REAL results from YOUR backend
             setTimeout(() => {
-                displayResults();
+                displayRealResults(data.results);
                 loadingSection.style.display = 'none';
                 resultsSection.style.display = 'block';
             }, 500);
+        } else {
+            throw new Error(data.error || 'Analysis failed');
         }
-    }, 100);
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        loadingSection.style.display = 'none';
+        
+        // Show error message
+        alert(`Analysis failed: ${error.message}. Please try again.`);
+    }
 }
 
-// Display results
-function displayResults() {
+// Display REAL results from YOUR backend
+function displayRealResults(results) {
     // Update timestamp
     const now = new Date();
     document.getElementById('analysis-time').textContent = now.toLocaleString();
-    document.getElementById('analysis-id').textContent = 'AN-' + Date.now().toString(36).toUpperCase();
+    document.getElementById('analysis-id').textContent = results.analysis_id || 'AN-' + Date.now().toString(36).toUpperCase();
     
-    // Animate trust meter
-    const trustScore = 78; // Example score
-    const trustMeter = document.querySelector('.trust-meter-fill');
-    const trustScoreEl = document.getElementById('trust-score');
-    const circumference = 2 * Math.PI * 90;
-    const offset = circumference - (trustScore / 100) * circumference;
+    // REAL trust score from backend
+    const trustScore = results.trust_score || results.credibility_score || 50;
+    animateTrustMeter(trustScore);
     
-    // Set color based on score
-    let color = '#10b981'; // green
-    if (trustScore < 60) color = '#ef4444'; // red
-    else if (trustScore < 80) color = '#f59e0b'; // orange
+    // Overall Assessment with REAL data
+    const overallAssessment = results.overall_assessment || results.summary || {
+        credibility: trustScore >= 80 ? 'High' : trustScore >= 60 ? 'Moderate' : 'Low',
+        summary: results.summary || 'Analysis completed'
+    };
     
-    setTimeout(() => {
-        trustMeter.style.stroke = color;
-        trustMeter.style.strokeDashoffset = offset;
-        
-        // Animate number
-        let current = 0;
-        const interval = setInterval(() => {
-            if (current < trustScore) {
-                current += 2;
-                trustScoreEl.textContent = Math.min(current, trustScore);
-            } else {
-                clearInterval(interval);
-            }
-        }, 30);
-    }, 100);
-    
-    // Update overall assessment
     document.getElementById('overall-assessment').innerHTML = `
         <div class="alert alert-${trustScore >= 80 ? 'success' : trustScore >= 60 ? 'warning' : 'danger'} mb-3">
             <h4 class="alert-heading">
                 <i class="fas fa-${trustScore >= 80 ? 'check-circle' : trustScore >= 60 ? 'exclamation-triangle' : 'times-circle'} me-2"></i>
-                Credibility: ${trustScore >= 80 ? 'High' : trustScore >= 60 ? 'Moderate' : 'Low'}
-            </h4>
-            <p class="mb-0">This article shows ${trustScore >= 80 ? 'strong' : trustScore >= 60 ? 'moderate' : 'weak'} indicators of credibility and factual accuracy.</p>
-        </div>
-    `;
-    
-    // Update confidence
-    const confidence = 85;
-    const confidenceBar = document.getElementById('overall-confidence');
-    setTimeout(() => {
-        confidenceBar.style.width = confidence + '%';
-        confidenceBar.querySelector('.confidence-label').textContent = confidence + '%';
-    }, 200);
-    
-    // Update key findings
-    document.getElementById('key-findings-list').innerHTML = `
-        <li>Source has established credibility track record</li>
-        <li>Claims are supported by verifiable evidence</li>
-        <li>Writing shows professional journalism standards</li>
-    `;
-    
-    // Update red flags
-    document.getElementById('red-flags-list').innerHTML = `
-        <li>Some emotional language detected</li>
-        <li>Limited source diversity</li>
-    `;
-    
-    // Update source comparison
-    document.getElementById('this-source-score').textContent = '75%';
-    document.getElementById('this-source-score').className = 'source-score text-warning';
-    
-    // Update AI detection
-    setTimeout(() => {
-        const aiBar = document.getElementById('ai-probability');
-        aiBar.style.width = '15%';
-        aiBar.querySelector('.confidence-label').textContent = '15%';
-    }, 300);
-    
-    // Update AI patterns
-    document.getElementById('ai-patterns').innerHTML = `
-        <li><i class="fas fa-check-circle text-success me-2"></i>Natural sentence variation detected</li>
-        <li><i class="fas fa-check-circle text-success me-2"></i>Human-like typos present</li>
-        <li><i class="fas fa-check-circle text-success me-2"></i>Colloquial expressions found</li>
-        <li><i class="fas fa-check-circle text-success me-2"></i>Inconsistent formatting (human trait)</li>
-    `;
-    
-    // Update author links
-    const authorName = 'Jane Smith'; // Example
-    document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(authorName)}`;
-    document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(authorName + ' journalist')}`;
-    document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(authorName)}`;
-    
-    // Update bias marker position
-    const biasScore = -2; // -10 to +10 scale
-    const biasMarker = document.getElementById('bias-marker');
-    const biasPosition = 50 + (biasScore * 5); // Convert to percentage
-    biasMarker.style.left = biasPosition + '%';
-    
-    // Update emotion gauge
-    const emotionScore = 30; // 0-100 scale
-    const emotionNeedle = document.getElementById('emotion-needle');
-    const emotionAngle = -90 + (emotionScore * 1.8); // Convert to degrees
-    setTimeout(() => {
-        emotionNeedle.style.transform = `translateX(-50%) rotate(${emotionAngle}deg)`;
-    }, 400);
-    
-    // Update diversity bar
-    const diversityScore = 65;
-    const diversityBar = document.getElementById('diversity-bar');
-    setTimeout(() => {
-        diversityBar.style.width = diversityScore + '%';
-        diversityBar.textContent = diversityScore + '%';
-    }, 500);
-    
-    // Populate all sections with example content
-    populateSections();
+                Credibility: ${overallAssessment.credibility}
+                </h4>
+           <p class="mb-0">${overallAssessment.summary}</p>
+       </div>
+   `;
+   
+   // Update confidence
+   const confidence = results.confidence_level || 85;
+   const confidenceBar = document.getElementById('overall-confidence');
+   setTimeout(() => {
+       confidenceBar.style.width = confidence + '%';
+       confidenceBar.querySelector('.confidence-label').textContent = confidence + '%';
+   }, 200);
+   
+   // REAL key findings from backend
+   const keyFindings = results.key_findings || [];
+   if (keyFindings.length > 0) {
+       document.getElementById('key-findings-list').innerHTML = keyFindings
+           .map(finding => `<li>${finding}</li>`)
+           .join('');
+   } else {
+       document.getElementById('key-findings-list').innerHTML = `
+           <li>Analysis completed successfully</li>
+           <li>Trust score: ${trustScore}%</li>
+       `;
+   }
+   
+   // REAL red flags from backend
+   const redFlags = results.red_flags || results.concerns || [];
+   if (redFlags.length > 0) {
+       document.getElementById('red-flags-list').innerHTML = redFlags
+           .map(flag => `<li>${flag}</li>`)
+           .join('');
+   } else {
+       document.getElementById('red-flags-list').innerHTML = `<li>No significant concerns detected</li>`;
+   }
+   
+   // Populate all sections with REAL data
+   populateRealSections(results);
 }
 
-// Populate all analysis sections
-function populateSections() {
-    // Source Credibility
-    document.getElementById('source-credibility').innerHTML = `
-        <h5>Source: Example News Network</h5>
-        <p>Credibility Score: <strong>75/100</strong></p>
-        <ul>
-            <li>Established in 2010</li>
-            <li>Mixed track record on fact-checking</li>
-            <li>Transparent ownership structure</li>
-            <li>Member of journalism ethics organizations</li>
-        </ul>
-    `;
-    
-    document.getElementById('source-explanation').textContent = 
-        'This source has moderate credibility. While it maintains professional standards and transparency, ' +
-        'it has had some instances of corrections and retractions in the past year.';
-    
-    document.getElementById('source-methodology').textContent = 
-        'We analyzed the source\'s historical accuracy, compared it against our database of 10,000+ news sources, ' +
-        'checked for transparency in ownership and funding, and reviewed their corrections policy.';
-    
-    // Author Credibility
-    document.getElementById('author-credibility').innerHTML = `
-        <h5>Author: Jane Smith</h5>
-        <p>Credibility Score: <strong>82/100</strong></p>
-        <ul>
-            <li>10+ years journalism experience</li>
-            <li>Award-winning investigative reporter</li>
-            <li>Verified social media presence</li>
-            <li>Published in multiple reputable outlets</li>
-        </ul>
-    `;
-    
-    document.getElementById('author-explanation').textContent = 
-        'The author has strong credentials and a verifiable track record in journalism. Their expertise ' +
-        'in this topic area adds credibility to the article.';
-    
-    document.getElementById('author-methodology').textContent = 
-        'We searched public databases, verified social media accounts, checked journalism awards databases, ' +
-        'and analyzed the author\'s publication history across multiple platforms.';
-    
-    // Writing Quality
-    document.getElementById('writing-quality').innerHTML = `
-        <h5>Quality Metrics:</h5>
-        <ul>
-            <li>Reading Level: College (Grade 14)</li>
-            <li>Grammar Score: 94/100</li>
-            <li>Clarity Score: 88/100</li>
-            <li>Structure: Well-organized with clear sections</li>
-            <li>Citations: 12 sources cited</li>
-        </ul>
-    `;
-    
-    document.getElementById('quality-explanation').textContent = 
-        'The writing demonstrates professional journalism standards with clear structure, proper grammar, ' +
-        'and appropriate complexity for the subject matter.';
-    
-    document.getElementById('quality-methodology').textContent = 
-        'We used Natural Language Processing to analyze grammar, readability (Flesch-Kincaid), sentence variety, ' +
-        'vocabulary richness, and structural coherence.';
-    
-    // Fact-Checking
-    document.getElementById('fact-checking').innerHTML = `
-        <h5>Claims Analyzed: 8</h5>
-        <div class="claim-card">
-            <p><strong>Claim:</strong> "Unemployment rate dropped to 3.5% last month"</p>
-            <span class="claim-status status-verified">VERIFIED</span>
-            <p class="mt-2"><small>Confidence: 95%</small></p>
-        </div>
-        <div class="claim-card">
-            <p><strong>Claim:</strong> "New policy will affect 2 million workers"</p>
-            <span class="claim-status status-unverified">UNVERIFIED</span>
-            <p class="mt-2"><small>Confidence: 60%</small></p>
-        </div>
-    `;
-    
-    document.getElementById('fact-explanation').textContent = 
-        'Most claims in this article are verifiable and accurate. The few unverified claims appear to be ' +
-        'projections or estimates rather than established facts.';
-    
-    document.getElementById('fact-methodology').textContent = 
-        'We extracted factual claims using NLP, then cross-referenced them with official sources, fact-checking ' +
-        'databases (Snopes, FactCheck.org, PolitiFact), and primary source documents.';
-    
-    // Political Bias
-    document.getElementById('political-bias').innerHTML = `
-        <h5>Bias Assessment:</h5>
-        <p>Political Lean: <strong>Slightly Left-Center</strong></p>
-        <p>Objectivity Score: <strong>78/100</strong></p>
-        <ul>
-            <li>Balanced source selection</li>
-            <li>Some opinion language detected</li>
-            <li>Fair representation of opposing views</li>
-        </ul>
-    `;
-    
-    document.getElementById('bias-explanation').textContent = 
-        'The article shows a slight left-center bias in word choice and framing, but maintains reasonable ' +
-        'objectivity and presents multiple perspectives.';
-    
-    document.getElementById('bias-methodology').textContent = 
-        'We analyzed word choice patterns, source selection, framing techniques, and compared against our ' +
-        'database of politically-charged language weighted by context.';
-    
-    // Hidden Agenda
-    document.getElementById('hidden-agenda').innerHTML = `
-        <h5>Agenda Detection:</h5>
-        <p>Likelihood of Hidden Agenda: <strong>Low (25%)</strong></p>
-        <ul>
-            <li>No commercial interests detected</li>
-            <li>Minimal promotional language</li>
-            <li>Transparent about limitations</li>
-            <li>Some advocacy tone detected</li>
-        </ul>
-    `;
-    
-    document.getElementById('agenda-explanation').textContent = 
-        'The article appears to be primarily informational with minimal hidden agenda. Some advocacy for ' +
-        'policy changes is present but openly stated.';
-    
-    document.getElementById('agenda-methodology').textContent = 
-        'We scanned for promotional keywords, analyzed link patterns, checked for undisclosed affiliations, ' +
-        'and used machine learning to detect subtle persuasion techniques.';
-    
-    // Clickbait Analysis
-    document.getElementById('clickbait-analysis').innerHTML = `
-        <h5>Clickbait Score: <strong>Low (20/100)</strong></h5>
-        <ul>
-            <li>Headline matches content</li>
-            <li>No sensationalist language</li>
-            <li>Promises delivered in article</li>
-            <li>Professional tone maintained</li>
-        </ul>
-    `;
-    
-    document.getElementById('clickbait-explanation').textContent = 
-        'This is not clickbait. The headline accurately represents the content and avoids sensationalism.';
-    
-    document.getElementById('clickbait-methodology').textContent = 
-        'We analyzed headline patterns, emotional trigger words, promise-delivery ratio, and compared against ' +
-        'our database of 100,000+ clickbait examples.';
-    
-    // Emotional Manipulation
-    document.getElementById('emotional-manipulation').innerHTML = `
-        <h5>Emotional Manipulation Level: <strong>Low-Moderate</strong></h5>
-        <p>Primary emotions detected:</p>
-        <ul>
-            <li>Concern (45%)</li>
-            <li>Hope (30%)</li>
-            <li>Urgency (25%)</li>
-        </ul>
-    `;
-    
-    document.getElementById('emotion-explanation').textContent = 
-        'The article uses some emotional language to engage readers but stays within professional bounds. ' +
-        'The emotional appeals are relevant to the topic.';
-    
-    document.getElementById('emotion-methodology').textContent = 
-        'We used sentiment analysis and emotion detection AI to identify psychological triggers, fear-based ' +
-        'language, and manipulative framing techniques.';
-    
-    // Source Diversity
-    document.getElementById('source-diversity').innerHTML = `
-        <h5>Source Diversity Score: <strong>65/100</strong></h5>
-        <ul>
-            <li>Total sources: 12</li>
-            <li>Source types: 4 (Government, Academic, Media, Think Tank)</li>
-            <li>Ideological diversity: Moderate</li>
-            <li>Geographic diversity: Limited (mostly US)</li>
-        </ul>
-    `;
-    
-    document.getElementById('diversity-explanation').textContent = 
-        'The article shows moderate source diversity but could benefit from more international perspectives ' +
-        'and opposing viewpoints.';
-    
-    document.getElementById('diversity-methodology').textContent = 
-        'We catalogued all sources, analyzed their types, political leanings, geographic origins, and ' +
-        'calculated a diversity index based on variety and balance.';
-    
-    // Timeliness
-    document.getElementById('timeliness-check').innerHTML = `
-        <h5>Timeliness Assessment:</h5>
-        <ul>
-            <li>Article date: 2 days ago</li>
-            <li>Information currency: Up-to-date</li>
-            <li>Source dates: All within 30 days</li>
-            <li>Breaking news: No</li>
-            <li>Evergreen content: Partially</li>
-        </ul>
-    `;
-    
-    document.getElementById('timeliness-explanation').textContent = 
-        'The article is current and uses recent sources. The information remains relevant and has not been ' +
-        'superseded by newer developments.';
-    
-    document.getElementById('timeliness-methodology').textContent = 
-        'We checked publication dates, analyzed source recency, monitored for updates or corrections, and ' +
-        'verified that the information hasn\'t been outdated by recent events.';
-    
-    // AI Detection explanations
-    document.getElementById('ai-explanation').textContent = 
-        'This article shows low probability of being AI-generated. The writing exhibits human characteristics ' +
-        'like natural variation and minor inconsistencies.';
-    
-    document.getElementById('ai-methodology').textContent = 
-        'We analyzed perplexity scores, burstiness patterns, checked for AI-typical phrases, examined sentence ' +
-        'variety, and compared against known AI writing patterns from multiple models.';
+// Animate trust meter with REAL score
+function animateTrustMeter(trustScore) {
+   const trustMeter = document.querySelector('.trust-meter-fill');
+   const trustScoreEl = document.getElementById('trust-score');
+   const circumference = 2 * Math.PI * 90;
+   const offset = circumference - (trustScore / 100) * circumference;
+   
+   // Set color based on REAL score
+   let color = '#10b981'; // green
+   if (trustScore < 60) color = '#ef4444'; // red
+   else if (trustScore < 80) color = '#f59e0b'; // orange
+   
+   setTimeout(() => {
+       trustMeter.style.stroke = color;
+       trustMeter.style.strokeDashoffset = offset;
+       
+       // Animate number
+       let current = 0;
+       const interval = setInterval(() => {
+           if (current < trustScore) {
+               current += 2;
+               trustScoreEl.textContent = Math.min(current, trustScore);
+           } else {
+               clearInterval(interval);
+           }
+       }, 30);
+   }, 100);
+}
+
+// Populate all sections with REAL data from backend
+function populateRealSections(results) {
+   // Source Credibility - REAL data
+   if (results.source_analysis) {
+       const sourceData = results.source_analysis;
+       document.getElementById('source-credibility').innerHTML = `
+           <h5>Source: ${sourceData.source_name || 'Unknown'}</h5>
+           <p>Credibility Score: <strong>${sourceData.credibility_score || 0}/100</strong></p>
+           <ul>
+               ${sourceData.factors ? sourceData.factors.map(f => `<li>${f}</li>`).join('') : '<li>No data available</li>'}
+           </ul>
+       `;
+       
+       document.getElementById('this-source-score').textContent = `${sourceData.credibility_score || 0}%`;
+       document.getElementById('source-explanation').textContent = sourceData.explanation || 'Source analysis completed';
+       document.getElementById('source-methodology').textContent = sourceData.methodology || 'Analysis based on historical accuracy and transparency';
+   }
+   
+   // Author Credibility - REAL data
+   if (results.author_analysis) {
+       const authorData = results.author_analysis;
+       document.getElementById('author-credibility').innerHTML = `
+           <h5>Author: ${authorData.author_name || 'Unknown'}</h5>
+           <p>Credibility Score: <strong>${authorData.credibility_score || 0}/100</strong></p>
+           <ul>
+               ${authorData.credentials ? authorData.credentials.map(c => `<li>${c}</li>`).join('') : '<li>No credentials found</li>'}
+           </ul>
+       `;
+       
+       // Update author research links
+       const authorName = authorData.author_name || '';
+       document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(authorName)}`;
+       document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(authorName + ' journalist')}`;
+       document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(authorName)}`;
+       
+       document.getElementById('author-explanation').textContent = authorData.explanation || 'Author analysis completed';
+       document.getElementById('author-methodology').textContent = authorData.methodology || 'Based on publication history and expertise';
+   }
+   
+   // Writing Quality - REAL data
+   if (results.writing_quality) {
+       const qualityData = results.writing_quality;
+       document.getElementById('writing-quality').innerHTML = `
+           <h5>Quality Metrics:</h5>
+           <ul>
+               <li>Reading Level: ${qualityData.reading_level || 'N/A'}</li>
+               <li>Grammar Score: ${qualityData.grammar_score || 0}/100</li>
+               <li>Clarity Score: ${qualityData.clarity_score || 0}/100</li>
+               <li>Structure: ${qualityData.structure || 'N/A'}</li>
+               <li>Citations: ${qualityData.citations_count || 0} sources cited</li>
+           </ul>
+       `;
+       
+       document.getElementById('quality-explanation').textContent = qualityData.explanation || 'Writing quality assessed';
+       document.getElementById('quality-methodology').textContent = qualityData.methodology || 'NLP-based analysis';
+   }
+   
+   // Fact-Checking - REAL claims from backend
+   if (results.fact_checking && results.fact_checking.claims) {
+       const claims = results.fact_checking.claims;
+       document.getElementById('fact-checking').innerHTML = `
+           <h5>Claims Analyzed: ${claims.length}</h5>
+           ${claims.map(claim => `
+               <div class="claim-card">
+                   <p><strong>Claim:</strong> "${claim.text}"</p>
+                   <span class="claim-status status-${claim.status || 'unverified'}">${(claim.status || 'unverified').toUpperCase()}</span>
+                   <p class="mt-2"><small>Confidence: ${claim.confidence || 0}%</small></p>
+               </div>
+           `).join('')}
+       `;
+       
+       document.getElementById('fact-explanation').textContent = results.fact_checking.explanation || 'Fact checking completed';
+       document.getElementById('fact-methodology').textContent = results.fact_checking.methodology || 'Cross-referenced with multiple databases';
+   }
+   
+   // Political Bias - REAL data
+   if (results.bias_analysis) {
+       const biasData = results.bias_analysis;
+       const biasScore = biasData.bias_score || 0; // -10 to +10 scale
+       const biasMarker = document.getElementById('bias-marker');
+       const biasPosition = 50 + (biasScore * 5); // Convert to percentage
+       biasMarker.style.left = biasPosition + '%';
+       
+       document.getElementById('political-bias').innerHTML = `
+           <h5>Bias Assessment:</h5>
+           <p>Political Lean: <strong>${biasData.political_lean || 'Center'}</strong></p>
+           <p>Objectivity Score: <strong>${biasData.objectivity_score || 0}/100</strong></p>
+           <ul>
+               ${biasData.indicators ? biasData.indicators.map(i => `<li>${i}</li>`).join('') : '<li>No significant bias detected</li>'}
+           </ul>
+       `;
+       
+       document.getElementById('bias-explanation').textContent = biasData.explanation || 'Bias analysis completed';
+       document.getElementById('bias-methodology').textContent = biasData.methodology || 'Word choice and framing analysis';
+   }
+   
+   // Hidden Agenda
+   if (results.agenda_detection) {
+       const agendaData = results.agenda_detection;
+       document.getElementById('hidden-agenda').innerHTML = `
+           <h5>Agenda Detection:</h5>
+           <p>Likelihood of Hidden Agenda: <strong>${agendaData.likelihood || 'Low'}</strong></p>
+           <ul>
+               ${agendaData.indicators ? agendaData.indicators.map(i => `<li>${i}</li>`).join('') : '<li>No hidden agenda detected</li>'}
+           </ul>
+       `;
+       
+       document.getElementById('agenda-explanation').textContent = agendaData.explanation || 'Agenda analysis completed';
+       document.getElementById('agenda-methodology').textContent = agendaData.methodology || 'Pattern and link analysis';
+   }
+   
+   // Clickbait Analysis
+   if (results.clickbait_analysis) {
+       const clickbaitData = results.clickbait_analysis;
+       document.getElementById('clickbait-analysis').innerHTML = `
+           <h5>Clickbait Score: <strong>${clickbaitData.score || 'Low'}</strong></h5>
+           <ul>
+               ${clickbaitData.indicators ? clickbaitData.indicators.map(i => `<li>${i}</li>`).join('') : '<li>No clickbait detected</li>'}
+           </ul>
+       `;
+       
+       document.getElementById('clickbait-explanation').textContent = clickbaitData.explanation || 'Clickbait analysis completed';
+       document.getElementById('clickbait-methodology').textContent = clickbaitData.methodology || 'Headline and content comparison';
+   }
+   
+   // Emotional Manipulation
+   if (results.emotional_manipulation) {
+       const emotionData = results.emotional_manipulation;
+       const emotionScore = emotionData.manipulation_score || 0;
+       const emotionNeedle = document.getElementById('emotion-needle');
+       const emotionAngle = -90 + (emotionScore * 1.8); // Convert to degrees
+       emotionNeedle.style.transform = `translateX(-50%) rotate(${emotionAngle}deg)`;
+       
+       document.getElementById('emotional-manipulation').innerHTML = `
+           <h5>Emotional Manipulation Level: <strong>${emotionData.level || 'Low'}</strong></h5>
+           <p>Primary emotions detected:</p>
+           <ul>
+               ${emotionData.emotions ? emotionData.emotions.map(e => `<li>${e.name} (${e.percentage}%)</li>`).join('') : '<li>No significant emotional manipulation</li>'}
+           </ul>
+       `;
+       
+       document.getElementById('emotion-explanation').textContent = emotionData.explanation || 'Emotional analysis completed';
+       document.getElementById('emotion-methodology').textContent = emotionData.methodology || 'Sentiment and emotion detection analysis';
+   }
+   
+   // Source Diversity
+   if (results.source_diversity) {
+       const diversityData = results.source_diversity;
+       const diversityScore = diversityData.diversity_score || 0;
+       const diversityBar = document.getElementById('diversity-bar');
+       diversityBar.style.width = diversityScore + '%';
+       diversityBar.textContent = diversityScore + '%';
+       
+       document.getElementById('source-diversity').innerHTML = `
+           <h5>Source Diversity Score: <strong>${diversityScore}/100</strong></h5>
+           <ul>
+               <li>Total sources: ${diversityData.total_sources || 0}</li>
+               <li>Source types: ${diversityData.source_types || 0}</li>
+               <li>Ideological diversity: ${diversityData.ideological_diversity || 'Unknown'}</li>
+               <li>Geographic diversity: ${diversityData.geographic_diversity || 'Unknown'}</li>
+           </ul>
+       `;
+       
+       document.getElementById('diversity-explanation').textContent = diversityData.explanation || 'Diversity analysis completed';
+       document.getElementById('diversity-methodology').textContent = diversityData.methodology || 'Source variety and balance analysis';
+   }
+   
+   // Timeliness
+   if (results.timeliness_check) {
+       const timelinessData = results.timeliness_check;
+       document.getElementById('timeliness-check').innerHTML = `
+           <h5>Timeliness Assessment:</h5>
+           <ul>
+               <li>Article date: ${timelinessData.article_date || 'Unknown'}</li>
+               <li>Information currency: ${timelinessData.currency || 'Unknown'}</li>
+               <li>Source dates: ${timelinessData.source_dates || 'Unknown'}</li>
+               <li>Breaking news: ${timelinessData.breaking_news ? 'Yes' : 'No'}</li>
+               <li>Evergreen content: ${timelinessData.evergreen ? 'Yes' : 'No'}</li>
+           </ul>
+       `;
+       
+       document.getElementById('timeliness-explanation').textContent = timelinessData.explanation || 'Timeliness check completed';
+       document.getElementById('timeliness-methodology').textContent = timelinessData.methodology || 'Date and relevance analysis';
+   }
+   
+   // AI Detection
+   if (results.ai_detection) {
+       const aiData = results.ai_detection;
+       const aiProbability = aiData.ai_probability || 0;
+       setTimeout(() => {
+           const aiBar = document.getElementById('ai-probability');
+           aiBar.style.width = aiProbability + '%';
+           aiBar.querySelector('.confidence-label').textContent = aiProbability + '%';
+       }, 300);
+       
+       if (aiData.patterns) {
+           document.getElementById('ai-patterns').innerHTML = aiData.patterns
+               .map(p => `<li><i class="fas fa-${p.type === 'human' ? 'check-circle text-success' : 'exclamation-circle text-warning'} me-2"></i>${p.description}</li>`)
+               .join('');
+       }
+       
+       document.getElementById('ai-explanation').textContent = aiData.explanation || 'AI detection completed';
+       document.getElementById('ai-methodology').textContent = aiData.methodology || 'Perplexity and pattern analysis';
+   }
 }
 
 // Toggle dropdown
 function toggleDropdown(header) {
-    const content = header.nextElementSibling;
-    const isOpen = content.classList.contains('show');
-    
-    if (isOpen) {
-        content.classList.remove('show');
-        header.style.borderColor = 'transparent';
-    } else {
-        content.classList.add('show');
-        header.style.borderColor = '#6366f1';
-    }
+   const content = header.nextElementSibling;
+   const isOpen = content.classList.contains('show');
+   
+   if (isOpen) {
+       content.classList.remove('show');
+       header.style.borderColor = 'transparent';
+   } else {
+       content.classList.add('show');
+       header.style.borderColor = '#6366f1';
+   }
 }
 
-// Generate PDF
-function generatePDF() {
-    // Show loading state
-    const btn = event.target;
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
-    btn.disabled = true;
-    
-    // Simulate PDF generation
-    setTimeout(() => {
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-        alert('PDF report would be generated and downloaded here. This feature requires backend implementation.');
-    }, 2000);
+// Generate REAL PDF from actual results
+async function generatePDF() {
+   if (!currentAnalysisResults) {
+       alert('Please run an analysis first');
+       return;
+   }
+   
+   const btn = event.target;
+   const originalHTML = btn.innerHTML;
+   btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+   btn.disabled = true;
+   
+   try {
+       // Call your backend to generate PDF
+       const response = await fetch('/api/generate-pdf', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({
+               analysis_type: 'news',
+               results: currentAnalysisResults
+           })
+       });
+       
+       if (!response.ok) {
+           throw new Error('PDF generation failed');
+       }
+       
+       // If backend returns PDF blob
+       const blob = await response.blob();
+       const url = window.URL.createObjectURL(blob);
+       const a = document.createElement('a');
+       a.style.display = 'none';
+       a.href = url;
+       a.download = `news-analysis-${Date.now()}.pdf`;
+       document.body.appendChild(a);
+       a.click();
+       window.URL.revokeObjectURL(url);
+       
+   } catch (error) {
+       console.error('PDF generation error:', error);
+       // Fallback: Generate client-side PDF with results
+       generateClientSidePDF();
+   } finally {
+       btn.innerHTML = originalHTML;
+       btn.disabled = false;
+   }
 }
 
-// Upgrade to Pro
-function upgradeToPro() {
-    window.location.href = '/pricing';
+// Fallback client-side PDF generation
+function generateClientSidePDF() {
+   // Create a new window with the results formatted for printing
+   const printWindow = window.open('', '_blank');
+   printWindow.document.write(`
+       <!DOCTYPE html>
+       <html>
+       <head>
+           <title>News Analysis Report</title>
+           <style>
+               body { font-family: Arial, sans-serif; padding: 20px; }
+               h1 { color: #333; }
+               .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; }
+               .score { font-size: 24px; font-weight: bold; color: #4CAF50; }
+           </style>
+       </head>
+       <body>
+           <h1>News Analysis Report</h1>
+           <p>Generated: ${new Date().toLocaleString()}</p>
+           <div class="section">
+               <h2>Overall Trust Score</h2>
+               <p class="score">${currentAnalysisResults.trust_score || 0}%</p>
+           </div>
+           <div class="section">
+               <h2>Summary</h2>
+               <p>${currentAnalysisResults.summary || 'Analysis completed'}</p>
+           </div>
+           <div class="section">
+               <h2>Key Findings</h2>
+               <ul>
+                   ${(currentAnalysisResults.key_findings || []).map(f => `<li>${f}</li>`).join('')}
+               </ul>
+           </div>
+           <!-- Add more sections as needed -->
+       </body>
+       </html>
+   `);
+   printWindow.document.close();
+   printWindow.print();
 }
 
-// Show methodology
+// Show analysis process modal
 function showAnalysisProcess() {
-    // Using Bootstrap modal if available, otherwise fallback to alert
-    if (typeof bootstrap !== 'undefined') {
-        const modal = new bootstrap.Modal(document.getElementById('analysisProcessModal'));
-        modal.show();
-    } else {
-        // Fallback for environments without Bootstrap JS
-        document.getElementById('analysisProcessModal').style.display = 'block';
-        document.getElementById('analysisProcessModal').classList.add('show');
-        document.body.classList.add('modal-open');
-        
-        // Add backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop fade show';
-        document.body.appendChild(backdrop);
-        
-        // Close modal function
-        const closeModal = () => {
-            document.getElementById('analysisProcessModal').style.display = 'none';
-            document.getElementById('analysisProcessModal').classList.remove('show');
-            document.body.classList.remove('modal-open');
-            backdrop.remove();
-        };
-        
-        // Add close handlers
-        document.querySelector('.modal .btn-close').onclick = closeModal;
-        document.querySelector('.modal .btn-secondary').onclick = closeModal;
-        backdrop.onclick = closeModal;
-    }
+   const modal = document.getElementById('analysisProcessModal');
+   if (modal) {
+       // If Bootstrap is available
+       if (typeof bootstrap !== 'undefined') {
+           const bsModal = new bootstrap.Modal(modal);
+           bsModal.show();
+       } else {
+           // Fallback
+           modal.style.display = 'block';
+           modal.classList.add('show');
+       }
+   }
 }
 
 // Download full report
-function downloadFullReport() {
-    // Show loading state
-    const btn = event.target;
-    const originalHTML = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Complete Report...';
-    btn.disabled = true;
-    
-    // Simulate PDF generation with complete findings
-    setTimeout(() => {
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-        
-        // In production, this would trigger actual PDF download
-        alert('Complete PDF report with all findings, confidence intervals, methodology, and recommendations would be downloaded here.');
-        
-        // Simulate download
-        const link = document.createElement('a');
-        link.href = '#';
-        link.download = 'news-analysis-report-' + Date.now() + '.pdf';
-        link.click();
-    }, 2000);
-}
-
-// Add smooth scrolling
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if Bootstrap is loaded
-    if (typeof bootstrap === 'undefined') {
-        // Add basic Bootstrap modal CSS if not loaded
-        const style = document.createElement('style');
-        style.textContent = `
-            .modal { display: none; position: fixed; z-index: 1050; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; }
-            .modal.show { display: block; }
-            .modal-dialog { position: relative; width: auto; margin: 1.75rem auto; max-width: 800px; }
-            .modal-content { position: relative; background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: .3rem; }
-            .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #dee2e6; }
-            .modal-body { position: relative; padding: 1rem; }
-            .modal-footer { display: flex; align-items: center; justify-content: flex-end; padding: 1rem; border-top: 1px solid #dee2e6; }
-            .modal-backdrop { position: fixed; top: 0; left: 0; z-index: 1040; width: 100vw; height: 100vh; background-color: #000; opacity: .5; }
-            .btn-close { background: transparent; border: 0; font-size: 1.5rem; cursor: pointer; }
-        `;
-        document.head.appendChild(style);
-    }
-    // Smooth scroll for internal links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-    
-    // Add hover effects
-    const dropdowns = document.querySelectorAll('.analysis-dropdown');
-    dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-        });
-        dropdown.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-});
-
-// Reset function for starting new analysis
-function resetAnalysis() {
-    document.getElementById('news-url').value = '';
-    document.getElementById('news-text').value = '';
-    document.getElementById('results-section').style.display = 'none';
-    document.getElementById('loading-section').style.display = 'none';
-    
-    // Reset all animations
-    document.querySelectorAll('.analysis-stage').forEach(stage => {
-        stage.classList.remove('active', 'complete');
-    });
-    
-    // Reset progress bar
-    const progressBar = document.getElementById('analysis-progress');
-    progressBar.style.width = '0%';
-    progressBar.textContent = '0%';
-    
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+async function downloadFullReport() {
+   if (!currentAnalysisResults) {
+       alert('Please run an analysis first');
+       return;
+   }
+   
+   // Same as generatePDF but with more comprehensive data
+   generatePDF();
 }
 </script>
 {% endblock %}
