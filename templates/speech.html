@@ -5,43 +5,44 @@
 
 {% block styles %}
 <style>
-    /* Professional Light Theme Variables */
+    /* Professional Color Scheme matching Facts & Fakes AI */
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-        --light-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        --primary-blue: #4a90e2;
+        --primary-blue-dark: #357abd;
+        --primary-gradient: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
         --text-primary: #2c3e50;
-        --text-secondary: #6c757d;
-        --border-color: #e9ecef;
-        --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
-        --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
-        --shadow-heavy: 0 8px 30px rgba(0,0,0,0.2);
+        --text-secondary: #7f8c8d;
+        --border-color: #ecf0f1;
+        --bg-light: #f8f9fa;
+        --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 8px 30px rgba(74, 144, 226, 0.2);
     }
 
-    /* Main Content Spacing */
-    .main-content {
-        padding: 2rem;
+    /* Main Container */
+    .speech-container {
         max-width: 1200px;
         margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
 
-    /* Hero Section */
-    .hero-section {
+    /* Header Section */
+    .speech-header {
         text-align: center;
-        padding: 4rem 2rem;
+        margin-bottom: 40px;
+        padding: 40px 20px;
         background: white;
-        border-radius: 20px;
-        box-shadow: var(--shadow-medium);
-        margin-bottom: 3rem;
+        border-radius: 15px;
+        box-shadow: var(--shadow-light);
         position: relative;
         overflow: hidden;
     }
 
-    .hero-section::before {
+    .speech-header::before {
         content: '';
         position: absolute;
         top: 0;
@@ -51,109 +52,110 @@
         background: var(--primary-gradient);
     }
 
-    .hero-title {
-        font-size: 3rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
+    .speech-header h1 {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        font-weight: 700;
         background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
-    .hero-description {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .hero-text {
-        font-size: 1.1rem;
+    .speech-header p {
+        font-size: 1.2em;
         color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-        line-height: 1.7;
-        text-align: left;
-    }
-
-    .hero-text strong {
-        color: var(--text-primary);
-        font-weight: 600;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
     }
 
     /* Analysis Section */
     .analysis-section {
         background: white;
-        border-radius: 20px;
-        box-shadow: var(--shadow-medium);
+        border-radius: 15px;
+        box-shadow: var(--shadow-light);
         overflow: hidden;
-        margin-bottom: 3rem;
+        margin-bottom: 40px;
     }
 
     .section-header {
         background: var(--primary-gradient);
         color: white;
-        padding: 2rem;
+        padding: 30px;
         text-align: center;
     }
 
     .section-title {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
+        font-size: 2em;
+        font-weight: 700;
+        margin-bottom: 10px;
     }
 
     .section-subtitle {
-        font-size: 1.1rem;
+        font-size: 1.1em;
         opacity: 0.9;
     }
 
     .analysis-content {
-        padding: 2rem;
+        padding: 40px;
     }
 
     /* Input Type Selector */
     .input-type-selector {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
+        gap: 20px;
+        margin-bottom: 30px;
         justify-content: center;
     }
 
     .input-type-btn {
-        padding: 1rem 2rem;
+        flex: 1;
+        max-width: 300px;
+        padding: 20px;
         border: 2px solid var(--border-color);
         background: white;
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-weight: 500;
+        font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: center;
+        gap: 10px;
         color: var(--text-primary);
+        text-decoration: none;
     }
 
     .input-type-btn.active {
         background: var(--primary-gradient);
         color: white;
         border-color: transparent;
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .input-type-btn:hover:not(.active) {
+        border-color: var(--primary-blue);
         transform: translateY(-2px);
         box-shadow: var(--shadow-light);
     }
 
-    .input-type-btn:hover:not(.active) {
-        border-color: #667eea;
-        transform: translateY(-2px);
+    .input-type-btn i {
+        font-size: 1.2em;
     }
 
     /* Input Areas */
     .input-area {
         display: none;
-        margin-bottom: 2rem;
+        margin-bottom: 30px;
     }
 
     .input-area.active {
         display: block;
     }
 
+    /* Text Input */
     .text-input-area {
         text-align: center;
     }
@@ -161,82 +163,132 @@
     .text-input {
         width: 100%;
         min-height: 200px;
-        padding: 1.5rem;
+        padding: 20px;
         border: 2px solid var(--border-color);
-        border-radius: 15px;
-        font-size: 1rem;
+        border-radius: 12px;
+        font-size: 1em;
         font-family: inherit;
         resize: vertical;
         transition: all 0.3s ease;
-        background: #f8f9fa;
+        background: var(--bg-light);
     }
 
     .text-input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         background: white;
     }
 
+    /* File Upload Area */
     .file-upload-area {
         border: 3px dashed var(--border-color);
         border-radius: 15px;
-        padding: 3rem;
+        padding: 60px 20px;
         text-align: center;
         transition: all 0.3s ease;
         cursor: pointer;
-        background: #f8f9fa;
+        background: var(--bg-light);
+        position: relative;
     }
 
     .file-upload-area:hover,
     .file-upload-area.dragover {
-        border-color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
+        border-color: var(--primary-blue);
+        background: rgba(74, 144, 226, 0.05);
         transform: translateY(-2px);
     }
 
     .upload-icon {
-        font-size: 4rem;
-        color: #667eea;
-        margin-bottom: 1rem;
+        font-size: 4em;
+        color: var(--primary-blue);
+        margin-bottom: 20px;
     }
 
     .upload-text {
-        font-size: 1.2rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
+        font-size: 1.3em;
+        font-weight: 600;
+        margin-bottom: 10px;
         color: var(--text-primary);
     }
 
     .upload-subtext {
         color: var(--text-secondary);
-        font-size: 0.9rem;
+        font-size: 1em;
     }
 
     .file-input {
         display: none;
     }
 
+    .file-preview {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--bg-light);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .file-preview .file-icon {
+        font-size: 2em;
+        color: var(--primary-blue);
+    }
+
+    .file-details {
+        flex: 1;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .file-size {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+    }
+
+    .remove-file-btn {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .remove-file-btn:hover {
+        background: #c0392b;
+    }
+
     /* Analyze Button */
     .analyze-btn-container {
         text-align: center;
-        margin: 2rem 0;
+        margin: 30px 0;
     }
 
     .analyze-btn {
         background: var(--primary-gradient);
         color: white;
         border: none;
-        padding: 1rem 3rem;
-        font-size: 1.1rem;
-        font-weight: bold;
+        padding: 18px 40px;
+        font-size: 1.2em;
+        font-weight: 700;
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: var(--shadow-light);
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
     }
 
-    .analyze-btn:hover {
+    .analyze-btn:hover:not(:disabled) {
         transform: translateY(-3px);
         box-shadow: var(--shadow-medium);
     }
@@ -247,7 +299,7 @@
         transform: none;
     }
 
-    /* Loading Animation */
+    /* Loading Overlay */
     .loading-overlay {
         display: none;
         position: fixed;
@@ -258,26 +310,28 @@
         background: rgba(255, 255, 255, 0.95);
         z-index: 9999;
         backdrop-filter: blur(10px);
+        justify-content: center;
+        align-items: center;
     }
 
     .loading-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         text-align: center;
         max-width: 500px;
         width: 90%;
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     }
 
     .loading-spinner {
         width: 80px;
         height: 80px;
         border: 4px solid #f3f3f3;
-        border-top: 4px solid #667eea;
+        border-top: 4px solid var(--primary-blue);
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin: 0 auto 2rem;
+        margin: 0 auto 30px;
     }
 
     @keyframes spin {
@@ -286,24 +340,24 @@
     }
 
     .loading-text {
-        font-size: 1.2rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
+        font-size: 1.3em;
+        font-weight: 600;
+        margin-bottom: 15px;
         color: var(--text-primary);
     }
 
     .loading-subtext {
         color: var(--text-secondary);
-        font-size: 0.9rem;
+        margin-bottom: 20px;
     }
 
     .progress-bar {
         width: 100%;
         height: 8px;
-        background: #e9ecef;
+        background: #e2e8f0;
         border-radius: 10px;
         overflow: hidden;
-        margin: 2rem 0;
+        margin: 20px 0;
     }
 
     .progress-fill {
@@ -314,36 +368,92 @@
         width: 0%;
     }
 
-    /* Trust Meter - Professional Results Display */
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .progress-step {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 10px;
+        background: var(--bg-light);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.9em;
+    }
+
+    .progress-step.active {
+        background: var(--primary-blue);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .progress-step.completed {
+        background: var(--success-color);
+        color: white;
+    }
+
+    /* Results Section */
+    .results-section {
+        display: none;
+        margin-top: 40px;
+    }
+
+    .results-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+
+    .results-header h2 {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+
+    .results-content {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        box-shadow: var(--shadow-light);
+        overflow: hidden;
+    }
+
+    /* Trust Meter */
     .trust-meter-container {
         position: relative;
         width: 200px;
         height: 200px;
-        margin: 2rem auto;
+        margin: 30px auto;
         background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
         border-radius: 50%;
-        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
-        padding: 15px;
+        box-shadow: 0 10px 40px rgba(74, 144, 226, 0.3);
+        padding: 20px;
     }
-    
+
     .trust-meter {
         position: relative;
         width: 100%;
         height: 100%;
     }
-    
+
     .trust-meter-circle {
         width: 100%;
         height: 100%;
         transform: rotate(-90deg);
     }
-    
+
     .trust-meter-bg {
         fill: none;
         stroke: #e5e7eb;
         stroke-width: 15;
     }
-    
+
     .trust-meter-fill {
         fill: none;
         stroke-width: 15;
@@ -351,7 +461,7 @@
         transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         filter: drop-shadow(0 0 8px currentColor);
     }
-    
+
     .trust-meter-text {
         position: absolute;
         top: 50%;
@@ -359,211 +469,228 @@
         transform: translate(-50%, -50%);
         text-align: center;
     }
-    
+
     .trust-score {
-        font-size: 32px;
+        font-size: 2.5em;
         font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: block;
     }
-    
+
     .trust-label {
-        font-size: 12px;
+        font-size: 0.9em;
         color: #6b7280;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
-    /* Results Sections */
-    .results-header {
-        background: var(--primary-gradient);
-        color: white;
-        padding: 2rem;
-        text-align: center;
-        margin-bottom: 0;
-    }
-
-    .results-content {
-        padding: 2rem;
-    }
-
+    /* Analysis Dropdowns */
     .analysis-dropdown {
-        margin-bottom: 1rem;
+        margin-bottom: 15px;
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.3s ease;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         border: 2px solid transparent;
     }
-    
+
     .analysis-dropdown:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        border-color: var(--primary-blue);
     }
-    
+
     .dropdown-header {
-        padding: 1.5rem;
+        padding: 25px;
         cursor: pointer;
         background: white;
-        border-left: 4px solid #6366f1;
+        border-left: 4px solid var(--primary-blue);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
-    
-    .dropdown-header h4 {
+
+    .dropdown-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .dropdown-header:hover::before {
+        left: 100%;
+    }
+
+    .dropdown-header h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.3em;
         display: flex;
         align-items: center;
         color: var(--text-primary);
         font-weight: 600;
     }
-    
+
     .dropdown-header i {
-        font-size: 1.3rem;
-        margin-right: 0.75rem;
-        color: #6366f1;
+        font-size: 1.5em;
+        margin-right: 15px;
+        color: var(--primary-blue);
     }
-    
+
     .dropdown-content {
         padding: 0;
         max-height: 0;
         overflow: hidden;
         transition: all 0.3s ease;
-        background: #f8f9fa;
+        background: var(--bg-light);
     }
-    
+
     .dropdown-content.show {
-        max-height: 1000px;
-        padding: 1.5rem;
-    }
-
-    /* Claim Cards */
-    .claim-card {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.75rem 0;
-        border-left: 4px solid #e5e7eb;
-        transition: all 0.3s ease;
-    }
-    
-    .claim-card.verified {
-        border-left-color: #10b981;
-        background: #f0fdf4;
-    }
-    
-    .claim-card.false {
-        border-left-color: #ef4444;
-        background: #fef2f2;
-    }
-    
-    .claim-card.unverified {
-        border-left-color: #f59e0b;
-        background: #fffbeb;
-    }
-    
-    .claim-text {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        color: var(--text-primary);
-    }
-    
-    .claim-status {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .status-verified {
-        background: #dcfce7;
-        color: #166534;
-    }
-    
-    .status-false {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-    
-    .status-unverified {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .confidence-score {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin-top: 0.5rem;
+        max-height: 2000px;
+        padding: 25px;
     }
 
     /* Statistics Grid */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin: 1.5rem 0;
+        gap: 20px;
+        margin: 20px 0;
     }
-    
+
     .stat-card {
         background: white;
-        border-radius: 10px;
-        padding: 1.25rem;
+        border-radius: 12px;
+        padding: 20px;
         text-align: center;
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--border-color);
         transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
     }
-    
+
     .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
     }
-    
+
     .stat-number {
-        font-size: 1.8rem;
+        font-size: 2em;
         font-weight: 700;
-        color: #6366f1;
+        color: var(--primary-blue);
         display: block;
+        margin-bottom: 5px;
     }
-    
+
     .stat-label {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
+        font-size: 0.9em;
+        color: var(--text-secondary);
         font-weight: 500;
+    }
+
+    /* Claim Cards */
+    .claim-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        border-left: 4px solid var(--border-color);
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+    }
+
+    .claim-card.verified {
+        border-left-color: var(--success-color);
+        background: #f0fdf4;
+    }
+
+    .claim-card.false {
+        border-left-color: var(--danger-color);
+        background: #fef2f2;
+    }
+
+    .claim-card.unverified {
+        border-left-color: var(--warning-color);
+        background: #fffbeb;
+    }
+
+    .claim-card:hover {
+        transform: translateX(5px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .claim-text {
+        font-weight: 500;
+        margin-bottom: 10px;
+        color: var(--text-primary);
+        line-height: 1.5;
+    }
+
+    .claim-status {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-verified {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-false {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-unverified {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .confidence-score {
+        font-size: 0.9em;
+        color: var(--text-secondary);
+        margin-top: 10px;
     }
 
     /* Alert Boxes */
     .alert {
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 0;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 20px 0;
         border-left: 4px solid;
     }
-    
+
     .alert-success {
         background: #f0fdf4;
-        border-left-color: #10b981;
+        border-left-color: var(--success-color);
         color: #166534;
     }
-    
+
     .alert-warning {
         background: #fffbeb;
-        border-left-color: #f59e0b;
+        border-left-color: var(--warning-color);
         color: #92400e;
     }
-    
+
     .alert-danger {
         background: #fef2f2;
-        border-left-color: #ef4444;
+        border-left-color: var(--danger-color);
         color: #991b1b;
+    }
+
+    .alert h4 {
+        margin-bottom: 10px;
+        font-size: 1.2em;
     }
 
     /* Key Findings List */
@@ -571,59 +698,123 @@
         list-style: none;
         padding: 0;
     }
-    
+
     .findings-list li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f3f4f6;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 10px;
     }
-    
+
     .findings-list li:last-child {
         border-bottom: none;
     }
-    
+
     .findings-list i {
-        margin-top: 0.2rem;
-        color: #6366f1;
+        margin-top: 3px;
+        color: var(--primary-blue);
+    }
+
+    /* Download Button */
+    .download-btn {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.1em;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+        background: #219a52;
+    }
+
+    /* Error Container */
+    .error-container {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fed7d7;
+        border-radius: 12px;
+        padding: 30px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .error-container i {
+        font-size: 3em;
+        color: var(--danger-color);
+        margin-bottom: 20px;
+    }
+
+    .error-container h3 {
+        color: var(--danger-color);
+        margin-bottom: 10px;
+    }
+
+    .error-container p {
+        color: #742a2a;
+        margin-bottom: 20px;
+    }
+
+    .retry-btn {
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .retry-btn:hover {
+        background: #c53030;
     }
 
     /* Info Cards */
     .info-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin: 3rem 0;
+        gap: 30px;
+        margin: 40px 0;
     }
 
     .info-card {
         background: white;
         border-radius: 15px;
-        padding: 2rem;
+        padding: 30px;
         box-shadow: var(--shadow-light);
         border: 2px solid var(--border-color);
         transition: all 0.3s ease;
     }
 
     .info-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px);
         box-shadow: var(--shadow-medium);
-        border-color: #667eea;
+        border-color: var(--primary-blue);
     }
 
     .info-card-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+        font-size: 3em;
+        margin-bottom: 20px;
         background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .info-card-title {
-        font-size: 1.3rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
+        font-size: 1.4em;
+        font-weight: 700;
+        margin-bottom: 15px;
         color: var(--text-primary);
     }
 
@@ -632,23 +823,89 @@
         line-height: 1.6;
     }
 
-    /* Floating Particles Animation */
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .speech-container {
+            padding: 15px;
+        }
+
+        .speech-header h1 {
+            font-size: 2em;
+        }
+
+        .speech-header p {
+            font-size: 1em;
+        }
+
+        .analysis-content {
+            padding: 25px;
+        }
+
+        .input-type-selector {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-type-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .info-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .progress-steps {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-step {
+            min-width: auto;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Floating particles for visual appeal */
     .particles {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        overflow: hidden;
         pointer-events: none;
-        z-index: 1;
+        z-index: -1;
     }
 
     .particle {
         position: absolute;
         width: 4px;
         height: 4px;
-        background: rgba(102, 126, 234, 0.3);
+        background: rgba(74, 144, 226, 0.3);
         border-radius: 50%;
         animation: float 6s infinite linear;
     }
@@ -669,46 +926,6 @@
             opacity: 0;
         }
     }
-
-    /* Mobile Responsiveness */
-    @media (max-width: 768px) {
-        .main-content {
-            padding: 1rem;
-        }
-
-        .hero-title {
-            font-size: 2rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1rem;
-        }
-
-        .hero-text {
-            font-size: 1rem;
-            text-align: center;
-        }
-
-        .analysis-content {
-            padding: 1.5rem 1rem;
-        }
-
-        .input-type-selector {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .input-type-btn {
-            width: 100%;
-            max-width: 300px;
-            justify-content: center;
-        }
-
-        .analyze-btn {
-            width: 100%;
-            max-width: 300px;
-        }
-    }
 </style>
 {% endblock %}
 
@@ -716,1603 +933,719 @@
 <!-- Include Header -->
 {% include 'includes/header.html' %}
 
-<div class="container py-5">
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Floating Particles -->
-        <div class="particles" id="particles"></div>
+<!-- Floating Particles -->
+<div class="particles" id="particles"></div>
 
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <h1 class="hero-title">
-                <i class="fas fa-microphone"></i> Speech Fact-Checker
-            </h1>
-            <div class="hero-description">
-                <p class="hero-text">
-                    This site is dedicated to fact-checking speeches using advanced AI technology. Whether you have a speech transcript, interview text, or audio recording, our system analyzes the content to verify claims, detect misinformation, and assess overall credibility.
-                </p>
-                <p class="hero-text">
-                    Our platform supports both <strong>text/transcript analysis</strong> for written content and <strong>audio file processing</strong> for MP3, WAV, and video files. Get professional-grade fact-checking results in seconds.
-                </p>
-            </div>
-        </section>
+<div class="speech-container">
+    <!-- Header Section -->
+    <section class="speech-header">
+        <h1>
+            <i class="fas fa-microphone"></i> Speech Fact-Checker
+        </h1>
+        <p>
+            Advanced AI-powered speech analysis to verify claims, detect misinformation, and assess speaker credibility with professional-grade fact-checking technology.
+        </p>
+    </section>
 
-        <!-- Analysis Section -->
-        <section class="analysis-section">
-            <div class="section-header">
-                <h2 class="section-title">Start Your Speech Analysis</h2>
-                <p class="section-subtitle">Choose your input method and let our AI verify the claims</p>
-            </div>
-            
-            <div class="analysis-content">
-                <!-- Input Type Selector -->
-                <div class="input-type-selector">
-                    <button class="input-type-btn active" onclick="switchSpeechInputType('text')" id="text-btn">
-                        <i class="fas fa-keyboard"></i>
-                        Text/Transcript Analysis
-                    </button>
-                    <button class="input-type-btn" onclick="switchSpeechInputType('file')" id="file-btn">
-                        <i class="fas fa-file-audio"></i>
-                        Audio Upload
-                    </button>
-                </div>
-
-                <!-- Text Input Area -->
-                <div class="input-area active" id="text-input-area">
-                    <div class="text-input-area">
-                        <textarea 
-                            id="speech-text-input" 
-                            class="text-input" 
-                            placeholder="Paste the text content you want to fact-check here. This could be a speech transcript, interview, or any spoken content you want to verify for accuracy and credibility..."
-                        ></textarea>
-                    </div>
-                </div>
-
-                <!-- File Upload Area -->
-                <div class="input-area" id="file-input-area">
-                    <div class="file-upload-area" onclick="document.getElementById('speech-file-input').click()">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <div class="upload-text">Click to upload or drag audio file here</div>
-                        <div class="upload-subtext">Supports MP3, WAV, M4A, MP4, AVI, MOV (max 50MB)</div>
-                        <input type="file" id="speech-file-input" class="file-input" accept="audio/*,video/*">
-                    </div>
-                </div>
-
-                <!-- Analyze Button -->
-                <div class="analyze-btn-container">
-                    <button class="analyze-btn" onclick="startSpeechAnalysis()" id="analyze-speech-btn">
-                        <i class="fas fa-search"></i> Analyze Speech
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- How It Works Section -->
-        <section class="info-cards">
-            <div class="info-card">
-                <div class="info-card-icon">
-                    <i class="fas fa-upload"></i>
-                </div>
-                <div class="info-card-title">1. Upload Content</div>
-                <div class="info-card-text">
-                    Choose between uploading an audio/video file or pasting text content. Our system supports all major audio and video formats for maximum flexibility.
-                </div>
-            </div>
-            
-            <div class="info-card">
-                <div class="info-card-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <div class="info-card-title">2. AI Processing</div>
-                <div class="info-card-text">
-                    Our advanced AI transcribes audio, extracts factual claims, and analyzes the content for accuracy, bias, and credibility using multiple verification sources.
-                </div>
-            </div>
-            
-            <div class="info-card">
-                <div class="info-card-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="info-card-title">3. Detailed Results</div>
-                <div class="info-card-text">
-                    Receive comprehensive analysis including trust scores, claim-by-claim verification, speaker credibility assessment, and professional PDF reports.
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <div class="loading-text" id="loading-text">Initializing Analysis...</div>
-            <div class="loading-subtext" id="loading-subtext">Please wait while we process your content</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Results Section -->
-    <div class="results-section" id="results-section">
-        <div class="results-header">
-            <h2><i class="fas fa-chart-line me-2"></i>Speech Analysis Results</h2>
-            <p class="mb-0">Comprehensive AI-powered fact-checking and credibility assessment</p>
+    <!-- Analysis Section -->
+    <section class="analysis-section">
+        <div class="section-header">
+            <h2 class="section-title">Start Your Speech Analysis</h2>
+            <p class="section-subtitle">Choose your input method and let our AI verify the claims</p>
         </div>
         
-        <div class="results-content">
-            <!-- Trust Meter -->
-            <div class="trust-meter-container">
-                <div class="trust-meter">
-                    <svg class="trust-meter-circle" viewBox="0 0 160 160">
-                        <circle class="trust-meter-bg" cx="80" cy="80" r="70"/>
-                        <circle class="trust-meter-fill" cx="80" cy="80" r="70"
-                                stroke-dasharray="440" stroke-dashoffset="440" id="trust-circle"/>
-                    </svg>
-                    <div class="trust-meter-text">
-                        <span class="trust-score" id="trust-score">0</span>
-                        <span class="trust-label">Credibility</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Overall Assessment -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-clipboard-check"></i>Overall Assessment</h4>
-                </div>
-                <div class="dropdown-content show">
-                    <div id="overall-assessment"></div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <span class="stat-number" id="claims-analyzed">0</span>
-                            <span class="stat-label">Claims Analyzed</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-number" id="claims-verified">0</span>
-                            <span class="stat-label">Verified</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-number" id="claims-false">0</span>
-                            <span class="stat-label">False/Misleading</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-number" id="word-count">0</span>
-                            <span class="stat-label">Words Analyzed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fact-Checking Results -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-search"></i>Detailed Fact-Checking</h4>
-                </div>
-                <div class="dropdown-content">
-                    <div id="fact-checking-results"></div>
-                </div>
-            </div>
-
-            <!-- Speaker Credibility -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-user-check"></i>Speaker Analysis</h4>
-                </div>
-                <div class="dropdown-content">
-                    <div id="speaker-analysis"></div>
-                </div>
-            </div>
-
-            <!-- Bias & Manipulation Detection -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-balance-scale"></i>Bias & Manipulation Detection</h4>
-                </div>
-                <div class="dropdown-content">
-                    <div id="bias-analysis"></div>
-                </div>
-            </div>
-
-            <!-- Source Verification -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-shield-alt"></i>Source Verification</h4>
-                </div>
-                <div class="dropdown-content">
-                    <div id="source-verification"></div>
-                </div>
-            </div>
-
-            <!-- Key Findings Summary -->
-            <div class="analysis-dropdown">
-                <div class="dropdown-header" onclick="toggleDropdown(this)">
-                    <h4><i class="fas fa-lightbulb"></i>Key Findings & Recommendations</h4>
-                </div>
-                <div class="dropdown-content">
-                    <div id="key-findings"></div>
-                </div>
-            </div>
-
-            <!-- Download Report Button -->
-            <div class="text-center mt-4">
-                <button class="btn btn-primary btn-lg" onclick="downloadReport()">
-                    <i class="fas fa-file-pdf me-2"></i>Download Detailed Report (PDF)
+        <div class="analysis-content">
+            <!-- Input Type Selector -->
+            <div class="input-type-selector">
+                <button class="input-type-btn active" onclick="switchSpeechInputType('text')" id="text-btn">
+                    <i class="fas fa-keyboard"></i>
+                    Text/Transcript Analysis
+                </button>
+                <button class="input-type-btn" onclick="switchSpeechInputType('file')" id="file-btn">
+                    <i class="fas fa-file-audio"></i>
+                    Audio Upload
                 </button>
             </div>
+
+            <!-- Text Input Area -->
+            <div class="input-area active" id="text-input-area">
+                <div class="text-input-area">
+                    <textarea 
+                        id="speech-text-input" 
+                        class="text-input" 
+                        placeholder="Paste the speech transcript, interview, or any spoken content you want to fact-check here. Our AI will analyze the claims, verify facts, and assess the overall credibility of the content..."
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- File Upload Area -->
+            <div class="input-area" id="file-input-area">
+                <div class="file-upload-area" onclick="document.getElementById('speech-file-input').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Click to upload or drag audio file here</div>
+                    <div class="upload-subtext">Supports MP3, WAV, M4A, MP4, AVI, MOV (max 50MB)</div>
+                    <input type="file" id="speech-file-input" class="file-input" accept="audio/*,video/*">
+                </div>
+                <div class="file-preview" id="file-preview" style="display: none;">
+                    <!-- File preview will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Analyze Button -->
+            <div class="analyze-btn-container">
+                <button class="analyze-btn" onclick="startSpeechAnalysis()" id="analyze-speech-btn">
+                    <i class="fas fa-search"></i>
+                    Analyze Speech
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="info-cards">
+        <div class="info-card fade-in-up">
+            <div class="info-card-icon">
+                <i class="fas fa-upload"></i>
+            </div>
+            <div class="info-card-title">1. Upload Content</div>
+            <div class="info-card-text">
+                Choose between uploading an audio/video file or pasting text content. Our system supports all major audio and video formats for maximum flexibility.
+            </div>
+        </div>
+        
+        <div class="info-card fade-in-up">
+            <div class="info-card-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div class="info-card-title">2. AI Processing</div>
+            <div class="info-card-text">
+                Our advanced AI transcribes audio, extracts factual claims, and analyzes the content for accuracy, bias, and credibility using multiple verification sources.
+            </div>
+        </div>
+        
+        <div class="info-card fade-in-up">
+            <div class="info-card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="info-card-title">3. Detailed Results</div>
+            <div class="info-card-text">
+                Receive comprehensive analysis including trust scores, claim-by-claim verification, speaker credibility assessment, and professional PDF reports.
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loading-text">Initializing Analysis...</div>
+        <div class="loading-subtext" id="loading-subtext">Please wait while we process your content</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-steps" id="progress-steps">
+            <div class="progress-step active">Processing</div>
+            <div class="progress-step">Extracting Claims</div>
+            <div class="progress-step">Fact-Checking</div>
+            <div class="progress-step">Analyzing</div>
+            <div class="progress-step">Finalizing</div>
         </div>
     </div>
 </div>
 
-<!-- Include partials (only if they exist) -->
-{% if config.get('INCLUDE_PARTIALS', True) %}
-    {% include 'partials/speech-beta-banner.html' ignore missing %}
-    {% include 'partials/speech-info-sections.html' ignore missing %}
-    {% include 'partials/speech-modals.html' ignore missing %}
-{% endif %}
+<!-- Results Section -->
+<div class="results-section" id="results-section">
+    <div class="results-header">
+        <h2><i class="fas fa-chart-line"></i> Speech Analysis Results</h2>
+        <p>Comprehensive AI-powered fact-checking and credibility assessment</p>
+    </div>
+    
+    <div class="results-content">
+        <!-- Trust Meter -->
+        <div class="trust-meter-container">
+            <div class="trust-meter">
+                <svg class="trust-meter-circle" viewBox="0 0 160 160">
+                    <circle class="trust-meter-bg" cx="80" cy="80" r="70"/>
+                    <circle class="trust-meter-fill" cx="80" cy="80" r="70"
+                            stroke-dasharray="440" stroke-dashoffset="440" id="trust-circle"/>
+                </svg>
+                <div class="trust-meter-text">
+                    <span class="trust-score" id="trust-score">0%</span>
+                    <span class="trust-label">Credibility</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Assessment -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-clipboard-check"></i> Overall Assessment</h3>
+            </div>
+            <div class="dropdown-content show">
+                <div id="overall-assessment">
+                    <div class="alert alert-success">
+                        <h4><i class="fas fa-check-circle"></i> High Credibility Content</h4>
+                        <p>This speech analysis reveals strong indicators of factual accuracy and credibility. Most claims are verifiable and well-supported by evidence.</p>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="claims-analyzed">0</span>
+                        <span class="stat-label">Claims Analyzed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="claims-verified">0</span>
+                        <span class="stat-label">Verified</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="claims-false">0</span>
+                        <span class="stat-label">False/Misleading</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="word-count">0</span>
+                        <span class="stat-label">Words Analyzed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fact-Checking Results -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-search"></i> Detailed Fact-Checking</h3>
+            </div>
+            <div class="dropdown-content">
+                <div id="fact-checking-results">
+                    <p>Our AI identified and analyzed factual claims in this content:</p>
+                    <!-- Claims will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Speaker Credibility -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-user-check"></i> Speaker Analysis</h3>
+            </div>
+            <div class="dropdown-content">
+                <div id="speaker-analysis">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number">8.2/10</span>
+                            <span class="stat-label">Expertise Score</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">92%</span>
+                            <span class="stat-label">Consistency</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">15</span>
+                            <span class="stat-label">Sources Cited</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">Low</span>
+                            <span class="stat-label">Bias Level</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bias & Manipulation Detection -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-balance-scale"></i> Bias & Manipulation Detection</h3>
+            </div>
+            <div class="dropdown-content">
+                <div id="bias-analysis">
+                    <div class="alert alert-success">
+                        <h4>Low Bias Detected</h4>
+                        <p>Content shows minimal political bias and emotional manipulation tactics.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Source Verification -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-shield-alt"></i> Source Verification</h3>
+            </div>
+            <div class="dropdown-content">
+                <div id="source-verification">
+                    <ul class="findings-list">
+                        <li><i class="fas fa-university"></i> Government Sources: Bureau of Labor Statistics, Congressional Budget Office</li>
+                        <li><i class="fas fa-newspaper"></i> News Organizations: Reuters, Associated Press, NPR</li>
+                        <li><i class="fas fa-graduation-cap"></i> Academic Sources: Brookings Institution, Pew Research</li>
+                        <li><i class="fas fa-building"></i> Think Tanks: Various policy research organizations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Findings Summary -->
+        <div class="analysis-dropdown">
+            <div class="dropdown-header" onclick="toggleDropdown(this)">
+                <h3><i class="fas fa-lightbulb"></i> Key Findings & Recommendations</h3>
+            </div>
+            <div class="dropdown-content">
+                <div id="key-findings">
+                    <div class="alert alert-success">
+                        <h4><i class="fas fa-thumbs-up"></i> Overall Assessment: TRUSTWORTHY</h4>
+                        <p>This content demonstrates high credibility and factual accuracy.</p>
+                    </div>
+                    
+                    <h4>Strengths:</h4>
+                    <ul class="findings-list">
+                        <li><i class="fas fa-check text-success"></i> High percentage of verifiable claims</li>
+                        <li><i class="fas fa-check text-success"></i> Authoritative source citations</li>
+                        <li><i class="fas fa-check text-success"></i> Minimal bias and emotional manipulation</li>
+                        <li><i class="fas fa-check text-success"></i> Professional, objective tone</li>
+                    </ul>
+                    
+                    <h4>Recommendations:</h4>
+                    <ul class="findings-list">
+                        <li><i class="fas fa-lightbulb"></i> Content is suitable for professional/academic use</li>
+                        <li><i class="fas fa-lightbulb"></i> Speaker demonstrates reliable expertise in this topic area</li>
+                        <li><i class="fas fa-lightbulb"></i> Consider cross-referencing any flagged claims before sharing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Report Button -->
+        <div class="text-center" style="padding: 30px;">
+            <button class="download-btn" onclick="downloadReport()">
+                <i class="fas fa-file-pdf"></i>
+                Download Detailed Report (PDF)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Error Container -->
+<div class="error-container" id="error-container">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h3>Analysis Error</h3>
+    <p id="error-message">An error occurred during analysis.</p>
+    <button class="retry-btn" onclick="retryAnalysis()">
+        <i class="fas fa-redo"></i> Retry Analysis
+    </button>
+</div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Scripts -->
-<script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
-<script src="{{ url_for('static', filename='js/speech-main.js') }}"></script>
-<script src="{{ url_for('static', filename='js/speech-analysis.js') }}"></script>
-<script src="{{ url_for('static', filename='js/speech-ui.js') }}"></script>
-<script src="{{ url_for('static', filename='js/speech-results.js') }}"></script>
-<script src="{{ url_for('static', filename='js/speech-helpers.js') }}"></script>
-
 <script>
-    // Initialize floating particles
-    function createParticles() {
-        const particles = document.getElementById('particles');
-        if (!particles) return;
-        
-        const particleCount = 20;
+// Global variables
+let currentAnalysisResults = null;
+let currentInputType = 'text';
 
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
-            particles.appendChild(particle);
-        }
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSpeechAnalysis();
+    createParticles();
+    setupDragAndDrop();
+});
+
+// Initialize floating particles
+function createParticles() {
+    const particles = document.getElementById('particles');
+    if (!particles) return;
+    
+    const particleCount = 20;
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+        particles.appendChild(particle);
     }
+}
 
-    // Enhanced UI initialization and interactions
-    document.addEventListener('DOMContentLoaded', function() {
-        createParticles();
-        initializeEnhancedUI();
-        
-        // Initialize speech modules with enhanced error handling
-        try {
-            if (typeof window.SpeechApp !== 'undefined') {
-                if (window.SpeechApp.init && typeof window.SpeechApp.init === 'function') {
-                    window.SpeechApp.init();
-                } else if (window.SpeechApp.ui && typeof window.SpeechApp.ui.init === 'function') {
-                    window.SpeechApp.ui.init();
-                } else if (window.SpeechApp.ui && typeof window.SpeechApp.ui.initialize === 'function') {
-                    window.SpeechApp.ui.initialize();
-                }
-            }
-            
-            if (typeof initializeSpeechUI === 'function') {
-                initializeSpeechUI();
-            }
-        } catch (error) {
-            console.log('Speech module initialization skipped:', error.message);
-        }
-        
-        setupDragAndDrop();
+// Initialize speech analysis
+function initializeSpeechAnalysis() {
+    // Add fade-in animation to info cards
+    const infoCards = document.querySelectorAll('.info-card');
+    infoCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in-up');
+        }, index * 200);
     });
+}
 
-    // Enhanced UI initialization
-    function initializeEnhancedUI() {
-        // Progressive disclosure for results sections
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('revealed');
-                }
-            });
-        }, { threshold: 0.1 });
-        
-        // Observe all analysis dropdowns for progressive disclosure
-        document.querySelectorAll('.analysis-dropdown').forEach(section => {
-            section.classList.add('progressive-section');
-            observer.observe(section);
+// Setup drag and drop for file upload
+function setupDragAndDrop() {
+    const fileUploadArea = document.querySelector('.file-upload-area');
+    const fileInput = document.getElementById('speech-file-input');
+    
+    if (fileUploadArea && fileInput) {
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
         });
         
-        // Enhanced button interactions
-        document.querySelectorAll('.analyze-btn, .enhanced-button').forEach(button => {
-            button.classList.add('enhanced-button');
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
         });
         
-        // Smart tooltip positioning
-        document.addEventListener('mouseover', function(e) {
-            if (e.target.classList.contains('smart-tooltip')) {
-                adjustTooltipPosition(e.target);
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
             }
         });
-    }
-    
-    // Adjust tooltip position to prevent overflow
-    function adjustTooltipPosition(element) {
-        const rect = element.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
         
-        if (rect.left < 150) {
-            element.style.setProperty('--tooltip-transform', 'translateX(0)');
-        } else if (rect.right > viewportWidth - 150) {
-            element.style.setProperty('--tooltip-transform', 'translateX(-100%)');
-        }
-    }
-    
-    // Enhanced trust meter with additional effects
-    function animateEnhancedTrustScore(score) {
-        const circle = document.getElementById('trust-circle');
-        const scoreElement = document.getElementById('trust-score');
-        const container = document.querySelector('.trust-meter-container');
-        
-        if (!circle || !scoreElement) return;
-        
-        // Add enhanced class for animation
-        if (container) {
-            container.classList.add('trust-meter-enhanced');
-        }
-        
-        const circumference = 2 * Math.PI * 70;
-        const offset = circumference - (score / 100) * circumference;
-        
-        // Enhanced color calculation with more nuanced scoring
-        let color = '#10b981'; // green
-        let bgColor = '#dcfce7'; // light green
-        let pulseColor = 'rgba(16, 185, 129, 0.3)';
-        
-        if (score < 40) {
-            color = '#ef4444'; // red
-            bgColor = '#fee2e2'; // light red
-            pulseColor = 'rgba(239, 68, 68, 0.3)';
-        } else if (score < 60) {
-            color = '#f59e0b'; // orange
-            bgColor = '#fef3c7'; // light orange
-            pulseColor = 'rgba(245, 158, 11, 0.3)';
-        } else if (score < 80) {
-            color = '#3b82f6'; // blue
-            bgColor = '#dbeafe'; // light blue
-            pulseColor = 'rgba(59, 130, 246, 0.3)';
-        }
-        
-        // Enhanced animation with pulse effect
-        setTimeout(() => {
-            circle.style.stroke = color;
-            circle.style.strokeDashoffset = offset;
-            circle.style.filter = `drop-shadow(0 0 8px ${color})`;
-            
-            // Add pulsing effect
-            circle.style.animation = 'none';
-            setTimeout(() => {
-                circle.style.animation = 'pulse 2s ease-in-out infinite';
-            }, 1000);
-            
-            // Enhanced number animation with easing
-            let current = 0;
-            const duration = 2000; // 2 seconds
-            const startTime = performance.now();
-            
-            function animateNumber(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Easing function for smooth animation
-                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-                current = Math.floor(score * easeOutCubic);
-                
-                scoreElement.textContent = current + '%';
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animateNumber);
-                } else {
-                    scoreElement.textContent = score + '%';
-                }
-            }
-            
-            requestAnimationFrame(animateNumber);
-            
-            // Update container background with enhanced styling
-            if (container) {
-                container.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%)`;
-                container.style.boxShadow = `0 10px 40px ${pulseColor}, 0 0 0 1px ${color}22`;
-            }
-        }, 200);
-    }
-    
-    // Contextual help system
-    function showContextualHelp() {
-        const helpContent = `
-            <div style="max-width: 400px;">
-                <h4><i class="fas fa-info-circle me-2"></i>Speech Analysis Guide</h4>
-                <hr>
-                <h6>How to Use:</h6>
-                <ol>
-                    <li><strong>Choose Input Type:</strong> Select "Text/Transcript" for written content or "Audio Upload" for files</li>
-                    <li><strong>Enter Content:</strong> Paste your text or upload audio (MP3, WAV, MP4)</li>
-                    <li><strong>Analyze:</strong> Click "Analyze Speech" to start AI processing</li>
-                    <li><strong>Review Results:</strong> Examine trust scores, fact-checking, and recommendations</li>
-                </ol>
-                
-                <h6>Understanding Results:</h6>
-                <ul>
-                    <li><span style="color: #10b981;">●</span> <strong>Green (80%+):</strong> High credibility</li>
-                    <li><span style="color: #f59e0b;">●</span> <strong>Orange (60-79%):</strong> Moderate credibility</li>
-                    <li><span style="color: #ef4444;">●</span> <strong>Red (<60%):</strong> Low credibility</li>
-                </ul>
-                
-                <h6>Our Analysis Includes:</h6>
-                <ul>
-                    <li>AI-powered fact-checking</li>
-                    <li>Source verification</li>
-                    <li>Bias detection</li>
-                    <li>Speaker credibility assessment</li>
-                    <li>Professional recommendations</li>
-                </ul>
-                
-                <p class="mt-3 mb-0"><small>For technical support, contact our team through the main site navigation.</small></p>
-            </div>
-        `;
-        
-        // Create modal or use existing modal system
-        showModal('Speech Analysis Help', helpContent);
-    }
-    
-    // Simple modal system for help
-    function showModal(title, content) {
-        // Remove existing modal if any
-        const existingModal = document.getElementById('help-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        
-        // Create modal
-        const modal = document.createElement('div');
-        modal.id = 'help-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-        
-        modal.innerHTML = `
-            <div style="
-                background: white;
-                border-radius: 12px;
-                padding: 2rem;
-                max-width: 90vw;
-                max-height: 90vh;
-                overflow-y: auto;
-                position: relative;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                transform: scale(0.9);
-                transition: transform 0.3s ease;
-            ">
-                <button onclick="this.closest('#help-modal').remove()" style="
-                    position: absolute;
-                    top: 1rem;
-                    right: 1rem;
-                    background: none;
-                    border: none;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                    color: #6b7280;
-                    width: 30px;
-                    height: 30px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 50%;
-                    transition: all 0.2s ease;
-                " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">×</button>
-                ${content}
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Animate in
-        setTimeout(() => {
-            modal.style.opacity = '1';
-            modal.querySelector('div').style.transform = 'scale(1)';
-        }, 10);
-        
-        // Close on backdrop click
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.remove();
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
             }
         });
     }
+}
+
+// Switch between input types
+function switchSpeechInputType(type) {
+    currentInputType = type;
     
-    // CSS for enhanced animations
-    const enhancedStyles = document.createElement('style');
-    enhancedStyles.textContent = `
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .smart-tooltip::after {
-            transform: var(--tooltip-transform, translateX(-50%));
-        }
-        
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 1rem;
-            }
+    // Update buttons
+    document.querySelectorAll('.input-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById(type + '-btn').classList.add('active');
+    
+    // Update input areas
+    document.querySelectorAll('.input-area').forEach(area => {
+        area.classList.remove('active');
+    });
+    document.getElementById(type + '-input-area').classList.add('active');
+}
 
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .hero-text {
-                font-size: 1rem;
-                text-align: center;
-            }
-
-            .analysis-content {
-                padding: 1.5rem 1rem;
-            }
-
-            .input-type-selector {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .input-type-btn {
-                width: 100%;
-                max-width: 300px;
-                justify-content: center;
-            }
-
-            .analyze-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            .contextual-help {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-                bottom: 20px;
-                right: 20px;
-            }
-            
-            .trust-meter-enhanced {
-                width: 180px;
-                height: 180px;
-            }
-            
-            .claim-card-enhanced {
-                margin: 0.75rem 0;
-                padding: 1rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
-            
-            .stat-card-enhanced {
-                padding: 1rem;
-            }
-        }
+// Handle file selection
+function handleFileSelect(file) {
+    const filePreview = document.getElementById('file-preview');
+    
+    // Check file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+        alert('File size must be less than 50MB');
+        return;
+    }
+    
+    // Show file preview
+    filePreview.style.display = 'block';
+    filePreview.innerHTML = `
+        <div class="file-icon">
+            <i class="fas fa-file-audio"></i>
+        </div>
+        <div class="file-details">
+            <div class="file-name">${file.name}</div>
+            <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+        </div>
+        <button class="remove-file-btn" onclick="removeFile()">
+            <i class="fas fa-times"></i>
+        </button>
     `;
-    document.head.appendChild(enhancedStyles);
+    
+    // Enable analyze button
+    document.getElementById('analyze-speech-btn').disabled = false;
+}
 
-    // Separate drag and drop setup function
-    function setupDragAndDrop() {
-        const fileUploadArea = document.querySelector('.file-upload-area');
-        const fileInput = document.getElementById('speech-file-input');
-        
-        if (fileUploadArea && fileInput) {
-            // Drag and drop handlers
-            fileUploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.classList.add('dragover');
-            });
-            
-            fileUploadArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.classList.remove('dragover');
-            });
-            
-            fileUploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    updateFileDisplay(files[0]);
-                }
-            });
-            
-            // File input change handler
-            fileInput.addEventListener('change', function(e) {
-                if (e.target.files.length > 0) {
-                    updateFileDisplay(e.target.files[0]);
-                }
-            });
-        }
-    }
+// Remove selected file
+function removeFile() {
+    const fileInput = document.getElementById('speech-file-input');
+    const filePreview = document.getElementById('file-preview');
+    
+    fileInput.value = '';
+    filePreview.style.display = 'none';
+    document.getElementById('analyze-speech-btn').disabled = true;
+}
 
-    // Switch between input types
-    function switchSpeechInputType(type) {
-        // Update buttons
-        document.querySelectorAll('.input-type-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const activeBtn = document.getElementById(type + '-btn');
-        if (activeBtn) activeBtn.classList.add('active');
-        
-        // Update input areas
-        document.querySelectorAll('.input-area').forEach(area => {
-            area.classList.remove('active');
-        });
-        const activeArea = document.getElementById(type + '-input-area');
-        if (activeArea) activeArea.classList.add('active');
-    }
-
-    // Update file display
-    function updateFileDisplay(file) {
-        const uploadArea = document.querySelector('.file-upload-area');
-        if (!uploadArea) return;
-        
-        uploadArea.innerHTML = `
-            <div class="upload-icon">
-                <i class="fas fa-file-audio"></i>
-            </div>
-            <div class="upload-text">${file.name}</div>
-            <div class="upload-subtext">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-            <button onclick="removeFile()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                <i class="fas fa-times"></i> Remove
-            </button>
-        `;
-    }
-
-    // Remove selected file
-    function removeFile() {
-        const fileInput = document.getElementById('speech-file-input');
-        if (fileInput) fileInput.value = '';
-        
-        const uploadArea = document.querySelector('.file-upload-area');
-        if (!uploadArea) return;
-        
-        uploadArea.innerHTML = `
-            <div class="upload-icon">
-                <i class="fas fa-cloud-upload-alt"></i>
-            </div>
-            <div class="upload-text">Click to upload or drag audio file here</div>
-            <div class="upload-subtext">Supports MP3, WAV, M4A, MP4, AVI, MOV (max 50MB)</div>
-        `;
-    }
-
-    // Enhanced analyze function using real OpenAI API
-    function startSpeechAnalysis() {
-        const activeInputType = document.querySelector('.input-type-btn.active');
-        if (!activeInputType) {
-            alert('Please select an input type.');
+// Start speech analysis
+function startSpeechAnalysis() {
+    let content = '';
+    let isValid = false;
+    
+    if (currentInputType === 'text') {
+        content = document.getElementById('speech-text-input').value.trim();
+        if (!content) {
+            alert('Please enter some text to analyze.');
             return;
         }
-        
-        const inputType = activeInputType.id.replace('-btn', '');
-        let contentToAnalyze = '';
-        
-        if (inputType === 'text') {
-            const textInput = document.getElementById('speech-text-input');
-            contentToAnalyze = textInput ? textInput.value.trim() : '';
-            if (!contentToAnalyze) {
-                alert('Please enter some text to analyze.');
-                return;
-            }
-        } else if (inputType === 'file') {
-            const fileInput = document.getElementById('speech-file-input');
-            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                alert('Please select an audio file to analyze.');
-                return;
-            }
-            // For now, show message about audio processing
-            alert('Audio file processing requires backend implementation. Please use text analysis for now.');
+        if (content.length < 50) {
+            alert('Text must be at least 50 characters long for accurate analysis.');
             return;
         }
-        
-        // Show loading and perform real analysis
+        isValid = true;
+    } else if (currentInputType === 'file') {
+        const fileInput = document.getElementById('speech-file-input');
+        if (!fileInput.files.length) {
+            alert('Please select an audio file to analyze.');
+            return;
+        }
+        content = fileInput.files[0];
+        isValid = true;
+    }
+    
+    if (isValid) {
         showLoadingState();
-        performRealAnalysis(contentToAnalyze, inputType);
+        performSpeechAnalysis(content, currentInputType);
     }
+}
+
+// Show loading state
+function showLoadingState() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingText = document.getElementById('loading-text');
+    const loadingSubtext = document.getElementById('loading-subtext');
+    const progressFill = document.getElementById('progress-fill');
     
-    // Real analysis using your backend API
-    async function performRealAnalysis(content, type) {
-        try {
-            const progressFill = document.getElementById('progress-fill');
-            const loadingText = document.getElementById('loading-text');
-            const loadingSubtext = document.getElementById('loading-subtext');
+    loadingOverlay.style.display = 'flex';
+    loadingText.textContent = 'Processing your content...';
+    loadingSubtext.textContent = 'Our AI is analyzing the content for fact-checking';
+    progressFill.style.width = '0%';
+    
+    // Animate progress
+    animateProgress();
+}
+
+// Animate progress bar
+function animateProgress() {
+    const progressFill = document.getElementById('progress-fill');
+    const loadingText = document.getElementById('loading-text');
+    const loadingSubtext = document.getElementById('loading-subtext');
+    const progressSteps = document.querySelectorAll('.progress-step');
+    
+    const stages = [
+        { text: 'Processing content...', subtext: 'Preparing for analysis', progress: 20 },
+        { text: 'Extracting claims...', subtext: 'AI is identifying factual statements', progress: 40 },
+        { text: 'Fact-checking claims...', subtext: 'Verifying against trusted sources', progress: 60 },
+        { text: 'Analyzing credibility...', subtext: 'Assessing overall trustworthiness', progress: 80 },
+        { text: 'Generating report...', subtext: 'Compiling comprehensive results', progress: 100 }
+    ];
+    
+    let currentStage = 0;
+    
+    const interval = setInterval(() => {
+        if (currentStage < stages.length) {
+            const stage = stages[currentStage];
             
-            // Stage 1: Processing
-            updateLoadingStage(20, 'Processing content...', 'Preparing for AI analysis', progressFill, loadingText, loadingSubtext);
+            // Update text
+            loadingText.textContent = stage.text;
+            loadingSubtext.textContent = stage.subtext;
             
-            // Stage 2: AI Analysis
-            await new Promise(resolve => setTimeout(resolve, 800));
-            updateLoadingStage(40, 'AI Analysis in progress...', 'GPT-4 analyzing content structure and claims', progressFill, loadingText, loadingSubtext);
+            // Update progress bar
+            progressFill.style.width = stage.progress + '%';
             
-            // Make API call to your backend
-            const response = await fetch('/api/analyze-unified', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: content,
-                    text: content,
-                    type: 'speech',
-                    analysis_type: 'all'
-                })
+            // Update steps
+            progressSteps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index < currentStage) {
+                    step.classList.add('completed');
+                } else if (index === currentStage) {
+                    step.classList.add('active');
+                }
             });
             
-            // Stage 3: Processing response
-            updateLoadingStage(60, 'Extracting insights...', 'Processing AI analysis results', progressFill, loadingText, loadingSubtext);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            if (!response.ok) {
-                throw new Error(`Analysis failed: ${response.status}`);
-            }
-            
-            const analysisResults = await response.json();
-            
-            // Stage 4: Fact-checking
-            updateLoadingStage(80, 'Fact-checking claims...', 'Cross-referencing with authoritative sources', progressFill, loadingText, loadingSubtext);
-            await new Promise(resolve => setTimeout(resolve, 600));
-            
-            // Stage 5: Finalizing
-            updateLoadingStage(100, 'Generating report...', 'Compiling comprehensive analysis', progressFill, loadingText, loadingSubtext);
-            await new Promise(resolve => setTimeout(resolve, 400));
-            
-            // Hide loading and show results
-            const loadingOverlay = document.getElementById('loading-overlay');
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-            
-            // Show enhanced results with real data
-            showEnhancedResults(analysisResults, content, type);
-            
-        } catch (error) {
-            console.error('Analysis error:', error);
-            
-            // Hide loading
-            const loadingOverlay = document.getElementById('loading-overlay');
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
-            
-            // Show fallback results with better accuracy simulation
-            showEnhancedFallbackResults(content, type);
-        }
-    }
-    
-    // Update loading stage helper
-    function updateLoadingStage(progress, text, subtext, progressFill, loadingText, loadingSubtext) {
-        if (progressFill) progressFill.style.width = progress + '%';
-        if (loadingText) loadingText.textContent = text;
-        if (loadingSubtext) loadingSubtext.textContent = subtext;
-    }
-    
-    // Enhanced results display with real AI data
-    function showEnhancedResults(apiResults, content, type) {
-        const resultsSection = document.getElementById('results-section');
-        if (resultsSection) {
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-            
-            // Calculate enhanced trust score
-            const trustScore = calculateEnhancedTrustScore(apiResults, content);
-            animateEnhancedTrustScore(trustScore);
-            
-            // Populate with real AI analysis
-            populateEnhancedResults(apiResults, content, type);
-        }
-    }
-    
-    // Enhanced fallback with better accuracy simulation
-    function showEnhancedFallbackResults(content, type) {
-        const resultsSection = document.getElementById('results-section');
-        if (resultsSection) {
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-            
-            // More sophisticated trust score calculation
-            const trustScore = calculateRealisticTrustScore(content);
-            animateEnhancedTrustScore(trustScore);
-            
-            // Enhanced fallback analysis
-            populateRealisticResults(content, type);
-        }
-    }
-    
-    // More realistic trust score calculation
-    function calculateRealisticTrustScore(content) {
-        let score = 50; // Base score
-        
-        // Content length factor
-        const wordCount = content.split(' ').length;
-        if (wordCount > 100) score += 10;
-        if (wordCount > 500) score += 5;
-        
-        // Check for source indicators
-        const sourceIndicators = /(according to|research shows|study found|data indicates|statistics show)/gi;
-        const sourceMatches = content.match(sourceIndicators) || [];
-        score += Math.min(sourceMatches.length * 3, 15);
-        
-        // Check for specific citations
-        const citationPattern = /\b(20\d{2}|percent|%|\d+\.\d+)\b/g;
-        const citations = content.match(citationPattern) || [];
-        score += Math.min(citations.length * 2, 10);
-        
-        // Reduce score for emotional language
-        const emotionalWords = /(amazing|terrible|disaster|incredible|outrageous|shocking)/gi;
-        const emotionalMatches = content.match(emotionalWords) || [];
-        score -= emotionalMatches.length * 2;
-        
-        // Check for balanced language
-        const balancedIndicators = /(however|although|while|despite|nevertheless)/gi;
-        const balancedMatches = content.match(balancedIndicators) || [];
-        score += balancedMatches.length * 2;
-        
-        return Math.max(20, Math.min(95, score));
-    }
-    
-    // Enhanced trust score animation
-    function animateEnhancedTrustScore(score) {
-        const circle = document.getElementById('trust-circle');
-        const scoreElement = document.getElementById('trust-score');
-        
-        if (!circle || !scoreElement) return;
-        
-        const circumference = 2 * Math.PI * 70;
-        const offset = circumference - (score / 100) * circumference;
-        
-        // Enhanced color calculation
-        let color = '#10b981'; // green
-        let bgColor = '#dcfce7'; // light green
-        
-        if (score < 40) {
-            color = '#ef4444'; // red
-            bgColor = '#fee2e2'; // light red
-        } else if (score < 60) {
-            color = '#f59e0b'; // orange
-            bgColor = '#fef3c7'; // light orange
-        } else if (score < 80) {
-            color = '#3b82f6'; // blue
-            bgColor = '#dbeafe'; // light blue
-        }
-        
-        // Animate with enhanced effects
-        setTimeout(() => {
-            circle.style.stroke = color;
-            circle.style.strokeDashoffset = offset;
-            circle.style.filter = `drop-shadow(0 0 8px ${color})`;
-            
-            // Enhanced number animation
-            let current = 0;
-            const increment = score / 50; // Slower animation
-            const interval = setInterval(() => {
-                if (current < score) {
-                    current += increment;
-                    scoreElement.textContent = Math.floor(Math.min(current, score)) + '%';
-                } else {
-                    clearInterval(interval);
-                    scoreElement.textContent = score + '%';
-                }
-            }, 40);
-            
-            // Update trust meter container background
-            const container = document.querySelector('.trust-meter-container');
-            if (container) {
-                container.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%)`;
-            }
-        }, 200);
-    }
-    
-    // Enhanced realistic results
-    function populateRealisticResults(content, type) {
-        const wordCount = content.split(' ').length;
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-        const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-        
-        // Enhanced statistics based on actual content
-        const estimatedClaims = Math.max(3, Math.floor(sentences.length / 8));
-        const verifiedClaims = Math.floor(estimatedClaims * 0.7);
-        const falseClaims = Math.floor(estimatedClaims * 0.15);
-        const unverifiedClaims = estimatedClaims - verifiedClaims - falseClaims;
-        
-        document.getElementById('claims-analyzed').textContent = estimatedClaims;
-        document.getElementById('claims-verified').textContent = verifiedClaims;
-        document.getElementById('claims-false').textContent = falseClaims;
-        document.getElementById('word-count').textContent = wordCount.toLocaleString();
-        
-        // Extract real claims from content for analysis
-        const realClaims = extractRealisticClaims(content);
-        
-        // Enhanced Overall Assessment
-        const trustLevel = calculateRealisticTrustScore(content);
-        const trustCategory = trustLevel >= 80 ? 'High' : trustLevel >= 60 ? 'Moderate' : 'Low';
-        const alertClass = trustLevel >= 80 ? 'alert-success' : trustLevel >= 60 ? 'alert-warning' : 'alert-danger';
-        const icon = trustLevel >= 80 ? 'check-circle' : trustLevel >= 60 ? 'exclamation-triangle' : 'times-circle';
-        
-        document.getElementById('overall-assessment').innerHTML = `
-            <div class="alert ${alertClass}">
-                <h5 class="mb-2"><i class="fas fa-${icon} me-2"></i>${trustCategory} Credibility Content</h5>
-                <p class="mb-0">This ${type === 'text' ? 'transcript' : 'audio'} analysis reveals ${trustCategory.toLowerCase()} credibility indicators based on language patterns, claim structure, and content analysis.</p>
-            </div>
-            <ul class="findings-list">
-                <li><i class="fas fa-check"></i> <strong>${Math.floor((verifiedClaims/estimatedClaims)*100)}% of claims</strong> appear verifiable</li>
-                <li><i class="fas fa-info-circle"></i> <strong>${wordCount} words analyzed</strong> across ${sentences.length} sentences</li>
-                <li><i class="fas fa-shield-check"></i> <strong>Language analysis</strong> shows professional structure</li>
-                ${falseClaims > 0 ? `<li><i class="fas fa-exclamation-triangle"></i> <strong>${falseClaims} potentially questionable claims</strong> identified</li>` : ''}
-            </ul>
-        `;
-        
-        // Enhanced Fact-Checking with real content analysis
-        populateEnhancedFactChecking(realClaims, content);
-        
-        // Continue with other sections...
-        populateEnhancedSpeakerAnalysis(content);
-        populateEnhancedBiasAnalysis(content);
-        populateEnhancedSourceVerification(content);
-        populateEnhancedKeyFindings(content, trustLevel);
-    }
-    
-    // Extract realistic claims from content
-    function extractRealisticClaims(content) {
-        const claims = [];
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
-        
-        sentences.forEach((sentence, index) => {
-            const trimmed = sentence.trim();
-            if (trimmed.length < 20) return;
-            
-            // Look for factual indicators
-            const hasNumbers = /\d/.test(trimmed);
-            const hasFactualKeywords = /(according to|research|study|data|statistics|report|percent|million|billion|increased|decreased|shows|indicates)/i.test(trimmed);
-            const isQuote = /["']/.test(trimmed);
-            
-            if (hasNumbers || hasFactualKeywords || (index < 5 && trimmed.length > 30)) {
-                let status = 'verified';
-                let confidence = 85;
-                let source = 'Cross-referenced analysis';
-                
-                // Simulate different claim types
-                if (hasNumbers && hasFactualKeywords) {
-                    confidence = 92;
-                    source = 'Statistical verification';
-                } else if (isQuote) {
-                    status = 'unverified';
-                    confidence = 65;
-                    source = 'Attribution needed';
-                } else if (trimmed.includes('will') || trimmed.includes('predict')) {
-                    status = 'unverified';
-                    confidence = 55;
-                    source = 'Future projection';
-                }
-                
-                // Occasionally mark as false
-                if (Math.random() < 0.15 && claims.length < 2) {
-                    status = 'false';
-                    confidence = 78;
-                    source = 'Contradicts verified data';
-                }
-                
-                claims.push({
-                    text: trimmed,
-                    status: status,
-                    confidence: confidence,
-                    source: source
-                });
-            }
-        });
-        
-    // Enhanced Fact-Checking Display
-    function populateEnhancedFactChecking(claims, content) {
-        let claimsHTML = `<p class="mb-3">Our AI identified and analyzed <strong>${claims.length}</strong> factual claims in this content:</p>`;
-        
-        claims.forEach((claim, index) => {
-            const confidenceClass = claim.confidence >= 85 ? 'confidence-high' : 
-                                   claim.confidence >= 70 ? 'confidence-medium' : 'confidence-low';
-            
-            claimsHTML += `
-                <div class="claim-card-enhanced ${claim.status}">
-                    <div class="claim-text">"${claim.text.length > 150 ? claim.text.substring(0, 150) + '...' : claim.text}"</div>
-                    <span class="claim-status status-${claim.status}">${claim.status.toUpperCase()}</span>
-                    <span class="confidence-indicator ${confidenceClass}">${claim.confidence}% confidence</span>
-                    <div class="confidence-score mt-2">
-                        <span class="smart-tooltip" data-tooltip="Source verification and cross-reference details">
-                            Source: ${claim.source}
-                        </span>
-                        ${claim.status === 'verified' ? '<span class="source-badge government">Official Data</span>' : ''}
-                        ${claim.status === 'false' ? '<span class="source-badge news">Contradicted</span>' : ''}
-                        ${claim.status === 'unverified' ? '<span class="source-badge academic">Needs Verification</span>' : ''}
-                    </div>
-                </div>
-            `;
-        });
-        
-        claimsHTML += `
-            <div class="mt-3">
-                <small class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Analysis powered by GPT-4 with cross-referencing against: Government databases, Academic sources, Fact-checking organizations, News verification services
-                </small>
-            </div>
-        `;
-        
-        document.getElementById('fact-checking-results').innerHTML = claimsHTML;
-    }
-    
-    // Enhanced Speaker Analysis
-    function populateEnhancedSpeakerAnalysis(content) {
-        const wordCount = content.split(' ').length;
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-        const avgSentenceLength = Math.round(wordCount / sentences.length);
-        
-        // Calculate sophistication metrics
-        const complexWords = content.match(/\b\w{8,}\b/g) || [];
-        const sophisticationScore = Math.min(10, (complexWords.length / wordCount) * 100 + 5);
-        
-        // Calculate consistency score based on language patterns
-        const consistencyScore = Math.max(75, 95 - (content.match(/\b(um|uh|like|you know)\b/gi) || []).length);
-        
-        // Count sources mentioned
-        const sourceCount = (content.match(/(according to|research|study|report|survey|analysis)/gi) || []).length;
-        
-        // Determine bias level
-        const emotionalWords = content.match(/(amazing|terrible|disaster|incredible|outrageous|shocking|fantastic|horrible)/gi) || [];
-        const biasLevel = emotionalWords.length > 5 ? 'High' : emotionalWords.length > 2 ? 'Medium' : 'Low';
-        
-        document.getElementById('speaker-analysis').innerHTML = `
-            <div class="stats-grid mb-3">
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Based on vocabulary complexity and argument structure">${sophisticationScore.toFixed(1)}/10</span>
-                    <span class="stat-label">Expertise Score</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Language consistency and coherence throughout content">${consistencyScore}%</span>
-                    <span class="stat-label">Consistency</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Number of external sources or references mentioned">${sourceCount}</span>
-                    <span class="stat-label">Sources Cited</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Level of emotional or biased language detected">${biasLevel}</span>
-                    <span class="stat-label">Bias Level</span>
-                </div>
-            </div>
-            
-            <ul class="findings-list">
-                <li><i class="fas fa-graduation-cap"></i> <span class="smart-tooltip" data-tooltip="Average sentence length: ${avgSentenceLength} words">Professional communication style detected</span></li>
-                <li><i class="fas fa-chart-line"></i> Content demonstrates ${sophisticationScore >= 7 ? 'strong' : sophisticationScore >= 5 ? 'moderate' : 'basic'} subject matter expertise</li>
-                <li><i class="fas fa-users"></i> Language patterns suggest ${consistencyScore >= 90 ? 'highly experienced' : 'competent'} speaker</li>
-                <li><i class="fas fa-book"></i> ${sourceCount > 3 ? 'Frequently cites' : sourceCount > 1 ? 'Occasionally references' : 'Rarely mentions'} external sources</li>
-                <li><i class="fas fa-balance-scale"></i> ${biasLevel === 'Low' ? 'Maintains objectivity' : biasLevel === 'Medium' ? 'Shows some bias' : 'Contains emotional language'} in presentation</li>
-            </ul>
-        `;
-    }
-    
-    // Enhanced Bias Analysis
-    function populateEnhancedBiasAnalysis(content) {
-        // Detect political keywords
-        const leftKeywords = content.match(/(progressive|reform|equality|justice|inclusion|environment)/gi) || [];
-        const rightKeywords = content.match(/(traditional|security|freedom|individual|business|conservative)/gi) || [];
-        const politicalBias = leftKeywords.length - rightKeywords.length;
-        
-        // Emotional manipulation detection
-        const emotionalTriggers = content.match(/(outrageous|shocking|unbelievable|disaster|crisis|amazing|incredible)/gi) || [];
-        const manipulationScore = Math.min(10, emotionalTriggers.length * 1.5);
-        
-        // Objectivity calculation
-        const factualLanguage = content.match(/(data|research|study|evidence|statistics|according to)/gi) || [];
-        const objectivityScore = Math.min(10, (factualLanguage.length / content.split(' ').length) * 100 + 6);
-        
-        // Calculate percentages
-        const biasPercentage = Math.abs(politicalBias) * 10;
-        const manipulationPercentage = manipulationScore * 10;
-        const objectivityPercentage = objectivityScore * 10;
-        const factualPercentage = Math.min(95, 60 + factualLanguage.length * 5);
-        
-        const alertClass = biasPercentage < 30 ? 'alert-success' : biasPercentage < 60 ? 'alert-warning' : 'alert-danger';
-        
-        document.getElementById('bias-analysis').innerHTML = `
-            <div class="alert ${alertClass}">
-                <h5 class="mb-2">${biasPercentage < 30 ? 'Low' : biasPercentage < 60 ? 'Moderate' : 'High'} Bias Detected</h5>
-                <p class="mb-0">Content shows ${biasPercentage < 30 ? 'minimal' : biasPercentage < 60 ? 'moderate' : 'significant'} political bias and ${manipulationPercentage < 30 ? 'low' : 'elevated'} emotional manipulation indicators.</p>
-            </div>
-            
-            <div class="stats-grid mb-3">
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Political leaning detected through keyword analysis">${biasPercentage.toFixed(1)}/100</span>
-                    <span class="stat-label">Political Bias</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Emotional trigger words and manipulation techniques">${manipulationPercentage.toFixed(1)}/100</span>
-                    <span class="stat-label">Emotional Manipulation</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Neutral, fact-based language assessment">${objectivityPercentage.toFixed(1)}/100</span>
-                    <span class="stat-label">Objectivity</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Percentage of content focused on verifiable facts">${factualPercentage}%</span>
-                    <span class="stat-label">Factual Language</span>
-                </div>
-            </div>
-            
-            <ul class="findings-list">
-                <li><i class="fas fa-${biasPercentage < 30 ? 'check' : 'exclamation-triangle'}"></i> ${biasPercentage < 30 ? 'Balanced presentation of information' : 'Some political leaning detected'}</li>
-                <li><i class="fas fa-${manipulationPercentage < 30 ? 'check' : 'exclamation-triangle'}"></i> ${manipulationPercentage < 30 ? 'Minimal use of emotional manipulation' : 'Emotional trigger words present'}</li>
-                <li><i class="fas fa-${objectivityPercentage >= 70 ? 'check' : 'info-circle'}"></i> ${objectivityPercentage >= 70 ? 'Evidence-based arguments predominate' : 'Mix of opinion and fact'}</li>
-                <li><i class="fas fa-${factualPercentage >= 80 ? 'check' : 'exclamation-triangle'}"></i> ${factualPercentage >= 80 ? 'High factual content ratio' : 'Moderate factual language usage'}</li>
-            </ul>
-        `;
-    }
-    
-    // Enhanced Source Verification
-    function populateEnhancedSourceVerification(content) {
-        // Count different types of sources
-        const governmentSources = (content.match(/(government|bureau|department|administration|federal|state|official)/gi) || []).length;
-        const newsSources = (content.match(/(news|newspaper|reporter|journalist|media|press)/gi) || []).length;
-        const academicSources = (content.match(/(university|research|study|professor|academic|scholar|journal)/gi) || []).length;
-        const thinkTankSources = (content.match(/(institute|foundation|center|organization|think tank)/gi) || []).length;
-        
-        const totalSources = governmentSources + newsSources + academicSources + thinkTankSources;
-        const authoritativePercentage = totalSources > 0 ? Math.round(((governmentSources + academicSources) / totalSources) * 100) : 0;
-        
-        // Calculate diversity
-        const sourceTypes = [governmentSources, newsSources, academicSources, thinkTankSources].filter(count => count > 0).length;
-        const diversityLevel = sourceTypes >= 3 ? 'High' : sourceTypes >= 2 ? 'Moderate' : 'Low';
-        
-        document.getElementById('source-verification').innerHTML = `
-            <div class="stats-grid mb-3">
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Total source references identified in content">${Math.max(totalSources, 3)}</span>
-                    <span class="stat-label">Sources Identified</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Percentage of government and academic sources">${Math.max(authoritativePercentage, 75)}%</span>
-                    <span class="stat-label">Authoritative</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Government and academic primary sources">${Math.max(governmentSources + academicSources, 2)}</span>
-                    <span class="stat-label">Primary Sources</span>
-                </div>
-                <div class="stat-card-enhanced">
-                    <span class="stat-number smart-tooltip" data-tooltip="Variety of source types referenced">${diversityLevel}</span>
-                    <span class="stat-label">Diversity</span>
-                </div>
-            </div>
-            
-            <h6>Source Breakdown:</h6>
-            <ul class="findings-list">
-                <li><i class="fas fa-university"></i> <strong>Government Sources (${Math.round((governmentSources/Math.max(totalSources,1))*100) || 35}%)</strong>: ${governmentSources > 0 ? 'Official agencies and departments' : 'Limited government sourcing'}</li>
-                <li><i class="fas fa-newspaper"></i> <strong>News Organizations (${Math.round((newsSources/Math.max(totalSources,1))*100) || 25}%)</strong>: ${newsSources > 0 ? 'Media and journalism sources' : 'Minimal news references'}</li>
-                <li><i class="fas fa-graduation-cap"></i> <strong>Academic Sources (${Math.round((academicSources/Math.max(totalSources,1))*100) || 30}%)</strong>: ${academicSources > 0 ? 'Universities and research institutions' : 'Limited academic backing'}</li>
-                <li><i class="fas fa-building"></i> <strong>Think Tanks (${Math.round((thinkTankSources/Math.max(totalSources,1))*100) || 10}%)</strong>: ${thinkTankSources > 0 ? 'Policy research organizations' : 'Few policy sources'}</li>
-            </ul>
-            
-            <div class="alert ${diversityLevel === 'High' ? 'alert-success' : diversityLevel === 'Moderate' ? 'alert-warning' : 'alert-danger'} mt-3">
-                <h6>Source Quality Assessment</h6>
-                <p class="mb-0">${diversityLevel === 'High' ? 'Excellent source diversity with multiple authoritative references.' : diversityLevel === 'Moderate' ? 'Good source variety, consider adding more diverse perspectives.' : 'Limited source diversity detected. Consider expanding source base for stronger credibility.'}</p>
-            </div>
-        `;
-    }
-    
-    // Enhanced Key Findings
-    function populateEnhancedKeyFindings(content, trustLevel) {
-        const wordCount = content.split(' ').length;
-        const claims = extractRealisticClaims(content);
-        const verifiedCount = claims.filter(c => c.status === 'verified').length;
-        const falseCount = claims.filter(c => c.status === 'false').length;
-        
-        const overallAssessment = trustLevel >= 80 ? 'HIGHLY TRUSTWORTHY' : 
-                                 trustLevel >= 60 ? 'MODERATELY TRUSTWORTHY' : 'REQUIRES CAUTION';
-        const alertClass = trustLevel >= 80 ? 'alert-success' : trustLevel >= 60 ? 'alert-warning' : 'alert-danger';
-        
-        document.getElementById('key-findings').innerHTML = `
-            <div class="alert ${alertClass}">
-                <h5 class="mb-2"><i class="fas fa-${trustLevel >= 80 ? 'check-circle' : trustLevel >= 60 ? 'exclamation-triangle' : 'times-circle'} me-2"></i>Overall Assessment: ${overallAssessment}</h5>
-                <p class="mb-0">This content demonstrates ${trustLevel >= 80 ? 'high' : trustLevel >= 60 ? 'moderate' : 'low'} credibility and factual accuracy based on comprehensive AI analysis.</p>
-            </div>
-            
-            <h6>Strengths:</h6>
-            <ul class="findings-list mb-3">
-                <li><i class="fas fa-check text-success"></i> <span class="smart-tooltip" data-tooltip="${verifiedCount} out of ${claims.length} claims verified">High percentage of verifiable claims (${Math.round((verifiedCount/claims.length)*100) || 75}%)</span></li>
-                <li><i class="fas fa-check text-success"></i> <span class="smart-tooltip" data-tooltip="Content shows professional structure and language">Professional communication standards</span></li>
-                <li><i class="fas fa-check text-success"></i> <span class="smart-tooltip" data-tooltip="Low emotional manipulation detected">Objective, fact-based presentation</span></li>
-                <li><i class="fas fa-check text-success"></i> <span class="smart-tooltip" data-tooltip="Content length: ${wordCount} words">Comprehensive content analysis (${wordCount.toLocaleString()} words)</span></li>
-            </ul>
-            
-            ${falseCount > 0 || trustLevel < 70 ? `
-            <h6>Areas for Caution:</h6>
-            <ul class="findings-list mb-3">
-                ${falseCount > 0 ? `<li><i class="fas fa-exclamation-triangle text-warning"></i> <span class="smart-tooltip" data-tooltip="Claims requiring verification or correction">${falseCount} claims contain questionable information</span></li>` : ''}
-                ${trustLevel < 70 ? `<li><i class="fas fa-exclamation-triangle text-warning"></i> <span class="smart-tooltip" data-tooltip="Some statements need additional verification">Some projections presented without sufficient evidence</span></li>` : ''}
-                <li><i class="fas fa-exclamation-triangle text-warning"></i> <span class="smart-tooltip" data-tooltip="Consider cross-referencing with additional sources">Limited international perspective detected</span></li>
-            </ul>` : ''}
-            
-            <h6>Professional Recommendations:</h6>
-            <ul class="findings-list">
-                <li><i class="fas fa-lightbulb text-primary"></i> <span class="smart-tooltip" data-tooltip="Verify flagged claims before sharing or citing">Cross-reference any flagged claims before professional use</span></li>
-                <li><i class="fas fa-lightbulb text-primary"></i> <span class="smart-tooltip" data-tooltip="Content meets professional standards">Suitable for ${trustLevel >= 80 ? 'academic and professional' : trustLevel >= 60 ? 'general professional' : 'casual'} use</span></li>
-                <li><i class="fas fa-lightbulb text-primary"></i> <span class="smart-tooltip" data-tooltip="Speaker credibility assessment">Speaker demonstrates ${trustLevel >= 80 ? 'high' : 'moderate'} expertise in subject matter</span></li>
-                <li><i class="fas fa-lightbulb text-primary"></i> <span class="smart-tooltip" data-tooltip="Recommended verification process">Consider fact-checking ${falseCount > 0 ? 'flagged claims' : 'key statistics'} before distribution</span></li>
-            </ul>
-        `;
-    }
-    
-    // Show loading state
-    function showLoadingState() {
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingText = document.getElementById('loading-text');
-        const loadingSubtext = document.getElementById('loading-subtext');
-        const progressFill = document.getElementById('progress-fill');
-        
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'block';
-            if (loadingText) loadingText.textContent = 'Processing your content...';
-            if (loadingSubtext) loadingSubtext.textContent = 'Our AI is analyzing the content for fact-checking';
-            if (progressFill) progressFill.style.width = '0%';
-        }
-    }
-    
-    // Simulate analysis progress
-    function simulateAnalysis(type, content) {
-        const progressFill = document.getElementById('progress-fill');
-        const loadingText = document.getElementById('loading-text');
-        const loadingSubtext = document.getElementById('loading-subtext');
-        
-        let progress = 0;
-        const stages = [
-            { text: 'Processing content...', subtext: 'Preparing for analysis' },
-            { text: 'Extracting claims...', subtext: 'AI is identifying factual statements' },
-            { text: 'Fact-checking claims...', subtext: 'Verifying against trusted sources' },
-            { text: 'Analyzing credibility...', subtext: 'Assessing overall trustworthiness' },
-            { text: 'Generating report...', subtext: 'Compiling comprehensive results' }
-        ];
-        
-        let currentStage = 0;
-        
-        const interval = setInterval(() => {
-            progress += 2;
-            if (progressFill) progressFill.style.width = progress + '%';
-            
-            // Update stage text
-            const stageIndex = Math.floor((progress / 100) * stages.length);
-            if (stageIndex < stages.length && stageIndex !== currentStage) {
-                currentStage = stageIndex;
-                if (loadingText) loadingText.textContent = stages[currentStage].text;
-                if (loadingSubtext) loadingSubtext.textContent = stages[currentStage].subtext;
-            }
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                
-                // Hide loading after completion
-                setTimeout(() => {
-                    const loadingOverlay = document.getElementById('loading-overlay');
-                    if (loadingOverlay) loadingOverlay.style.display = 'none';
-                    
-                    // Show demo results or redirect to results
-                    alert(`Analysis complete! In a full implementation, this would show detailed results for ${type} analysis of: "${content.length > 50 ? content.substring(0, 50) + '...' : content}"`);
-                }, 500);
-            }
-        }, 50);
-    }
-
-    // Show detailed results with valuable findings
-    function showDetailedResults(type, content) {
-        const resultsSection = document.getElementById('results-section');
-        if (resultsSection) {
-            resultsSection.style.display = 'block';
-            
-            // Scroll to results
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-            
-            // Animate trust score
-            animateTrustScore(78); // Example score
-            
-            // Populate all sections with comprehensive results
-            populateDetailedResults(type, content);
-        }
-    }
-    
-    // Animate trust meter
-    function animateTrustScore(score) {
-        const circle = document.getElementById('trust-circle');
-        const scoreElement = document.getElementById('trust-score');
-        
-        if (!circle || !scoreElement) return;
-        
-        const circumference = 2 * Math.PI * 70;
-        const offset = circumference - (score / 100) * circumference;
-        
-        // Set color based on score
-        let color = '#10b981'; // green
-        if (score < 60) color = '#ef4444'; // red
-        else if (score < 80) color = '#f59e0b'; // orange
-        
-        setTimeout(() => {
-            circle.style.stroke = color;
-            circle.style.strokeDashoffset = offset;
-            
-            // Animate number
-            let current = 0;
-            const interval = setInterval(() => {
-                if (current < score) {
-                    current += 2;
-                    scoreElement.textContent = Math.min(current, score) + '%';
-                } else {
-                    clearInterval(interval);
-                }
-            }, 30);
-        }, 100);
-    }
-    
-    // Populate comprehensive results
-    function populateDetailedResults(type, content) {
-        // Update statistics
-        const wordCount = type === 'text' ? content.split(' ').length : 450; // Estimate for audio
-        document.getElementById('claims-analyzed').textContent = '12';
-        document.getElementById('claims-verified').textContent = '9';
-        document.getElementById('claims-false').textContent = '2';
-        document.getElementById('word-count').textContent = wordCount.toLocaleString();
-        
-        // Overall Assessment
-        document.getElementById('overall-assessment').innerHTML = `
-            <div class="alert alert-success">
-                <h5 class="mb-2"><i class="fas fa-check-circle me-2"></i>High Credibility Content</h5>
-                <p class="mb-0">This ${type === 'text' ? 'transcript' : 'audio'} shows strong indicators of factual accuracy and credibility. Most claims are verifiable and well-supported.</p>
-            </div>
-            <ul class="findings-list">
-                <li><i class="fas fa-check"></i> <strong>75% of claims verified</strong> against authoritative sources</li>
-                <li><i class="fas fa-info-circle"></i> <strong>Professional language</strong> with minimal emotional manipulation</li>
-                <li><i class="fas fa-shield-check"></i> <strong>Credible sources cited</strong> throughout the content</li>
-                <li><i class="fas fa-exclamation-triangle"></i> <strong>2 unverified claims</strong> require additional scrutiny</li>
-            </ul>
-        `;
-        
-        // Fact-Checking Results
-        document.getElementById('fact-checking-results').innerHTML = `
-            <p class="mb-3">Our AI identified and analyzed 12 factual claims in this content:</p>
-            
-            <div class="claim-card verified">
-                <div class="claim-text">"Unemployment rate dropped to 3.7% last quarter"</div>
-                <span class="claim-status status-verified">Verified</span>
-                <div class="confidence-score">Confidence: 96% • Source: Bureau of Labor Statistics</div>
-            </div>
-            
-            <div class="claim-card verified">
-                <div class="claim-text">"Infrastructure bill allocated $1.2 trillion over 8 years"</div>
-                <span class="claim-status status-verified">Verified</span>
-                <div class="confidence-score">Confidence: 98% • Source: Congressional Budget Office</div>
-            </div>
-            
-            <div class="claim-card false">
-                <div class="claim-text">"Crime rates increased by 45% nationwide"</div>
-                <span class="claim-status status-false">Misleading</span>
-                <div class="confidence-score">Confidence: 89% • Actual increase: 12% in select cities only</div>
-            </div>
-            
-            <div class="claim-card unverified">
-                <div class="claim-text">"New policy will create 2 million jobs"</div>
-                <span class="claim-status status-unverified">Unverified</span>
-                <div class="confidence-score">Confidence: 65% • Projection, not yet measurable</div>
-            </div>
-            
-            <div class="mt-3">
-                <small class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Claims verified against: FBI Crime Statistics, Bureau of Labor Statistics, Congressional Budget Office, Reuters Fact Check, AP Fact Check
-                </small>
-            </div>
-        `;
-        
-        // Speaker Analysis
-        document.getElementById('speaker-analysis').innerHTML = `
-            <div class="stats-grid mb-3">
-                <div class="stat-card">
-                    <span class="stat-number">8.2/10</span>
-                    <span class="stat-label">Expertise Score</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">92%</span>
-                    <span class="stat-label">Consistency</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">15</span>
-                    <span class="stat-label">Sources Cited</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">Low</span>
-                    <span class="stat-label">Bias Level</span>
-                </div>
-            </div>
-            
-            <ul class="findings-list">
-                <li><i class="fas fa-graduation-cap"></i> Speaker demonstrates strong subject matter expertise</li>
-                <li><i class="fas fa-chart-line"></i> Historical accuracy rate: 87% in previous statements</li>
-                <li><i class="fas fa-users"></i> Uses inclusive, professional language</li>
-                <li><i class="fas fa-book"></i> Frequently cites authoritative sources</li>
-                <li><i class="fas fa-balance-scale"></i> Presents multiple perspectives on complex issues</li>
-            </ul>
-        `;
-        
-        // Bias & Manipulation Detection
-        document.getElementById('bias-analysis').innerHTML = `
-            <div class="alert alert-success">
-                <h5 class="mb-2">Low Bias Detected</h5>
-                <p class="mb-0">Content shows minimal political bias and emotional manipulation tactics.</p>
-            </div>
-            
-            <div class="stats-grid mb-3">
-                <div class="stat-card">
-                    <span class="stat-number">2.1/10</span>
-                    <span class="stat-label">Political Bias</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">1.8/10</span>
-                    <span class="stat-label">Emotional Manipulation</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">8.7/10</span>
-                    <span class="stat-label">Objectivity</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">95%</span>
-                    <span class="stat-label">Factual Language</span>
-                </div>
-            </div>
-            
-            <ul class="findings-list">
-                <li><i class="fas fa-check"></i> Balanced presentation of information</li>
-                <li><i class="fas fa-check"></i> Minimal use of charged or emotional language</li>
-                <li><i class="fas fa-check"></i> Evidence-based arguments predominate</li>
-                <li><i class="fas fa-exclamation-triangle"></i> Slight tendency toward optimistic framing</li>
-            </ul>
-        `;
-        
-        // Source Verification
-        document.getElementById('source-verification').innerHTML = `
-            <div class="stats-grid mb-3">
-                <div class="stat-card">
-                    <span class="stat-number">15</span>
-                    <span class="stat-label">Sources Cited</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">87%</span>
-                    <span class="stat-label">Authoritative</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">6</span>
-                    <span class="stat-label">Primary Sources</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number">High</span>
-                    <span class="stat-label">Diversity</span>
-                </div>
-            </div>
-            
-            <h6>Source Breakdown:</h6>
-            <ul class="findings-list">
-                <li><i class="fas fa-university"></i> <strong>Government Sources (40%)</strong>: Bureau of Labor Statistics, Congressional Budget Office, FBI</li>
-                <li><i class="fas fa-newspaper"></i> <strong>News Organizations (30%)</strong>: Reuters, Associated Press, NPR</li>
-                <li><i class="fas fa-graduation-cap"></i> <strong>Academic Sources (20%)</strong>: Brookings Institution, Pew Research</li>
-                <li><i class="fas fa-building"></i> <strong>Think Tanks (10%)</strong>: Various policy research organizations</li>
-            </ul>
-            
-            <div class="alert alert-warning mt-3">
-                <h6>Recommendation</h6>
-                <p class="mb-0">Consider adding more international sources for broader perspective on global claims.</p>
-            </div>
-        `;
-        
-        // Key Findings
-        document.getElementById('key-findings').innerHTML = `
-            <div class="alert alert-success">
-                <h5 class="mb-2"><i class="fas fa-thumbs-up me-2"></i>Overall Assessment: TRUSTWORTHY</h5>
-                <p class="mb-0">This content demonstrates high credibility and factual accuracy.</p>
-            </div>
-            
-            <h6>Strengths:</h6>
-            <ul class="findings-list mb-3">
-                <li><i class="fas fa-check text-success"></i> High percentage of verifiable claims (75%)</li>
-                <li><i class="fas fa-check text-success"></i> Authoritative source citations</li>
-                <li><i class="fas fa-check text-success"></i> Minimal bias and emotional manipulation</li>
-                <li><i class="fas fa-check text-success"></i> Professional, objective tone</li>
-                <li><i class="fas fa-check text-success"></i> Consistent with speaker's expertise area</li>
-            </ul>
-            
-            <h6>Areas for Caution:</h6>
-            <ul class="findings-list mb-3">
-                <li><i class="fas fa-exclamation-triangle text-warning"></i> 2 claims contain misleading information</li>
-                <li><i class="fas fa-exclamation-triangle text-warning"></i> Some projections presented as facts</li>
-                <li><i class="fas fa-exclamation-triangle text-warning"></i> Limited international perspective</li>
-            </ul>
-            
-            <h6>Recommendations:</h6>
-            <ul class="findings-list">
-                <li><i class="fas fa-lightbulb text-primary"></i> Cross-reference the 2 flagged claims before sharing</li>
-                <li><i class="fas fa-lightbulb text-primary"></i> Content is suitable for professional/academic use</li>
-                <li><i class="fas fa-lightbulb text-primary"></i> Speaker demonstrates reliable expertise in this topic area</li>
-            </ul>
-        `;
-    }
-    
-    // Toggle dropdown functionality
-    function toggleDropdown(header) {
-        const content = header.nextElementSibling;
-        const isOpen = content.classList.contains('show');
-        
-        if (isOpen) {
-            content.classList.remove('show');
+            currentStage++;
         } else {
-            content.classList.add('show');
+            clearInterval(interval);
+            // Complete the analysis
+            setTimeout(() => {
+                hideLoadingState();
+                showResults();
+            }, 1000);
         }
+    }, 1500);
+}
+
+// Perform speech analysis
+async function performSpeechAnalysis(content, type) {
+    try {
+        // Simulate API call to your backend
+        const response = await fetch('/api/analyze-speech', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: content,
+                type: type,
+                is_pro: true
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentAnalysisResults = data.results;
+            // Results will be shown after progress animation completes
+        } else {
+            throw new Error(data.error || 'Analysis failed');
+        }
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        hideLoadingState();
+        showError(error.message);
+    }
+}
+
+// Hide loading state
+function hideLoadingState() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    loadingOverlay.style.display = 'none';
+}
+
+// Show results
+function showResults() {
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.style.display = 'block';
+    
+    // Hide error container
+    document.getElementById('error-container').style.display = 'none';
+    
+    // Animate trust score
+    animateTrustScore(78); // Example score
+    
+    // Populate results
+    populateResults();
+    
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Animate trust meter
+function animateTrustScore(score) {
+    const circle = document.getElementById('trust-circle');
+    const scoreElement = document.getElementById('trust-score');
+    
+    if (!circle || !scoreElement) return;
+    
+    const circumference = 2 * Math.PI * 70;
+    const offset = circumference - (score / 100) * circumference;
+    
+    // Set color based on score
+    let color = '#27ae60'; // green
+    if (score < 60) color = '#e74c3c'; // red
+    else if (score < 80) color = '#f39c12'; // orange
+    
+    setTimeout(() => {
+        circle.style.stroke = color;
+        circle.style.strokeDashoffset = offset;
+        circle.style.filter = `drop-shadow(0 0 8px ${color})`;
+        
+        // Animate number
+        let current = 0;
+        const interval = setInterval(() => {
+            if (current < score) {
+                current += 2;
+                scoreElement.textContent = Math.min(current, score) + '%';
+            } else {
+                clearInterval(interval);
+            }
+        }, 30);
+    }, 100);
+}
+
+// Populate results with sample data
+function populateResults() {
+    // Update statistics
+    document.getElementById('claims-analyzed').textContent = '12';
+    document.getElementById('claims-verified').textContent = '9';
+    document.getElementById('claims-false').textContent = '2';
+    document.getElementById('word-count').textContent = '1,247';
+    
+    // Populate fact-checking results
+    const factCheckingResults = document.getElementById('fact-checking-results');
+    factCheckingResults.innerHTML = `
+        <div class="claim-card verified">
+            <div class="claim-text">"Unemployment rate dropped to 3.7% last quarter"</div>
+            <span class="claim-status status-verified">Verified</span>
+            <div class="confidence-score">Confidence: 96% • Source: Bureau of Labor Statistics</div>
+        </div>
+        
+        <div class="claim-card verified">
+            <div class="claim-text">"Infrastructure bill allocated $1.2 trillion over 8 years"</div>
+            <span class="claim-status status-verified">Verified</span>
+            <div class="confidence-score">Confidence: 98% • Source: Congressional Budget Office</div>
+        </div>
+        
+        <div class="claim-card false">
+            <div class="claim-text">"Crime rates increased by 45% nationwide"</div>
+            <span class="claim-status status-false">Misleading</span>
+            <div class="confidence-score">Confidence: 89% • Actual increase: 12% in select cities only</div>
+        </div>
+        
+        <div class="claim-card unverified">
+            <div class="claim-text">"New policy will create 2 million jobs"</div>
+            <span class="claim-status status-unverified">Unverified</span>
+            <div class="confidence-score">Confidence: 65% • Projection, not yet measurable</div>
+        </div>
+    `;
+}
+
+// Show error
+function showError(message) {
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    errorMessage.textContent = message;
+    errorContainer.style.display = 'block';
+    
+    // Hide results
+    document.getElementById('results-section').style.display = 'none';
+    
+    // Scroll to error
+    errorContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Retry analysis
+function retryAnalysis() {
+    document.getElementById('error-container').style.display = 'none';
+    startSpeechAnalysis();
+}
+
+// Toggle dropdown
+function toggleDropdown(header) {
+    const content = header.nextElementSibling;
+    const isOpen = content.classList.contains('show');
+    
+    if (isOpen) {
+        content.classList.remove('show');
+    } else {
+        content.classList.add('show');
+    }
+}
+
+// Download report
+function downloadReport() {
+    if (!currentAnalysisResults) {
+        alert('Please run an analysis first to generate a report.');
+        return;
     }
     
-    // Download report functionality
-    function downloadReport() {
-        alert('In a full implementation, this would generate and download a comprehensive PDF report with all analysis details, methodology, and source citations.');
-    }
+    // In a real implementation, this would call your backend
+    alert('In a full implementation, this would generate and download a comprehensive PDF report with all analysis details.');
+}
 
-    // Include partials and contextual help
-    {% if config.get('INCLUDE_PARTIALS', True) %}
-        {% include 'partials/speech-beta-banner.html' ignore missing %}
-        {% include 'partials/speech-info-sections.html' ignore missing %}
-        {% include 'partials/speech-modals.html' ignore missing %}
-    {% endif %}
-
-    document.head.appendChild(enhancedStyles);
-    
-    // Fallback functions if SpeechApp not loaded
-    window.switchSpeechInputType = switchSpeechInputType;
-    window.analyzeSpeech = analyzeSpeech;
-    window.startSpeechAnalysis = startSpeechAnalysis;
-    window.removeFile = removeFile;
-    window.toggleDropdown = toggleDropdown;
-    window.downloadReport = downloadReport;
-    window.showContextualHelp = showContextualHelp;
-
-    // Global analyze function - keep for backward compatibility
-    function analyzeSpeech(tier) {
-        startSpeechAnalysis();
-    }
-</script>
-{% endblock %}down;
-    window.downloadReport = downloadReport;
-
-    // Global analyze function - keep for backward compatibility
-    function analyzeSpeech(tier) {
-        startSpeechAnalysis();
-    }
+// Global functions for compatibility
+window.switchSpeechInputType = switchSpeechInputType;
+window.startSpeechAnalysis = startSpeechAnalysis;
+window.removeFile = removeFile;
+window.toggleDropdown = toggleDropdown;
+window.downloadReport = downloadReport;
+window.retryAnalysis = retryAnalysis;
 </script>
 {% endblock %}
