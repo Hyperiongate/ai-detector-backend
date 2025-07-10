@@ -1,9 +1,8 @@
 """
-Services package for Facts & Fakes AI
-Contains all analysis and support services
+Configuration package for Facts & Fakes AI
+Handles configuration validation and management
 """
 
-from .registry import ServiceRegistry
-from .base_service import BaseAnalysisService
+from .validator import ConfigurationValidator
 
-__all__ = ['ServiceRegistry', 'BaseAnalysisService']
+__all__ = ['ConfigurationValidator']
