@@ -13,24 +13,6 @@
         gtag('js', new Date());
         gtag('config', 'G-9CLSNV2S8Q');
         
-        // Custom Analytics Events for Mission Page
-        function trackMissionEvent(eventName, eventData = {}) {
-            gtag('event', eventName, {
-                event_category: 'Mission_Page',
-                page_title: 'Our Mission - Facts & Fakes AI',
-                ...eventData
-            });
-            
-            // Backend analytics tracking
-            if (typeof backendAnalytics !== 'undefined') {
-                backendAnalytics.track(eventName, {
-                    page: 'mission_statement',
-                    timestamp: new Date().toISOString(),
-                    ...eventData
-                });
-            }
-        }
-        
         // Track page view
         gtag('event', 'page_view', {
             page_title: 'Our Mission - Facts & Fakes AI',
@@ -39,7 +21,6 @@
         });
     </script>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -50,192 +31,80 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
             line-height: 1.6;
-            padding-top: 60px; /* Account for fixed header */
+            color: #333;
+            overflow-x: hidden;
+            padding-top: 60px;
+            background: #f8f9fa;
         }
 
-        /* Beta Banner Styles */
-        .beta-banner {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        /* Hero Section - Matching homepage theme */
+        .hero {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
             color: white;
-            padding: 15px 20px;
+            padding: 80px 20px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
             position: relative;
             overflow: hidden;
-            z-index: 999;
         }
 
-        .beta-banner::before {
+        .hero::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shimmer 3s infinite;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
         }
 
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .beta-content {
-            max-width: 1200px;
+        .hero-container {
+            max-width: 1000px;
             margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
             position: relative;
             z-index: 2;
         }
 
-        .beta-text {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1rem;
-            font-weight: 600;
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.2;
         }
 
-        .beta-text i {
-            font-size: 1.2rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .beta-join-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(10px);
-        }
-
-        .beta-join-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .beta-join-btn:active {
-            transform: translateY(0);
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            margin-bottom: 16px;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
         /* Main Content */
         .main-content {
-            margin-top: 20px;
-            padding: 2rem;
             max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
+            padding: 80px 20px;
+            background: white;
         }
 
-        /* Hero Section */
-        .hero-section {
-            text-align: center;
-            margin-bottom: 4rem;
-            padding: 4rem 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            animation: float 20s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-20px, -20px) rotate(180deg); }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-section h1 {
-            font-size: 3.5rem;
-            color: white;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            font-weight: 700;
-        }
-
-        .hero-section .subtitle {
-            font-size: 1.3rem;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 800px;
-            margin: 0 auto 2rem;
-            font-weight: 300;
-        }
-
-        /* Content Sections */
-        .content-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 3rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
+        .section {
+            margin-bottom: 80px;
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 60px;
         }
 
-        .section-header h2 {
-            font-size: 2.5rem;
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
             color: #333;
-            margin-bottom: 1rem;
-            position: relative;
         }
 
-        .section-header h2::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 2px;
-        }
-
-        .section-header p {
+        .section-subtitle {
             font-size: 1.1rem;
             color: #666;
             max-width: 600px;
@@ -246,148 +115,123 @@
         .founder-letter {
             max-width: 800px;
             margin: 0 auto;
-            padding: 3rem;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            border-left: 4px solid #4a90e2;
             position: relative;
-        }
-
-        .founder-letter::before {
-            content: '"';
-            font-size: 4rem;
-            color: #667eea;
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            opacity: 0.2;
         }
 
         .founder-letter h3 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 2rem;
+            margin-bottom: 24px;
             font-weight: 600;
         }
 
         .founder-letter p {
             font-size: 1.1rem;
             color: #555;
-            margin-bottom: 1.5rem;
+            margin-bottom: 20px;
             line-height: 1.8;
-            text-align: left;
         }
 
         .founder-signature {
             text-align: right;
-            margin-top: 2rem;
+            margin-top: 32px;
             font-style: italic;
-            color: #667eea;
-            font-size: 1.2rem;
+            color: #4a90e2;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        /* Mission Statement */
+        /* Mission Content */
         .mission-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 3rem;
+            gap: 60px;
             align-items: center;
-            margin-bottom: 3rem;
+            margin-bottom: 60px;
         }
 
         .mission-text h3 {
             font-size: 1.8rem;
             color: #333;
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
             font-weight: 600;
         }
 
         .mission-text p {
             font-size: 1.1rem;
             color: #555;
-            margin-bottom: 1.5rem;
-            text-align: justify;
+            margin-bottom: 20px;
+            line-height: 1.8;
         }
 
         .mission-visual {
             text-align: center;
-            position: relative;
         }
 
         .mission-icon {
-            font-size: 4rem; /* Reduced from 8rem */
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: pulse-icon 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse-icon {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 3rem;
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
         }
 
         /* Core Values */
         .values-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            gap: 32px;
         }
 
         .value-card {
             background: white;
-            padding: 2rem;
-            border-radius: 15px;
+            padding: 32px;
+            border-radius: 16px;
             text-align: center;
             transition: all 0.3s ease;
-            border: 1px solid #e0e0e0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .value-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            transition: left 0.3s ease;
-        }
-
-        .value-card:hover::before {
-            left: 0;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .value-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: #4a90e2;
         }
 
         .value-icon {
-            font-size: 1.5rem; /* Reduced from 3rem */
-            color: #667eea;
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 1;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.5rem;
         }
 
         .value-card h4 {
             font-size: 1.3rem;
             color: #333;
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
             font-weight: 600;
-            position: relative;
-            z-index: 1;
         }
 
         .value-card p {
             color: #666;
-            font-size: 0.95rem;
-            position: relative;
-            z-index: 1;
+            line-height: 1.6;
         }
 
         /* Vision Section */
@@ -401,152 +245,150 @@
             font-size: 1.4rem;
             color: #333;
             font-style: italic;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
-            position: relative;
-        }
-
-        .vision-statement::before {
-            content: '"';
-            font-size: 4rem;
-            color: #667eea;
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            opacity: 0.3;
+            margin-bottom: 40px;
+            padding: 32px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            border-left: 4px solid #4a90e2;
+            line-height: 1.6;
         }
 
         .vision-goals {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            gap: 32px;
+            margin-top: 48px;
         }
 
         .goal-item {
-            padding: 1.5rem;
+            padding: 24px;
             background: white;
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
             transition: all 0.3s ease;
         }
 
         .goal-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #4a90e2;
         }
 
         .goal-number {
             font-size: 2rem;
             font-weight: bold;
-            color: #667eea;
-            margin-bottom: 1rem;
+            color: #4a90e2;
+            margin-bottom: 16px;
         }
 
         .goal-item h5 {
             font-size: 1.1rem;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
             font-weight: 600;
         }
 
         .goal-item p {
             color: #666;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
         /* Team Section */
-        .team-intro {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
         .team-values {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
+            gap: 32px;
         }
 
         .team-value {
             background: white;
-            padding: 2rem;
-            border-radius: 15px;
+            padding: 32px;
+            border-radius: 16px;
             text-align: center;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #e5e7eb;
             transition: all 0.3s ease;
         }
 
         .team-value:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
+            border-color: #4a90e2;
         }
 
         .team-value-icon {
-            font-size: 1.25rem; /* Reduced from 2.5rem */
-            color: #667eea;
-            margin-bottom: 1rem;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.3rem;
         }
 
         .team-value h4 {
             color: #333;
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
             font-size: 1.2rem;
+            font-weight: 600;
         }
 
         .team-value p {
             color: #666;
-            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
-        /* Call to Action */
+        /* CTA Section */
         .cta-section {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #4a90e2, #357abd);
             color: white;
             text-align: center;
-            padding: 4rem 2rem;
-            border-radius: 20px;
-            margin-top: 4rem;
+            padding: 80px 32px;
+            border-radius: 16px;
+            margin-top: 80px;
         }
 
         .cta-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 16px;
             font-weight: 700;
         }
 
         .cta-section p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            margin-bottom: 32px;
             opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .cta-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         .cta-btn {
-            padding: 1rem 2rem;
+            padding: 14px 28px;
             border: 2px solid white;
-            border-radius: 50px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
+            font-size: 1rem;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .cta-btn.primary {
             background: white;
-            color: #667eea;
+            color: #4a90e2;
         }
 
         .cta-btn.secondary {
@@ -556,71 +398,28 @@
 
         .cta-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .cta-btn.primary:hover {
-            background: #f8f9fa;
+            background: #f8fafc;
+            color: #4a90e2;
         }
 
         .cta-btn.secondary:hover {
             background: rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
-        /* Navbar enhancement for scroll effect */
-        .ff-nav {
-            transition: all 0.3s ease;
-        }
-
-        .ff-nav.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Responsive Design */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            body {
-                padding-top: 60px; /* Maintain header spacing on mobile */
-            }
-
-            .beta-content {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .beta-text {
-                font-size: 0.9rem;
-            }
-            
-            .beta-join-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
-
-            .hero-section h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-section .subtitle {
-                font-size: 1.1rem;
-            }
-
             .mission-content {
                 grid-template-columns: 1fr;
-                gap: 2rem;
+                gap: 40px;
             }
 
             .mission-visual {
                 order: -1;
-            }
-
-            .mission-icon {
-                font-size: 3rem; /* Reduced proportionally */
-            }
-
-            .section-header h2 {
-                font-size: 2rem;
             }
 
             .values-grid {
@@ -631,108 +430,72 @@
                 grid-template-columns: 1fr;
             }
 
+            .team-values {
+                grid-template-columns: 1fr;
+            }
+
             .cta-buttons {
                 flex-direction: column;
                 align-items: center;
             }
 
-            .content-section {
-                padding: 2rem;
+            .cta-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
             }
 
             .founder-letter {
-                padding: 2rem;
+                padding: 24px;
             }
         }
 
-        /* Animations */
         .fade-in {
-            animation: fadeIn 0.8s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .slide-in-left {
-            animation: slideInLeft 0.8s ease-out;
-        }
-
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-50px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .slide-in-right {
-            animation: slideInRight 0.8s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* Scroll animations */
-        .animate-on-scroll {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(20px);
             transition: all 0.6s ease;
         }
 
-        .animate-on-scroll.visible {
+        .fade-in.visible {
             opacity: 1;
             transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <!-- Include Header -->
     {% include 'header.html' %}
 
-    <!-- Beta Banner -->
-    <div class="beta-banner">
-        <div class="beta-content">
-            <div class="beta-text">
-                <i class="fas fa-flask"></i>
-                <strong>BETA VERSION</strong> - Join our beta for free access to the entire site
-            </div>
-            <button class="beta-join-btn" onclick="joinBeta()">
-                <i class="fas fa-rocket"></i> Join Beta
-            </button>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1>Our Mission</h1>
+            <p class="hero-subtitle">Building trust in digital content through advanced verification technology</p>
         </div>
-    </div>
+    </section>
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Hero Section -->
-        <div class="hero-section fade-in">
-            <div class="hero-content">
-                <h1>Our Mission</h1>
-                <p class="subtitle">Empowering truth in the digital age through cutting-edge AI technology that distinguishes authentic content from artificial generation and manipulation.</p>
-            </div>
-        </div>
-
+        
         <!-- Founder's Letter -->
-        <div class="content-section animate-on-scroll">
+        <div class="section fade-in">
             <div class="section-header">
-                <h2>Letter from Our Founder</h2>
+                <h2 class="section-title">Letter from Our Founder</h2>
             </div>
             
             <div class="founder-letter">
-                <p>In a world of growing misinformation, I wanted to create a platform that would let me know what was factual and what was fake. This journey began with a simple question: How can we trust what we see online?</p>
+                <p>In a world of growing misinformation, I wanted to create a platform that would help people understand what content is authentic and what might be artificially generated or manipulated. This journey began with a simple question: How can we trust what we see online?</p>
                 
-                <p>I quickly came to realize two things:</p>
+                <p>I quickly came to realize two important things:</p>
                 
-                <p><strong>First</strong> - there are varying degrees of fact and fake. Rarely is something purely fact and purely fake. The world isn't black and white; it exists in shades of gray, and our platform needed to reflect this nuanced reality.</p>
+                <p><strong>First</strong> - there are varying degrees of authenticity in digital content. Rarely is something purely authentic or purely fake. The world isn't black and white; it exists in shades of gray, and our platform needed to reflect this nuanced reality.</p>
                 
-                <p><strong>Second</strong> - I was surprised to find that things I thought to be true, were in fact, not. And, things I thought were false, were not. This humbling discovery became a driving force in our development.</p>
+                <p><strong>Second</strong> - I was surprised to find that content I thought was authentic sometimes showed signs of artificial generation or manipulation. And content I suspected was fake turned out to be genuine. This humbling discovery became a driving force in our development.</p>
                 
-                <p>This last point made me challenge the results of our algorithm; make them stronger and more accurate. Every time our system revealed my own misconceptions, it pushed us to refine our technology further.</p>
+                <p>This experience made me challenge our algorithms and verification methods, making them more robust and comprehensive. Every time our system revealed unexpected insights, it pushed us to refine our technology further.</p>
                 
-                <p>The result is a very strong platform, but alas... it still sometimes surprises me by proving my beliefs are sometimes not accurate. This ongoing journey of discovery is what makes our work so vital.</p>
+                <p>The result is a comprehensive platform that continues to evolve. We're still learning and improving, because the landscape of digital content creation is constantly changing.</p>
                 
-                <p>We are continuing to strive to improve the accuracy and transparency of our site for the benefit of me, and you. Because in the end, we all deserve to know the truth, even when it challenges what we believe.</p>
+                <p>We continue to strive to improve the capabilities and transparency of our platform for everyone's benefit. Because in the end, we all deserve access to tools that help us understand the content we encounter online.</p>
                 
                 <div class="founder-signature">
                     - Founder, Facts & Fakes AI
@@ -741,23 +504,23 @@
         </div>
 
         <!-- Mission Statement -->
-        <div class="content-section animate-on-scroll">
+        <div class="section fade-in">
             <div class="section-header">
-                <h2>Our Mission Statement</h2>
-                <p>Protecting the integrity of information in an era where artificial intelligence can create increasingly convincing fake content.</p>
+                <h2 class="section-title">Our Mission Statement</h2>
+                <p class="section-subtitle">Empowering users with tools to understand and verify digital content authenticity</p>
             </div>
             
             <div class="mission-content">
-                <div class="mission-text slide-in-left">
-                    <h3>Defending Digital Truth</h3>
-                    <p>At Facts & Fakes AI, we believe that truth is the foundation of informed decision-making, democratic discourse, and social progress. As artificial intelligence becomes increasingly sophisticated in creating convincing fake content, we stand as guardians of authenticity.</p>
+                <div class="mission-text">
+                    <h3>Advancing Digital Literacy</h3>
+                    <p>At Facts & Fakes AI, we believe that understanding digital content is essential for informed decision-making in our increasingly connected world. As artificial intelligence becomes more sophisticated in creating convincing content, we provide tools to help users navigate this landscape.</p>
                     
-                    <p>Our mission is to democratize access to world-class content authenticity technology, making it available to individuals, organizations, and institutions worldwide. We envision a future where anyone can instantly verify the authenticity of digital content with confidence.</p>
+                    <p>Our mission is to make content verification technology accessible to individuals, organizations, and institutions. We envision a future where anyone can analyze digital content with comprehensive tools and understand its potential origins.</p>
                     
-                    <p>Through relentless innovation and ethical AI development, we're building comprehensive and accurate detection systems to stay ahead of emerging threats to information integrity.</p>
+                    <p>Through continuous innovation and development, we're building verification systems that help users make informed decisions about the content they encounter online.</p>
                 </div>
                 
-                <div class="mission-visual slide-in-right">
+                <div class="mission-visual">
                     <div class="mission-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
@@ -766,10 +529,10 @@
         </div>
 
         <!-- Core Values -->
-        <div class="content-section animate-on-scroll">
+        <div class="section fade-in">
             <div class="section-header">
-                <h2>Our Core Values</h2>
-                <p>The principles that guide every decision we make and every technology we develop.</p>
+                <h2 class="section-title">Our Core Values</h2>
+                <p class="section-subtitle">The principles that guide our platform development and user experience</p>
             </div>
             
             <div class="values-grid">
@@ -777,103 +540,97 @@
                     <div class="value-icon">
                         <i class="fas fa-search"></i>
                     </div>
-                    <h4>Unwavering Accuracy</h4>
-                    <p>We are committed to delivering the highest levels of detection accuracy, continuously improving our algorithms to stay ahead of evolving AI generation techniques.</p>
+                    <h4>Continuous Improvement</h4>
+                    <p>We are committed to constantly improving our verification capabilities and staying current with advances in content generation technology.</p>
                 </div>
                 
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h4>Universal Access</h4>
-                    <p>Truth verification should not be a privilege. We make our technology accessible to everyone, from individual users to global institutions.</p>
+                    <h4>Accessible Technology</h4>
+                    <p>We make content verification tools available to everyone, from individual users to organizations and institutions.</p>
                 </div>
                 
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-lock"></i>
                     </div>
-                    <h4>Privacy First</h4>
-                    <p>We protect user privacy and data security with strong encryption and never store or misuse submitted content.</p>
-                </div>
-                
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <h4>Global Transparency</h4>
-                    <p>We operate with complete transparency about our methods, limitations, and continuous efforts to improve detection capabilities.</p>
-                </div>
-                
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <h4>Continuous Innovation</h4>
-                    <p>We invest heavily in research and development to anticipate and defend against tomorrow's AI manipulation threats.</p>
+                    <h4>Privacy Protection</h4>
+                    <p>We protect user privacy and data security with appropriate safeguards and responsible data handling practices.</p>
                 </div>
                 
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-balance-scale"></i>
                     </div>
-                    <h4>Ethical AI</h4>
-                    <p>We develop and deploy AI responsibly, considering the broader implications of our technology on society and democracy.</p>
+                    <h4>Responsible Development</h4>
+                    <p>We develop and deploy technology responsibly, considering the broader implications of content verification tools.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h4>Innovation Focus</h4>
+                    <p>We invest in research and development to build better tools for understanding digital content authenticity.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h4>Transparency</h4>
+                    <p>We operate with transparency about our methods, capabilities, and limitations in content verification.</p>
                 </div>
             </div>
         </div>
 
         <!-- Vision Section -->
-        <div class="content-section animate-on-scroll">
+        <div class="section fade-in">
             <div class="section-header">
-                <h2>Our Vision</h2>
-                <p>Imagining a future where truth prevails in the digital landscape.</p>
+                <h2 class="section-title">Our Vision</h2>
+                <p class="section-subtitle">Looking toward a future of informed digital content consumption</p>
             </div>
             
             <div class="vision-content">
                 <div class="vision-statement">
-                    To create a world where digital content authenticity is instantly verifiable, where misinformation cannot proliferate unchecked, and where truth forms the foundation of all digital communication.
+                    To create accessible tools that help people understand digital content authenticity, enabling more informed decisions about the information they encounter online.
                 </div>
                 
                 <div class="vision-goals">
                     <div class="goal-item">
                         <div class="goal-number">01</div>
-                        <h5>Real-Time Protection</h5>
-                        <p>Instant detection integrated into every platform where content is shared or consumed.</p>
+                        <h5>Enhanced Analysis</h5>
+                        <p>Developing more sophisticated tools for understanding content origins and characteristics.</p>
                     </div>
                     
                     <div class="goal-item">
                         <div class="goal-number">02</div>
-                        <h5>Educational Empowerment</h5>
-                        <p>Educating users to recognize and understand the nuances of AI-generated content.</p>
+                        <h5>User Education</h5>
+                        <p>Helping users understand digital content generation and verification concepts.</p>
                     </div>
                     
                     <div class="goal-item">
                         <div class="goal-number">03</div>
-                        <h5>Industry Standard</h5>
-                        <p>Establishing content authenticity verification as a standard practice across all digital platforms.</p>
+                        <h5>Platform Integration</h5>
+                        <p>Making verification tools easily accessible across different platforms and use cases.</p>
                     </div>
                     
                     <div class="goal-item">
                         <div class="goal-number">04</div>
-                        <h5>Global Cooperation</h5>
-                        <p>Fostering international collaboration to combat misinformation and protect information integrity.</p>
+                        <h5>Community Building</h5>
+                        <p>Fostering a community of users who value digital content understanding and verification.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Team Philosophy -->
-        <div class="content-section animate-on-scroll">
+        <div class="section fade-in">
             <div class="section-header">
-                <h2>Our Team</h2>
-                <p>United by a shared commitment to protecting truth in the digital age.</p>
-            </div>
-            
-            <div class="team-intro">
-                <p style="font-size: 1.2rem; color: #555; max-width: 800px; margin: 0 auto 3rem;">
-                    Our diverse team of AI researchers, engineers, ethicists, and domain experts work collaboratively to push the boundaries of what's possible in content authenticity detection. We believe that diverse perspectives lead to more robust and fair AI systems.
-                </p>
+                <h2 class="section-title">Our Approach</h2>
+                <p class="section-subtitle">How we work to build better content verification tools</p>
             </div>
             
             <div class="team-values">
@@ -882,345 +639,61 @@
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <h4>Continuous Learning</h4>
-                    <p>We foster a culture of continuous learning and professional development, staying current with the latest advances in AI and machine learning.</p>
+                    <p>We stay current with advances in AI and content generation to improve our verification capabilities.</p>
                 </div>
                 
                 <div class="team-value">
                     <div class="team-value-icon">
-                        <i class="fas fa-handshake"></i>
+                        <i class="fas fa-cogs"></i>
                     </div>
-                    <h4>Collaborative Spirit</h4>
-                    <p>We believe that the best solutions emerge from collaborative effort, bringing together diverse expertise and perspectives.</p>
+                    <h4>Technical Excellence</h4>
+                    <p>We focus on building robust, reliable tools that provide valuable insights about digital content.</p>
                 </div>
                 
                 <div class="team-value">
                     <div class="team-value-icon">
                         <i class="fas fa-heart"></i>
                     </div>
-                    <h4>Purpose-Driven</h4>
-                    <p>Every team member is motivated by our mission to protect truth and combat misinformation in the digital world.</p>
+                    <h4>User-Centered Design</h4>
+                    <p>We prioritize user experience and accessibility in developing our verification platform.</p>
                 </div>
                 
                 <div class="team-value">
                     <div class="team-value-icon">
-                        <i class="fas fa-rocket"></i>
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h4>Innovation Focus</h4>
-                    <p>We encourage bold thinking and innovative approaches to solve the complex challenges of AI detection and content authenticity.</p>
+                    <h4>Ethical Practice</h4>
+                    <p>We approach content verification with consideration for privacy, fairness, and responsible use.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Call to Action -->
-        <div class="cta-section animate-on-scroll">
-            <h2>Join Our Mission</h2>
-            <p>Together, we can build a future where truth prevails in the digital landscape.</p>
-            
-            <div class="cta-buttons">
-                <a href="/pricingplan" class="cta-btn primary">
-                    <i class="fas fa-rocket"></i>
-                    Start Protecting Truth
-                </a>
-                <a href="/contact" class="cta-btn secondary">
-                    <i class="fas fa-users"></i>
-                    Partner With Us
-                </a>
-            </div>
-        </div>
     </div>
 
+    <!-- Final CTA -->
+    <section class="cta-section fade-in">
+        <h2>Ready to Explore Content Verification?</h2>
+        <p>Start using our platform to better understand the digital content you encounter.</p>
+        <div class="cta-buttons">
+            <a href="/news" class="cta-btn primary">
+                <i class="fas fa-play"></i>
+                Start Analysis
+            </a>
+            <a href="/contact" class="cta-btn secondary">
+                <i class="fas fa-envelope"></i>
+                Contact Us
+            </a>
+        </div>
+    </section>
+
     <script>
-        // Initialize analytics tracking
-        document.addEventListener('DOMContentLoaded', function() {
-            trackMissionEvent('mission_page_loaded', {
-                user_agent: navigator.userAgent,
-                screen_resolution: `${screen.width}x${screen.height}`,
-                referrer: document.referrer
-            });
-            
-            setupMissionAnalytics();
-        });
-
-        // Navbar scroll effect enhancement
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.ff-nav');
-            if (navbar) {
-                if (window.scrollY > 100) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-            }
-        });
-
-        // Setup comprehensive mission page analytics
-        function setupMissionAnalytics() {
-            // Wait for header to load, then track navigation clicks
-            setTimeout(() => {
-                const navLinks = document.querySelectorAll('.ff-nav-links a');
-                if (navLinks.length > 0) {
-                    navLinks.forEach(link => {
-                        link.addEventListener('click', function() {
-                            const destination = this.getAttribute('href');
-                            trackMissionEvent('navigation_clicked', {
-                                destination: destination,
-                                link_text: this.textContent.trim()
-                            });
-                        });
-                    });
-                }
-            }, 100);
-
-            // Track CTA button clicks
-            document.querySelectorAll('.cta-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const buttonText = this.textContent.trim();
-                    const destination = this.getAttribute('href');
-                    trackMissionEvent('cta_clicked', {
-                        button_text: buttonText,
-                        destination: destination,
-                        section: this.closest('.cta-section') ? 'final_cta' : 'navigation'
-                    });
-                });
-            });
-
-            // Track value card interactions
-            document.querySelectorAll('.value-card').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    const valueTitle = this.querySelector('h4').textContent;
-                    trackMissionEvent('value_card_hovered', {
-                        value: valueTitle
-                    });
-                });
-
-                card.addEventListener('click', function() {
-                    const valueTitle = this.querySelector('h4').textContent;
-                    trackMissionEvent('value_card_clicked', {
-                        value: valueTitle
-                    });
-                });
-            });
-
-            // Track goal item interactions
-            document.querySelectorAll('.goal-item').forEach(item => {
-                item.addEventListener('mouseenter', function() {
-                    const goalTitle = this.querySelector('h5').textContent;
-                    trackMissionEvent('vision_goal_hovered', {
-                        goal: goalTitle
-                    });
-                });
-            });
-
-            // Track team value interactions
-            document.querySelectorAll('.team-value').forEach(value => {
-                value.addEventListener('mouseenter', function() {
-                    const teamValueTitle = this.querySelector('h4').textContent;
-                    trackMissionEvent('team_value_hovered', {
-                        team_value: teamValueTitle
-                    });
-                });
-            });
-
-            // Track founder letter reading
-            const founderLetter = document.querySelector('.founder-letter');
-            if (founderLetter) {
-                const letterObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            trackMissionEvent('founder_letter_viewed');
-                            letterObserver.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.5 });
-                letterObserver.observe(founderLetter);
-            }
-
-            // Track section visibility
-            const sections = document.querySelectorAll('.content-section');
-            const sectionObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const sectionTitle = entry.target.querySelector('.section-header h2')?.textContent || 'Unknown Section';
-                        trackMissionEvent('section_viewed', {
-                            section: sectionTitle
-                        });
-                        sectionObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            sections.forEach(section => {
-                sectionObserver.observe(section);
-            });
-
-            // Track scroll depth
-            let maxScroll = 0;
-            window.addEventListener('scroll', function() {
-                const scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
-                if (scrollPercent > maxScroll) {
-                    maxScroll = scrollPercent;
-                    if (maxScroll % 25 === 0 && maxScroll > 0) {
-                        trackMissionEvent('scroll_depth', {
-                            depth_percentage: maxScroll
-                        });
-                    }
-                }
-            });
-
-            // Track time on page
-            let pageStartTime = Date.now();
-            let engagementEvents = 0;
-
-            // Count engagement events
-            ['click', 'scroll', 'mousemove'].forEach(eventType => {
-                document.addEventListener(eventType, function() {
-                    engagementEvents++;
-                });
-            });
-
-            window.addEventListener('beforeunload', function() {
-                const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-                trackMissionEvent('page_session_end', {
-                    time_on_page: timeOnPage,
-                    max_scroll: maxScroll,
-                    engagement_events: engagementEvents
-                });
-            });
-        }
-
-        // Beta button functionality with analytics
-        function joinBeta() {
-            trackMissionEvent('beta_modal_opened', {
-                source: 'mission_page_banner'
-            });
-
-            // Show beta signup modal
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                animation: fadeIn 0.3s ease;
-            `;
-            
-            modal.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 40px;
-                    border-radius: 20px;
-                    max-width: 500px;
-                    width: 90%;
-                    text-align: center;
-                    position: relative;
-                    animation: slideIn 0.3s ease;
-                ">
-                    <button onclick="this.closest('div').parentElement.remove(); trackMissionEvent('beta_modal_closed', {action: 'close_button'});" style="
-                        position: absolute;
-                        top: 15px;
-                        right: 20px;
-                        background: none;
-                        border: none;
-                        font-size: 1.5rem;
-                        cursor: pointer;
-                        color: #999;
-                    ">&times;</button>
-                    
-                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
-                    <h2 style="color: #333; margin-bottom: 15px;">Join the Beta!</h2>
-                    <p style="color: #666; margin-bottom: 25px; line-height: 1.6;">
-                        Get free access to all our professional tools during the beta period. 
-                        We're constantly improving and your feedback helps us build better tools!
-                    </p>
-                    
-                    <form id="betaSignupForm" style="margin-bottom: 20px;">
-                        <input type="email" placeholder="Enter your email" required style="
-                            width: 100%;
-                            padding: 15px;
-                            border: 2px solid #e9ecef;
-                            border-radius: 12px;
-                            font-size: 1rem;
-                            margin-bottom: 15px;
-                        ">
-                        <button type="submit" style="
-                            background: linear-gradient(135deg, #f59e0b, #d97706);
-                            color: white;
-                            border: none;
-                            padding: 15px 30px;
-                            border-radius: 12px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            width: 100%;
-                            font-size: 1rem;
-                        ">
-                            <i class="fas fa-rocket"></i> Join Beta Now
-                        </button>
-                    </form>
-                    
-                    <p style="font-size: 0.85rem; color: #999;">
-                        No spam, ever. Unsubscribe anytime.
-                    </p>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Handle beta signup form
-            modal.querySelector('#betaSignupForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const email = this.querySelector('input').value;
-                
-                trackMissionEvent('beta_signup_completed', {
-                    email: email,
-                    source: 'mission_page'
-                });
-                
-                // Show success message
-                this.innerHTML = `
-                    <div style="color: #10b981; font-size: 1.1rem; font-weight: 600;">
-                        <i class="fas fa-check-circle"></i> Welcome to the beta!
-                    </div>
-                    <p style="color: #666; margin-top: 10px;">
-                        You now have full access to all features. Start exploring!
-                    </p>
-                `;
-                
-                // Log beta signup (replace with actual backend call)
-                console.log('Beta signup:', email);
-                
-                // Close modal after 2 seconds
-                setTimeout(() => {
-                    modal.remove();
-                }, 2000);
-            });
-
-            // Track email input focus
-            modal.querySelector('input[type="email"]').addEventListener('focus', function() {
-                trackMissionEvent('beta_email_focused');
-            });
-            
-            // Close modal when clicking outside
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    trackMissionEvent('beta_modal_closed', {action: 'outside_click'});
-                    modal.remove();
-                }
-            });
-        }
-
-        // Scroll Animation Observer
+        // Intersection Observer for fade-in animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
 
-        const observer = new IntersectionObserver(function(entries) {
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
@@ -1228,56 +701,22 @@
             });
         }, observerOptions);
 
-        // Observe all animate-on-scroll elements
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        document.querySelectorAll('.fade-in').forEach(el => {
             observer.observe(el);
         });
 
-        // Enhanced hover effects for cards
-        document.querySelectorAll('.value-card, .team-value').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-8px) scale(1.02)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) scale(1)';
-            });
-        });
-
-        // Initialize animations when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add staggered animation to value cards
-            const valueCards = document.querySelectorAll('.value-card');
-            valueCards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-            });
-
-            // Add staggered animation to team values
-            const teamValues = document.querySelectorAll('.team-value');
-            teamValues.forEach((value, index) => {
-                value.style.animationDelay = `${index * 0.15}s`;
-            });
-
-            // Add staggered animation to goal items
-            const goalItems = document.querySelectorAll('.goal-item');
-            goalItems.forEach((item, index) => {
-                item.style.animationDelay = `${index * 0.2}s`;
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
             });
         });
-
-        // Add fadeIn and slideIn animations for modal
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateY(-20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>
