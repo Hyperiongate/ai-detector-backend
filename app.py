@@ -85,8 +85,7 @@ csp = {
 Talisman(
     app, 
     force_https=False,  # Set to True in production
-    content_security_policy=csp,
-    content_security_policy_nonce_in=['script-src', 'style-src']
+    content_security_policy=csp
 )
 
 csrf = SeaSurf(app)
