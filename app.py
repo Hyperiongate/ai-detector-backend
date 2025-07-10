@@ -79,7 +79,8 @@ csp = {
     'connect-src': [
         "'self'",
         "https://www.google-analytics.com",
-        "https://www.googletagmanager.com"
+        "https://www.googletagmanager.com",
+        "https://cdnjs.cloudflare.com"  # Add this line to allow CDN connections
     ]
 }
 
@@ -398,6 +399,12 @@ def dashboard():
 @app.route('/favicon.ico')
 def favicon():
     """Serve favicon"""
+    return redirect('/static/favicon.ico')
+
+@app.route('/static/favicon.png')
+def favicon_png():
+    """Serve favicon.png"""
+    # Try to serve favicon.ico if .png doesn't exist
     return redirect('/static/favicon.ico')
 
 # API Routes
@@ -1012,14 +1019,30 @@ def api_logout():
 @app.route('/api/user/status', methods=['GET'])
 def api_user_status():
     """Get user authentication status"""
-    if current_user.is_authenticated:
-        return jsonify({
-            'authenticated': True,
-            'email': current_user.email,
-            'subscription_tier': current_user.subscription_tier,
-            'usage_status': get_usage_status(current_user)
-        })
-    else:
+    try:
+        # Check if user is authenticated
+        if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+            return jsonify({
+                'authenticated': True,
+                'email': current_user.email,
+                'subscription_tier': current_user.subscription_tier,
+                'usage_status': get_usage_status(current_user),
+                'usage_today': get_usage_count(current_user.id, 'unified_basic', 'daily'),
+                'daily_limit': USAGE_LIMITS[current_user.subscription_tier]['daily']['basic']
+            })
+        else:
+            # Anonymous user
+            return jsonify({
+                'authenticated': False,
+                'subscription_tier': 'anonymous',
+                'usage_status': get_usage_status(None),
+                'usage_today': get_usage_count(None, 'unified_basic', 'weekly'),
+                'daily_limit': 0,
+                'weekly_limit': USAGE_LIMITS['anonymous']['weekly']['basic']
+            })
+    except Exception as e:
+        logger.error(f"User status error: {str(e)}")
+        # Return a safe default response
         return jsonify({
             'authenticated': False,
             'subscription_tier': 'anonymous',
@@ -1089,14 +1112,17 @@ def create_tables():
     """Create database tables if they don't exist"""
     try:
         with app.app_context():
-            # Import the migration function
-            from services.database import create_missing_tables
+            # Import the migration functions
+            from services.database import create_missing_tables, add_session_id_column
             
             # Create only missing tables
             if create_missing_tables():
                 logger.info("Database migration completed successfully")
             else:
                 logger.warning("Database migration had issues - check logs")
+            
+            # Add session_id column if needed
+            add_session_id_column()
                 
     except Exception as e:
         logger.error(f"Database creation error: {str(e)}")
