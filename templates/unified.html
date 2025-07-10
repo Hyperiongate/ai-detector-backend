@@ -1510,6 +1510,44 @@
 {% endblock %}
 
 {% block content %}
+<!-- Defensive script to prevent unified-ui.js errors -->
+<script>
+// Create dummy elements or override methods that unified-ui.js might be looking for
+(function() {
+    // Common element IDs that UI scripts look for
+    const commonIds = ['analyze-button', 'submit-button', 'start-analysis-button'];
+    
+    // Wait for DOM before unified-ui.js runs
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            // If any expected elements are missing, create dummy ones
+            commonIds.forEach(id => {
+                if (!document.getElementById(id)) {
+                    const dummy = document.createElement('div');
+                    dummy.id = id;
+                    dummy.style.display = 'none';
+                    document.body.appendChild(dummy);
+                }
+            });
+        });
+    }
+    
+    // Override the UnifiedApp.ui.init if it exists to prevent errors
+    window.addEventListener('load', function() {
+        if (window.UnifiedApp && window.UnifiedApp.ui && window.UnifiedApp.ui.init) {
+            const originalInit = window.UnifiedApp.ui.init;
+            window.UnifiedApp.ui.init = function() {
+                try {
+                    originalInit.call(this);
+                } catch (e) {
+                    console.warn('UnifiedApp.ui.init error caught:', e);
+                }
+            };
+        }
+    });
+})();
+</script>
+
 <!-- New Navigation Header -->
 <nav class="ff-nav">
     <div class="ff-nav-container">
@@ -1728,7 +1766,7 @@ if (document.readyState === 'loading') {
         <div class="input-panel active" id="url-panel">
             <div class="url-input-group">
                 <input type="url" class="url-input" id="url-input" placeholder="https://example.com/article">
-                <button class="analyze-button glow-effect" onclick="startAnalysis('url')">
+                <button class="analyze-button glow-effect" id="analyze-url-button" onclick="startAnalysis('url')">
                     <i class="fas fa-search me-2"></i>Analyze Now
                 </button>
             </div>
@@ -1742,7 +1780,7 @@ if (document.readyState === 'loading') {
         <div class="input-panel" id="text-panel">
             <textarea class="text-input" id="text-input" placeholder="Paste your text content here for AI detection and plagiarism analysis..."></textarea>
             <div class="mt-3">
-                <button class="analyze-button glow-effect" onclick="startAnalysis('text')">
+                <button class="analyze-button glow-effect" id="analyze-text-button" onclick="startAnalysis('text')">
                     <i class="fas fa-search me-2"></i>Analyze Now
                 </button>
             </div>
