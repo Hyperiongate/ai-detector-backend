@@ -1,6 +1,7 @@
 """
 Facts & Fakes AI - Main Flask Application
 Updated to use new service architecture with centralized management
+Enhanced with dashboard and usage tracking functionality
 """
 
 # Standard library imports
@@ -8,7 +9,7 @@ import os
 import json
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 # Flask imports
@@ -152,14 +153,113 @@ def initialize_services():
         logger.error(traceback.format_exc())
         return False
 
-# Usage tracking decorator
+# NEW: Enhanced usage tracking with daily limits
+DAILY_LIMITS = {
+    'free': {
+        'news': 2,
+        'speech': 1,
+        'image': 1,
+        'unified': 1,
+        'total': 5
+    },
+    'pro': {
+        'news': -1,  # Unlimited
+        'speech': -1,
+        'image': -1,
+        'unified': -1,
+        'total': -1
+    }
+}
+
+def get_user_tier(user):
+    """Get user subscription tier"""
+    if not user or not hasattr(user, 'subscription_tier'):
+        return 'free'
+    return user.subscription_tier or 'free'
+
+def get_daily_usage(user_id, analysis_type=None):
+    """Get user's usage count for today"""
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    query = UsageLog.query.filter(
+        UsageLog.user_id == user_id,
+        UsageLog.timestamp >= today_start
+    )
+    
+    if analysis_type:
+        query = query.filter(UsageLog.analysis_type == analysis_type)
+    
+    return query.count()
+
+def get_daily_usage_breakdown(user_id):
+    """Get detailed usage breakdown by type"""
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    usage = {
+        'news': 0,
+        'speech': 0,
+        'image': 0,
+        'unified': 0,
+        'total': 0
+    }
+    
+    logs = UsageLog.query.filter(
+        UsageLog.user_id == user_id,
+        UsageLog.timestamp >= today_start
+    ).all()
+    
+    for log in logs:
+        if log.analysis_type in usage:
+            usage[log.analysis_type] += 1
+        usage['total'] += 1
+    
+    return usage
+
+def check_usage_limit(user, analysis_type):
+    """Check if user has exceeded their daily limit"""
+    tier = get_user_tier(user)
+    limits = DAILY_LIMITS.get(tier, DAILY_LIMITS['free'])
+    
+    # Pro users have unlimited access
+    if limits['total'] == -1:
+        return True, None
+    
+    user_id = user.id if user and hasattr(user, 'id') else 1
+    
+    # Check specific tool limit
+    tool_usage = get_daily_usage(user_id, analysis_type)
+    tool_limit = limits.get(analysis_type, 1)
+    
+    if tool_usage >= tool_limit:
+        return False, f"Daily limit reached for {analysis_type} analysis ({tool_usage}/{tool_limit})"
+    
+    # Check total limit
+    total_usage = get_daily_usage(user_id)
+    total_limit = limits['total']
+    
+    if total_usage >= total_limit:
+        return False, f"Daily analysis limit reached ({total_usage}/{total_limit})"
+    
+    return True, None
+
+# Enhanced usage tracking decorator
 def track_usage(analysis_type):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                # In DEV MODE, always allow
+                # In DEV MODE, always allow but still track
                 user_id = getattr(current_user, 'id', None) if hasattr(current_user, 'id') else 1
+                
+                # Check usage limit
+                can_proceed, error_msg = check_usage_limit(current_user, analysis_type)
+                
+                if not can_proceed and os.environ.get('FLASK_ENV') != 'development':
+                    return jsonify({
+                        'success': False,
+                        'error': error_msg,
+                        'limit_reached': True
+                    }), 429
                 
                 # Log usage
                 usage_log = UsageLog(
@@ -219,12 +319,162 @@ def pricing_plan():
 def contact():
     return render_template('contact.html')
 
+# NEW: Dashboard route
+@app.route('/dashboard')
+def dashboard():
+    """User dashboard with usage tracking and history"""
+    # In production, add @login_required
+    user = current_user if hasattr(current_user, 'id') else None
+    
+    # Get user data for dashboard
+    user_data = {
+        'name': getattr(user, 'name', 'Analyst'),
+        'email': getattr(user, 'email', 'dev@example.com'),
+        'subscription_tier': get_user_tier(user),
+        'id': getattr(user, 'id', 1)
+    }
+    
+    return render_template('dashboard.html', user=user_data)
+
 @app.route('/favicon.ico')
 def favicon():
     """Serve favicon"""
     return redirect('/static/favicon.ico')
 
 # API Routes
+
+# NEW: Dashboard API endpoints
+@app.route('/api/dashboard/usage', methods=['GET'])
+def api_dashboard_usage():
+    """Get user's current usage statistics"""
+    try:
+        user_id = getattr(current_user, 'id', 1)
+        tier = get_user_tier(current_user)
+        
+        # Get usage breakdown
+        usage = get_daily_usage_breakdown(user_id)
+        limits = DAILY_LIMITS.get(tier, DAILY_LIMITS['free'])
+        
+        # Calculate time until reset (midnight UTC)
+        now = datetime.utcnow()
+        midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        time_until_reset = midnight - now
+        
+        hours = int(time_until_reset.total_seconds() // 3600)
+        minutes = int((time_until_reset.total_seconds() % 3600) // 60)
+        
+        return jsonify({
+            'success': True,
+            'usage': usage,
+            'limits': limits,
+            'tier': tier,
+            'reset_time': f"{hours}h {minutes}m",
+            'reset_timestamp': midnight.isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Dashboard usage error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dashboard/history', methods=['GET'])
+def api_dashboard_history():
+    """Get user's analysis history"""
+    try:
+        user_id = getattr(current_user, 'id', 1)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        analysis_type = request.args.get('type', None)
+        days = request.args.get('days', 7, type=int)
+        
+        # Build query
+        since_date = datetime.utcnow() - timedelta(days=days)
+        query = Analysis.query.filter(
+            Analysis.user_id == user_id,
+            Analysis.timestamp >= since_date
+        )
+        
+        if analysis_type and analysis_type != 'all':
+            query = query.filter(Analysis.content_type == analysis_type)
+        
+        # Order by most recent
+        query = query.order_by(Analysis.timestamp.desc())
+        
+        # Paginate
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Format results
+        history = []
+        for analysis in pagination.items:
+            history.append({
+                'id': analysis.id,
+                'type': analysis.content_type,
+                'timestamp': analysis.timestamp.isoformat(),
+                'trust_score': analysis.trust_score,
+                'snippet': analysis.content_snippet[:100] + '...' if len(analysis.content_snippet) > 100 else analysis.content_snippet,
+                'results_summary': json.loads(analysis.results).get('summary', '') if analysis.results else ''
+            })
+        
+        return jsonify({
+            'success': True,
+            'history': history,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': page
+        })
+        
+    except Exception as e:
+        logger.error(f"Dashboard history error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dashboard/stats', methods=['GET'])
+def api_dashboard_stats():
+    """Get user statistics and achievements"""
+    try:
+        user_id = getattr(current_user, 'id', 1)
+        
+        # Calculate statistics
+        total_analyses = Analysis.query.filter_by(user_id=user_id).count()
+        
+        # Get analysis breakdown by type
+        type_breakdown = db.session.query(
+            Analysis.content_type,
+            db.func.count(Analysis.id)
+        ).filter(
+            Analysis.user_id == user_id
+        ).group_by(Analysis.content_type).all()
+        
+        # Calculate average trust score
+        avg_trust_score = db.session.query(
+            db.func.avg(Analysis.trust_score)
+        ).filter(
+            Analysis.user_id == user_id,
+            Analysis.trust_score.isnot(None)
+        ).scalar() or 0
+        
+        # Check achievements
+        achievements = {
+            'first_analysis': total_analyses >= 1,
+            'verified_user': True,  # In production, check email verification
+            'power_user': total_analyses >= 50,
+            'century_club': total_analyses >= 100,
+            'trusted_analyst': avg_trust_score >= 80,
+            'diverse_analyst': len(type_breakdown) >= 4
+        }
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_analyses': total_analyses,
+                'avg_trust_score': round(avg_trust_score, 1),
+                'type_breakdown': dict(type_breakdown),
+                'member_since': datetime.utcnow().isoformat()  # In production, use user.created_at
+            },
+            'achievements': achievements
+        })
+        
+    except Exception as e:
+        logger.error(f"Dashboard stats error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # NEW: Health check endpoint
 @app.route('/api/health', methods=['GET'])
