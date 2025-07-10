@@ -3,7 +3,7 @@ Facts & Fakes AI - Main Flask Application
 Updated to use new service architecture with centralized management
 """
 
-# Standard library imports 
+# Standard library imports
 import os
 import json
 import logging
@@ -23,7 +23,7 @@ from flask_seasurf import SeaSurf
 from services.registry import ServiceRegistry
 from config.validator import ConfigurationValidator
 
-# Existing service imports - FIXED
+# Existing service imports
 from services.database import db, User, Analysis, UsageLog, APIHealth, Contact, BetaSignup
 
 # Analysis modules (keep existing for non-unified endpoints)
@@ -48,8 +48,47 @@ app = Flask(__name__)
 # Load configuration
 app.config.from_object(config)
 
-# Security configuration
-Talisman(app, force_https=False)  # Set to True in production
+# Security configuration with proper CSP
+csp = {
+    'default-src': "'self'",
+    'script-src': [
+        "'self'",
+        "'unsafe-inline'",  # Needed for Google Analytics and inline scripts
+        "https://www.googletagmanager.com",
+        "https://www.google-analytics.com",
+        "https://cdnjs.cloudflare.com"
+    ],
+    'style-src': [
+        "'self'",
+        "'unsafe-inline'",  # Needed for inline styles
+        "https://cdnjs.cloudflare.com",
+        "https://fonts.googleapis.com"
+    ],
+    'font-src': [
+        "'self'",
+        "https://cdnjs.cloudflare.com",
+        "https://fonts.gstatic.com"
+    ],
+    'img-src': [
+        "'self'",
+        "data:",  # For data URLs in SVG icons
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com"
+    ],
+    'connect-src': [
+        "'self'",
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com"
+    ]
+}
+
+Talisman(
+    app, 
+    force_https=False,  # Set to True in production
+    content_security_policy=csp,
+    content_security_policy_nonce_in=['script-src', 'style-src']
+)
+
 csrf = SeaSurf(app)
 
 # CORS configuration
@@ -180,6 +219,11 @@ def pricing_plan():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon"""
+    return redirect('/static/favicon.ico')
 
 # API Routes
 
