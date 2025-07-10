@@ -40,140 +40,145 @@
     --shadow-medium: 0 8px 30px rgba(74, 144, 226, 0.2);
 }
 
-/* Reset any conflicting styles */
-.ff-nav * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* Hide the base.html navigation */
+body > nav:not(.ff-nav) {
+    display: none !important;
 }
 
-/* Main navigation bar */
+/* Main navigation bar - Fixed styling */
 .ff-nav {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 9999;
-    height: 60px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    z-index: 1050;
+    height: 65px;
+    display: flex;
+    align-items: center;
 }
 
 .ff-nav-container {
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 60px;
 }
 
-/* Logo */
+/* Logo - matching design */
 .ff-nav-logo {
     display: flex;
     align-items: center;
     gap: 10px;
     text-decoration: none;
-    color: #667eea;
+    color: var(--primary-blue);
     font-weight: 700;
-    font-size: 1.1rem;
-    transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
 }
 
 .ff-nav-logo:hover {
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    color: var(--primary-blue-dark);
 }
 
 .ff-nav-logo i {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
 }
 
-/* Navigation links */
+/* Navigation links - Fixed alignment */
 .ff-nav-links {
     display: flex;
-    gap: 5px;
+    gap: 8px;
     align-items: center;
+    margin: 0;
+    padding: 0;
 }
 
 .ff-nav-link {
-    color: #4a5568;
+    color: #6b7280;
     text-decoration: none;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: 500;
-    font-size: 0.9rem;
-    display: flex;
+    font-size: 0.95rem;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
 }
 
 .ff-nav-link:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
-    transform: translateY(-2px);
+    background: rgba(74, 144, 226, 0.08);
+    color: var(--primary-blue);
+    transform: translateY(-1px);
 }
 
 .ff-nav-link.active {
-    background: rgba(102, 126, 234, 0.15);
-    color: #667eea;
+    background: rgba(74, 144, 226, 0.12);
+    color: var(--primary-blue);
     font-weight: 600;
 }
 
 .ff-nav-link i {
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
-/* Auth buttons */
+/* Auth buttons - Fixed alignment */
 .ff-nav-auth {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
-    position: relative;
+    margin: 0;
 }
 
 .ff-nav-login, .ff-nav-signup {
-    padding: 8px 20px;
+    padding: 10px 20px;
     text-decoration: none;
     border-radius: 8px;
     font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .ff-nav-login {
-    color: #667eea;
-    border: 2px solid #667eea;
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    background: transparent;
 }
 
 .ff-nav-login:hover {
-    background: #667eea;
+    background: var(--primary-blue);
     color: white;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .ff-nav-signup {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
     border: 2px solid transparent;
 }
 
 .ff-nav-signup:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-/* Beta balloon */
+/* Beta balloon - adjusted position */
 .ff-beta-balloon {
     position: absolute;
-    top: -35px;
-    right: 50px;
+    top: -38px;
+    right: 0;
     background: linear-gradient(135deg, #ff6b35, #f7931e);
     color: white;
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -186,7 +191,7 @@
     content: '';
     position: absolute;
     bottom: -6px;
-    right: 20px;
+    right: 24px;
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -196,10 +201,10 @@
 
 @keyframes ff-bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    50% { transform: translateY(-3px); }
 }
 
-/* User menu */
+/* User menu - Fixed styling */
 .ff-user-menu {
     position: relative;
     display: none;
@@ -209,18 +214,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: rgba(102, 126, 234, 0.1);
+    padding: 10px 16px;
+    background: rgba(74, 144, 226, 0.08);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: #4a5568;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .ff-user-menu-toggle:hover {
-    background: rgba(102, 126, 234, 0.2);
+    background: rgba(74, 144, 226, 0.15);
 }
 
 .ff-user-dropdown {
@@ -230,8 +235,8 @@
     margin-top: 10px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     min-width: 280px;
     opacity: 0;
     visibility: hidden;
@@ -250,19 +255,23 @@
     display: none;
     background: none;
     border: none;
-    color: #4a5568;
+    color: var(--text-primary);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .ff-mobile-menu-btn:hover {
-    color: #667eea;
+    color: var(--primary-blue);
 }
 
-/* Mobile responsive */
+/* Mobile responsive navigation */
 @media (max-width: 768px) {
+    .ff-nav {
+        height: 60px;
+    }
+    
     .ff-nav-links {
         display: none;
         position: absolute;
@@ -274,6 +283,7 @@
         padding: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         border-top: 1px solid #e2e8f0;
+        gap: 4px;
     }
     
     .ff-nav-links.active {
@@ -283,6 +293,7 @@
     .ff-nav-link {
         width: 100%;
         padding: 12px 20px;
+        justify-content: flex-start;
     }
     
     .ff-mobile-menu-btn {
@@ -293,24 +304,15 @@
         display: none;
     }
     
-    .ff-user-menu {
-        display: none !important;
-    }
-    
     .ff-beta-balloon {
         display: none;
     }
 }
 
-/* Override base.html navigation */
-body > nav:first-of-type:not(.ff-nav) {
-    display: none !important;
-}
-
-/* Add margin-top to account for fixed navigation */
+/* Main container adjustment for fixed nav */
 .unified-container {
     max-width: 1200px;
-    margin: 80px auto 0; /* Added top margin for fixed nav */
+    margin: 85px auto 0;
     padding: 20px;
 }
 
@@ -398,14 +400,81 @@ body > nav:first-of-type:not(.ff-nav) {
     margin: 0;
 }
 
-.analysis-mode-dropdown .dropdown-toggle {
-    font-size: 0.95em;
-    padding: 8px 16px;
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
 }
 
-.dropdown-item small {
-    font-size: 0.85em;
-    opacity: 0.8;
+.dropdown-toggle {
+    background: white;
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    padding: 8px 16px;
+    font-size: 0.95em;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.dropdown-toggle:hover {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.dropdown-toggle::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+    margin-left: 4px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    display: none;
+    min-width: 280px;
+    padding: 8px 0;
+    margin: 4px 0 0;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 10px 20px;
+    clear: both;
+    font-weight: 400;
+    color: var(--text-primary);
+    text-align: left;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-blue);
 }
 
 .dropdown-item.active {
@@ -413,29 +482,53 @@ body > nav:first-of-type:not(.ff-nav) {
     color: white;
 }
 
+.dropdown-item small {
+    display: block;
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
 .dropdown-item.active small {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Tier toggle styles */
 .tier-toggle .btn-group {
     border-radius: 8px;
     overflow: hidden;
+    display: inline-flex;
 }
 
 .tier-toggle .btn {
     font-size: 0.9em;
     padding: 6px 16px;
-    border-radius: 0;
+    border: 2px solid var(--primary-blue);
+    background: white;
+    color: var(--primary-blue);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .tier-toggle .btn:first-child {
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
+    border-right: none;
 }
 
 .tier-toggle .btn:last-child {
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
+    border-left: none;
+}
+
+.tier-toggle .btn-check {
+    position: absolute;
+    clip: rect(0,0,0,0);
+    pointer-events: none;
 }
 
 .tier-toggle .btn-check:checked + .btn {
@@ -444,49 +537,27 @@ body > nav:first-of-type:not(.ff-nav) {
     border-color: var(--primary-blue);
 }
 
-/* Remove the old large cards styles by commenting them out */
-/*
-.analysis-modes {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-    margin-bottom: 40px;
-}
-
-.mode-card {
+/* Button styles */
+.btn-outline-secondary {
     background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: var(--shadow-light);
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
+    color: var(--text-secondary);
+    border: 2px solid #e5e7eb;
+    padding: 6px 16px;
+    font-size: 0.9em;
+    border-radius: 8px;
     cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-*/
-
-/* Hide the old tier selector */
-/*
-.tier-selector {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
 }
 
-.tier-option {
-    flex: 1;
-    padding: 20px;
-    background: white;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+.btn-outline-secondary:hover {
+    background: var(--bg-light);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
 }
-*/
 
 /* Input Section with Gradient Background */
 .input-section {
@@ -655,7 +726,7 @@ body > nav:first-of-type:not(.ff-nav) {
 .progress-container {
     display: none;
     position: fixed;
-    top: 60px; /* Adjusted for navigation height */
+    top: 65px;
     left: 0;
     right: 0;
     background: white;
@@ -697,7 +768,7 @@ body > nav:first-of-type:not(.ff-nav) {
 
 .progress-stages {
     max-width: 1200px;
-    margin: 180px auto 0; /* Adjusted for fixed progress bar */
+    margin: 185px auto 0;
     padding: 0 20px;
 }
 
@@ -1346,7 +1417,7 @@ body > nav:first-of-type:not(.ff-nav) {
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .unified-container {
-        margin-top: 70px; /* Adjust for mobile nav */
+        margin-top: 70px;
     }
 
     .unified-header h1 {
@@ -1357,12 +1428,9 @@ body > nav:first-of-type:not(.ff-nav) {
         font-size: 1em;
     }
 
-    .analysis-modes {
-        grid-template-columns: 1fr;
-    }
-
-    .tier-selector {
+    .analysis-options-row {
         flex-direction: column;
+        gap: 15px;
     }
 
     .url-input-group {
@@ -1453,82 +1521,46 @@ body > nav:first-of-type:not(.ff-nav) {
     gap: 8px;
 }
 
-/* Bootstrap utility classes needed */
+/* Utility classes */
 .me-1 { margin-right: 0.25rem !important; }
 .me-2 { margin-right: 0.5rem !important; }
 .me-3 { margin-right: 1rem !important; }
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
 .mt-3 { margin-top: 1rem !important; }
 .mb-0 { margin-bottom: 0 !important; }
 .mb-3 { margin-bottom: 1rem !important; }
 .d-block { display: block !important; }
-.text-muted { color: var(--text-secondary) !important; }
-.btn {
-    display: inline-block;
-    font-weight: 400;
-    text-align: center;
-    vertical-align: middle;
-    user-select: none;
-    padding: 0.375rem 0.75rem;
-    font-size: 1rem;
-    border-radius: 0.25rem;
-    transition: all 0.15s ease-in-out;
-}
-.btn-outline-primary {
-    color: var(--primary-blue);
-    border: 1px solid var(--primary-blue);
-    background-color: transparent;
-}
-.btn-outline-primary:hover {
-    color: #fff;
-    background-color: var(--primary-blue);
-    border-color: var(--primary-blue);
-}
 .d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
 .align-items-center { align-items: center !important; }
 .justify-content-between { justify-content: space-between !important; }
-.ms-2 { margin-left: 0.5rem !important; }
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    border-radius: 0.2rem;
-}
-.btn-outline-danger {
-    color: var(--danger-color);
-    border: 1px solid var(--danger-color);
-    background-color: transparent;
-}
-.btn-outline-danger:hover {
-    color: #fff;
-    background-color: var(--danger-color);
-    border-color: var(--danger-color);
-}
-.row { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
-.col-md-6 { position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
-@media (min-width: 768px) {
-    .col-md-6 { flex: 0 0 50%; max-width: 50%; }
-}
-.modal { position: fixed; top: 0; left: 0; z-index: 1050; display: none; width: 100%; height: 100%; overflow: hidden; outline: 0; }
-.modal-dialog { position: relative; width: auto; margin: 0.5rem; pointer-events: none; }
-.modal.fade .modal-dialog { transition: transform .3s ease-out; transform: translate(0,-50px); }
-.modal.show .modal-dialog { transform: none; }
-.modal-dialog-centered { display: flex; align-items: center; min-height: calc(100% - 1rem); }
-.modal-content { position: relative; display: flex; flex-direction: column; width: 100%; pointer-events: auto; background-color: #fff; background-clip: padding-box; border: 1px solid rgba(0,0,0,.2); border-radius: .3rem; outline: 0; }
-.modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #dee2e6; border-top-left-radius: calc(.3rem - 1px); border-top-right-radius: calc(.3rem - 1px); }
-.modal-title { margin-bottom: 0; line-height: 1.5; }
-.modal-body { position: relative; flex: 1 1 auto; padding: 1rem; }
-.modal-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; padding: .75rem; border-top: 1px solid #dee2e6; border-bottom-right-radius: calc(.3rem - 1px); border-bottom-left-radius: calc(.3rem - 1px); }
-.modal-lg { max-width: 800px; }
-@media (min-width: 576px) {
-    .modal-dialog { max-width: 500px; margin: 1.75rem auto; }
-    .modal-dialog-centered { min-height: calc(100% - 3.5rem); }
-    .modal-lg { max-width: 800px; }
-}
-.btn-close { box-sizing: content-box; width: 1em; height: 1em; padding: .25em .25em; color: #000; background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat; border: 0; border-radius: .25rem; opacity: .5; }
-.btn-close:hover { color: #000; text-decoration: none; opacity: .75; }
-.btn-secondary { color: #fff; background-color: #6c757d; border-color: #6c757d; }
-.btn-secondary:hover { color: #fff; background-color: #5a6268; border-color: #545b62; }
-hr { margin: 1rem 0; color: inherit; background-color: currentColor; border: 0; opacity: .25; height: 1px; }
+.justify-content-center { justify-content: center !important; }
+.text-muted { color: var(--text-secondary) !important; }
 .text-primary { color: var(--primary-blue) !important; }
+.alert {
+    position: relative;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .375rem;
+}
+.alert-success {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}
+.alert-warning {
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+.alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
 </style>
 {% endblock %}
 
@@ -1636,6 +1668,10 @@ window.ffNav = {
     checkAuthStatus: async function() {
         try {
             const response = await fetch('/api/user/status');
+            if (!response.ok) {
+                throw new Error('Auth check failed');
+            }
+            
             const data = await response.json();
             
             if (data.authenticated) {
@@ -1656,6 +1692,7 @@ window.ffNav = {
             }
         } catch (error) {
             console.log('Auth check failed:', error);
+            // Don't show error to user, just use default state
         }
     },
     
@@ -1736,10 +1773,10 @@ if (document.readyState === 'loading') {
             <div class="analysis-mode-dropdown">
                 <label>Analysis Mode:</label>
                 <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="modeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="dropdown-toggle" type="button" id="modeDropdown" onclick="toggleDropdown(this)">
                         <i class="fas fa-layer-group me-2"></i>Comprehensive Analysis
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="modeDropdown">
+                    <ul class="dropdown-menu" id="modeDropdownMenu">
                         <li><a class="dropdown-item active" href="#" data-mode="comprehensive" onclick="selectMode(this)">
                             <i class="fas fa-layer-group me-2"></i>Comprehensive Analysis
                             <small class="d-block text-muted">Full AI detection and plagiarism checking</small>
@@ -1765,15 +1802,15 @@ if (document.readyState === 'loading') {
                 <label>Analysis Depth:</label>
                 <div class="btn-group" role="group">
                     <input type="radio" class="btn-check" name="tier" id="basicTier" value="basic" checked>
-                    <label class="btn btn-outline-secondary btn-sm" for="basicTier">Basic</label>
+                    <label class="btn" for="basicTier">Basic</label>
                     
                     <input type="radio" class="btn-check" name="tier" id="proTier" value="professional">
-                    <label class="btn btn-outline-secondary btn-sm" for="proTier">Professional <i class="fas fa-crown ms-1"></i></label>
+                    <label class="btn" for="proTier">Professional <i class="fas fa-crown ms-1"></i></label>
                 </div>
             </div>
             
             <!-- View Process Button -->
-            <button class="btn btn-outline-secondary btn-sm" onclick="showAnalysisProcess()">
+            <button class="btn-outline-secondary" onclick="showAnalysisProcess()">
                 <i class="fas fa-info-circle me-1"></i>How it works
             </button>
         </div>
@@ -2162,7 +2199,7 @@ if (document.readyState === 'loading') {
                 <h5 class="modal-title">
                     <i class="fas fa-cogs me-2"></i>Our Document Analysis Process
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="closeModal()"></button>
             </div>
             <div class="modal-body">
                 <h6>Our document analysis examines content across multiple dimensions:</h6>
@@ -2199,16 +2236,37 @@ if (document.readyState === 'loading') {
                 <p class="text-muted mb-0">Each analysis generates 150+ data points to ensure the most comprehensive and accurate results for academic and professional use.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn-outline-secondary" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Load Bootstrap JS from allowed CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade" id="modalBackdrop" style="display: none;"></div>
 
 <script>
+// Simple modal functions since we're not using full Bootstrap
+window.showModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    const backdrop = document.getElementById('modalBackdrop');
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    backdrop.style.display = 'block';
+    setTimeout(() => backdrop.classList.add('show'), 10);
+};
+
+window.closeModal = function() {
+    const modals = document.querySelectorAll('.modal');
+    const backdrop = document.getElementById('modalBackdrop');
+    modals.forEach(modal => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    });
+    backdrop.classList.remove('show');
+    setTimeout(() => backdrop.style.display = 'none', 300);
+};
+
 // Initialize unified app after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing unified page...');
@@ -2306,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <strong>${file.name}</strong>
                     <span class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</span>
                 </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="clearFileUpload()">
+                <button class="btn-outline-danger" onclick="clearFileUpload()" style="padding: 4px 12px; font-size: 0.9em;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2351,7 +2409,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
 });
+
+// Dropdown toggle function
+window.toggleDropdown = function(button) {
+    const menu = button.nextElementSibling;
+    menu.classList.toggle('show');
+    event.stopPropagation();
+};
 
 // Mode selection function
 window.selectMode = function(element) {
@@ -2370,10 +2444,14 @@ window.selectMode = function(element) {
     });
     element.classList.add('active');
     
+    // Close dropdown
+    document.getElementById('modeDropdownMenu').classList.remove('show');
+    
     console.log('Selected mode:', window.selectedMode);
     
     // Prevent default link behavior
     event.preventDefault();
+    event.stopPropagation();
 };
 
 // Global functions needed by the unified JS modules
@@ -2509,12 +2587,6 @@ window.startAnalysis = async function(type) {
 };
 
 window.simulateAnalysis = function(content, type, mode, tier) {
-    // Show progress
-    document.querySelector('.unified-header').style.display = 'none';
-    document.querySelector('.input-section').style.display = 'none';
-    document.getElementById('progress-container').style.display = 'block';
-    document.getElementById('progress-stages').style.display = 'block';
-    
     let progress = 0;
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
@@ -2702,11 +2774,7 @@ window.showResults = function() {
     const originalityScore = 100 - plagiarismScore;
     
     // Update trust meter
-    document.getElementById('trust-score').textContent = trustScore;
-    const trustMeterFill = document.querySelector('.trust-meter-fill');
-    const dashOffset = 565.48 - (565.48 * trustScore / 100);
-    trustMeterFill.style.strokeDashoffset = dashOffset;
-    trustMeterFill.style.stroke = trustScore > 80 ? '#10b981' : trustScore > 60 ? '#f59e0b' : '#ef4444';
+    animateTrustMeter(trustScore);
     
     // Update summary stats
     document.getElementById('ai-confidence').textContent = aiConfidence + '%';
@@ -2765,18 +2833,13 @@ window.clearFileUpload = function() {
 };
 
 window.showAnalysisProcess = function() {
-    // If Bootstrap modal is available
-    if (typeof bootstrap !== 'undefined') {
-        const modal = new bootstrap.Modal(document.getElementById('analysisProcessModal'));
-        modal.show();
-    } else {
-        // Fallback: just show alert
-        alert('Our analysis process uses GPT-4 and proprietary algorithms to detect AI-generated content and check for plagiarism.');
-    }
+    showModal('analysisProcessModal');
+    event.preventDefault();
 };
 
 window.showMethodology = function() {
-    window.showAnalysisProcess();
+    showAnalysisProcess();
+    event.preventDefault();
 };
 
 window.generatePDF = function() {
