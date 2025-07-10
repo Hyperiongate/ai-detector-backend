@@ -23,9 +23,8 @@ from flask_seasurf import SeaSurf
 from services.registry import ServiceRegistry
 from config.validator import ConfigurationValidator
 
-# Existing service imports
+# Existing service imports - FIXED
 from services.database import db, User, Analysis, UsageLog, APIHealth, Contact, BetaSignup
-from services.auth_service import AuthService
 from services.email_service import EmailService
 
 # Analysis modules (keep existing for non-unified endpoints)
@@ -688,10 +687,19 @@ def create_tables():
     """Create database tables if they don't exist"""
     try:
         with app.app_context():
-            db.create_all()
-            logger.info("Database tables created successfully")
+            # Import the migration function
+            from services.database import create_missing_tables
+            
+            # Create only missing tables
+            if create_missing_tables():
+                logger.info("Database migration completed successfully")
+            else:
+                logger.warning("Database migration had issues - check logs")
+                
     except Exception as e:
         logger.error(f"Database creation error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 if __name__ == '__main__':
     # Initialize database
