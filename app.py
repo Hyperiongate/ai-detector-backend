@@ -25,7 +25,6 @@ from config.validator import ConfigurationValidator
 
 # Existing service imports - FIXED
 from services.database import db, User, Analysis, UsageLog, APIHealth, Contact, BetaSignup
-from services.email_service import EmailService
 
 # Analysis modules (keep existing for non-unified endpoints)
 from analysis.news_analysis import analyze_news_route
