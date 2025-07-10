@@ -1,25 +1,290 @@
 {% extends "base.html" %}
 
-{% block title %}Unified Analysis - Facts & Fakes AI{% endblock %}
+{% block title %}AI Detection & Plagiarism Check - Facts & Fakes AI{% endblock %}
 
 {% block head %}
-<meta name="description" content="Comprehensive multi-modal AI content analysis - detect AI-generated text, verify news authenticity, check plagiarism, and analyze images all in one place.">
-<meta name="keywords" content="AI detection, news verification, plagiarism check, image analysis, content authenticity, multi-modal analysis">
+<meta name="description" content="Comprehensive AI content detection and plagiarism checking - detect AI-generated text in documents and verify content originality.">
+<meta name="keywords" content="AI detection, plagiarism check, document analysis, content authenticity, AI-generated text detection">
 <link rel="canonical" href="{{ url_for('unified', _external=True) }}">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ url_for('unified', _external=True) }}">
-<meta property="og:title" content="Unified Analysis - Facts & Fakes AI">
-<meta property="og:description" content="Comprehensive multi-modal AI content analysis - detect AI-generated text, verify news authenticity, check plagiarism, and analyze images all in one place.">
+<meta property="og:title" content="AI Detection & Plagiarism Check - Facts & Fakes AI">
+<meta property="og:description" content="Detect AI-generated content and check for plagiarism in your documents with advanced analysis.">
 <meta property="og:image" content="{{ url_for('static', filename='images/unified-analysis-og.jpg', _external=True) }}">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="{{ url_for('unified', _external=True) }}">
-<meta property="twitter:title" content="Unified Analysis - Facts & Fakes AI">
-<meta property="twitter:description" content="Comprehensive multi-modal AI content analysis - detect AI-generated text, verify news authenticity, check plagiarism, and analyze images all in one place.">
+<meta property="twitter:title" content="AI Detection & Plagiarism Check - Facts & Fakes AI">
+<meta property="twitter:description" content="Detect AI-generated content and check for plagiarism in your documents with advanced analysis.">
 <meta property="twitter:image" content="{{ url_for('static', filename='images/unified-analysis-twitter.jpg', _external=True) }}">
+
+<!-- Include the new navigation styles -->
+<style>
+/* Reset any conflicting styles */
+.ff-nav * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main navigation bar */
+.ff-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    height: 60px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ff-nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+/* Logo */
+.ff-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.ff-nav-logo:hover {
+    transform: scale(1.05);
+}
+
+.ff-nav-logo i {
+    font-size: 1.4rem;
+}
+
+/* Navigation links */
+.ff-nav-links {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.ff-nav-link {
+    color: #4a5568;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ff-nav-link:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+.ff-nav-link.active {
+    background: rgba(102, 126, 234, 0.15);
+    color: #667eea;
+    font-weight: 600;
+}
+
+.ff-nav-link i {
+    font-size: 0.9rem;
+}
+
+/* Auth buttons */
+.ff-nav-auth {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    position: relative;
+}
+
+.ff-nav-login, .ff-nav-signup {
+    padding: 8px 20px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.ff-nav-login {
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.ff-nav-login:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.ff-nav-signup {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.ff-nav-signup:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Beta balloon */
+.ff-beta-balloon {
+    position: absolute;
+    top: -35px;
+    right: 50px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: ff-bounce 2s infinite;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.ff-beta-balloon::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #f7931e;
+}
+
+@keyframes ff-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* User menu */
+.ff-user-menu {
+    position: relative;
+    display: none;
+}
+
+.ff-user-menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.ff-user-menu-toggle:hover {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.ff-user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.ff-user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Mobile menu button */
+.ff-mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #4a5568;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.ff-mobile-menu-btn:hover {
+    color: #667eea;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .ff-nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .ff-nav-links.active {
+        display: flex;
+    }
+    
+    .ff-nav-link {
+        width: 100%;
+        padding: 12px 20px;
+    }
+    
+    .ff-mobile-menu-btn {
+        display: block;
+    }
+    
+    .ff-nav-auth {
+        display: none;
+    }
+    
+    .ff-user-menu {
+        display: none !important;
+    }
+    
+    .ff-beta-balloon {
+        display: none;
+    }
+}
+</style>
 {% endblock %}
 
 {% block styles %}
@@ -38,6 +303,11 @@
         --bg-light: #f8f9fa;
         --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.1);
         --shadow-medium: 0 8px 30px rgba(74, 144, 226, 0.2);
+    }
+
+    /* Override base.html navigation */
+    body > nav:first-of-type:not(.ff-nav) {
+        display: none !important;
     }
 
     /* Add margin-top to account for fixed navigation */
@@ -1240,7 +1510,140 @@
 {% endblock %}
 
 {% block content %}
-<!-- The navigation from base.html will appear here automatically -->
+<!-- New Navigation Header -->
+<nav class="ff-nav">
+    <div class="ff-nav-container">
+        <a href="/" class="ff-nav-logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>Facts & Fakes AI</span>
+        </a>
+        
+        <div class="ff-nav-links" id="ffNavLinks">
+            <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="/news" class="ff-nav-link"><i class="fas fa-newspaper"></i> News Verify</a>
+            <a href="/speech" class="ff-nav-link"><i class="fas fa-microphone"></i> Speech Check</a>
+            <a href="/unified" class="ff-nav-link active"><i class="fas fa-search"></i> Content Check</a>
+            <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+            <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+            <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+            <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+        
+        <div class="ff-nav-auth" id="ffNavAuth">
+            <a href="/login" class="ff-nav-login">Login</a>
+            <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+            <div class="ff-beta-balloon">
+                sign up now to start your free trial
+            </div>
+        </div>
+        
+        <div class="ff-user-menu" id="ffUserMenu">
+            <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                <span id="ffUserEmail">user@example.com</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="ff-user-dropdown" id="ffUserDropdown">
+                <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                    <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                </div>
+                <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                    <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                        <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                </div>
+                <div style="padding: 10px 0;">
+                    <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                    <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                    <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                    <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+        
+        <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<script>
+// Namespace all functions to avoid conflicts
+window.ffNav = {
+    checkAuthStatus: async function() {
+        try {
+            const response = await fetch('/api/user/status');
+            const data = await response.json();
+            
+            if (data.authenticated) {
+                document.getElementById('ffNavAuth').style.display = 'none';
+                document.getElementById('ffUserMenu').style.display = 'block';
+                
+                document.getElementById('ffUserEmail').textContent = data.email || 'User';
+                document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
+                document.getElementById('ffUserPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+                
+                const usagePercent = (data.usage_today / data.daily_limit) * 100;
+                document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
+            }
+        } catch (error) {
+            console.log('Auth check failed:', error);
+        }
+    },
+    
+    init: function() {
+        this.checkAuthStatus();
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.ff-user-menu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                document.getElementById('ffUserDropdown').classList.remove('active');
+            }
+        });
+        
+        // Add active class to current page
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.ff-nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    }
+};
+
+// Global functions for onclick handlers
+function ffToggleMobileMenu() {
+    const navLinks = document.getElementById('ffNavLinks');
+    navLinks.classList.toggle('active');
+}
+
+function ffToggleUserDropdown() {
+    const dropdown = document.getElementById('ffUserDropdown');
+    dropdown.classList.toggle('active');
+}
+
+async function ffLogout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Logout failed:', error);
+    }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        window.ffNav.init();
+    });
+} else {
+    window.ffNav.init();
+}
+</script>
 
 <!-- Floating particles for visual appeal -->
 <div class="particle" style="left: 10%; top: 20%; width: 6px; height: 6px; background: var(--primary-blue); border-radius: 50%;"></div>
@@ -1251,13 +1654,13 @@
 <div class="unified-container">
     <!-- Header Section -->
     <div class="unified-header">
-        <h1><i class="fas fa-search-plus me-3"></i>Unified Analysis</h1>
+        <h1><i class="fas fa-search-plus me-3"></i>AI Detection & Plagiarism Check</h1>
         <p>
-            Comprehensive multi-modal content analysis combining AI detection, news verification, plagiarism checking, and image authenticity in one powerful platform
+            Comprehensive document analysis detecting AI-generated content and checking for plagiarism with advanced linguistic analysis and pattern recognition
             <span class="tooltip-container">
                 <span class="tooltip-icon">?</span>
                 <span class="tooltip-content">
-                    Our unified analysis uses GPT-4 and proprietary algorithms to analyze content across multiple dimensions simultaneously, providing the most comprehensive verification available.
+                    Our analysis uses GPT-4 and proprietary algorithms to detect AI-generated text patterns and cross-reference content with millions of online sources for plagiarism detection.
                 </span>
             </span>
         </p>
@@ -1272,7 +1675,7 @@
         <div class="mode-card active" data-mode="comprehensive">
             <i class="fas fa-layer-group"></i>
             <h3>Comprehensive Analysis</h3>
-            <p>Full multi-modal analysis including AI detection, plagiarism checking, and content verification</p>
+            <p>Full document analysis including AI detection and plagiarism checking</p>
         </div>
         <div class="mode-card" data-mode="ai-focused">
             <i class="fas fa-robot"></i>
@@ -1284,10 +1687,10 @@
             <h3>Authenticity Check</h3>
             <p>Verify content originality and detect potential manipulation or fabrication</p>
         </div>
-        <div class="mode-card" data-mode="news-verification">
-            <i class="fas fa-newspaper"></i>
-            <h3>News Verification</h3>
-            <p>Specialized analysis for news articles with bias detection and fact-checking</p>
+        <div class="mode-card" data-mode="plagiarism">
+            <i class="fas fa-copy"></i>
+            <h3>Plagiarism Focus</h3>
+            <p>Deep plagiarism analysis with source matching and similarity scoring</p>
         </div>
     </div>
 
@@ -1327,13 +1730,13 @@
             </div>
             <small class="text-muted d-block mt-2">
                 <i class="fas fa-info-circle me-1"></i>
-                Supports news articles, blog posts, social media content, and other web pages
+                Supports articles, blog posts, research papers, and other web documents
             </small>
         </div>
 
         <!-- Text Input Panel -->
         <div class="input-panel" id="text-panel">
-            <textarea class="text-input" id="text-input" placeholder="Paste your text content here for analysis..."></textarea>
+            <textarea class="text-input" id="text-input" placeholder="Paste your text content here for AI detection and plagiarism analysis..."></textarea>
             <div class="mt-3">
                 <button class="analyze-button glow-effect" onclick="startAnalysis('text')">
                     <i class="fas fa-search me-2"></i>Analyze Now
@@ -1349,10 +1752,10 @@
         <div class="input-panel" id="file-panel">
             <div class="file-upload-area" id="file-upload-area">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <p>Click to upload or drag and drop files here</p>
-                <small>Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG, GIF (Max 10MB)</small>
+                <p>Click to upload or drag and drop documents here</p>
+                <small>Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)</small>
             </div>
-            <input type="file" id="file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
+            <input type="file" id="file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt">
             <div class="file-preview" id="file-preview" style="display: none;"></div>
             <div class="mt-3">
                 <button class="analyze-button glow-effect" onclick="startAnalysis('file')" disabled id="file-analyze-button">
@@ -1383,7 +1786,7 @@
             </div>
             <div class="stage-content">
                 <h5>Extracting Content</h5>
-                <small>Retrieving and processing your content for analysis</small>
+                <small>Retrieving and processing your document for analysis</small>
             </div>
         </div>
 
@@ -1469,7 +1872,7 @@
         <!-- Summary Card -->
         <div class="summary-card" id="summary-card">
             <h2>Analysis Complete</h2>
-            <p id="summary-text">Comprehensive multi-modal analysis has been completed successfully</p>
+            <p id="summary-text">Comprehensive document analysis has been completed successfully</p>
             <div class="summary-stats">
                 <div class="summary-stat">
                     <span class="number" id="ai-confidence">0%</span>
@@ -1508,9 +1911,8 @@
                     <div class="why-matters-box">
                         <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
                         <p>
-                            Understanding the overall credibility helps you make informed decisions about 
-                            sharing, citing, or acting on this information. High credibility means the content 
-                            is more likely to be factual and trustworthy.
+                            Understanding whether content is AI-generated or plagiarized helps maintain academic integrity, 
+                            ensure content authenticity, and verify the originality of written work.
                         </p>
                     </div>
                     
@@ -1571,8 +1973,8 @@
                         <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
                         <p>
                             AI-generated content may lack human nuance, contain factual errors, or be used 
-                            for deceptive purposes. Knowing whether content is AI-generated helps you assess 
-                            its reliability and authenticity.
+                            for academic dishonesty. Knowing whether content is AI-generated helps assess 
+                            its authenticity and appropriate use.
                         </p>
                     </div>
                 </div>
@@ -1601,7 +2003,7 @@
                         <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
                         <p>
                             Original content demonstrates credibility and effort. Plagiarized content may 
-                            indicate unreliability, lack of expertise, or potential copyright violations.
+                            indicate academic dishonesty, copyright violations, or lack of proper attribution.
                         </p>
                     </div>
                 </div>
@@ -1627,8 +2029,8 @@
                     </div>
                     
                     <div class="methodology-snippet">
-                        <strong>Analysis includes:</strong> Source verification, author credibility, 
-                        writing consistency, factual accuracy, and manipulation detection.
+                        <strong>Analysis includes:</strong> Writing consistency, originality verification, 
+                        linguistic patterns, and manipulation detection.
                     </div>
                 </div>
             </div>
@@ -1685,29 +2087,29 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-cogs me-2"></i>Our Comprehensive Analysis Process
+                    <i class="fas fa-cogs me-2"></i>Our Document Analysis Process
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h6>Our unified analysis examines content across multiple dimensions:</h6>
+                <h6>Our document analysis examines content across multiple dimensions:</h6>
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <ul>
                             <li><strong>AI Detection:</strong> Advanced pattern recognition across multiple AI models</li>
                             <li><strong>Plagiarism Check:</strong> Cross-reference with millions of online sources</li>
                             <li><strong>Content Authenticity:</strong> Verify originality and manipulation</li>
-                            <li><strong>Source Credibility:</strong> Historical accuracy and transparency</li>
-                            <li><strong>Writing Quality:</strong> Grammar, structure, professionalism</li>
+                            <li><strong>Writing Quality:</strong> Grammar, structure, coherence analysis</li>
+                            <li><strong>Linguistic Patterns:</strong> Perplexity and burstiness scoring</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <ul>
-                            <li><strong>Fact Verification:</strong> Cross-check claims against databases</li>
-                            <li><strong>Bias Detection:</strong> Political and ideological analysis</li>
-                            <li><strong>Image Analysis:</strong> Detect manipulated or AI-generated images</li>
-                            <li><strong>Metadata Examination:</strong> Technical details and timestamps</li>
-                            <li><strong>Context Analysis:</strong> Relevance and timeliness assessment</li>
+                            <li><strong>Source Verification:</strong> Check against academic databases</li>
+                            <li><strong>Citation Analysis:</strong> Proper attribution verification</li>
+                            <li><strong>Style Consistency:</strong> Writing pattern analysis</li>
+                            <li><strong>Metadata Examination:</strong> Document properties and history</li>
+                            <li><strong>Statistical Analysis:</strong> Word frequency and distribution</li>
                         </ul>
                     </div>
                 </div>
@@ -1717,11 +2119,11 @@
                     <li>GPT-4 for deep content analysis and understanding</li>
                     <li>Multiple plagiarism detection APIs (Copyscape, Copyleaks)</li>
                     <li>Proprietary AI detection algorithms</li>
-                    <li>Real-time web scraping and verification</li>
-                    <li>Advanced image analysis and manipulation detection</li>
+                    <li>Advanced linguistic analysis tools</li>
+                    <li>Real-time document processing</li>
                 </ul>
                 <hr>
-                <p class="text-muted mb-0">Each analysis generates 200+ data points across all modalities to ensure the most comprehensive and accurate results available.</p>
+                <p class="text-muted mb-0">Each analysis generates 150+ data points to ensure the most comprehensive and accurate results for academic and professional use.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
