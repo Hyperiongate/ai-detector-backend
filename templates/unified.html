@@ -20,37 +20,92 @@
 <meta property="twitter:title" content="Unified Analysis - Facts & Fakes AI">
 <meta property="twitter:description" content="Comprehensive multi-modal AI content analysis - detect AI-generated text, verify news authenticity, check plagiarism, and analyze images all in one place.">
 <meta property="twitter:image" content="{{ url_for('static', filename='images/unified-analysis-twitter.jpg', _external=True) }}">
+{% endblock %}
 
+{% block styles %}
 <style>
+    /* Professional Color Scheme - Matching news.html */
+    :root {
+        --primary-blue: #4a90e2;
+        --primary-blue-dark: #357abd;
+        --primary-gradient: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --text-primary: #2c3e50;
+        --text-secondary: #7f8c8d;
+        --border-color: #ecf0f1;
+        --bg-light: #f8f9fa;
+        --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 8px 30px rgba(74, 144, 226, 0.2);
+    }
+
+    /* Container */
     .unified-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
     }
 
+    /* Header Section */
     .unified-header {
         text-align: center;
         margin-bottom: 40px;
         padding: 40px 20px;
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        background: white;
         border-radius: 15px;
-        color: white;
-        box-shadow: 0 8px 32px rgba(74, 144, 226, 0.3);
+        box-shadow: var(--shadow-light);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .unified-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: var(--primary-gradient);
     }
 
     .unified-header h1 {
         font-size: 2.5em;
         margin-bottom: 15px;
         font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .unified-header p {
         font-size: 1.2em;
-        opacity: 0.9;
-        max-width: 600px;
+        color: var(--text-secondary);
+        max-width: 700px;
         margin: 0 auto;
+        line-height: 1.6;
     }
 
+    /* Floating particles background */
+    @keyframes float-particle {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translate(100px, -100vh) rotate(720deg); opacity: 0; }
+    }
+    
+    .particle {
+        position: fixed;
+        pointer-events: none;
+        opacity: 0;
+        animation: float-particle 10s infinite;
+    }
+    
+    .particle:nth-child(odd) { animation-duration: 15s; }
+    .particle:nth-child(even) { animation-duration: 20s; animation-delay: 5s; }
+
+    /* Analysis Mode Cards with Hover Effects */
     .analysis-modes {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -62,72 +117,168 @@
         background: white;
         border-radius: 12px;
         padding: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-light);
         border: 2px solid transparent;
         transition: all 0.3s ease;
         cursor: pointer;
         position: relative;
+        overflow: hidden;
+    }
+
+    .mode-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .mode-card:hover::before {
+        left: 100%;
     }
 
     .mode-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(74, 144, 226, 0.2);
-        border-color: #4a90e2;
+        box-shadow: var(--shadow-medium);
+        border-color: var(--primary-blue);
     }
 
     .mode-card.active {
-        border-color: #4a90e2;
+        border-color: var(--primary-blue);
         background: linear-gradient(135deg, #f8fbff 0%, #e8f4ff 100%);
     }
 
     .mode-card i {
         font-size: 2.5em;
-        color: #4a90e2;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 15px;
     }
 
     .mode-card h3 {
-        color: #2c3e50;
+        color: var(--text-primary);
         margin-bottom: 10px;
         font-size: 1.3em;
+        font-weight: 600;
     }
 
     .mode-card p {
-        color: #7f8c8d;
+        color: var(--text-secondary);
         font-size: 0.95em;
         line-height: 1.5;
     }
 
-    .input-section {
+    /* Analysis Tier Selection */
+    .tier-selector {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .tier-option {
+        flex: 1;
+        padding: 20px;
         background: white;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tier-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .tier-option:hover::before {
+        left: 100%;
+    }
+
+    .tier-option:hover {
+        border-color: var(--primary-blue);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-light);
+    }
+
+    .tier-option.active {
+        border-color: var(--primary-blue);
+        background: linear-gradient(135deg, #f8fbff 0%, #e8f4ff 100%);
+    }
+
+    .tier-option h4 {
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
+
+    .tier-option p {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+        margin: 0;
+    }
+
+    .tier-badge {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 8px;
+    }
+
+    /* Input Section with Gradient Background */
+    .input-section {
+        background: linear-gradient(135deg, var(--bg-light) 0%, #e5e7eb 100%);
+        border-radius: 15px;
         padding: 30px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-light);
         margin-bottom: 30px;
     }
 
     .input-tabs {
         display: flex;
-        gap: 15px;
+        gap: 10px;
         margin-bottom: 25px;
-        border-bottom: 2px solid #ecf0f1;
     }
 
     .input-tab {
-        padding: 12px 20px;
-        background: none;
-        border: none;
-        font-size: 1em;
-        color: #7f8c8d;
+        flex: 1;
+        padding: 12px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
         cursor: pointer;
-        border-bottom: 2px solid transparent;
+        text-align: center;
         transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 1em;
+        color: var(--text-secondary);
     }
 
     .input-tab.active {
-        color: #4a90e2;
-        border-bottom-color: #4a90e2;
-        font-weight: 600;
+        background: var(--primary-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    .input-tab:hover:not(.active) {
+        background: var(--bg-light);
+        border-color: var(--primary-blue);
     }
 
     .input-panel {
@@ -141,262 +292,521 @@
     .url-input-group {
         display: flex;
         gap: 15px;
-        margin-bottom: 20px;
+        align-items: stretch;
     }
 
     .url-input {
         flex: 1;
         padding: 15px;
-        border: 2px solid #ecf0f1;
+        border: 2px solid #e5e7eb;
         border-radius: 8px;
-        font-size: 1em;
-        transition: border-color 0.3s ease;
+        font-size: 16px;
+        transition: all 0.3s ease;
     }
 
     .url-input:focus {
         outline: none;
-        border-color: #4a90e2;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
 
     .text-input {
         width: 100%;
         min-height: 200px;
         padding: 15px;
-        border: 2px solid #ecf0f1;
+        border: 2px solid #e5e7eb;
         border-radius: 8px;
-        font-size: 1em;
+        font-size: 16px;
         font-family: inherit;
         resize: vertical;
-        transition: border-color 0.3s ease;
+        transition: all 0.3s ease;
     }
 
     .text-input:focus {
         outline: none;
-        border-color: #4a90e2;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
 
+    .analyze-button {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    .analyze-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(74, 144, 226, 0.4);
+    }
+
+    .analyze-button:active {
+        transform: translateY(0);
+    }
+
+    .analyze-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        animation: none;
+    }
+
+    /* File Upload Area */
     .file-upload-area {
         border: 2px dashed #bdc3c7;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 40px;
         text-align: center;
-        background: #f8f9fa;
+        background: white;
         transition: all 0.3s ease;
         cursor: pointer;
     }
 
     .file-upload-area:hover {
-        border-color: #4a90e2;
+        border-color: var(--primary-blue);
         background: #f0f8ff;
     }
 
     .file-upload-area.dragover {
-        border-color: #4a90e2;
+        border-color: var(--primary-blue);
         background: #e8f4ff;
+        transform: scale(1.02);
     }
 
     .file-upload-area i {
         font-size: 3em;
         color: #bdc3c7;
         margin-bottom: 15px;
+        transition: all 0.3s ease;
     }
 
-    .file-upload-area p {
-        color: #7f8c8d;
-        margin-bottom: 10px;
-    }
-
-    .file-upload-area small {
-        color: #95a5a6;
-        font-size: 0.9em;
+    .file-upload-area:hover i {
+        color: var(--primary-blue);
     }
 
     .file-preview {
         margin-top: 20px;
-        padding: 15px;
-        background: #f8f9fa;
+        padding: 20px;
+        background: white;
         border-radius: 8px;
-        border: 1px solid #ecf0f1;
+        border: 1px solid var(--border-color);
     }
 
-    .file-preview img {
-        max-width: 100%;
-        max-height: 300px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .analyze-button {
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        font-size: 1.1em;
-        font-weight: 600;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-    }
-
-    .analyze-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-    }
-
-    .analyze-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
+    /* Enhanced Loading Section */
     .progress-container {
         display: none;
-        margin-top: 30px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .progress-header {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .progress-header h5 {
+        margin-bottom: 10px;
+        color: var(--text-primary);
+    }
+
+    .progress-bar-container {
+        background: #e5e7eb;
+        border-radius: 10px;
+        padding: 4px;
+        margin-bottom: 10px;
     }
 
     .progress-bar {
-        width: 100%;
-        height: 8px;
-        background: #ecf0f1;
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 20px;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4a90e2, #357abd);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-        width: 0%;
-    }
-
-    .progress-steps {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-
-    .progress-step {
-        flex: 1;
-        text-align: center;
-        padding: 10px;
-        background: #f8f9fa;
+        height: 30px;
+        background: var(--primary-gradient);
         border-radius: 8px;
-        margin: 0 5px;
+        width: 0%;
+        transition: width 0.5s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .progress-stages {
+        max-width: 1200px;
+        margin: 120px auto 0;
+        padding: 0 20px;
+    }
+
+    .analysis-stage {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        margin: 15px 0;
+        opacity: 0.5;
         transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
     }
 
-    .progress-step.active {
-        background: #4a90e2;
+    .analysis-stage.active {
+        opacity: 1;
+        background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
+        transform: scale(1.02);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .analysis-stage.complete {
+        opacity: 1;
+    }
+
+    .stage-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        font-size: 1.5em;
+    }
+
+    .analysis-stage.active .stage-icon {
+        background: var(--primary-gradient);
+        color: white;
+        animation: rotate 1s linear infinite;
+    }
+
+    .analysis-stage.complete .stage-icon {
+        background: var(--success-color);
         color: white;
     }
 
-    .progress-step.completed {
-        background: #27ae60;
-        color: white;
+    @keyframes rotate {
+        to { transform: rotate(360deg); }
     }
 
-    .progress-text {
-        text-align: center;
-        color: #7f8c8d;
-        font-style: italic;
-    }
-
-    .results-container {
-        display: none;
-        margin-top: 30px;
-    }
-
-    .results-header {
-        background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 12px 12px 0 0;
-        text-align: center;
-    }
-
-    .results-header h2 {
-        margin-bottom: 10px;
-        font-size: 1.8em;
-    }
-
-    .results-header p {
-        opacity: 0.9;
+    .stage-content h5 {
+        margin: 0 0 5px 0;
+        color: var(--text-primary);
         font-size: 1.1em;
     }
 
-    .results-content {
-        background: white;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+    .stage-content small {
+        color: var(--text-secondary);
     }
 
-    .results-tabs {
-        display: flex;
-        background: #f8f9fa;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .results-tab {
-        flex: 1;
-        padding: 15px;
-        text-align: center;
-        background: none;
-        border: none;
-        font-size: 1em;
-        color: #7f8c8d;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border-bottom: 3px solid transparent;
-    }
-
-    .results-tab.active {
-        color: #4a90e2;
-        border-bottom-color: #4a90e2;
-        background: white;
-    }
-
-    .results-panel {
+    /* Results Section */
+    .results-container {
         display: none;
-        padding: 30px;
+        margin-top: 40px;
     }
 
-    .results-panel.active {
+    /* Analysis Metadata */
+    .analysis-meta {
+        background: var(--bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .meta-item i {
+        color: var(--primary-blue);
+    }
+
+    /* Enhanced Trust Meter */
+    .trust-meter-container {
+        position: relative;
+        width: 250px;
+        height: 250px;
+        margin: 30px auto;
+        background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+        border-radius: 50%;
+        box-shadow: 0 10px 40px rgba(74, 144, 226, 0.3);
+        padding: 20px;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .trust-meter {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .trust-meter-circle {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .trust-meter-bg {
+        fill: none;
+        stroke: #e5e7eb;
+        stroke-width: 20;
+    }
+
+    .trust-meter-fill {
+        fill: none;
+        stroke-width: 20;
+        stroke-linecap: round;
+        transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 0 10px currentColor);
+    }
+
+    .trust-meter-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .trust-score {
+        font-size: 48px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         display: block;
     }
 
-    .analysis-card {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 20px;
-        border-left: 4px solid #4a90e2;
+    .trust-label {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .analysis-card h3 {
-        color: #2c3e50;
+    /* Summary Card */
+    .summary-card {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .summary-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    .summary-card h2 {
         margin-bottom: 15px;
-        font-size: 1.4em;
+        font-size: 2em;
+        position: relative;
     }
 
+    .summary-card p {
+        font-size: 1.1em;
+        opacity: 0.95;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .summary-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 30px;
+        position: relative;
+    }
+
+    .summary-stat {
+        text-align: center;
+    }
+
+    .summary-stat .number {
+        font-size: 3em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .summary-stat .label {
+        opacity: 0.9;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Analysis Dropdown Cards */
+    .analysis-dropdown {
+        margin-bottom: 15px;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-light);
+    }
+
+    .analysis-dropdown:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .dropdown-header {
+        padding: 25px;
+        cursor: pointer;
+        background: white;
+        border-left: 4px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dropdown-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .dropdown-header:hover::before {
+        left: 100%;
+    }
+
+    .dropdown-header h3 {
+        margin: 0;
+        font-size: 1.4em;
+        display: flex;
+        align-items: center;
+        color: var(--text-primary);
+    }
+
+    .dropdown-header h3 i {
+        font-size: 1.2em;
+        margin-right: 15px;
+        color: var(--primary-blue);
+    }
+
+    .dropdown-content {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: var(--bg-light);
+    }
+
+    .dropdown-content.show {
+        max-height: 2000px;
+        padding: 25px;
+    }
+
+    /* Colorful borders for different sections */
+    .border-overview { border-left-color: var(--primary-blue) !important; }
+    .border-ai { border-left-color: #14b8a6 !important; }
+    .border-plagiarism { border-left-color: #8b5cf6 !important; }
+    .border-authenticity { border-left-color: #10b981 !important; }
+    .border-technical { border-left-color: #f59e0b !important; }
+
+    /* Key Findings */
+    .key-findings {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid var(--border-color);
+    }
+
+    .key-findings h4 {
+        color: var(--text-primary);
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+
+    .key-findings ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .key-findings li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+        color: #34495e;
+        display: flex;
+        align-items: start;
+        gap: 10px;
+    }
+
+    .key-findings li:last-child {
+        border-bottom: none;
+    }
+
+    .key-findings li i {
+        color: var(--primary-blue);
+        margin-top: 3px;
+    }
+
+    /* Confidence Bars */
     .confidence-bar {
         width: 100%;
-        height: 20px;
+        height: 25px;
         background: #ecf0f1;
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
-        margin: 10px 0;
+        margin: 15px 0;
         position: relative;
     }
 
     .confidence-fill {
         height: 100%;
-        border-radius: 10px;
-        transition: width 0.8s ease;
+        border-radius: 12px;
+        transition: width 1s ease;
         position: relative;
+        background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
     }
 
     .confidence-fill.high {
@@ -422,50 +832,112 @@
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
-    .key-findings {
-        background: white;
+    /* Why This Matters Box */
+    .why-matters-box {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
         border-radius: 8px;
-        padding: 20px;
-        margin-top: 15px;
-        border: 1px solid #ecf0f1;
+        padding: 15px;
+        margin: 15px 0;
     }
 
-    .key-findings h4 {
-        color: #2c3e50;
-        margin-bottom: 10px;
+    .why-matters-box h4 {
+        color: #92400e;
+        margin: 0 0 8px 0;
         font-size: 1.1em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .key-findings ul {
-        list-style: none;
-        padding: 0;
+    .why-matters-box p {
+        color: #78350f;
+        margin: 0;
+        font-size: 0.95em;
+        line-height: 1.6;
     }
 
-    .key-findings li {
-        padding: 8px 0;
-        border-bottom: 1px solid #ecf0f1;
-        color: #34495e;
-    }
-
-    .key-findings li:last-child {
-        border-bottom: none;
-    }
-
-    .key-findings li i {
-        color: #4a90e2;
-        margin-right: 8px;
-    }
-
-    .download-section {
-        background: #f8f9fa;
-        padding: 20px;
+    /* Methodology Snippet */
+    .methodology-snippet {
+        background: #ede9fe;
+        border: 1px solid #c7d2fe;
         border-radius: 8px;
-        margin-top: 20px;
+        padding: 12px;
+        margin: 15px 0;
+        font-size: 0.9em;
+        color: #5b21b6;
+    }
+
+    .methodology-snippet code {
+        background: #ddd6fe;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Results Tabs */
+    .results-tabs {
+        display: flex;
+        background: var(--bg-light);
+        border-radius: 12px 12px 0 0;
+        overflow: hidden;
+        margin-top: 30px;
+    }
+
+    .results-tab {
+        flex: 1;
+        padding: 15px;
         text-align: center;
+        background: none;
+        border: none;
+        font-size: 1em;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+        font-weight: 500;
+    }
+
+    .results-tab.active {
+        color: var(--primary-blue);
+        border-bottom-color: var(--primary-blue);
+        background: white;
+        font-weight: 600;
+    }
+
+    .results-tab:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .results-panel {
+        display: none;
+        padding: 30px;
+        background: white;
+        border-radius: 0 0 12px 12px;
+        box-shadow: var(--shadow-light);
+    }
+
+    .results-panel.active {
+        display: block;
+    }
+
+    /* Download Section */
+    .download-section {
+        background: var(--bg-light);
+        padding: 30px;
+        border-radius: 12px;
+        margin-top: 30px;
+        text-align: center;
+        box-shadow: var(--shadow-light);
+    }
+
+    .download-section h3 {
+        color: var(--text-primary);
+        margin-bottom: 20px;
     }
 
     .download-button {
-        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        background: var(--primary-gradient);
         color: white;
         border: none;
         padding: 12px 25px;
@@ -474,161 +946,157 @@
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
         margin: 0 10px;
     }
 
     .download-button:hover {
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    }
+
+    /* PDF Button Special */
+    .pdf-button {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .pdf-button:hover {
         box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
     }
 
+    /* Error Container */
     .error-container {
         display: none;
-        background: #fff5f5;
+        background: #fef2f2;
         border: 1px solid #fed7d7;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-        color: #e53e3e;
+        border-radius: 12px;
+        padding: 30px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .error-container i {
+        font-size: 3em;
+        color: var(--danger-color);
+        margin-bottom: 20px;
     }
 
     .error-container h3 {
+        color: var(--danger-color);
         margin-bottom: 10px;
-        color: #e53e3e;
+    }
+
+    .error-container p {
+        color: #742a2a;
+        margin-bottom: 20px;
     }
 
     .retry-button {
-        background: #e53e3e;
+        background: var(--danger-color);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
+        padding: 12px 24px;
+        border-radius: 8px;
         cursor: pointer;
-        margin-top: 10px;
-        transition: background 0.3s ease;
+        transition: all 0.3s ease;
+        font-weight: 600;
     }
 
     .retry-button:hover {
         background: #c53030;
+        transform: translateY(-2px);
     }
 
-    .tier-selector {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .tier-option {
-        flex: 1;
-        padding: 20px;
-        background: white;
-        border: 2px solid #ecf0f1;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-
-    .tier-option:hover {
-        border-color: #4a90e2;
-    }
-
-    .tier-option.active {
-        border-color: #4a90e2;
-        background: #f0f8ff;
-    }
-
-    .tier-option h4 {
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .tier-option p {
-        color: #7f8c8d;
-        font-size: 0.9em;
-    }
-
-    .tier-badge {
-        background: #4a90e2;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8em;
-        font-weight: 600;
-    }
-
-    .loading-overlay {
-        display: none;
+    /* Sticky Upgrade Button */
+    .sticky-upgrade {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        bottom: 30px;
+        right: 30px;
         z-index: 1000;
-        justify-content: center;
-        align-items: center;
+        animation: pulse 2s infinite;
     }
 
-    .loading-spinner {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid #ecf0f1;
-        border-top: 4px solid #4a90e2;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .summary-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .sticky-upgrade button {
+        background: var(--primary-gradient);
         color: white;
-        padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        text-align: center;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.4);
+        transition: all 0.3s ease;
     }
 
-    .summary-card h2 {
-        margin-bottom: 15px;
-        font-size: 2em;
+    .sticky-upgrade button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(74, 144, 226, 0.5);
     }
 
-    .summary-stats {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 20px;
+    /* Tooltips */
+    .tooltip-container {
+        position: relative;
+        display: inline-block;
+        cursor: help;
     }
 
-    .summary-stat {
-        text-align: center;
+    .tooltip-icon {
+        width: 16px;
+        height: 16px;
+        background: #e5e7eb;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #6b7280;
+        margin-left: 5px;
+        transition: all 0.2s ease;
     }
 
-    .summary-stat .number {
-        font-size: 2.5em;
-        font-weight: 700;
-        margin-bottom: 5px;
+    .tooltip-icon:hover {
+        background: var(--primary-blue);
+        color: white;
     }
 
-    .summary-stat .label {
-        opacity: 0.9;
-        font-size: 0.9em;
+    .tooltip-content {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        margin-bottom: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        max-width: 300px;
+        white-space: normal;
+        z-index: 1000;
     }
 
+    .tooltip-container:hover .tooltip-content {
+        opacity: 1;
+    }
+
+    .tooltip-content::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1f2937;
+    }
+
+    /* Mobile Responsive */
     @media (max-width: 768px) {
         .unified-header h1 {
             font-size: 2em;
@@ -642,7 +1110,7 @@
             grid-template-columns: 1fr;
         }
 
-        .input-tabs {
+        .tier-selector {
             flex-direction: column;
         }
 
@@ -650,28 +1118,116 @@
             flex-direction: column;
         }
 
-        .results-tabs {
+        .input-tabs {
             flex-direction: column;
+            gap: 5px;
         }
 
-        .tier-selector {
+        .results-tabs {
             flex-direction: column;
         }
 
         .summary-stats {
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
+
+        .trust-meter-container {
+            width: 200px;
+            height: 200px;
+        }
+
+        .trust-score {
+            font-size: 36px;
+        }
+
+        .sticky-upgrade {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .sticky-upgrade button {
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+
+        .analysis-meta {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #ecf0f1;
+        border-top: 4px solid var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Glowing effect for important elements */
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(74, 144, 226, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(74, 144, 226, 0.8), 0 0 30px rgba(74, 144, 226, 0.6); }
+        100% { box-shadow: 0 0 5px rgba(74, 144, 226, 0.5); }
+    }
+
+    .glow-effect {
+        animation: glow 2s ease-in-out infinite;
+    }
+
+    /* Learn More Links */
+    .learn-more-link {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+        margin-top: 15px;
+    }
+
+    .learn-more-link:hover {
+        color: var(--primary-blue-dark);
+        gap: 8px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Floating particles for visual appeal -->
+<div class="particle" style="left: 10%; top: 20%; width: 6px; height: 6px; background: var(--primary-blue); border-radius: 50%;"></div>
+<div class="particle" style="left: 80%; top: 40%; width: 8px; height: 8px; background: var(--primary-blue-dark); border-radius: 50%;"></div>
+<div class="particle" style="left: 60%; top: 60%; width: 5px; height: 5px; background: #10b981; border-radius: 50%;"></div>
+<div class="particle" style="left: 30%; top: 80%; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%;"></div>
+
 <div class="unified-container">
     <!-- Header Section -->
     <div class="unified-header">
-        <h1><i class="fas fa-search-plus"></i> Unified Analysis</h1>
-        <p>Comprehensive multi-modal content analysis combining AI detection, news verification, plagiarism checking, and image authenticity in one powerful platform.</p>
+        <h1><i class="fas fa-search-plus me-3"></i>Unified Analysis</h1>
+        <p>
+            Comprehensive multi-modal content analysis combining AI detection, news verification, plagiarism checking, and image authenticity in one powerful platform
+            <span class="tooltip-container">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-content">
+                    Our unified analysis uses GPT-4 and proprietary algorithms to analyze content across multiple dimensions simultaneously, providing the most comprehensive verification available.
+                </span>
+            </span>
+        </p>
+        <!-- Overview Process Button -->
+        <button class="btn btn-outline-primary mt-3" onclick="showAnalysisProcess()">
+            <i class="fas fa-info-circle me-2"></i>View Our Analysis Process
+        </button>
     </div>
 
     <!-- Analysis Mode Selection -->
@@ -701,11 +1257,11 @@
     <!-- Analysis Tier Selection -->
     <div class="tier-selector">
         <div class="tier-option active" data-tier="basic">
-            <h4>Basic Analysis <span class="tier-badge">Free</span></h4>
+            <h4>Basic Analysis<span class="tier-badge">Free</span></h4>
             <p>Standard detection algorithms with essential insights</p>
         </div>
         <div class="tier-option" data-tier="professional">
-            <h4>Professional Analysis <span class="tier-badge">Pro</span></h4>
+            <h4>Professional Analysis<span class="tier-badge">Pro</span></h4>
             <p>Advanced AI models with comprehensive reporting and detailed insights</p>
         </div>
     </div>
@@ -713,31 +1269,43 @@
     <!-- Input Section -->
     <div class="input-section">
         <div class="input-tabs">
-            <button class="input-tab active" data-tab="url">URL Analysis</button>
-            <button class="input-tab" data-tab="text">Text Analysis</button>
-            <button class="input-tab" data-tab="file">File Upload</button>
+            <div class="input-tab active" data-tab="url">
+                <i class="fas fa-link me-2"></i>URL Analysis
+            </div>
+            <div class="input-tab" data-tab="text">
+                <i class="fas fa-file-alt me-2"></i>Text Analysis
+            </div>
+            <div class="input-tab" data-tab="file">
+                <i class="fas fa-upload me-2"></i>File Upload
+            </div>
         </div>
 
         <!-- URL Input Panel -->
         <div class="input-panel active" id="url-panel">
             <div class="url-input-group">
-                <input type="url" class="url-input" id="url-input" placeholder="Enter URL to analyze (news articles, social media posts, etc.)">
-                <button class="analyze-button" onclick="startAnalysis('url')">
-                    <i class="fas fa-search"></i> Analyze URL
+                <input type="url" class="url-input" id="url-input" placeholder="https://example.com/article">
+                <button class="analyze-button glow-effect" onclick="startAnalysis('url')">
+                    <i class="fas fa-search me-2"></i>Analyze Now
                 </button>
             </div>
-            <small style="color: #7f8c8d;">Supports news articles, blog posts, social media content, and other web pages</small>
+            <small class="text-muted d-block mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Supports news articles, blog posts, social media content, and other web pages
+            </small>
         </div>
 
         <!-- Text Input Panel -->
         <div class="input-panel" id="text-panel">
             <textarea class="text-input" id="text-input" placeholder="Paste your text content here for analysis..."></textarea>
-            <div style="margin-top: 15px;">
-                <button class="analyze-button" onclick="startAnalysis('text')">
-                    <i class="fas fa-search"></i> Analyze Text
+            <div class="mt-3">
+                <button class="analyze-button glow-effect" onclick="startAnalysis('text')">
+                    <i class="fas fa-search me-2"></i>Analyze Now
                 </button>
             </div>
-            <small style="color: #7f8c8d;">Minimum 50 characters required for accurate analysis</small>
+            <small class="text-muted d-block mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Minimum 50 characters required for accurate analysis
+            </small>
         </div>
 
         <!-- File Upload Panel -->
@@ -749,9 +1317,9 @@
             </div>
             <input type="file" id="file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
             <div class="file-preview" id="file-preview" style="display: none;"></div>
-            <div style="margin-top: 15px;">
-                <button class="analyze-button" onclick="startAnalysis('file')" disabled id="file-analyze-button">
-                    <i class="fas fa-search"></i> Analyze File
+            <div class="mt-3">
+                <button class="analyze-button glow-effect" onclick="startAnalysis('file')" disabled id="file-analyze-button">
+                    <i class="fas fa-search me-2"></i>Analyze Now
                 </button>
             </div>
         </div>
@@ -759,753 +1327,375 @@
 
     <!-- Progress Section -->
     <div class="progress-container" id="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-header">
+            <h5>
+                <i class="fas fa-brain fa-pulse me-2 text-primary"></i>
+                AI Analysis in Progress...
+            </h5>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar">0%</div>
+            </div>
+            <p class="mb-0 text-muted" id="progress-text">Initializing analysis...</p>
         </div>
-        <div class="progress-steps" id="progress-steps">
-            <div class="progress-step active">Initializing</div>
-            <div class="progress-step">Content Processing</div>
-            <div class="progress-step">AI Detection</div>
-            <div class="progress-step">Plagiarism Check</div>
-            <div class="progress-step">Generating Report</div>
+    </div>
+
+    <div class="progress-stages" id="progress-stages" style="display: none;">
+        <div class="analysis-stage" id="stage-1">
+            <div class="stage-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <div class="stage-content">
+                <h5>Extracting Content</h5>
+                <small>Retrieving and processing your content for analysis</small>
+            </div>
         </div>
-        <div class="progress-text" id="progress-text">Preparing analysis...</div>
+
+        <div class="analysis-stage" id="stage-2">
+            <div class="stage-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div class="stage-content">
+                <h5>AI Deep Analysis (GPT-4)</h5>
+                <small>Analyzing patterns, authenticity, and content quality</small>
+            </div>
+        </div>
+
+        <div class="analysis-stage" id="stage-3">
+            <div class="stage-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="stage-content">
+                <h5>AI Detection</h5>
+                <small>Checking for AI-generated content patterns</small>
+            </div>
+        </div>
+
+        <div class="analysis-stage" id="stage-4">
+            <div class="stage-icon">
+                <i class="fas fa-copy"></i>
+            </div>
+            <div class="stage-content">
+                <h5>Plagiarism Check</h5>
+                <small>Searching for duplicate content across the web</small>
+            </div>
+        </div>
+
+        <div class="analysis-stage" id="stage-5">
+            <div class="stage-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stage-content">
+                <h5>Generating Report</h5>
+                <small>Compiling comprehensive analysis results</small>
+            </div>
+        </div>
     </div>
 
     <!-- Results Section -->
     <div class="results-container" id="results-container">
-        <div class="results-header">
-            <h2><i class="fas fa-check-circle"></i> Analysis Complete</h2>
-            <p>Comprehensive multi-modal analysis results</p>
+        <!-- Analysis Metadata -->
+        <div class="analysis-meta">
+            <div class="meta-item">
+                <i class="fas fa-clock"></i>
+                <span>Analyzed: <span id="analysis-time"></span></span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-code-branch"></i>
+                <span>Model Version: GPT-4 v2.1</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-server"></i>
+                <span>Analysis ID: <span id="analysis-id"></span></span>
+            </div>
+            <div class="meta-item">
+                <button class="download-button pdf-button" onclick="generatePDF()">
+                    <i class="fas fa-file-pdf me-2"></i>Generate PDF Report
+                </button>
+            </div>
         </div>
-        <div class="results-content">
-            <!-- Summary Card -->
-            <div class="summary-card" id="summary-card">
-                <h2>Overall Assessment</h2>
-                <p id="summary-text">Analysis completed successfully</p>
-                <div class="summary-stats">
-                    <div class="summary-stat">
-                        <div class="number" id="ai-confidence">0%</div>
-                        <div class="label">AI Detection</div>
-                    </div>
-                    <div class="summary-stat">
-                        <div class="number" id="authenticity-score">0%</div>
-                        <div class="label">Authenticity</div>
-                    </div>
-                    <div class="summary-stat">
-                        <div class="number" id="originality-score">0%</div>
-                        <div class="label">Originality</div>
-                    </div>
+
+        <!-- Enhanced Trust Meter -->
+        <div class="trust-meter-container">
+            <div class="trust-meter">
+                <svg class="trust-meter-circle" viewBox="0 0 200 200">
+                    <circle class="trust-meter-bg" cx="100" cy="100" r="90"/>
+                    <circle class="trust-meter-fill" cx="100" cy="100" r="90"
+                            stroke-dasharray="565.48" stroke-dashoffset="565.48"/>
+                </svg>
+                <div class="trust-meter-text">
+                    <span class="trust-score" id="trust-score">0</span>
+                    <span class="trust-label">Overall Score</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Results Tabs -->
-            <div class="results-tabs">
-                <button class="results-tab active" data-tab="overview">Overview</button>
-                <button class="results-tab" data-tab="ai-analysis">AI Analysis</button>
-                <button class="results-tab" data-tab="plagiarism">Plagiarism</button>
-                <button class="results-tab" data-tab="authenticity">Authenticity</button>
-                <button class="results-tab" data-tab="technical">Technical</button>
-            </div>
-
-            <!-- Overview Panel -->
-            <div class="results-panel active" id="overview-panel">
-                <div class="analysis-card">
-                    <h3><i class="fas fa-chart-line"></i> Analysis Summary</h3>
-                    <div id="overview-content">
-                        <p>Detailed analysis results will appear here...</p>
-                    </div>
+        <!-- Summary Card -->
+        <div class="summary-card" id="summary-card">
+            <h2>Analysis Complete</h2>
+            <p id="summary-text">Comprehensive multi-modal analysis has been completed successfully</p>
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <span class="number" id="ai-confidence">0%</span>
+                    <span class="label">AI Detection</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="number" id="authenticity-score">0%</span>
+                    <span class="label">Authenticity</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="number" id="originality-score">0%</span>
+                    <span class="label">Originality</span>
                 </div>
             </div>
+        </div>
 
-            <!-- AI Analysis Panel -->
-            <div class="results-panel" id="ai-analysis-panel">
-                <div class="analysis-card">
-                    <h3><i class="fas fa-robot"></i> AI Detection Results</h3>
+        <!-- Results Tabs -->
+        <div class="results-tabs">
+            <button class="results-tab active" data-tab="overview">Overview</button>
+            <button class="results-tab" data-tab="ai-analysis">AI Analysis</button>
+            <button class="results-tab" data-tab="plagiarism">Plagiarism</button>
+            <button class="results-tab" data-tab="authenticity">Authenticity</button>
+            <button class="results-tab" data-tab="technical">Technical</button>
+        </div>
+
+        <!-- Overview Panel (Always Open) -->
+        <div class="results-panel active" id="overview-panel">
+            <div class="analysis-dropdown border-overview">
+                <div class="dropdown-header">
+                    <h3><i class="fas fa-chart-pie"></i>Overall Assessment</h3>
+                </div>
+                <div class="dropdown-content show">
+                    <div id="overall-assessment"></div>
+                    
+                    <!-- Why This Matters -->
+                    <div class="why-matters-box">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            Understanding the overall credibility helps you make informed decisions about 
+                            sharing, citing, or acting on this information. High credibility means the content 
+                            is more likely to be factual and trustworthy.
+                        </p>
+                    </div>
+                    
+                    <!-- Confidence Interval -->
+                    <div class="mt-3">
+                        <h5>Confidence Level
+                            <span class="tooltip-container">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-content">
+                                    Our confidence in this assessment based on available data and analysis certainty
+                                </span>
+                            </span>
+                        </h5>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="overall-confidence" style="width: 0%">
+                                <div class="confidence-text">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="key-findings">
+                        <h4>Key Findings</h4>
+                        <ul id="key-findings-list"></ul>
+                    </div>
+                    
+                    <a href="#" class="learn-more-link" onclick="showMethodology()">
+                        Learn about our methodology <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Analysis Panel -->
+        <div class="results-panel" id="ai-analysis-panel">
+            <div class="analysis-dropdown border-ai">
+                <div class="dropdown-header">
+                    <h3><i class="fas fa-robot"></i>AI Detection Results</h3>
+                </div>
+                <div class="dropdown-content show">
                     <div class="confidence-bar">
                         <div class="confidence-fill" id="ai-confidence-bar" style="width: 0%;">
                             <div class="confidence-text" id="ai-confidence-text">0%</div>
                         </div>
                     </div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Detection method:</strong> Perplexity analysis, burstiness scoring, 
+                        repetitive phrasing detection, and comparison against known AI writing patterns 
+                        from GPT, Claude, and other models.
+                    </div>
+                    
                     <div class="key-findings">
-                        <h4>Key Findings</h4>
+                        <h4>AI Pattern Indicators</h4>
                         <ul id="ai-findings"></ul>
+                    </div>
+                    
+                    <div class="why-matters-box mt-3">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            AI-generated content may lack human nuance, contain factual errors, or be used 
+                            for deceptive purposes. Knowing whether content is AI-generated helps you assess 
+                            its reliability and authenticity.
+                        </p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Plagiarism Panel -->
-            <div class="results-panel" id="plagiarism-panel">
-                <div class="analysis-card">
-                    <h3><i class="fas fa-copy"></i> Plagiarism Check Results</h3>
+        <!-- Plagiarism Panel -->
+        <div class="results-panel" id="plagiarism-panel">
+            <div class="analysis-dropdown border-plagiarism">
+                <div class="dropdown-header">
+                    <h3><i class="fas fa-copy"></i>Plagiarism Check Results</h3>
+                </div>
+                <div class="dropdown-content show">
                     <div class="confidence-bar">
                         <div class="confidence-fill" id="plagiarism-confidence-bar" style="width: 0%;">
                             <div class="confidence-text" id="plagiarism-confidence-text">0%</div>
                         </div>
                     </div>
+                    
                     <div class="key-findings">
                         <h4>Source Matches</h4>
                         <ul id="plagiarism-findings"></ul>
                     </div>
+                    
+                    <div class="why-matters-box mt-3">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            Original content demonstrates credibility and effort. Plagiarized content may 
+                            indicate unreliability, lack of expertise, or potential copyright violations.
+                        </p>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Authenticity Panel -->
-            <div class="results-panel" id="authenticity-panel">
-                <div class="analysis-card">
-                    <h3><i class="fas fa-shield-alt"></i> Authenticity Assessment</h3>
+        <!-- Authenticity Panel -->
+        <div class="results-panel" id="authenticity-panel">
+            <div class="analysis-dropdown border-authenticity">
+                <div class="dropdown-header">
+                    <h3><i class="fas fa-shield-alt"></i>Authenticity Assessment</h3>
+                </div>
+                <div class="dropdown-content show">
                     <div class="confidence-bar">
                         <div class="confidence-fill" id="authenticity-confidence-bar" style="width: 0%;">
                             <div class="confidence-text" id="authenticity-confidence-text">0%</div>
                         </div>
                     </div>
+                    
                     <div class="key-findings">
                         <h4>Authenticity Indicators</h4>
                         <ul id="authenticity-findings"></ul>
                     </div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Analysis includes:</strong> Source verification, author credibility, 
+                        writing consistency, factual accuracy, and manipulation detection.
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Technical Panel -->
-            <div class="results-panel" id="technical-panel">
-                <div class="analysis-card">
-                    <h3><i class="fas fa-cogs"></i> Technical Analysis</h3>
+        <!-- Technical Panel -->
+        <div class="results-panel" id="technical-panel">
+            <div class="analysis-dropdown border-technical">
+                <div class="dropdown-header">
+                    <h3><i class="fas fa-cogs"></i>Technical Analysis</h3>
+                </div>
+                <div class="dropdown-content show">
                     <div id="technical-content">
                         <p>Technical analysis details will appear here...</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Download Section -->
-            <div class="download-section">
-                <h3>Download Reports</h3>
-                <button class="download-button" onclick="downloadReport('pdf')">
-                    <i class="fas fa-file-pdf"></i> Download PDF Report
-                </button>
-                <button class="download-button" onclick="downloadReport('detailed')">
-                    <i class="fas fa-file-alt"></i> Download Detailed Report
-                </button>
-            </div>
+        <!-- Download Section -->
+        <div class="download-section">
+            <h3>Download Complete Analysis</h3>
+            <p class="text-muted mb-3">Get your comprehensive analysis report in your preferred format</p>
+            <button class="download-button pdf-button" onclick="downloadReport('pdf')">
+                <i class="fas fa-file-pdf me-2"></i>Download PDF Report
+            </button>
+            <button class="download-button" onclick="downloadReport('detailed')">
+                <i class="fas fa-file-alt me-2"></i>Download Detailed Report
+            </button>
         </div>
     </div>
 
     <!-- Error Container -->
     <div class="error-container" id="error-container">
-        <h3><i class="fas fa-exclamation-triangle"></i> Analysis Error</h3>
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Analysis Error</h3>
         <p id="error-message">An error occurred during analysis.</p>
         <button class="retry-button" onclick="retryAnalysis()">
-            <i class="fas fa-redo"></i> Retry Analysis
+            <i class="fas fa-redo me-2"></i>Retry Analysis
         </button>
     </div>
 </div>
 
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Processing your content...</p>
-        <small>This may take a few moments for comprehensive analysis</small>
+<!-- Sticky Upgrade Button -->
+<div class="sticky-upgrade">
+    <button onclick="window.location.href='/pricing'">
+        <i class="fas fa-crown me-2"></i>Upgrade to Pro
+    </button>
+</div>
+
+<!-- Analysis Process Modal -->
+<div class="modal fade" id="analysisProcessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>Our Comprehensive Analysis Process
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Our unified analysis examines content across multiple dimensions:</h6>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>AI Detection:</strong> Advanced pattern recognition across multiple AI models</li>
+                            <li><strong>Plagiarism Check:</strong> Cross-reference with millions of online sources</li>
+                            <li><strong>Content Authenticity:</strong> Verify originality and manipulation</li>
+                            <li><strong>Source Credibility:</strong> Historical accuracy and transparency</li>
+                            <li><strong>Writing Quality:</strong> Grammar, structure, professionalism</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Fact Verification:</strong> Cross-check claims against databases</li>
+                            <li><strong>Bias Detection:</strong> Political and ideological analysis</li>
+                            <li><strong>Image Analysis:</strong> Detect manipulated or AI-generated images</li>
+                            <li><strong>Metadata Examination:</strong> Technical details and timestamps</li>
+                            <li><strong>Context Analysis:</strong> Relevance and timeliness assessment</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Technology Stack:</strong></p>
+                <ul>
+                    <li>GPT-4 for deep content analysis and understanding</li>
+                    <li>Multiple plagiarism detection APIs (Copyscape, Copyleaks)</li>
+                    <li>Proprietary AI detection algorithms</li>
+                    <li>Real-time web scraping and verification</li>
+                    <li>Advanced image analysis and manipulation detection</li>
+                </ul>
+                <hr>
+                <p class="text-muted mb-0">Each analysis generates 200+ data points across all modalities to ensure the most comprehensive and accurate results available.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-// Global variables
-let currentAnalysisMode = 'comprehensive';
-let currentTier = 'basic';
-let currentInputType = 'url';
-let analysisResults = null;
-let progressInterval = null;
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeUnifiedAnalysis();
-});
-
-function initializeUnifiedAnalysis() {
-    // Set up mode selection
-    document.querySelectorAll('.mode-card').forEach(card => {
-        card.addEventListener('click', function() {
-            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            currentAnalysisMode = this.dataset.mode;
-        });
-    });
-
-    // Set up tier selection
-    document.querySelectorAll('.tier-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            currentTier = this.dataset.tier;
-        });
-    });
-
-    // Set up input tabs
-    document.querySelectorAll('.input-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.dataset.tab;
-            switchInputTab(tabName);
-        });
-    });
-
-    // Set up results tabs
-    document.querySelectorAll('.results-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.dataset.tab;
-            switchResultsTab(tabName);
-        });
-    });
-
-    // Set up file upload
-    setupFileUpload();
-
-    // Set up keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'Enter') {
-            const activeTab = document.querySelector('.input-tab.active').dataset.tab;
-            startAnalysis(activeTab);
-        }
-    });
-}
-
-function switchInputTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.input-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-    // Update panels
-    document.querySelectorAll('.input-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-    document.getElementById(`${tabName}-panel`).classList.add('active');
-
-    currentInputType = tabName;
-}
-
-function switchResultsTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.results-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-    // Update panels
-    document.querySelectorAll('.results-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-    document.getElementById(`${tabName}-panel`).classList.add('active');
-}
-
-function setupFileUpload() {
-    const fileUploadArea = document.getElementById('file-upload-area');
-    const fileInput = document.getElementById('file-input');
-    const filePreview = document.getElementById('file-preview');
-    const fileAnalyzeButton = document.getElementById('file-analyze-button');
-
-    // Click to upload
-    fileUploadArea.addEventListener('click', function() {
-        fileInput.click();
-    });
-
-    // Drag and drop
-    fileUploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('dragover');
-    });
-
-    fileUploadArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-    });
-
-    fileUploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFileSelect(files[0]);
-        }
-    });
-
-    // File input change
-    fileInput.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            handleFileSelect(e.target.files[0]);
-        }
-    });
-}
-
-function handleFileSelect(file) {
-    const filePreview = document.getElementById('file-preview');
-    const fileAnalyzeButton = document.getElementById('file-analyze-button');
-    
-    // Check file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
-        return;
-    }
-
-    // Show preview
-    filePreview.style.display = 'block';
-    
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            filePreview.innerHTML = `
-                <p><strong>File:</strong> ${file.name}</p>
-                <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                <img src="${e.target.result}" alt="Preview">
-            `;
-        };
-        reader.readAsDataURL(file);
-    } else {
-        filePreview.innerHTML = `
-            <p><strong>File:</strong> ${file.name}</p>
-            <p><strong>Type:</strong> ${file.type}</p>
-            <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-        `;
-    }
-
-    // Enable analyze button
-    fileAnalyzeButton.disabled = false;
-}
-
-function startAnalysis(inputType) {
-    let content = '';
-    let contentType = 'text';
-
-    // Get content based on input type
-    if (inputType === 'url') {
-        content = document.getElementById('url-input').value.trim();
-        contentType = 'url';
-        if (!content) {
-            alert('Please enter a URL to analyze');
-            return;
-        }
-        if (!isValidUrl(content)) {
-            alert('Please enter a valid URL');
-            return;
-        }
-    } else if (inputType === 'text') {
-        content = document.getElementById('text-input').value.trim();
-        contentType = 'text';
-        if (!content) {
-            alert('Please enter text to analyze');
-            return;
-        }
-        if (content.length < 50) {
-            alert('Text must be at least 50 characters long for accurate analysis');
-            return;
-        }
-    } else if (inputType === 'file') {
-        const fileInput = document.getElementById('file-input');
-        if (!fileInput.files.length) {
-            alert('Please select a file to analyze');
-            return;
-        }
-        contentType = 'file';
-        content = fileInput.files[0];
-    }
-
-    // Show progress
-    showProgress();
-
-    // Start analysis
-    performUnifiedAnalysis(content, contentType);
-}
-
-function performUnifiedAnalysis(content, contentType) {
-    // Show loading overlay
-    document.getElementById('loading-overlay').style.display = 'flex';
-
-    // Prepare request data
-    const requestData = {
-        content: content,
-        type: contentType,
-        mode: currentAnalysisMode,
-        tier: currentTier,
-        is_pro: currentTier === 'professional'
-    };
-
-    // If file upload, use FormData
-    if (contentType === 'file') {
-        const formData = new FormData();
-        formData.append('file', content);
-        formData.append('mode', currentAnalysisMode);
-        formData.append('tier', currentTier);
-        formData.append('is_pro', currentTier === 'professional');
-        
-        fetch('/api/analyze-unified', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => handleAnalysisResponse(data))
-        .catch(error => handleAnalysisError(error));
-    } else {
-        fetch('/api/analyze-unified', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => response.json())
-        .then(data => handleAnalysisResponse(data))
-        .catch(error => handleAnalysisError(error));
-    }
-}
-
-function handleAnalysisResponse(data) {
-    // Hide loading overlay
-    document.getElementById('loading-overlay').style.display = 'none';
-
-    if (data.success) {
-        analysisResults = data.results;
-        displayResults(data.results);
-        completeProgress();
-    } else {
-        handleAnalysisError(data.error || 'Analysis failed');
-    }
-}
-
-function handleAnalysisError(error) {
-    // Hide loading overlay
-    document.getElementById('loading-overlay').style.display = 'none';
-    
-    // Hide progress
-    document.getElementById('progress-container').style.display = 'none';
-    
-    // Show error
-    const errorContainer = document.getElementById('error-container');
-    const errorMessage = document.getElementById('error-message');
-    
-    errorMessage.textContent = typeof error === 'string' ? error : 'An unexpected error occurred during analysis';
-    errorContainer.style.display = 'block';
-    
-    console.error('Analysis error:', error);
-}
-
-function displayResults(results) {
-    const resultsContainer = document.getElementById('results-container');
-    
-    // Update summary card
-    updateSummaryCard(results);
-    
-    // Update each analysis panel
-    updateOverviewPanel(results);
-    updateAIAnalysisPanel(results);
-    updatePlagiarismPanel(results);
-    updateAuthenticityPanel(results);
-    updateTechnicalPanel(results);
-    
-    // Show results
-    resultsContainer.style.display = 'block';
-    
-    // Scroll to results
-    resultsContainer.scrollIntoView({ behavior: 'smooth' });
-}
-
-function updateSummaryCard(results) {
-    const summaryText = document.getElementById('summary-text');
-    const aiConfidence = document.getElementById('ai-confidence');
-    const authenticityScore = document.getElementById('authenticity-score');
-    const originalityScore = document.getElementById('originality-score');
-    
-    // Update summary text
-    if (results.summary) {
-        summaryText.textContent = results.summary;
-    }
-    
-    // Update scores
-    if (results.ai_analysis) {
-        aiConfidence.textContent = Math.round(results.ai_analysis.confidence || 0) + '%';
-    }
-    
-    if (results.authenticity) {
-        authenticityScore.textContent = Math.round(results.authenticity.score || 0) + '%';
-    }
-    
-    if (results.plagiarism) {
-        const originality = 100 - (results.plagiarism.similarity_score || 0);
-        originalityScore.textContent = Math.round(originality) + '%';
-    }
-}
-
-function updateOverviewPanel(results) {
-    const overviewContent = document.getElementById('overview-content');
-    
-    let html = '';
-    
-    if (results.overview) {
-        html = `<p>${results.overview}</p>`;
-    } else {
-        html = '<div class="key-findings"><h4>Analysis Summary</h4><ul>';
-        
-        if (results.ai_analysis) {
-            html += `<li><i class="fas fa-robot"></i> AI Detection: ${results.ai_analysis.confidence || 0}% confidence</li>`;
-        }
-        
-        if (results.plagiarism) {
-            html += `<li><i class="fas fa-copy"></i> Plagiarism Check: ${results.plagiarism.similarity_score || 0}% similarity found</li>`;
-        }
-        
-        if (results.authenticity) {
-            html += `<li><i class="fas fa-shield-alt"></i> Authenticity: ${results.authenticity.score || 0}% authentic</li>`;
-        }
-        
-        html += '</ul></div>';
-    }
-    
-    overviewContent.innerHTML = html;
-}
-
-function updateAIAnalysisPanel(results) {
-    const aiConfidenceBar = document.getElementById('ai-confidence-bar');
-    const aiConfidenceText = document.getElementById('ai-confidence-text');
-    const aiFindings = document.getElementById('ai-findings');
-    
-    if (results.ai_analysis) {
-        const confidence = results.ai_analysis.confidence || 0;
-        
-        // Update confidence bar
-        aiConfidenceBar.style.width = confidence + '%';
-        aiConfidenceText.textContent = Math.round(confidence) + '%';
-        
-        // Set color based on confidence
-        if (confidence > 70) {
-            aiConfidenceBar.className = 'confidence-fill high';
-        } else if (confidence > 30) {
-            aiConfidenceBar.className = 'confidence-fill medium';
-        } else {
-            aiConfidenceBar.className = 'confidence-fill low';
-        }
-        
-        // Update findings
-        let findingsHtml = '';
-        if (results.ai_analysis.findings) {
-            results.ai_analysis.findings.forEach(finding => {
-                findingsHtml += `<li><i class="fas fa-chevron-right"></i> ${finding}</li>`;
-            });
-        }
-        aiFindings.innerHTML = findingsHtml;
-    }
-}
-
-function updatePlagiarismPanel(results) {
-    const plagiarismConfidenceBar = document.getElementById('plagiarism-confidence-bar');
-    const plagiarismConfidenceText = document.getElementById('plagiarism-confidence-text');
-    const plagiarismFindings = document.getElementById('plagiarism-findings');
-    
-    if (results.plagiarism) {
-        const similarity = results.plagiarism.similarity_score || 0;
-        
-        // Update confidence bar
-        plagiarismConfidenceBar.style.width = similarity + '%';
-        plagiarismConfidenceText.textContent = Math.round(similarity) + '%';
-        
-        // Set color based on similarity
-        if (similarity > 70) {
-            plagiarismConfidenceBar.className = 'confidence-fill high';
-        } else if (similarity > 30) {
-            plagiarismConfidenceBar.className = 'confidence-fill medium';
-        } else {
-            plagiarismConfidenceBar.className = 'confidence-fill low';
-        }
-        
-        // Update findings
-        let findingsHtml = '';
-        if (results.plagiarism.sources) {
-            results.plagiarism.sources.forEach(source => {
-                findingsHtml += `<li><i class="fas fa-link"></i> ${source.url || source.title}: ${source.similarity}% match</li>`;
-            });
-        }
-        plagiarismFindings.innerHTML = findingsHtml;
-    }
-}
-
-function updateAuthenticityPanel(results) {
-    const authenticityConfidenceBar = document.getElementById('authenticity-confidence-bar');
-    const authenticityConfidenceText = document.getElementById('authenticity-confidence-text');
-    const authenticityFindings = document.getElementById('authenticity-findings');
-    
-    if (results.authenticity) {
-        const score = results.authenticity.score || 0;
-        
-        // Update confidence bar
-        authenticityConfidenceBar.style.width = score + '%';
-        authenticityConfidenceText.textContent = Math.round(score) + '%';
-        
-        // Set color based on score (high authenticity is good)
-        if (score > 70) {
-            authenticityConfidenceBar.className = 'confidence-fill low';
-        } else if (score > 30) {
-            authenticityConfidenceBar.className = 'confidence-fill medium';
-        } else {
-            authenticityConfidenceBar.className = 'confidence-fill high';
-        }
-        
-        // Update findings
-        let findingsHtml = '';
-        if (results.authenticity.indicators) {
-            results.authenticity.indicators.forEach(indicator => {
-                findingsHtml += `<li><i class="fas fa-check"></i> ${indicator}</li>`;
-            });
-        }
-        authenticityFindings.innerHTML = findingsHtml;
-    }
-}
-
-function updateTechnicalPanel(results) {
-    const technicalContent = document.getElementById('technical-content');
-    
-    let html = '<div class="key-findings"><h4>Technical Details</h4><ul>';
-    
-    if (results.metadata) {
-        if (results.metadata.word_count) {
-            html += `<li><i class="fas fa-file-word"></i> Word Count: ${results.metadata.word_count}</li>`;
-        }
-        if (results.metadata.character_count) {
-            html += `<li><i class="fas fa-keyboard"></i> Character Count: ${results.metadata.character_count}</li>`;
-        }
-        if (results.metadata.processing_time) {
-            html += `<li><i class="fas fa-clock"></i> Processing Time: ${results.metadata.processing_time}s</li>`;
-        }
-        if (results.metadata.analysis_timestamp) {
-            html += `<li><i class="fas fa-calendar"></i> Analysis Date: ${new Date(results.metadata.analysis_timestamp).toLocaleString()}</li>`;
-        }
-    }
-    
-    html += '</ul></div>';
-    
-    technicalContent.innerHTML = html;
-}
-
-function showProgress() {
-    const progressContainer = document.getElementById('progress-container');
-    const progressFill = document.getElementById('progress-fill');
-    const progressText = document.getElementById('progress-text');
-    
-    progressContainer.style.display = 'block';
-    
-    // Hide results and errors
-    document.getElementById('results-container').style.display = 'none';
-    document.getElementById('error-container').style.display = 'none';
-    
-    // Animate progress
-    let progress = 0;
-    const steps = [
-        'Initializing analysis...',
-        'Processing content...',
-        'Running AI detection...',
-        'Checking for plagiarism...',
-        'Generating comprehensive report...'
-    ];
-    
-    progressInterval = setInterval(() => {
-        progress += Math.random() * 15 + 5;
-        if (progress > 90) progress = 90;
-        
-        progressFill.style.width = progress + '%';
-        
-        const stepIndex = Math.floor(progress / 20);
-        if (stepIndex < steps.length) {
-            progressText.textContent = steps[stepIndex];
-            updateProgressSteps(stepIndex);
-        }
-    }, 800);
-}
-
-function updateProgressSteps(activeIndex) {
-    const steps = document.querySelectorAll('.progress-step');
-    steps.forEach((step, index) => {
-        step.classList.remove('active', 'completed');
-        if (index < activeIndex) {
-            step.classList.add('completed');
-        } else if (index === activeIndex) {
-            step.classList.add('active');
-        }
-    });
-}
-
-function completeProgress() {
-    if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-    }
-    
-    const progressFill = document.getElementById('progress-fill');
-    const progressText = document.getElementById('progress-text');
-    
-    progressFill.style.width = '100%';
-    progressText.textContent = 'Analysis complete!';
-    
-    // Mark all steps as completed
-    document.querySelectorAll('.progress-step').forEach(step => {
-        step.classList.remove('active');
-        step.classList.add('completed');
-    });
-    
-    // Hide progress after a delay
-    setTimeout(() => {
-        document.getElementById('progress-container').style.display = 'none';
-    }, 1000);
-}
-
-function downloadReport(format) {
-    if (!analysisResults) {
-        alert('No analysis results available to download');
-        return;
-    }
-    
-    const endpoint = format === 'pdf' ? '/api/generate-unified-pdf' : '/api/generate-unified-report';
-    
-    fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            results: analysisResults,
-            format: format
-        })
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
-        }
-        throw new Error('Failed to generate report');
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `unified-analysis-report-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'html'}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    })
-    .catch(error => {
-        console.error('Download error:', error);
-        alert('Failed to download report. Please try again.');
-    });
-}
-
-function retryAnalysis() {
-    document.getElementById('error-container').style.display = 'none';
-    startAnalysis(currentInputType);
-}
-
-function isValidUrl(string) {
-    try {
-        new URL(string);
-        return true;
-    } catch (_) {
-        return false;
-    }
-}
-</script>
+<script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
 {% endblock %}
