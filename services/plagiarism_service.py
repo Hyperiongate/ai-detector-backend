@@ -1,5 +1,6 @@
 """
 Plagiarism Service - Integration with multiple plagiarism detection APIs
+Now using the new base service architecture
 Supports Copyscape, Copyleaks, and custom web search
 """
 import os
@@ -9,395 +10,174 @@ import json
 from datetime import datetime
 from urllib.parse import quote
 import time
+from typing import Dict, Any, List, Optional
 
-class PlagiarismService:
-    def __init__(self):
-        # API Keys from environment
-        self.copyscape_key = os.environ.get('COPYSCAPE_API_KEY', '')
-        self.copyscape_user = os.environ.get('COPYSCAPE_USERNAME', '')
-        self.copyleaks_key = os.environ.get('COPYLEAKS_API_KEY', '')
-        self.copyleaks_email = os.environ.get('COPYLEAKS_EMAIL', '')
+from .base_service import BaseAnalysisService
+
+class PlagiarismService(BaseAnalysisService):
+    """
+    Professional plagiarism detection service with multiple API providers
+    Inherits from BaseAnalysisService for consistent interface
+    """
+    
+    def __init__(self, config: Dict[str, Any]):
+        # Initialize with the base class
+        super().__init__(config)
+        
+        # API credentials from config
+        self.copyscape_key = config.get('copyscape_api_key', '')
+        self.copyscape_user = config.get('copyscape_username', '')
+        self.copyleaks_key = config.get('copyleaks_api_key', '')
+        self.copyleaks_email = config.get('copyleaks_email', '')
         
         # Google Custom Search for fallback
-        self.google_api_key = os.environ.get('GOOGLE_API_KEY', '')
-        self.google_cx = os.environ.get('GOOGLE_CX', '')
+        self.google_api_key = config.get('google_api_key', '')
+        self.google_cx = config.get('google_cx', '')
         
-    def check_plagiarism(self, text, use_real_apis=True):
+        # Service URLs
+        self.copyscape_url = "https://www.copyscape.com/api/"
+        self.copyleaks_url = "https://api.copyleaks.com/v3"
+        self.google_search_url = "https://www.googleapis.com/customsearch/v1"
+    
+    def _initialize_service(self) -> bool:
+        """
+        Check if at least one plagiarism service is properly configured
+        """
+        available_services = []
+        
+        # Check Copyscape
+        if self.copyscape_key and self.copyscape_user:
+            available_services.append('Copyscape')
+            self.logger.info("Copyscape API credentials found")
+        
+        # Check Copyleaks
+        if self.copyleaks_key and self.copyleaks_email:
+            available_services.append('Copyleaks')
+            self.logger.info("Copyleaks API credentials found")
+        
+        # Check Google Custom Search
+        if self.google_api_key and self.google_cx:
+            available_services.append('Google Search')
+            self.logger.info("Google Custom Search credentials found")
+        
+        if available_services:
+            self.logger.info(f"Plagiarism service initialized with: {', '.join(available_services)}")
+            return True
+        else:
+            self.logger.warning("No plagiarism service APIs configured - will use pattern analysis only")
+            return False  # Still functional but limited
+    
+    def analyze(self, content: str, **kwargs) -> Dict[str, Any]:
+        """
+        Main plagiarism analysis function
+        """
+        # Validate content
+        is_valid, error_message = self._validate_content(content)
+        if not is_valid:
+            return self._create_error_response(error_message, "validation_error")
+        
+        try:
+            # Get options
+            use_real_apis = kwargs.get('use_real_apis', True) and self.is_available
+            
+            # Perform analysis
+            results = self.check_plagiarism(content, use_real_apis)
+            
+            # Standardize response format
+            return self._create_success_response(results)
+            
+        except Exception as e:
+            self.logger.error(f"Plagiarism analysis failed: {str(e)}")
+            return self._create_error_response(f"Analysis failed: {str(e)}")
+    
+    def check_plagiarism(self, text: str, use_real_apis: bool = True) -> Dict[str, Any]:
         """
         Main plagiarism checking function that tries multiple services
         """
         results = {
+            'score': 0,
+            'originality_score': 100,
             'sources_checked': 0,
             'matches': [],
-            'originality_score': 100,
             'highest_match': 0,
+            'scan_time': 0,
+            'databases_queried': [],
             'source_breakdown': {
                 'Academic': 0,
                 'Web Content': 0,
                 'News': 0,
                 'Encyclopedia': 0,
                 'Social Media': 0
-            }
+            },
+            'analysis_timestamp': datetime.utcnow().isoformat()
         }
         
-        if not use_real_apis:
-            return self._mock_plagiarism_check(text)
+        start_time = time.time()
         
-        # Try Copyleaks first (most comprehensive)
+        if not use_real_apis or not self.is_available:
+            self.logger.info("Using pattern-based plagiarism analysis")
+            results = self._enhanced_pattern_analysis(text)
+            results['scan_time'] = round(time.time() - start_time, 2)
+            return results
+        
+        # Try real APIs in order of preference
+        
+        # 1. Try Copyleaks first (most comprehensive)
         if self.copyleaks_key and self.copyleaks_email:
             try:
+                self.logger.info("Attempting Copyleaks analysis")
                 copyleaks_results = self._check_copyleaks(text)
                 if copyleaks_results:
                     results = self._merge_results(results, copyleaks_results)
+                    results['databases_queried'].append('Copyleaks')
             except Exception as e:
-                print(f"Copyleaks error: {e}")
+                self.logger.error(f"Copyleaks error: {e}")
         
-        # Try Copyscape for web content
-        if self.copyscape_key and self.copyscape_user:
+        # 2. Try Copyscape for web content
+        if self.copyscape_key and self.copyscape_user and results['score'] < 20:
             try:
+                self.logger.info("Attempting Copyscape analysis")
                 copyscape_results = self._check_copyscape(text)
                 if copyscape_results:
                     results = self._merge_results(results, copyscape_results)
+                    results['databases_queried'].append('Copyscape')
             except Exception as e:
-                print(f"Copyscape error: {e}")
+                self.logger.error(f"Copyscape error: {e}")
         
-        # Fallback to Google Custom Search for specific phrases
-        if self.google_api_key and self.google_cx:
+        # 3. Fallback to Google Custom Search for specific phrases
+        if self.google_api_key and self.google_cx and results['score'] < 15:
             try:
+                self.logger.info("Attempting Google Custom Search analysis")
                 google_results = self._check_google_search(text)
                 if google_results:
                     results = self._merge_results(results, google_results)
+                    results['databases_queried'].append('Google Search')
             except Exception as e:
-                print(f"Google search error: {e}")
+                self.logger.error(f"Google search error: {e}")
         
-        # If no real APIs available, use enhanced mock data
-        if not results['matches']:
-            return self._mock_plagiarism_check(text)
+        # If no real APIs worked, use enhanced pattern analysis
+        if not results['databases_queried']:
+            self.logger.warning("All API attempts failed, using pattern analysis")
+            results = self._enhanced_pattern_analysis(text)
+            results['databases_queried'] = ['Pattern Analysis']
         
-        # Calculate final originality score
+        # Calculate final scores
+        results['scan_time'] = round(time.time() - start_time, 2)
         if results['matches']:
             avg_similarity = sum(m['percentage'] for m in results['matches']) / len(results['matches'])
-            results['originality_score'] = max(0, 100 - int(avg_similarity))
+            results['score'] = min(avg_similarity, results['score'])
+        
+        results['originality_score'] = max(0, 100 - results['score'])
+        results['sources_checked'] = self._estimate_sources_checked(results['databases_queried'])
         
         return results
     
-    def _check_copyleaks(self, text):
+    def _check_copyleaks(self, text: str) -> Optional[Dict[str, Any]]:
         """
         Check plagiarism using Copyleaks API
         """
-        # Copyleaks API endpoint
-        auth_url = "https://api.copyleaks.com/v3/account/login/api"
-        scan_url = "https://api.copyleaks.com/v3/scans/submit/file"
-        
-        # Authenticate
-        auth_data = {
-            'email': self.copyleaks_email,
-            'key': self.copyleaks_key
-        }
-        
-        auth_response = requests.post(auth_url, json=auth_data)
-        if auth_response.status_code != 200:
-            return None
-        
-        token = auth_response.json().get('access_token')
-        
-        # Submit scan
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
-        }
-        
-        scan_id = hashlib.md5(text.encode()).hexdigest()
-        
-        scan_data = {
-            'base64': self._text_to_base64(text),
-            'filename': f'scan_{scan_id}.txt',
-            'properties': {
-                'webhooks': {
-                    'status': f'https://your-domain.com/webhook/copyleaks/{scan_id}'
-                }
-            }
-        }
-        
-        scan_response = requests.post(
-            f"{scan_url}/{scan_id}",
-            headers=headers,
-            json=scan_data
-        )
-        
-        if scan_response.status_code != 201:
-            return None
-        
-        # In production, you'd wait for webhook or poll for results
-        # For now, return structured mock data
-        return self._format_copyleaks_results(scan_id)
-    
-    def _check_copyscape(self, text):
-        """
-        Check plagiarism using Copyscape API
-        """
-        url = "https://www.copyscape.com/api/"
-        
-        # Copyscape parameters
-        params = {
-            'u': self.copyscape_user,
-            'k': self.copyscape_key,
-            'o': 'csearch',
-            't': text[:250],  # Copyscape has character limits
-            'c': 5  # Number of results
-        }
-        
-        response = requests.get(url, params=params)
-        
-        if response.status_code != 200:
-            return None
-        
-        # Parse Copyscape XML response
-        # In production, use proper XML parsing
-        return self._parse_copyscape_response(response.text)
-    
-    def _check_google_search(self, text):
-        """
-        Use Google Custom Search to find potential matches
-        """
-        # Extract key phrases from text
-        sentences = text.split('.')[:3]  # Check first 3 sentences
-        
-        matches = []
-        
-        for sentence in sentences:
-            if len(sentence.strip()) < 20:
-                continue
-                
-            # Clean and prepare search query
-            query = sentence.strip()[:100]  # Limit length
-            
-            search_url = "https://www.googleapis.com/customsearch/v1"
-            params = {
-                'key': self.google_api_key,
-                'cx': self.google_cx,
-                'q': f'"{query}"',  # Exact match search
-                'num': 3
-            }
-            
-            response = requests.get(search_url, params=params)
-            
-            if response.status_code == 200:
-                results = response.json()
-                
-                for item in results.get('items', []):
-                    matches.append({
-                        'percentage': 85,  # Estimated similarity
-                        'source': item.get('title', 'Unknown'),
-                        'url': item.get('link', ''),
-                        'source_type': self._categorize_source(item.get('link', ''))
-                    })
-        
-        return {
-            'sources_checked': 1000000,  # Google's index
-            'matches': matches[:5]  # Limit results
-        }
-    
-    def _merge_results(self, results1, results2):
-        """
-        Merge results from multiple plagiarism checkers
-        """
-        merged = results1.copy()
-        
-        # Update sources checked
-        merged['sources_checked'] += results2.get('sources_checked', 0)
-        
-        # Merge matches, avoiding duplicates
-        existing_urls = {m.get('url', '') for m in merged['matches']}
-        
-        for match in results2.get('matches', []):
-            if match.get('url', '') not in existing_urls:
-                merged['matches'].append(match)
-                
-                # Update source breakdown
-                source_type = match.get('source_type', 'Web Content')
-                merged['source_breakdown'][source_type] = merged['source_breakdown'].get(source_type, 0) + 1
-        
-        # Update highest match
-        if results2.get('matches'):
-            max_match = max(m['percentage'] for m in results2['matches'])
-            merged['highest_match'] = max(merged['highest_match'], max_match)
-        
-        return merged
-    
-    def _categorize_source(self, url):
-        """
-        Categorize a URL into source types
-        """
-        if not url:
-            return 'Web Content'
-            
-        url_lower = url.lower()
-        
-        if any(domain in url_lower for domain in ['.edu', 'scholar.', 'academic.', 'journal.']):
-            return 'Academic'
-        elif any(domain in url_lower for domain in ['wikipedia.', 'britannica.', 'encyclopedia.']):
-            return 'Encyclopedia'
-        elif any(domain in url_lower for domain in ['cnn.', 'bbc.', 'reuters.', 'news.', 'times.']):
-            return 'News'
-        elif any(domain in url_lower for domain in ['twitter.', 'facebook.', 'reddit.', 'linkedin.']):
-            return 'Social Media'
-        else:
-            return 'Web Content'
-    
-    def _text_to_base64(self, text):
-        """
-        Convert text to base64 for API submission
-        """
-        import base64
-        return base64.b64encode(text.encode('utf-8')).decode('utf-8')
-    
-    def _mock_plagiarism_check(self, text):
-        """
-        Enhanced mock plagiarism check for development
-        """
-        import random
-        
-        # Analyze text for potential plagiarism indicators
-        sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 20]
-        
-        matches = []
-        total_similarity = 0
-        
-        # Check for common phrases that might be plagiarized
-        common_phrases = [
-            "according to recent studies",
-            "research has shown",
-            "it is widely believed",
-            "experts agree that",
-            "data suggests that",
-            "in conclusion",
-            "furthermore",
-            "studies indicate"
-        ]
-        
-        for i, sentence in enumerate(sentences[:10]):  # Check first 10 sentences
-            sentence_lower = sentence.lower()
-            
-            # Higher chance of plagiarism for sentences with common academic phrases
-            plagiarism_chance = 0.1  # Base 10% chance
-            
-            for phrase in common_phrases:
-                if phrase in sentence_lower:
-                    plagiarism_chance += 0.2
-                    break
-            
-            # Check for quotes
-            if '"' in sentence:
-                plagiarism_chance += 0.3
-            
-            # Check for citations patterns
-            if any(pattern in sentence for pattern in ['(', ')', '[', ']', 'et al', '20']):
-                plagiarism_chance += 0.2
-            
-            if random.random() < plagiarism_chance:
-                similarity = random.randint(70, 95)
-                source_types = ['Academic', 'Web Content', 'News', 'Encyclopedia']
-                source_type = random.choice(source_types)
-                
-                source_names = {
-                    'Academic': [
-                        'Journal of Applied Sciences',
-                        'International Research Quarterly',
-                        'Academic Database Portal',
-                        'Scholarly Articles Repository'
-                    ],
-                    'Web Content': [
-                        'Medium Article',
-                        'Industry Blog Post',
-                        'Professional Website',
-                        'Content Portal'
-                    ],
-                    'News': [
-                        'Reuters Archive',
-                        'Associated Press',
-                        'News Database',
-                        'Media Archive'
-                    ],
-                    'Encyclopedia': [
-                        'Wikipedia',
-                        'Britannica Online',
-                        'Academic Encyclopedia',
-                        'Reference Database'
-                    ]
-                }
-                
-                matches.append({
-                    'percentage': similarity,
-                    'source': random.choice(source_names[source_type]),
-                    'source_type': source_type,
-                    'text_excerpt': sentence[:100] + '...' if len(sentence) > 100 else sentence,
-                    'url': f'https://example.com/source/{i+1}'
-                })
-                
-                total_similarity += similarity
-        
-        # Calculate source breakdown
-        source_breakdown = {
-            'Academic': 0,
-            'Web Content': 0,
-            'News': 0,
-            'Encyclopedia': 0,
-            'Social Media': 0
-        }
-        
-        for match in matches:
-            source_breakdown[match['source_type']] += 1
-        
-        # Calculate originality
-        if matches:
-            avg_similarity = total_similarity / len(matches)
-            originality_score = max(0, 100 - int(avg_similarity * len(matches) / len(sentences) * 100))
-        else:
-            originality_score = random.randint(85, 100)
-        
-        return {
-            'sources_checked': random.randint(800000, 1200000),
-            'matches': matches[:8],  # Limit to 8 matches
-            'originality_score': originality_score,
-            'highest_match': max([m['percentage'] for m in matches]) if matches else 0,
-            'source_breakdown': source_breakdown,
-            'scan_time': round(random.uniform(2.1, 3.5), 1),
-            'databases_queried': [
-                'Web Index (1B+ pages)',
-                'Academic Databases',
-                'News Archives',
-                'Reference Materials'
-            ]
-        }
-    
-    def _format_copyleaks_results(self, scan_id):
-        """
-        Format Copyleaks results (mock for now)
-        """
-        # In production, this would parse real Copyleaks results
-        return {
-            'sources_checked': 15000000000,  # Copyleaks claims 15B+ pages
-            'matches': [
-                {
-                    'percentage': 89,
-                    'source': 'Academic Journal - Computer Science Quarterly',
-                    'source_type': 'Academic',
-                    'url': 'https://academic.example.com/paper/12345'
-                }
-            ]
-        }
-    
-    def _parse_copyscape_response(self, xml_response):
-        """
-        Parse Copyscape XML response (simplified)
-        """
-        # In production, use proper XML parsing
-        return {
-            'sources_checked': 10000000000,  # Copyscape's index
-            'matches': []
-        }
-
-
-# Singleton instance
-plagiarism_service = PlagiarismService()
+        try:
+            # Authenticate with Copyleaks
+            auth_url = f"{self.copyleaks_url}/account/login/api"
+            auth_data = {
+                'email': self.copyle
