@@ -1583,11 +1583,15 @@ window.ffNav = {
                 
                 document.getElementById('ffUserEmail').textContent = data.email || 'User';
                 document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
-                document.getElementById('ffUserPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+                document.getElementById('ffUserPlan').textContent = data.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
                 
-                const usagePercent = (data.usage_today / data.daily_limit) * 100;
+                // Handle usage data properly
+                const usageToday = data.usage_today || 0;
+                const dailyLimit = data.daily_limit || 5;
+                const usagePercent = dailyLimit > 0 ? (usageToday / dailyLimit) * 100 : 0;
+                
                 document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
-                document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
+                document.getElementById('ffUsageText').textContent = `${usageToday} / ${dailyLimit} analyses used`;
             }
         } catch (error) {
             console.log('Auth check failed:', error);
