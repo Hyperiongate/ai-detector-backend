@@ -77,13 +77,44 @@
             padding: 0;
         }
 
-        /* Navigation Header */
-        .header, nav, .navbar {
+        /* Navigation Header - Enhanced */
+        .global-nav {
             background-color: var(--background-primary);
             border-bottom: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-logo:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
         }
 
         .nav-link, .navbar-link {
@@ -92,15 +123,69 @@
             font-weight: 500;
             transition: color 0.2s ease;
             padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
         }
 
         .nav-link:hover, .navbar-link:hover {
             color: var(--primary-color);
+            background-color: var(--background-secondary);
         }
 
         .nav-link.active, .navbar-link.active {
             color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
+            background-color: var(--background-secondary);
+        }
+
+        .nav-link.dashboard {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .nav-link.dashboard:hover {
+            background-color: var(--primary-hover);
+            color: white;
+        }
+
+        /* Mobile Navigation */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 60px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 60px);
+                background-color: var(--background-primary);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1rem;
+                transition: left 0.3s ease;
+                box-shadow: var(--shadow-lg);
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-link {
+                width: 100%;
+                text-align: center;
+            }
         }
 
         /* Cards and Containers */
@@ -347,6 +432,12 @@
         }
 
         /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+
         .skip-link:focus {
             position: absolute;
             left: 20px;
@@ -479,6 +570,31 @@
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
+    <!-- Global Navigation -->
+    <nav class="global-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                Facts & Fakes AI
+            </a>
+            
+            <button class="nav-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="/news" class="nav-link">News</a>
+                <a href="/speech" class="nav-link">Speech</a>
+                <a href="/imageanalysis" class="nav-link">Image</a>
+                <a href="/unified" class="nav-link">Unified</a>
+                <a href="/dashboard" class="nav-link dashboard">
+                    <i class="fas fa-th-large me-1"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+    
     <!-- Main content -->
     <main id="main-content">
         {% block content %}{% endblock %}
@@ -501,6 +617,7 @@
                         <li style="margin-bottom: 8px;"><a href="/speech" style="color: var(--text-secondary); text-decoration: none;">Speech Fact-Checker</a></li>
                         <li style="margin-bottom: 8px;"><a href="/imageanalysis" style="color: var(--text-secondary); text-decoration: none;">Image Analysis</a></li>
                         <li style="margin-bottom: 8px;"><a href="/unified" style="color: var(--text-secondary); text-decoration: none;">Unified Checker</a></li>
+                        <li style="margin-bottom: 8px;"><a href="/dashboard" style="color: var(--text-secondary); text-decoration: none;">Dashboard</a></li>
                     </ul>
                 </div>
                 <!-- Company -->
@@ -539,6 +656,37 @@
         gtag('config', 'GA_MEASUREMENT_ID');
     </script>
     {% endif %}
+    
+    <!-- Global Scripts -->
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navMenu = document.getElementById('navMenu');
+            const navToggle = document.querySelector('.nav-toggle');
+            
+            if (!navMenu.contains(event.target) && !navToggle.contains(event.target)) {
+                navMenu.classList.remove('active');
+            }
+        });
+
+        // Set active nav link based on current page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
     
     <!-- Page-specific scripts -->
     {% block scripts %}{% endblock %}
