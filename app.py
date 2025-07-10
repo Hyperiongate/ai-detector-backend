@@ -153,118 +153,177 @@ def initialize_services():
         logger.error(traceback.format_exc())
         return False
 
-# NEW: Enhanced usage tracking with daily limits
-DAILY_LIMITS = {
+# NEW: Enhanced usage tracking with daily and weekly limits
+USAGE_LIMITS = {
+    'anonymous': {
+        'daily': {
+            'basic': 0,  # No daily allowance
+            'pro': 0
+        },
+        'weekly': {
+            'basic': 2,  # 2 basic analyses per week
+            'pro': 0
+        }
+    },
     'free': {
-        'news': 2,
-        'speech': 1,
-        'image': 1,
-        'unified': 1,
-        'total': 5
+        'daily': {
+            'basic': 1,  # 1 basic analysis per day
+            'pro': 0
+        },
+        'weekly': {
+            'basic': 7,  # Effectively unlimited weekly (covered by daily)
+            'pro': 1     # 1 pro analysis per week
+        }
     },
     'pro': {
-        'news': -1,  # Unlimited
-        'speech': -1,
-        'image': -1,
-        'unified': -1,
-        'total': -1
+        'daily': {
+            'basic': -1,  # Unlimited
+            'pro': -1     # Unlimited
+        },
+        'weekly': {
+            'basic': -1,  # Unlimited
+            'pro': -1     # Unlimited
+        }
     }
 }
 
 def get_user_tier(user):
     """Get user subscription tier"""
-    if not user or not hasattr(user, 'subscription_tier'):
+    if not user or not hasattr(user, 'id'):
+        return 'anonymous'
+    if not hasattr(user, 'subscription_tier'):
         return 'free'
     return user.subscription_tier or 'free'
 
-def get_daily_usage(user_id, analysis_type=None):
-    """Get user's usage count for today"""
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+def get_usage_count(user_id, analysis_type, period='daily'):
+    """Get user's usage count for specified period"""
+    if period == 'daily':
+        start_time = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    else:  # weekly
+        today = datetime.utcnow()
+        start_time = today - timedelta(days=today.weekday())  # Start of week (Monday)
+        start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    query = UsageLog.query.filter(
-        UsageLog.user_id == user_id,
-        UsageLog.timestamp >= today_start
-    )
+    # For anonymous users, we need to track by session or IP
+    if user_id is None:
+        # Track by session ID or IP address
+        session_id = session.get('anonymous_id')
+        if not session_id:
+            session_id = request.remote_addr  # Use IP as fallback
+            session['anonymous_id'] = session_id
+        
+        count = UsageLog.query.filter(
+            UsageLog.session_id == session_id,
+            UsageLog.analysis_type == analysis_type,
+            UsageLog.timestamp >= start_time
+        ).count()
+    else:
+        count = UsageLog.query.filter(
+            UsageLog.user_id == user_id,
+            UsageLog.analysis_type == analysis_type,
+            UsageLog.timestamp >= start_time
+        ).count()
     
-    if analysis_type:
-        query = query.filter(UsageLog.analysis_type == analysis_type)
-    
-    return query.count()
+    return count
 
-def get_daily_usage_breakdown(user_id):
-    """Get detailed usage breakdown by type"""
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    usage = {
-        'news': 0,
-        'speech': 0,
-        'image': 0,
-        'unified': 0,
-        'total': 0
-    }
-    
-    logs = UsageLog.query.filter(
-        UsageLog.user_id == user_id,
-        UsageLog.timestamp >= today_start
-    ).all()
-    
-    for log in logs:
-        if log.analysis_type in usage:
-            usage[log.analysis_type] += 1
-        usage['total'] += 1
-    
-    return usage
-
-def check_usage_limit(user, analysis_type):
-    """Check if user has exceeded their daily limit"""
+def check_usage_limit(user, analysis_type, is_pro_analysis=False):
+    """Check if user has exceeded their usage limit"""
     tier = get_user_tier(user)
-    limits = DAILY_LIMITS.get(tier, DAILY_LIMITS['free'])
+    limits = USAGE_LIMITS.get(tier, USAGE_LIMITS['anonymous'])
     
-    # Pro users have unlimited access
-    if limits['total'] == -1:
-        return True, None
+    # Determine if this is a pro or basic analysis
+    analysis_level = 'pro' if is_pro_analysis else 'basic'
     
-    user_id = user.id if user and hasattr(user, 'id') else 1
+    # Get user ID (None for anonymous users)
+    user_id = getattr(user, 'id', None) if user else None
     
-    # Check specific tool limit
-    tool_usage = get_daily_usage(user_id, analysis_type)
-    tool_limit = limits.get(analysis_type, 1)
+    # Check daily limit
+    daily_limit = limits['daily'][analysis_level]
+    if daily_limit != -1:  # -1 means unlimited
+        daily_usage = get_usage_count(user_id, f"{analysis_type}_{analysis_level}", 'daily')
+        if daily_usage >= daily_limit:
+            remaining_weekly = limits['weekly'][analysis_level] - get_usage_count(user_id, f"{analysis_type}_{analysis_level}", 'weekly')
+            if remaining_weekly <= 0:
+                return False, f"Daily limit reached for {analysis_level} analysis"
     
-    if tool_usage >= tool_limit:
-        return False, f"Daily limit reached for {analysis_type} analysis ({tool_usage}/{tool_limit})"
-    
-    # Check total limit
-    total_usage = get_daily_usage(user_id)
-    total_limit = limits['total']
-    
-    if total_usage >= total_limit:
-        return False, f"Daily analysis limit reached ({total_usage}/{total_limit})"
+    # Check weekly limit
+    weekly_limit = limits['weekly'][analysis_level]
+    if weekly_limit != -1:  # -1 means unlimited
+        weekly_usage = get_usage_count(user_id, f"{analysis_type}_{analysis_level}", 'weekly')
+        if weekly_usage >= weekly_limit:
+            return False, f"Weekly limit reached for {analysis_level} analysis"
     
     return True, None
 
-# Enhanced usage tracking decorator
+def get_usage_status(user):
+    """Get detailed usage status for user"""
+    tier = get_user_tier(user)
+    limits = USAGE_LIMITS.get(tier, USAGE_LIMITS['anonymous'])
+    user_id = getattr(user, 'id', None) if user else None
+    
+    # Calculate usage for both basic and pro
+    daily_basic = get_usage_count(user_id, 'unified_basic', 'daily')
+    daily_pro = get_usage_count(user_id, 'unified_pro', 'daily')
+    weekly_basic = get_usage_count(user_id, 'unified_basic', 'weekly')
+    weekly_pro = get_usage_count(user_id, 'unified_pro', 'weekly')
+    
+    # Calculate time until reset
+    now = datetime.utcnow()
+    midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    next_monday = now + timedelta(days=(7 - now.weekday()))
+    next_monday = next_monday.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    return {
+        'tier': tier,
+        'usage': {
+            'daily': {
+                'basic': daily_basic,
+                'pro': daily_pro
+            },
+            'weekly': {
+                'basic': weekly_basic,
+                'pro': weekly_pro
+            }
+        },
+        'limits': limits,
+        'resets': {
+            'daily': midnight.isoformat(),
+            'weekly': next_monday.isoformat()
+        }
+    }
+
+# Updated track_usage decorator
 def track_usage(analysis_type):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                # In DEV MODE, always allow but still track
-                user_id = getattr(current_user, 'id', None) if hasattr(current_user, 'id') else 1
+                # Determine if this is a pro analysis from the request
+                is_pro = request.form.get('tier', 'basic') == 'professional'
                 
                 # Check usage limit
-                can_proceed, error_msg = check_usage_limit(current_user, analysis_type)
+                can_proceed, error_msg = check_usage_limit(current_user, analysis_type, is_pro)
                 
                 if not can_proceed and os.environ.get('FLASK_ENV') != 'development':
                     return jsonify({
                         'success': False,
                         'error': error_msg,
-                        'limit_reached': True
+                        'limit_reached': True,
+                        'usage_status': get_usage_status(current_user)
                     }), 429
                 
-                # Log usage
+                # Log usage with session tracking for anonymous users
+                user_id = getattr(current_user, 'id', None) if hasattr(current_user, 'id') else None
+                session_id = None
+                
+                if user_id is None:
+                    session_id = session.get('anonymous_id', request.remote_addr)
+                
+                analysis_level = 'pro' if is_pro else 'basic'
                 usage_log = UsageLog(
                     user_id=user_id,
-                    analysis_type=analysis_type,
+                    session_id=session_id,
+                    analysis_type=f"{analysis_type}_{analysis_level}",
                     timestamp=datetime.utcnow()
                 )
                 db.session.add(usage_log)
@@ -343,33 +402,26 @@ def favicon():
 
 # API Routes
 
+# NEW: User usage status endpoint
+@app.route('/api/user/usage', methods=['GET'])
+def api_user_usage():
+    """Get current user's usage status"""
+    return jsonify({
+        'success': True,
+        'usage_status': get_usage_status(current_user)
+    })
+
 # NEW: Dashboard API endpoints
 @app.route('/api/dashboard/usage', methods=['GET'])
 def api_dashboard_usage():
     """Get user's current usage statistics"""
     try:
-        user_id = getattr(current_user, 'id', 1)
-        tier = get_user_tier(current_user)
-        
-        # Get usage breakdown
-        usage = get_daily_usage_breakdown(user_id)
-        limits = DAILY_LIMITS.get(tier, DAILY_LIMITS['free'])
-        
-        # Calculate time until reset (midnight UTC)
-        now = datetime.utcnow()
-        midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        time_until_reset = midnight - now
-        
-        hours = int(time_until_reset.total_seconds() // 3600)
-        minutes = int((time_until_reset.total_seconds() % 3600) // 60)
+        # Use the new get_usage_status function
+        usage_status = get_usage_status(current_user)
         
         return jsonify({
             'success': True,
-            'usage': usage,
-            'limits': limits,
-            'tier': tier,
-            'reset_time': f"{hours}h {minutes}m",
-            'reset_timestamp': midnight.isoformat()
+            **usage_status
         })
         
     except Exception as e:
@@ -540,8 +592,18 @@ def analyze_unified():
     try:
         # Get request data
         content = request.form.get('content', '').strip()
-        analysis_type = request.form.get('type', 'text')
-        is_pro = request.form.get('is_pro', 'true').lower() == 'true'  # DEV MODE: always pro
+        content_type = request.form.get('content_type', 'text')
+        tier = request.form.get('tier', 'basic')  # Get tier from request
+        
+        # Determine if this is pro analysis based on user tier and selection
+        user_tier = get_user_tier(current_user)
+        is_pro = False
+        
+        if user_tier == 'pro':
+            is_pro = True  # Pro users always get pro analysis
+        elif user_tier == 'free' and tier == 'professional':
+            # Free users can use their weekly pro analysis
+            is_pro = True
         
         # Handle file upload for images
         image_file = None
@@ -549,6 +611,14 @@ def analyze_unified():
             image_file = request.files['image']
             if image_file.filename == '':
                 image_file = None
+        
+        # Handle file upload for documents
+        if 'file' in request.files:
+            uploaded_file = request.files['file']
+            if uploaded_file.filename != '':
+                # Read file content
+                content = uploaded_file.read().decode('utf-8', errors='ignore')
+                content_type = 'text'
         
         # Validate input
         if not content and not image_file:
@@ -574,7 +644,8 @@ def analyze_unified():
             'metadata': {
                 'analysis_time': datetime.utcnow().isoformat(),
                 'services_used': [],
-                'is_pro': is_pro
+                'is_pro': is_pro,
+                'analysis_tier': 'professional' if is_pro else 'basic'
             }
         }
         
@@ -591,6 +662,8 @@ def analyze_unified():
                         'content': ai_results.get('analysis', 'Analysis completed'),
                         'confidence': ai_results.get('confidence', 0.5),
                         'details': ai_results.get('details', {}),
+                        'ai_probability': ai_results.get('ai_probability', 0),
+                        'human_probability': ai_results.get('human_probability', 100),
                         'status': 'completed'
                     }
                     results['metadata']['services_used'].append('ai_analysis')
@@ -629,6 +702,7 @@ def analyze_unified():
                         'sources_found': plagiarism_results.get('sources_count', 0),
                         'similarity_score': plagiarism_results.get('max_similarity', 0),
                         'details': plagiarism_results.get('sources', []),
+                        'matched_content': plagiarism_results.get('matched_content', []),
                         'status': 'completed'
                     }
                     results['metadata']['services_used'].append('plagiarism')
@@ -715,53 +789,38 @@ def analyze_unified():
                     'status': 'error'
                 }
         
-        # Add additional analysis sections for completeness
-        additional_sections = {
-            'content_quality': {
-                'title': 'Content Quality',
-                'content': 'Content quality assessment completed',
-                'readability': 0.75,
-                'structure_score': 0.8,
-                'status': 'completed'
-            },
-            'bias_detection': {
-                'title': 'Bias Detection',
-                'content': 'Bias analysis completed',
-                'political_bias': 0.1,
-                'emotional_bias': 0.2,
-                'status': 'completed'
-            },
-            'fact_verification': {
-                'title': 'Fact Verification',
-                'content': 'Fact checking completed',
-                'verifiable_claims': 3,
-                'verified_facts': 2,
-                'status': 'completed'
-            },
-            'source_analysis': {
-                'title': 'Source Analysis',
-                'content': 'Source credibility analysis completed',
-                'credibility_score': 0.7,
-                'authority_indicators': ['established domain', 'author credentials'],
-                'status': 'completed'
-            }
-        }
-        
-        # Add sections that weren't already added
-        for section_key, section_data in additional_sections.items():
-            if section_key not in results['analysis_sections']:
-                results['analysis_sections'][section_key] = section_data
-        
         # Ensure trust score is within bounds
         results['trust_score'] = max(0, min(100, results['trust_score']))
         
         # Generate summary
         services_used = len(results['metadata']['services_used'])
-        results['summary'] = f"Comprehensive analysis completed using {services_used} analysis services. Trust score: {results['trust_score']}%"
+        ai_section = results['analysis_sections'].get('ai_detection', {})
+        plagiarism_section = results['analysis_sections'].get('plagiarism', {})
+        
+        # Create detailed summary
+        summary_parts = []
+        
+        # AI detection summary
+        if ai_section.get('ai_probability', 0) > 50:
+            summary_parts.append(f"Content appears to be AI-generated ({ai_section.get('ai_probability', 0)}% probability)")
+        else:
+            summary_parts.append(f"Content appears to be human-written ({ai_section.get('human_probability', 100)}% probability)")
+        
+        # Plagiarism summary
+        if plagiarism_section.get('similarity_score', 0) > 0:
+            summary_parts.append(f"Found {plagiarism_section.get('sources_found', 0)} potential source matches")
+        else:
+            summary_parts.append("No plagiarism detected")
+        
+        results['summary'] = ". ".join(summary_parts) + f". Overall trust score: {results['trust_score']}%"
         
         # Generate recommendations
         if results['trust_score'] < 60:
             results['recommendations'].append("Content shows concerning patterns - verify with additional sources")
+        if ai_section.get('ai_probability', 0) > 70:
+            results['recommendations'].append("High probability of AI-generated content detected")
+        if plagiarism_section.get('similarity_score', 0) > 0.3:
+            results['recommendations'].append("Similar content found online - ensure proper attribution")
         if results['trust_score'] > 80:
             results['recommendations'].append("Content appears authentic and trustworthy")
         
@@ -780,6 +839,9 @@ def analyze_unified():
             results['metadata']['analysis_id'] = analysis.id
         except Exception as e:
             logger.error(f"Database save error: {str(e)}")
+        
+        # Add usage status to response
+        results['usage_status'] = get_usage_status(current_user)
         
         return jsonify({
             'success': True,
@@ -864,57 +926,105 @@ def api_analyze_image():
         logger.error(f"Image analysis error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Authentication routes (DEV MODE - always succeeds)
+# Authentication routes
 
 @app.route('/api/login', methods=['POST'])
 @csrf.exempt
 def api_login():
-    """DEV MODE: Always returns successful login"""
-    return jsonify({
-        'success': True,
-        'user': {
-            'id': 1,
-            'email': 'dev@example.com',
-            'subscription_tier': 'pro',
-            'analyses_used': 0,
-            'analyses_limit': 1000
-        }
-    })
+    """Login endpoint"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '')
+        password = data.get('password', '')
+        
+        # In production, verify credentials
+        # For now, create a mock user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            # Create mock user for testing
+            user = User(
+                email=email,
+                name=email.split('@')[0],
+                subscription_tier='free'
+            )
+        
+        login_user(user)
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'subscription_tier': user.subscription_tier,
+                'usage_status': get_usage_status(user)
+            }
+        })
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({'success': False, 'error': 'Login failed'}), 500
 
 @app.route('/api/signup', methods=['POST'])
 @csrf.exempt
 def api_signup():
-    """DEV MODE: Always returns successful signup"""
-    return jsonify({
-        'success': True,
-        'message': 'Account created successfully',
-        'user': {
-            'id': 1,
-            'email': 'dev@example.com',
-            'subscription_tier': 'pro'
-        }
-    })
+    """Signup endpoint"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '')
+        password = data.get('password', '')
+        
+        # Check if user exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'success': False, 'error': 'User already exists'}), 400
+        
+        # Create new user
+        user = User(
+            email=email,
+            name=email.split('@')[0],
+            subscription_tier='free'
+        )
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully',
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'subscription_tier': user.subscription_tier
+            }
+        })
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        return jsonify({'success': False, 'error': 'Signup failed'}), 500
 
 @app.route('/api/logout', methods=['POST'])
 @csrf.exempt
 def api_logout():
     """Logout endpoint"""
+    logout_user()
     session.clear()
     return jsonify({'success': True})
 
 @app.route('/api/user/status', methods=['GET'])
 def api_user_status():
-    """DEV MODE: Always returns authenticated pro user"""
-    return jsonify({
-        'authenticated': True,
-        'user': {
-            'id': 1,
-            'email': 'dev@example.com',
-            'subscription_tier': 'pro',
-            'analyses_used': 0,
-            'analyses_limit': 1000
-        }
-    })
+    """Get user authentication status"""
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'email': current_user.email,
+            'subscription_tier': current_user.subscription_tier,
+            'usage_status': get_usage_status(current_user)
+        })
+    else:
+        return jsonify({
+            'authenticated': False,
+            'subscription_tier': 'anonymous',
+            'usage_status': get_usage_status(None)
+        })
 
 # Contact and beta signup routes
 
