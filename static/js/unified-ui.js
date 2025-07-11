@@ -1,10 +1,16 @@
-// unified-ui.js - UI Interactions for AI & Plagiarism Detector
+// unified-ui.js - UI Interactions for AI & Plagiarism Detector with Real-Time Updates
 (function() {
     'use strict';
     
     // Initialize namespace
     window.UnifiedApp = window.UnifiedApp || {};
     window.UnifiedApp.ui = {};
+    
+    // Store UI state
+    let uiState = {
+        partialResultsShown: false,
+        progressStages: []
+    };
     
     // Loading overlay management
     window.UnifiedApp.ui.showLoading = function() {
@@ -14,20 +20,191 @@
         // Reset progress
         document.getElementById('progressBar').style.width = '0%';
         document.getElementById('loadingStage').textContent = 'Initializing Analysis...';
+        
+        // Clear previous stages
+        uiState.progressStages = [];
+        uiState.partialResultsShown = false;
+        
+        // Add cancel button if not exists
+        addCancelButton();
     };
     
     window.UnifiedApp.ui.hideLoading = function() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'none';
+        removeCancelButton();
     };
     
-    // Update progress
+    // Update progress with enhanced visuals
     window.UnifiedApp.ui.updateProgress = function(stage, progress) {
-        document.getElementById('loadingStage').textContent = stage;
-        document.getElementById('progressBar').style.width = progress + '%';
+        const progressBar = document.getElementById('progressBar');
+        const stageText = document.getElementById('loadingStage');
+        
+        // Update progress bar with smooth transition
+        progressBar.style.width = progress + '%';
+        
+        // Update stage text with fade effect
+        stageText.style.opacity = '0';
+        setTimeout(() => {
+            stageText.textContent = stage;
+            stageText.style.opacity = '1';
+        }, 200);
+        
+        // Add to progress history
+        uiState.progressStages.push({
+            stage: stage,
+            progress: progress,
+            timestamp: new Date()
+        });
+        
+        // Show stage history
+        updateStageHistory();
+        
+        // Add completion checkmark for finished stages
+        if (progress === 100) {
+            stageText.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> ${stage}`;
+        }
     };
     
-    // Toast notifications
+    // Show partial results during analysis
+    window.UnifiedApp.ui.showPartialResults = function(partialResults) {
+        if (!uiState.partialResultsShown) {
+            createPartialResultsContainer();
+            uiState.partialResultsShown = true;
+        }
+        
+        const container = document.getElementById('partialResultsContainer');
+        if (!container) return;
+        
+        let html = '<h4><i class="fas fa-chart-line"></i> Live Analysis Preview</h4>';
+        
+        // AI Detection Preview
+        if (partialResults.ai_indicators) {
+            html += `
+                <div class="partial-result-item">
+                    <span class="label">AI Patterns Detected:</span>
+                    <span class="value">${partialResults.ai_indicators.length} indicators</span>
+                </div>
+            `;
+        }
+        
+        // Plagiarism Preview
+        if (partialResults.plagiarism_matches !== undefined) {
+            html += `
+                <div class="partial-result-item">
+                    <span class="label">Potential Matches:</span>
+                    <span class="value">${partialResults.plagiarism_matches} sources</span>
+                </div>
+            `;
+        }
+        
+        // Confidence Preview
+        if (partialResults.confidence_level) {
+            html += `
+                <div class="partial-result-item">
+                    <span class="label">Analysis Confidence:</span>
+                    <span class="value">${partialResults.confidence_level}%</span>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+    };
+    
+    // Create partial results container
+    function createPartialResultsContainer() {
+        const overlay = document.getElementById('loadingOverlay');
+        const container = document.createElement('div');
+        container.id = 'partialResultsContainer';
+        container.className = 'partial-results-container';
+        container.style.cssText = `
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        `;
+        
+        overlay.appendChild(container);
+    }
+    
+    // Update stage history display
+    function updateStageHistory() {
+        let historyContainer = document.getElementById('stageHistory');
+        if (!historyContainer) {
+            const loadingContent = document.querySelector('.loading-content');
+            historyContainer = document.createElement('div');
+            historyContainer.id = 'stageHistory';
+            historyContainer.className = 'stage-history';
+            historyContainer.style.cssText = `
+                margin-top: 2rem;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                max-height: 150px;
+                overflow-y: auto;
+            `;
+            loadingContent.appendChild(historyContainer);
+        }
+        
+        const recentStages = uiState.progressStages.slice(-5);
+        historyContainer.innerHTML = recentStages.map(stage => `
+            <div class="stage-item" style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.25rem 0;
+                opacity: 0.8;
+                font-size: 0.875rem;
+            ">
+                <i class="fas fa-check" style="color: #10b981; font-size: 0.75rem;"></i>
+                <span>${stage.stage}</span>
+            </div>
+        `).join('');
+    }
+    
+    // Add cancel analysis button
+    function addCancelButton() {
+        const loadingContent = document.querySelector('.loading-content');
+        if (!document.getElementById('cancelAnalysisBtn')) {
+            const cancelBtn = document.createElement('button');
+            cancelBtn.id = 'cancelAnalysisBtn';
+            cancelBtn.innerHTML = '<i class="fas fa-times-circle"></i> Cancel Analysis';
+            cancelBtn.className = 'btn-cancel';
+            cancelBtn.style.cssText = `
+                margin-top: 1.5rem;
+                background: #ef4444;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background 0.3s ease;
+            `;
+            cancelBtn.onclick = () => UnifiedApp.analysis.cancelAnalysis();
+            loadingContent.appendChild(cancelBtn);
+        }
+    }
+    
+    function removeCancelButton() {
+        const cancelBtn = document.getElementById('cancelAnalysisBtn');
+        if (cancelBtn) cancelBtn.remove();
+        
+        const partialResults = document.getElementById('partialResultsContainer');
+        if (partialResults) partialResults.remove();
+        
+        const stageHistory = document.getElementById('stageHistory');
+        if (stageHistory) stageHistory.remove();
+    }
+    
+    // Toast notifications (keeping existing implementation)
     window.UnifiedApp.ui.showToast = function(message, type = 'info') {
         // Remove existing toasts
         const existingToast = document.querySelector('.toast-notification');
@@ -70,7 +247,7 @@
         }, 3000);
     };
     
-    // Show error modal
+    // Show error modal (keeping existing implementation)
     window.UnifiedApp.ui.showError = function(message) {
         // Create error modal if it doesn't exist
         let modal = document.getElementById('errorModal');
@@ -146,10 +323,10 @@
         return colors[type] || colors.info;
     }
     
-    // Add CSS animations
-    if (!document.getElementById('toastAnimations')) {
+    // Add enhanced CSS animations
+    if (!document.getElementById('enhancedToastAnimations')) {
         const style = document.createElement('style');
-        style.id = 'toastAnimations';
+        style.id = 'enhancedToastAnimations';
         style.textContent = `
             @keyframes slideIn {
                 from {
@@ -171,6 +348,11 @@
                     transform: translateX(100%);
                     opacity: 0;
                 }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
             }
             
             .modal-overlay {
@@ -238,6 +420,31 @@
                 background: #1d4ed8;
             }
             
+            .btn-cancel:hover {
+                background: #dc2626 !important;
+            }
+            
+            .partial-result-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }
+            
+            .partial-result-item:last-child {
+                border-bottom: none;
+            }
+            
+            .partial-result-item .label {
+                color: #6b7280;
+                font-weight: 500;
+            }
+            
+            .partial-result-item .value {
+                color: #1f2937;
+                font-weight: 600;
+            }
+            
             @keyframes scaleIn {
                 from {
                     transform: scale(0.9);
@@ -247,6 +454,14 @@
                     transform: scale(1);
                     opacity: 1;
                 }
+            }
+            
+            #loadingStage {
+                transition: opacity 0.3s ease;
+            }
+            
+            #progressBar {
+                transition: width 0.5s ease-out;
             }
         `;
         document.head.appendChild(style);
@@ -279,8 +494,18 @@
                 }
             }
             
-            // Escape to close modals
+            // Escape to close modals or cancel analysis
             if (e.key === 'Escape') {
+                // First try to cancel analysis
+                if (UnifiedApp.analysis && UnifiedApp.analysis.cancelAnalysis) {
+                    const overlay = document.getElementById('loadingOverlay');
+                    if (overlay && overlay.style.display === 'flex') {
+                        UnifiedApp.analysis.cancelAnalysis();
+                        return;
+                    }
+                }
+                
+                // Then close modals
                 const modals = document.querySelectorAll('.modal-overlay');
                 modals.forEach(modal => {
                     if (modal.style.display === 'flex') {
