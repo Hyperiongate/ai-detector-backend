@@ -1,436 +1,386 @@
-# news_analysis.py - AI-Powered News Analysis with GPT-4
-# This module uses OpenAI's GPT-4 for intelligent news analysis
+"""
+News Analysis Module for Facts & Fakes AI
+Uses OpenAI GPT-4 for intelligent article analysis
+Compatible with OpenAI 0.28.1
+"""
 
-import re
-import requests
-from bs4 import BeautifulSoup 
-from urllib.parse import urlparse
-from datetime import datetime
-import json
 import os
-from typing import Dict, List, Tuple, Optional
-from openai import OpenAI
+import json
+import logging
+from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+import re
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# OLD OpenAI import style (for version 0.28.1)
+import openai
 
-# Source credibility database (keep this for quick lookups)
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Configuration
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
+GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
+
+# Set OpenAI API key
+if OPENAI_API_KEY:
+    openai.api_key = OPENAI_API_KEY
+
+# Known source credibility database
 SOURCE_CREDIBILITY = {
-    'apnews.com': {'name': 'Associated Press', 'credibility': 90, 'bias': 'center'},
-    'reuters.com': {'name': 'Reuters', 'credibility': 90, 'bias': 'center'},
-    'bbc.com': {'name': 'BBC News', 'credibility': 85, 'bias': 'center-left'},
-    'bbc.co.uk': {'name': 'BBC News', 'credibility': 85, 'bias': 'center-left'},
-    'cnn.com': {'name': 'CNN', 'credibility': 70, 'bias': 'left'},
-    'foxnews.com': {'name': 'Fox News', 'credibility': 65, 'bias': 'right'},
-    'nytimes.com': {'name': 'The New York Times', 'credibility': 80, 'bias': 'left-center'},
-    'washingtonpost.com': {'name': 'The Washington Post', 'credibility': 80, 'bias': 'left-center'},
-    'wsj.com': {'name': 'The Wall Street Journal', 'credibility': 85, 'bias': 'right-center'},
-    'npr.org': {'name': 'NPR', 'credibility': 85, 'bias': 'left-center'},
-    'politico.com': {'name': 'Politico', 'credibility': 75, 'bias': 'center'},
-    'theguardian.com': {'name': 'The Guardian', 'credibility': 75, 'bias': 'left'},
-    'dailywire.com': {'name': 'The Daily Wire', 'credibility': 55, 'bias': 'right'},
-    'huffpost.com': {'name': 'HuffPost', 'credibility': 60, 'bias': 'left'},
+    # High credibility sources
+    'reuters.com': {'credibility': 'High', 'bias': 'Center', 'type': 'News Agency'},
+    'apnews.com': {'credibility': 'High', 'bias': 'Center', 'type': 'News Agency'},
+    'bbc.com': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Public Media'},
+    'bbc.co.uk': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Public Media'},
+    'npr.org': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Public Media'},
+    'pbs.org': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Public Media'},
+    'wsj.com': {'credibility': 'High', 'bias': 'Center-Right', 'type': 'Business News'},
+    'bloomberg.com': {'credibility': 'High', 'bias': 'Center', 'type': 'Business News'},
+    'nature.com': {'credibility': 'High', 'bias': 'Center', 'type': 'Scientific'},
+    'science.org': {'credibility': 'High', 'bias': 'Center', 'type': 'Scientific'},
+    
+    # Medium credibility sources
+    'cnn.com': {'credibility': 'Medium', 'bias': 'Left', 'type': 'Cable News'},
+    'foxnews.com': {'credibility': 'Medium', 'bias': 'Right', 'type': 'Cable News'},
+    'msnbc.com': {'credibility': 'Medium', 'bias': 'Left', 'type': 'Cable News'},
+    'nytimes.com': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Newspaper'},
+    'washingtonpost.com': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Newspaper'},
+    'theguardian.com': {'credibility': 'High', 'bias': 'Center-Left', 'type': 'Newspaper'},
+    'usatoday.com': {'credibility': 'Medium', 'bias': 'Center', 'type': 'Newspaper'},
+    
+    # Lower credibility sources
+    'buzzfeed.com': {'credibility': 'Low', 'bias': 'Left', 'type': 'Digital Media'},
+    'breitbart.com': {'credibility': 'Low', 'bias': 'Far-Right', 'type': 'Digital Media'},
+    'infowars.com': {'credibility': 'Very Low', 'bias': 'Far-Right', 'type': 'Conspiracy'},
+    'naturalnews.com': {'credibility': 'Very Low', 'bias': 'Far-Right', 'type': 'Conspiracy'},
 }
 
 class NewsAnalyzer:
-    """AI-powered news analyzer using GPT-4 for intelligent analysis"""
+    """Main class for analyzing news articles"""
     
     def __init__(self):
-        self.client = client
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    
+    def analyze(self, content, content_type='url', is_pro=True):
+        """
+        Analyze news content
         
-    def analyze(self, content: str, content_type: str = 'text', is_pro: bool = False) -> Dict:
-        """Main analysis function using AI"""
-        
-        # Extract content based on type
-        if content_type == 'url':
-            article_data = self.extract_from_url(content)
-            if not article_data['success']:
-                return self._generate_error_response(article_data['error'])
+        Args:
+            content: URL or article text
+            content_type: 'url' or 'text'
+            is_pro: Whether to use professional features
             
-            text = article_data['text']
-            metadata = article_data['metadata']
-            url = content
-        else:
-            text = content
-            metadata = self.extract_metadata_from_text(text)
-            url = None
-        
-        # Limit text length for API calls (GPT-4 can handle ~8k tokens)
-        text_for_analysis = text[:6000] if len(text) > 6000 else text
-        
+        Returns:
+            dict: Analysis results
+        """
         try:
-            # Get AI analysis
-            ai_analysis = self.get_ai_analysis(text_for_analysis, metadata, url)
+            # Extract article data
+            if content_type == 'url':
+                article_data = self.extract_from_url(content)
+                if not article_data:
+                    return {
+                        'success': False,
+                        'error': 'Could not extract article content'
+                    }
+            else:
+                article_data = {
+                    'title': 'Direct Text Analysis',
+                    'text': content,
+                    'url': None,
+                    'domain': None,
+                    'publish_date': None
+                }
             
-            # Combine AI analysis with source database info
-            if url and metadata.get('domain') in SOURCE_CREDIBILITY:
-                source_info = SOURCE_CREDIBILITY[metadata['domain']]
-                ai_analysis['sources']['credibility'] = source_info['credibility']
-                ai_analysis['sources']['known_bias'] = source_info['bias']
+            # Perform analysis
+            if is_pro and OPENAI_API_KEY:
+                analysis = self.get_ai_analysis(article_data)
+            else:
+                analysis = self.fallback_analysis(article_data)
             
-            # Build response
-            analysis_results = {
+            # Add source credibility
+            if article_data.get('domain'):
+                analysis['source_credibility'] = self.check_source_credibility(article_data['domain'])
+            
+            return {
                 'success': True,
-                'results': ai_analysis,
-                'original_content': text[:500] + '...' if len(text) > 500 else text
+                'article': article_data,
+                'analysis': analysis,
+                'is_pro': is_pro
             }
             
-            return analysis_results
+        except Exception as e:
+            logger.error(f"News analysis error: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def extract_from_url(self, url):
+        """Extract article content from URL"""
+        try:
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Extract domain
+            domain = urlparse(url).netloc.replace('www.', '')
+            
+            # Extract title
+            title = None
+            if soup.find('h1'):
+                title = soup.find('h1').get_text().strip()
+            elif soup.find('title'):
+                title = soup.find('title').get_text().strip()
+            
+            # Extract article text
+            article_text = ""
+            
+            # Try different content selectors
+            content_selectors = [
+                'article', 
+                '[role="main"]',
+                '.article-body',
+                '.story-body',
+                '.entry-content',
+                '.post-content',
+                'main'
+            ]
+            
+            for selector in content_selectors:
+                content = soup.select_one(selector)
+                if content:
+                    # Get all paragraphs
+                    paragraphs = content.find_all('p')
+                    if paragraphs:
+                        article_text = ' '.join([p.get_text().strip() for p in paragraphs])
+                        break
+            
+            # Fallback to all paragraphs
+            if not article_text:
+                paragraphs = soup.find_all('p')
+                article_text = ' '.join([p.get_text().strip() for p in paragraphs[:20]])  # Limit to first 20
+            
+            # Extract publish date
+            publish_date = None
+            date_selectors = [
+                'time',
+                '[property="article:published_time"]',
+                '.publish-date',
+                '.posted-on'
+            ]
+            
+            for selector in date_selectors:
+                date_elem = soup.select_one(selector)
+                if date_elem:
+                    if date_elem.get('datetime'):
+                        publish_date = date_elem['datetime']
+                    elif date_elem.get('content'):
+                        publish_date = date_elem['content']
+                    break
+            
+            return {
+                'url': url,
+                'domain': domain,
+                'title': title,
+                'text': article_text[:5000],  # Limit text length
+                'publish_date': publish_date
+            }
             
         except Exception as e:
-            print(f"AI Analysis Error: {str(e)}")
-            # Fallback to basic analysis if AI fails
-            return self.fallback_analysis(text, metadata)
+            logger.error(f"URL extraction error: {str(e)}")
+            return None
     
-    def get_ai_analysis(self, text: str, metadata: Dict, url: Optional[str] = None) -> Dict:
-        """Use GPT-4 to analyze the article"""
+    def get_ai_analysis(self, article_data):
+        """
+        Use OpenAI GPT-4 to analyze article - OLD API style for 0.28.1
+        """
+        if not OPENAI_API_KEY:
+            logger.warning("OpenAI API key not configured")
+            return self.fallback_analysis(article_data)
         
-        # Construct the analysis prompt
-        prompt = f"""You are an expert news analyst. Analyze this article and provide a detailed assessment.
-
-Article URL: {url or 'Direct text input'}
-Source: {metadata.get('domain', 'Unknown')}
-Author: {metadata.get('author', 'Not specified')}
-
-Article Text:
-{text}
-
-Provide your analysis in the following JSON format (be accurate and specific):
-{{
-    "credibility": <number 0-100>,
-    "bias": {{
-        "label": "<one of: far-left, left, left-center, center, right-center, right, far-right>",
-        "score": <number -10 to +10, negative=left, positive=right>,
-        "objectivity": <number 0-100>,
-        "reasoning": "<brief explanation of bias detection>"
-    }},
-    "sources": {{
-        "name": "<source name>",
-        "credibility": <number 0-100>,
-        "domain": "<domain>",
-        "assessment": "<brief source assessment>"
-    }},
-    "author": "<author name or 'Unknown'>",
-    "style": {{
-        "quotes": <number of direct quotes found>,
-        "statistics": <number of statistics/data points>,
-        "readingLevel": <approximate grade level>,
-        "balanced": <boolean>,
-        "tone": "<professional/casual/sensational/academic>"
-    }},
-    "fact_check": {{
-        "claims": [
-            {{
-                "claim": "<specific claim from article>",
-                "verifiable": <boolean>,
-                "confidence": <number 0-100>,
-                "assessment": "<brief assessment>"
-            }}
-        ],
-        "overall_accuracy": <number 0-100>
-    }},
-    "summary": "<2-3 sentence summary of the article>",
-    "key_findings": [
-        "<finding 1>",
-        "<finding 2>",
-        "<finding 3>"
-    ],
-    "red_flags": [
-        "<any concerns or issues found>"
-    ]
-}}
-
-Be objective and thorough in your analysis. Base credibility on:
-- Source reputation and track record
-- Author credentials
-- Use of evidence and citations
-- Balanced reporting
-- Factual accuracy
-- Transparent corrections policy"""
-
         try:
-            # Make API call to GPT-4
-            response = self.client.chat.completions.create(
-                model="gpt-4",  # or "gpt-3.5-turbo" for faster/cheaper
+            # Prepare the analysis prompt
+            prompt = self._create_analysis_prompt(article_data)
+            
+            # OLD OpenAI API call style (for version 0.28.1)
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert news analyst providing objective article assessments."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert fact-checker and media analyst. Analyze articles for bias, credibility, and factual accuracy."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
                 ],
-                temperature=0.3,  # Lower temperature for more consistent analysis
+                temperature=0.7,
                 max_tokens=1500
             )
             
-            # Parse the response
+            # Extract response - OLD style
             analysis_text = response.choices[0].message.content
             
-            # Extract JSON from response (GPT sometimes adds extra text)
-            json_match = re.search(r'\{.*\}', analysis_text, re.DOTALL)
-            if json_match:
-                analysis_data = json.loads(json_match.group())
-            else:
-                # If no JSON found, try to parse the whole response
-                analysis_data = json.loads(analysis_text)
+            # Parse the structured response
+            return self._parse_ai_response(analysis_text)
             
-            # Convert to expected format
-            return self.format_ai_response(analysis_data, metadata)
-            
-        except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {e}")
-            print(f"Response was: {analysis_text if 'analysis_text' in locals() else 'No response'}")
-            raise
         except Exception as e:
-            print(f"GPT-4 API error: {e}")
-            raise
+            logger.error(f"OpenAI API error: {str(e)}")
+            return self.fallback_analysis(article_data)
     
-    def format_ai_response(self, ai_data: Dict, metadata: Dict) -> Dict:
-        """Format AI response to match expected structure"""
+    def _create_analysis_prompt(self, article_data):
+        """Create analysis prompt for GPT-4"""
+        return f"""
+        Analyze this news article for bias, credibility, and factual accuracy.
         
-        # Ensure all required fields exist with defaults
-        return {
-            'credibility': ai_data.get('credibility', 50),
-            'bias': {
-                'label': ai_data.get('bias', {}).get('label', 'unknown'),
-                'score': ai_data.get('bias', {}).get('score', 0),
-                'objectivity': ai_data.get('bias', {}).get('objectivity', 50),
-                'left_indicators': abs(ai_data.get('bias', {}).get('score', 0)) if ai_data.get('bias', {}).get('score', 0) < 0 else 0,
-                'right_indicators': ai_data.get('bias', {}).get('score', 0) if ai_data.get('bias', {}).get('score', 0) > 0 else 0,
-                'emotional_indicators': max(0, 100 - ai_data.get('bias', {}).get('objectivity', 100)) // 10,
-                'reasoning': ai_data.get('bias', {}).get('reasoning', '')
-            },
-            'sources': {
-                'name': ai_data.get('sources', {}).get('name', metadata.get('domain', 'Unknown')),
-                'credibility': ai_data.get('sources', {}).get('credibility', 50),
-                'bias': ai_data.get('bias', {}).get('label', 'unknown'),
-                'domain': ai_data.get('sources', {}).get('domain', metadata.get('domain', '')),
-                'assessment': ai_data.get('sources', {}).get('assessment', '')
-            },
-            'author': ai_data.get('author', metadata.get('author', 'Unknown')),
-            'style': {
-                'quotes': ai_data.get('style', {}).get('quotes', 0),
-                'statistics': ai_data.get('style', {}).get('statistics', 0),
-                'readingLevel': ai_data.get('style', {}).get('readingLevel', 10),
-                'balanced': ai_data.get('style', {}).get('balanced', False),
-                'tone': ai_data.get('style', {}).get('tone', 'unknown')
-            },
-            'claims': [
-                {
-                    'claim': claim.get('claim', ''),
-                    'confidence': claim.get('confidence', 50),
-                    'status': f"{'Verifiable' if claim.get('verifiable', False) else 'Unverifiable'} - {claim.get('assessment', '')}"
-                }
-                for claim in ai_data.get('fact_check', {}).get('claims', [])[:5]
+        Title: {article_data.get('title', 'N/A')}
+        Source: {article_data.get('domain', 'Unknown')}
+        
+        Article Text:
+        {article_data.get('text', '')[:3000]}
+        
+        Provide analysis in this JSON format:
+        {{
+            "bias_score": -1.0 to 1.0 (-1 = far left, 0 = center, 1 = far right),
+            "credibility_score": 0.0 to 1.0,
+            "factual_accuracy": 0.0 to 1.0,
+            "manipulation_tactics": ["list", "of", "tactics"],
+            "key_claims": ["claim 1", "claim 2"],
+            "fact_checks": [
+                {{"claim": "...", "verdict": "true/false/unverified", "explanation": "..."}}
             ],
-            'cross_references': [],  # Would need separate API call
-            'summary': ai_data.get('summary', ''),
-            'key_findings': ai_data.get('key_findings', []),
-            'red_flags': ai_data.get('red_flags', []),
-            'overall_accuracy': ai_data.get('fact_check', {}).get('overall_accuracy', 50)
-        }
+            "summary": "Brief summary of findings",
+            "trust_score": 0 to 100
+        }}
+        """
     
-    def fallback_analysis(self, text: str, metadata: Dict) -> Dict:
-        """Fallback to basic analysis if AI fails"""
-        print("Using fallback analysis due to AI error")
-        
-        # Basic keyword analysis as fallback
-        text_lower = text.lower()
-        
-        # Count basic indicators
-        quotes = len(re.findall(r'"[^"]{10,}"', text))
-        stats = len(re.findall(r'\b\d+(?:,\d+)*(?:\.\d+)?%?\b', text))
-        
-        # Very basic bias detection
-        left_words = ['progressive', 'inequality', 'social justice', 'climate crisis']
-        right_words = ['conservative', 'freedom', 'traditional', 'free market']
-        emotional_words = ['shocking', 'outrageous', 'devastating', 'unbelievable']
-        
-        left_count = sum(1 for word in left_words if word in text_lower)
-        right_count = sum(1 for word in right_words if word in text_lower)
-        emotional_count = sum(1 for word in emotional_words if word in text_lower)
-        
-        bias_score = (right_count - left_count) * 2
-        bias_label = 'center'
-        if bias_score <= -3:
-            bias_label = 'left'
-        elif bias_score >= 3:
-            bias_label = 'right'
-        
-        return {
-            'credibility': 50,  # Default middle score
-            'bias': {
-                'label': bias_label,
-                'score': bias_score,
-                'objectivity': max(0, 100 - (emotional_count * 10)),
-                'left_indicators': left_count,
-                'right_indicators': right_count,
-                'emotional_indicators': emotional_count
-            },
-            'sources': {
-                'name': metadata.get('domain', 'Unknown'),
-                'credibility': 50,
-                'bias': 'unknown',
-                'domain': metadata.get('domain', '')
-            },
-            'author': metadata.get('author', 'Unknown'),
-            'style': {
-                'quotes': quotes,
-                'statistics': stats,
-                'readingLevel': 10,
-                'balanced': quotes >= 2
-            },
-            'claims': [],
-            'cross_references': []
-        }
-    
-    def extract_from_url(self, url: str) -> Dict:
-        """Extract article content from URL"""
+    def _parse_ai_response(self, response_text):
+        """Parse GPT-4 response"""
         try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-            
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-            
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Extract text content
-            article_text = ""
-            
-            # Common article selectors
-            selectors = [
-                'article', 'main', '[role="main"]', '.article-body',
-                '.story-body', '.entry-content', 'div[itemprop="articleBody"]'
-            ]
-            
-            for selector in selectors:
-                elements = soup.select(selector)
-                if elements:
-                    article_text = ' '.join([elem.get_text(strip=True) for elem in elements])
-                    if len(article_text) > 100:
-                        break
-            
-            # If no article found, try paragraphs
-            if len(article_text) < 100:
-                paragraphs = soup.find_all('p')
-                article_text = ' '.join([p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 20])
-            
-            # Extract metadata
-            metadata = {
-                'title': soup.find('title').get_text() if soup.find('title') else '',
-                'author': self._extract_author_from_html(soup),
-                'date': self._extract_date_from_html(soup),
-                'domain': urlparse(url).netloc.replace('www.', '')
-            }
-            
+            # Try to extract JSON from response
+            import re
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            else:
+                # Fallback parsing
+                return {
+                    'summary': response_text,
+                    'bias_score': 0,
+                    'credibility_score': 0.5,
+                    'trust_score': 50
+                }
+        except:
             return {
-                'success': True,
-                'text': article_text,
-                'metadata': metadata
-            }
-            
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f"Could not extract content from URL: {str(e)}",
-                'text': '',
-                'metadata': {}
+                'summary': response_text,
+                'bias_score': 0,
+                'credibility_score': 0.5,
+                'trust_score': 50
             }
     
-    def _extract_author_from_html(self, soup: BeautifulSoup) -> str:
-        """Extract author from HTML"""
-        # Try meta tags first
-        author_meta = soup.find('meta', {'name': 'author'}) or soup.find('meta', {'property': 'author'})
-        if author_meta:
-            return author_meta.get('content', '')
+    def fallback_analysis(self, article_data):
+        """Basic analysis when AI is not available"""
+        text = article_data.get('text', '')
         
-        # Try common author selectors
-        selectors = [
-            '[rel="author"]', '.author-name', '.by-author',
-            '.ArticleHeader-byline', 'span[itemprop="author"]', '.author'
-        ]
+        # Basic bias detection
+        bias_score = 0
+        left_keywords = ['progressive', 'liberal', 'democrat', 'left-wing', 'socialist']
+        right_keywords = ['conservative', 'republican', 'right-wing', 'traditional', 'libertarian']
         
-        for selector in selectors:
-            element = soup.select_one(selector)
-            if element:
-                return element.get_text(strip=True)
+        text_lower = text.lower()
+        left_count = sum(1 for keyword in left_keywords if keyword in text_lower)
+        right_count = sum(1 for keyword in right_keywords if keyword in text_lower)
         
-        return ''
-    
-    def _extract_date_from_html(self, soup: BeautifulSoup) -> str:
-        """Extract publication date from HTML"""
-        date_meta = soup.find('meta', {'property': 'article:published_time'}) or \
-                   soup.find('meta', {'name': 'publication_date'})
-        if date_meta:
-            return date_meta.get('content', '')
+        if left_count > right_count:
+            bias_score = -0.5
+        elif right_count > left_count:
+            bias_score = 0.5
         
-        time_elem = soup.find('time')
-        if time_elem:
-            return time_elem.get('datetime', time_elem.get_text(strip=True))
+        # Basic credibility check
+        credibility_score = 0.5
+        if article_data.get('domain'):
+            source_info = SOURCE_CREDIBILITY.get(article_data['domain'], {})
+            if source_info.get('credibility') == 'High':
+                credibility_score = 0.8
+            elif source_info.get('credibility') == 'Low':
+                credibility_score = 0.3
         
-        return ''
-    
-    def extract_metadata_from_text(self, text: str) -> Dict:
-        """Extract metadata from pasted text"""
-        metadata = {
-            'title': '',
-            'author': '',
-            'date': '',
-            'domain': 'Direct Input'
-        }
+        # Detect manipulation tactics
+        manipulation_tactics = []
+        if len(re.findall(r'[A-Z]{2,}', text)) > 10:
+            manipulation_tactics.append('Excessive capitalization')
+        if len(re.findall(r'!{2,}', text)) > 0:
+            manipulation_tactics.append('Multiple exclamation marks')
+        if any(word in text_lower for word in ['breaking', 'urgent', 'alert', 'shocking']):
+            manipulation_tactics.append('Sensational language')
         
-        # Extract author
-        author_patterns = [
-            r'^By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
-            r'^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)\n',
-            r'By:\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)',
-        ]
+        # Extract key claims (simple extraction)
+        sentences = text.split('.')[:5]  # First 5 sentences
+        key_claims = [s.strip() for s in sentences if len(s.strip()) > 50][:3]
         
-        for pattern in author_patterns:
-            match = re.search(pattern, text, re.MULTILINE)
-            if match:
-                metadata['author'] = match.group(1).strip()
-                break
+        # Calculate trust score
+        trust_score = int((credibility_score * 100 + (1 - abs(bias_score)) * 50) / 2)
         
-        # Extract date
-        date_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}'
-        date_match = re.search(date_pattern, text)
-        if date_match:
-            metadata['date'] = date_match.group(0)
-        
-        return metadata
-    
-    def _generate_error_response(self, error: str) -> Dict:
-        """Generate error response"""
         return {
-            'success': False,
-            'error': error,
-            'results': {
-                'credibility': 50,
-                'bias': {'label': 'unknown', 'score': 0, 'objectivity': 50},
-                'sources': {'name': 'Unknown', 'credibility': 50},
-                'author': 'Unknown',
-                'style': {'quotes': 0, 'statistics': 0, 'readingLevel': 10, 'balanced': False}
-            }
+            'bias_score': bias_score,
+            'credibility_score': credibility_score,
+            'factual_accuracy': credibility_score,
+            'manipulation_tactics': manipulation_tactics,
+            'key_claims': key_claims,
+            'fact_checks': [],
+            'summary': f"Basic analysis completed. Source credibility: {credibility_score*100:.0f}%. Bias detected: {'Left' if bias_score < 0 else 'Right' if bias_score > 0 else 'Center'}.",
+            'trust_score': trust_score
         }
-
-
-# Flask route handler
-def analyze_news_route(request_data: Dict) -> Dict:
-    """Flask route handler for news analysis"""
     
+    def check_source_credibility(self, domain):
+        """Check source credibility from database"""
+        return SOURCE_CREDIBILITY.get(domain, {
+            'credibility': 'Unknown',
+            'bias': 'Unknown',
+            'type': 'Unknown'
+        })
+
+def analyze_news_route(content, is_pro=True):
+    """
+    Route function for Flask endpoint
+    
+    Args:
+        content: URL or article text
+        is_pro: Whether to use professional features
+        
+    Returns:
+        dict: Analysis results
+    """
     analyzer = NewsAnalyzer()
     
-    # Extract parameters
-    content = request_data.get('content', '')
-    content_type = request_data.get('type', 'text')
-    is_pro = request_data.get('is_pro', False)
-    
-    if not content:
-        return {'error': 'No content provided'}, 400
+    # Determine content type
+    content_type = 'url' if content.startswith(('http://', 'https://')) else 'text'
     
     # Perform analysis
-    try:
-        results = analyzer.analyze(content, content_type, is_pro)
+    results = analyzer.analyze(content, content_type, is_pro)
+    
+    # Format for API response
+    if results['success']:
+        analysis = results['analysis']
+        return {
+            'success': True,
+            'bias_score': analysis.get('bias_score', 0),
+            'credibility_score': analysis.get('credibility_score', 0.5),
+            'trust_score': analysis.get('trust_score', 50),
+            'summary': analysis.get('summary', ''),
+            'manipulation_tactics': analysis.get('manipulation_tactics', []),
+            'key_claims': analysis.get('key_claims', []),
+            'fact_checks': analysis.get('fact_checks', []),
+            'source_credibility': results.get('source_credibility', {}),
+            'article_info': results.get('article', {})
+        }
+    else:
         return results
-    except Exception as e:
-        return {'error': f'Analysis failed: {str(e)}'}, 500
