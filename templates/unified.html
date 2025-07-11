@@ -1,429 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}AI Detection & Plagiarism Check - Facts & Fakes AI{% block scripts %}
-<script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
-<script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
-<script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
-<script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
-<script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
-<script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
-
-<script>
-// Global variables
-window.userAnalysisData = {
-    isAuthenticated: false,
-    isPro: false,
-    usageThisWeek: 0,
-    usageToday: 0,
-    weeklyLimit: 1,
-    dailyLimit: 0
-};
-
-// Navigation functions
-window.ffNav = {
-    checkAuthStatus: async function() {
-        try {
-            const response = await fetch('/api/user/status');
-            if (!response.ok) {
-                throw new Error('Auth check failed');
-            }
-            
-            const data = await response.json();
-            
-            if (data.authenticated) {
-                document.getElementById('ffNavAuth').style.display = 'none';
-                document.getElementById('ffUserMenu').style.display = 'block';
-                
-                document.getElementById('ffUserEmail').textContent = data.email || 'User';
-                document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
-                document.getElementById('ffUserPlan').textContent = data.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
-                
-                // Update analysis data
-                window.userAnalysisData.isAuthenticated = true;
-                window.userAnalysisData.isPro = data.subscription_tier === 'pro';
-                
-                if (data.subscription_tier === 'pro') {
-                    window.userAnalysisData.dailyLimit = 5;
-                    window.userAnalysisData.weeklyLimit = 35;
-                    window.userAnalysisData.usageToday = data.usage_today || 0;
-                    
-                    // Update nav usage display
-                    const usagePercent = (window.userAnalysisData.usageToday / 5) * 100;
-                    document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
-                    document.getElementById('ffUsageText').textContent = `${window.userAnalysisData.usageToday} / 5 analyses today`;
-                } else {
-                    window.userAnalysisData.weeklyLimit = 5;
-                    window.userAnalysisData.usageThisWeek = data.usage_this_week || 0;
-                    
-                    // Update nav usage display
-                    const usagePercent = (window.userAnalysisData.usageThisWeek / 5) * 100;
-                    document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
-                    document.getElementById('ffUsageText').textContent = `${window.userAnalysisData.usageThisWeek} / 5 analyses this week`;
-                }
-                
-                updateUsageCounter();
-            } else {
-                // Not authenticated - 1 per week
-                window.userAnalysisData.usageThisWeek = parseInt(localStorage.getItem('ff_usage_week') || '0');
-                updateUsageCounter();
-            }
-        } catch (error) {
-            console.log('Auth check failed:', error);
-            // Use localStorage for anonymous users
-            window.userAnalysisData.usageThisWeek = parseInt(localStorage.getItem('ff_usage_week') || '0');
-            updateUsageCounter();
-        }
-    },
-    
-    init: function() {
-        this.checkAuthStatus();
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const userMenu = document.querySelector('.ff-user-menu');
-            if (userMenu && !userMenu.contains(event.target)) {
-                document.getElementById('ffUserDropdown').classList.remove('active');
-            }
-        });
-        
-        // Add active class to current page
-        const currentPath = window.location.pathname;
-        document.querySelectorAll('.ff-nav-link').forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('active');
-            }
-        });
-    }
-};
-
-// Update usage counter display
-function updateUsageCounter() {
-    const counter = document.getElementById('usage-counter');
-    const usedEl = document.getElementById('usage-used');
-    const totalEl = document.getElementById('usage-total');
-    const periodEl = document.getElementById('usage-period');
-    const promptEl = document.getElementById('upgrade-prompt');
-    
-    if (window.userAnalysisData.isPro) {
-        usedEl.textContent = window.userAnalysisData.usageToday;
-        totalEl.textContent = '5';
-        periodEl.textContent = 'Today';
-        promptEl.style.display = 'none';
-    } else if (window.userAnalysisData.isAuthenticated) {
-        usedEl.textContent = window.userAnalysisData.usageThisWeek;
-        totalEl.textContent = '5';
-        periodEl.textContent = 'This Week';
-        promptEl.style.display = window.userAnalysisData.usageThisWeek >= 5 ? 'block' : 'none';
-    } else {
-        usedEl.textContent = window.userAnalysisData.usageThisWeek;
-        totalEl.textContent = '1';
-        periodEl.textContent = 'This Week';
-        promptEl.innerHTML = '<a href="/login">Sign in</a> for 5 free analyses per week';
-        promptEl.style.display = 'block';
-    }
-}
-
-// Check if user can analyze
-function canUserAnalyze() {
-    if (window.userAnalysisData.isPro) {
-        return window.userAnalysisData.usageToday < 5;
-    } else if (window.userAnalysisData.isAuthenticated) {
-        return window.userAnalysisData.usageThisWeek < 5;
-    } else {
-        return window.userAnalysisData.usageThisWeek < 1;
-    }
-}
-
-// Show usage limit modal
-function showUsageLimitModal() {
-    const modal = document.getElementById('usage-modal');
-    const message = document.getElementById('usage-modal-message');
-    
-    if (window.userAnalysisData.isPro) {
-        message.textContent = "You've reached your daily limit of 5 analyses. Your limit will reset tomorrow.";
-    } else if (window.userAnalysisData.isAuthenticated) {
-        message.textContent = "You've used all 5 of your free analyses this week. Upgrade to Pro for up to 5 analyses per day!";
-    } else {
-        message.textContent = "You've used your free analysis for this week. Sign up for a free account to get 5 analyses per week, or upgrade to Pro for daily analyses.";
-    }
-    
-    modal.classList.add('show');
-}
-
-function closeUsageModal() {
-    document.getElementById('usage-modal').classList.remove('show');
-}
-
-// Global functions for onclick handlers
-function ffToggleMobileMenu() {
-    const navLinks = document.getElementById('ffNavLinks');
-    navLinks.classList.toggle('active');
-}
-
-function ffToggleUserDropdown() {
-    const dropdown = document.getElementById('ffUserDropdown');
-    dropdown.classList.toggle('active');
-}
-
-async function ffLogout() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Logout failed:', error);
-    }
-}
-
-// Simple modal functions
-window.showModal = function(modalId) {
-    const modal = document.getElementById(modalId);
-    const backdrop = document.getElementById('modalBackdrop');
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    backdrop.style.display = 'block';
-    setTimeout(() => backdrop.classList.add('show'), 10);
-};
-
-window.closeModal = function() {
-    const modals = document.querySelectorAll('.modal');
-    const backdrop = document.getElementById('modalBackdrop');
-    modals.forEach(modal => {
-        modal.classList.remove('show');
-        setTimeout(() => modal.style.display = 'none', 300);
-    });
-    backdrop.classList.remove('show');
-    setTimeout(() => backdrop.style.display = 'none', 300);
-};
-
-// Initialize unified app after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing unified page...');
-    
-    // Initialize navigation
-    window.ffNav.init();
-    
-    // Initialize input tabs
-    const inputTabs = document.querySelectorAll('.input-tab');
-    const inputPanels = document.querySelectorAll('.input-panel');
-    
-    inputTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetTab = this.dataset.tab;
-            
-            // Update tabs
-            inputTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Update panels
-            inputPanels.forEach(panel => {
-                if (panel.id === targetTab + '-panel') {
-                    panel.classList.add('active');
-                } else {
-                    panel.classList.remove('active');
-                }
-            });
-        });
-    });
-
-    // Initialize file upload
-    const fileUploadArea = document.getElementById('file-upload-area');
-    const fileInput = document.getElementById('file-input');
-    const filePreview = document.getElementById('file-preview');
-    const fileAnalyzeButton = document.getElementById('file-analyze-button');
-
-    if (fileUploadArea && fileInput) {
-        fileUploadArea.addEventListener('click', () => fileInput.click());
-        
-        fileUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileUploadArea.classList.add('dragover');
-        });
-        
-        fileUploadArea.addEventListener('dragleave', () => {
-            fileUploadArea.classList.remove('dragover');
-        });
-        
-        fileUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileUploadArea.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
-        });
-    }
-
-    function handleFileSelect(file) {
-        const allowedTypes = ['.pdf', '.doc', '.docx', '.txt'];
-        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-        
-        if (!allowedTypes.includes(fileExtension)) {
-            alert('Please upload a PDF, DOC, DOCX, or TXT file.');
-            return;
-        }
-        
-        if (file.size > 10 * 1024 * 1024) { // 10MB
-            alert('File size must be less than 10MB.');
-            return;
-        }
-        
-        // Show file preview
-        filePreview.innerHTML = `
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-alt me-2"></i>
-                    <strong>${file.name}</strong>
-                    <span class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</span>
-                </div>
-                <button class="btn-cancel" onclick="clearFileUpload()" style="padding: 4px 12px; font-size: 0.9em;">
-                    <i class="fas fa-times"></i> Remove
-                </button>
-            </div>
-        `;
-        filePreview.style.display = 'block';
-        fileAnalyzeButton.disabled = false;
-        
-        // Store file for analysis
-        window.selectedFile = file;
-    }
-});
-
-// Start analysis function - This is the main function that needs to be implemented
-window.startAnalysis = async function(type) {
-    console.log('Starting analysis:', type);
-    
-    // Check usage limits (temporarily disabled)
-    // if (!canUserAnalyze()) {
-    //     showUsageLimitModal();
-    //     return;
-    // }
-    
-    // Get the appropriate input based on type
-    let content = '';
-    if (type === 'url') {
-        content = document.getElementById('url-input').value.trim();
-        if (!content) {
-            alert('Please enter a URL to analyze');
-            return;
-        }
-    } else if (type === 'text') {
-        content = document.getElementById('text-input').value.trim();
-        if (!content || content.length < 50) {
-            alert('Please enter at least 50 characters to analyze');
-            return;
-        }
-    } else if (type === 'file' && window.selectedFile) {
-        // File analysis would be handled differently
-        content = 'File: ' + window.selectedFile.name;
-    }
-    
-    // Store the type for retry
-    window.lastAnalysisType = type;
-    
-    // Implementation will be in unified-analysis.js
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.runAnalysis(content, 'pro');
-    } else {
-        // Fallback implementation
-        console.error('UnifiedApp not loaded, using fallback');
-        simulateAnalysis(type);
-    }
-};
-
-// Fallback simulation
-function simulateAnalysis(type) {
-    // Hide input and show progress
-    document.getElementById('input-section').style.display = 'none';
-    document.getElementById('progress-container').style.display = 'block';
-    
-    // Simulate progress
-    let progress = 0;
-    const progressBar = document.getElementById('progress-bar');
-    const interval = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = progress + '%';
-        progressBar.textContent = progress + '%';
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                document.getElementById('progress-container').style.display = 'none';
-                document.getElementById('results-container').style.display = 'block';
-                document.getElementById('input-section').style.display = 'block';
-            }, 500);
-        }
-    }, 500);
-}
-
-// Helper functions
-window.clearFileUpload = function() {
-    document.getElementById('file-input').value = '';
-    document.getElementById('file-preview').style.display = 'none';
-    document.getElementById('file-analyze-button').disabled = true;
-    window.selectedFile = null;
-};
-
-window.generatePDF = function() {
-    console.log('Generating PDF...');
-    // PDF generation logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.generatePDF();
-    }
-};
-
-window.downloadReport = function(format) {
-    console.log('Downloading report:', format);
-    // Download logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.generatePDF();
-    }
-};
-
-window.shareResults = function() {
-    console.log('Sharing results...');
-    // Share logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.shareResults();
-    }
-};
-
-window.retryAnalysis = function() {
-    document.getElementById('error-container').style.display = 'none';
-    if (window.lastAnalysisType) {
-        window.startAnalysis(window.lastAnalysisType);
-    }
-};
-
-// Check and reset weekly usage for anonymous users
-function checkWeeklyReset() {
-    if (!window.userAnalysisData.isAuthenticated) {
-        const weekTimestamp = localStorage.getItem('ff_usage_week_timestamp');
-        if (weekTimestamp) {
-            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            if (parseInt(weekTimestamp) < weekAgo) {
-                // Reset weekly usage
-                localStorage.setItem('ff_usage_week', '0');
-                localStorage.setItem('ff_usage_week_timestamp', Date.now().toString());
-                window.userAnalysisData.usageThisWeek = 0;
-                updateUsageCounter();
-            }
-        }
-    }
-}
-
-// Initialize on load
-window.addEventListener('load', function() {
-    checkWeeklyReset();
-});
-</script>
-{% endblock %}
+{% block title %}AI Detection & Plagiarism Check - Facts & Fakes AI{% endblock %}
 
 {% block head %}
 <meta name="description" content="Comprehensive AI content detection and plagiarism checking - detect AI-generated text in documents and verify content originality.">
@@ -2921,4 +2498,429 @@ hr {
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
+
+<script>
+// Global variables
+window.userAnalysisData = {
+    isAuthenticated: false,
+    isPro: false,
+    usageThisWeek: 0,
+    usageToday: 0,
+    weeklyLimit: 1,
+    dailyLimit: 0
+};
+
+// Navigation functions
+window.ffNav = {
+    checkAuthStatus: async function() {
+        try {
+            const response = await fetch('/api/user/status');
+            if (!response.ok) {
+                throw new Error('Auth check failed');
+            }
+            
+            const data = await response.json();
+            
+            if (data.authenticated) {
+                document.getElementById('ffNavAuth').style.display = 'none';
+                document.getElementById('ffUserMenu').style.display = 'block';
+                
+                document.getElementById('ffUserEmail').textContent = data.email || 'User';
+                document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
+                document.getElementById('ffUserPlan').textContent = data.subscription_tier === 'pro' ? 'Pro Plan' : 'Free Plan';
+                
+                // Update analysis data
+                window.userAnalysisData.isAuthenticated = true;
+                window.userAnalysisData.isPro = data.subscription_tier === 'pro';
+                
+                if (data.subscription_tier === 'pro') {
+                    window.userAnalysisData.dailyLimit = 5;
+                    window.userAnalysisData.weeklyLimit = 35;
+                    window.userAnalysisData.usageToday = data.usage_today || 0;
+                    
+                    // Update nav usage display
+                    const usagePercent = (window.userAnalysisData.usageToday / 5) * 100;
+                    document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                    document.getElementById('ffUsageText').textContent = `${window.userAnalysisData.usageToday} / 5 analyses today`;
+                } else {
+                    window.userAnalysisData.weeklyLimit = 5;
+                    window.userAnalysisData.usageThisWeek = data.usage_this_week || 0;
+                    
+                    // Update nav usage display
+                    const usagePercent = (window.userAnalysisData.usageThisWeek / 5) * 100;
+                    document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                    document.getElementById('ffUsageText').textContent = `${window.userAnalysisData.usageThisWeek} / 5 analyses this week`;
+                }
+                
+                updateUsageCounter();
+            } else {
+                // Not authenticated - 1 per week
+                window.userAnalysisData.usageThisWeek = parseInt(localStorage.getItem('ff_usage_week') || '0');
+                updateUsageCounter();
+            }
+        } catch (error) {
+            console.log('Auth check failed:', error);
+            // Use localStorage for anonymous users
+            window.userAnalysisData.usageThisWeek = parseInt(localStorage.getItem('ff_usage_week') || '0');
+            updateUsageCounter();
+        }
+    },
+    
+    init: function() {
+        this.checkAuthStatus();
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.ff-user-menu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                document.getElementById('ffUserDropdown').classList.remove('active');
+            }
+        });
+        
+        // Add active class to current page
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.ff-nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    }
+};
+
+// Update usage counter display
+function updateUsageCounter() {
+    const counter = document.getElementById('usage-counter');
+    const usedEl = document.getElementById('usage-used');
+    const totalEl = document.getElementById('usage-total');
+    const periodEl = document.getElementById('usage-period');
+    const promptEl = document.getElementById('upgrade-prompt');
+    
+    if (window.userAnalysisData.isPro) {
+        usedEl.textContent = window.userAnalysisData.usageToday;
+        totalEl.textContent = '5';
+        periodEl.textContent = 'Today';
+        promptEl.style.display = 'none';
+    } else if (window.userAnalysisData.isAuthenticated) {
+        usedEl.textContent = window.userAnalysisData.usageThisWeek;
+        totalEl.textContent = '5';
+        periodEl.textContent = 'This Week';
+        promptEl.style.display = window.userAnalysisData.usageThisWeek >= 5 ? 'block' : 'none';
+    } else {
+        usedEl.textContent = window.userAnalysisData.usageThisWeek;
+        totalEl.textContent = '1';
+        periodEl.textContent = 'This Week';
+        promptEl.innerHTML = '<a href="/login">Sign in</a> for 5 free analyses per week';
+        promptEl.style.display = 'block';
+    }
+}
+
+// Check if user can analyze
+function canUserAnalyze() {
+    if (window.userAnalysisData.isPro) {
+        return window.userAnalysisData.usageToday < 5;
+    } else if (window.userAnalysisData.isAuthenticated) {
+        return window.userAnalysisData.usageThisWeek < 5;
+    } else {
+        return window.userAnalysisData.usageThisWeek < 1;
+    }
+}
+
+// Show usage limit modal
+function showUsageLimitModal() {
+    const modal = document.getElementById('usage-modal');
+    const message = document.getElementById('usage-modal-message');
+    
+    if (window.userAnalysisData.isPro) {
+        message.textContent = "You've reached your daily limit of 5 analyses. Your limit will reset tomorrow.";
+    } else if (window.userAnalysisData.isAuthenticated) {
+        message.textContent = "You've used all 5 of your free analyses this week. Upgrade to Pro for up to 5 analyses per day!";
+    } else {
+        message.textContent = "You've used your free analysis for this week. Sign up for a free account to get 5 analyses per week, or upgrade to Pro for daily analyses.";
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeUsageModal() {
+    document.getElementById('usage-modal').classList.remove('show');
+}
+
+// Global functions for onclick handlers
+function ffToggleMobileMenu() {
+    const navLinks = document.getElementById('ffNavLinks');
+    navLinks.classList.toggle('active');
+}
+
+function ffToggleUserDropdown() {
+    const dropdown = document.getElementById('ffUserDropdown');
+    dropdown.classList.toggle('active');
+}
+
+async function ffLogout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Logout failed:', error);
+    }
+}
+
+// Simple modal functions
+window.showModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    const backdrop = document.getElementById('modalBackdrop');
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    backdrop.style.display = 'block';
+    setTimeout(() => backdrop.classList.add('show'), 10);
+};
+
+window.closeModal = function() {
+    const modals = document.querySelectorAll('.modal');
+    const backdrop = document.getElementById('modalBackdrop');
+    modals.forEach(modal => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    });
+    backdrop.classList.remove('show');
+    setTimeout(() => backdrop.style.display = 'none', 300);
+};
+
+// Initialize unified app after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing unified page...');
+    
+    // Initialize navigation
+    window.ffNav.init();
+    
+    // Initialize input tabs
+    const inputTabs = document.querySelectorAll('.input-tab');
+    const inputPanels = document.querySelectorAll('.input-panel');
+    
+    inputTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            
+            // Update tabs
+            inputTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update panels
+            inputPanels.forEach(panel => {
+                if (panel.id === targetTab + '-panel') {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    // Initialize file upload
+    const fileUploadArea = document.getElementById('file-upload-area');
+    const fileInput = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+    const fileAnalyzeButton = document.getElementById('file-analyze-button');
+
+    if (fileUploadArea && fileInput) {
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+    }
+
+    function handleFileSelect(file) {
+        const allowedTypes = ['.pdf', '.doc', '.docx', '.txt'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        if (!allowedTypes.includes(fileExtension)) {
+            alert('Please upload a PDF, DOC, DOCX, or TXT file.');
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            alert('File size must be less than 10MB.');
+            return;
+        }
+        
+        // Show file preview
+        filePreview.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fas fa-file-alt me-2"></i>
+                    <strong>${file.name}</strong>
+                    <span class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</span>
+                </div>
+                <button class="btn-cancel" onclick="clearFileUpload()" style="padding: 4px 12px; font-size: 0.9em;">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        `;
+        filePreview.style.display = 'block';
+        fileAnalyzeButton.disabled = false;
+        
+        // Store file for analysis
+        window.selectedFile = file;
+    }
+});
+
+// Start analysis function - This is the main function that needs to be implemented
+window.startAnalysis = async function(type) {
+    console.log('Starting analysis:', type);
+    
+    // Check usage limits (temporarily disabled)
+    // if (!canUserAnalyze()) {
+    //     showUsageLimitModal();
+    //     return;
+    // }
+    
+    // Get the appropriate input based on type
+    let content = '';
+    if (type === 'url') {
+        content = document.getElementById('url-input').value.trim();
+        if (!content) {
+            alert('Please enter a URL to analyze');
+            return;
+        }
+    } else if (type === 'text') {
+        content = document.getElementById('text-input').value.trim();
+        if (!content || content.length < 50) {
+            alert('Please enter at least 50 characters to analyze');
+            return;
+        }
+    } else if (type === 'file' && window.selectedFile) {
+        // File analysis would be handled differently
+        content = 'File: ' + window.selectedFile.name;
+    }
+    
+    // Store the type for retry
+    window.lastAnalysisType = type;
+    
+    // Implementation will be in unified-analysis.js
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.runAnalysis(content, 'pro');
+    } else {
+        // Fallback implementation
+        console.error('UnifiedApp not loaded, using fallback');
+        simulateAnalysis(type);
+    }
+};
+
+// Fallback simulation
+function simulateAnalysis(type) {
+    // Hide input and show progress
+    document.getElementById('input-section').style.display = 'none';
+    document.getElementById('progress-container').style.display = 'block';
+    
+    // Simulate progress
+    let progress = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = progress + '%';
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                document.getElementById('progress-container').style.display = 'none';
+                document.getElementById('results-container').style.display = 'block';
+                document.getElementById('input-section').style.display = 'block';
+            }, 500);
+        }
+    }, 500);
+}
+
+// Helper functions
+window.clearFileUpload = function() {
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-preview').style.display = 'none';
+    document.getElementById('file-analyze-button').disabled = true;
+    window.selectedFile = null;
+};
+
+window.generatePDF = function() {
+    console.log('Generating PDF...');
+    // PDF generation logic
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.generatePDF();
+    }
+};
+
+window.downloadReport = function(format) {
+    console.log('Downloading report:', format);
+    // Download logic
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.generatePDF();
+    }
+};
+
+window.shareResults = function() {
+    console.log('Sharing results...');
+    // Share logic
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.shareResults();
+    }
+};
+
+window.retryAnalysis = function() {
+    document.getElementById('error-container').style.display = 'none';
+    if (window.lastAnalysisType) {
+        window.startAnalysis(window.lastAnalysisType);
+    }
+};
+
+// Check and reset weekly usage for anonymous users
+function checkWeeklyReset() {
+    if (!window.userAnalysisData.isAuthenticated) {
+        const weekTimestamp = localStorage.getItem('ff_usage_week_timestamp');
+        if (weekTimestamp) {
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            if (parseInt(weekTimestamp) < weekAgo) {
+                // Reset weekly usage
+                localStorage.setItem('ff_usage_week', '0');
+                localStorage.setItem('ff_usage_week_timestamp', Date.now().toString());
+                window.userAnalysisData.usageThisWeek = 0;
+                updateUsageCounter();
+            }
+        }
+    }
+}
+
+// Initialize on load
+window.addEventListener('load', function() {
+    checkWeeklyReset();
+});
+</script>
 {% endblock %}
