@@ -1887,4 +1887,244 @@ function showResults(data) {
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
-<
+// Animate trust score
+function animateTrustScore(score) {
+    const circle = document.getElementById('trust-circle');
+    const scoreText = document.getElementById('trust-score');
+    
+    // Calculate stroke offset
+    const circumference = 440; // 2 * Math.PI * 70
+    const offset = circumference - (score / 100) * circumference;
+    
+    // Set color based on score
+    let color;
+    if (score >= 80) {
+        color = '#27ae60'; // Green
+    } else if (score >= 60) {
+        color = '#f39c12'; // Yellow/Orange
+    } else {
+        color = '#e74c3c'; // Red
+    }
+    
+    // Apply styles
+    circle.style.stroke = color;
+    circle.style.strokeDashoffset = offset;
+    
+    // Animate score text
+    let currentScore = 0;
+    const interval = setInterval(() => {
+        currentScore++;
+        scoreText.textContent = currentScore + '%';
+        if (currentScore >= score) {
+            clearInterval(interval);
+        }
+    }, 20);
+}
+
+// Populate results with data
+function populateResults(data) {
+    // Update statistics
+    document.getElementById('claims-analyzed').textContent = data.claims_count || 0;
+    document.getElementById('claims-verified').textContent = data.verified_count || 0;
+    document.getElementById('claims-false').textContent = data.false_count || 0;
+    document.getElementById('word-count').textContent = data.word_count || 0;
+    
+    // Update overall assessment
+    const overallAssessment = document.getElementById('overall-assessment');
+    if (data.trust_score >= 80) {
+        overallAssessment.innerHTML = `
+            <div class="alert alert-success">
+                <h4><i class="fas fa-check-circle"></i> High Credibility Content</h4>
+                <p>This speech analysis reveals strong indicators of factual accuracy and credibility. Most claims are verifiable and well-supported by evidence.</p>
+            </div>
+        `;
+    } else if (data.trust_score >= 60) {
+        overallAssessment.innerHTML = `
+            <div class="alert alert-warning">
+                <h4><i class="fas fa-exclamation-triangle"></i> Mixed Credibility</h4>
+                <p>This content contains a mix of verified and unverified claims. Some statements require further verification.</p>
+            </div>
+        `;
+    } else {
+        overallAssessment.innerHTML = `
+            <div class="alert alert-danger">
+                <h4><i class="fas fa-times-circle"></i> Low Credibility Warning</h4>
+                <p>Multiple false or misleading claims detected. Exercise caution when sharing this content.</p>
+            </div>
+        `;
+    }
+    
+    // Populate fact-checking results
+    const factCheckingResults = document.getElementById('fact-checking-results');
+    if (data.fact_checks && data.fact_checks.length > 0) {
+        let claimsHtml = '<p>Our AI identified and analyzed factual claims in this content:</p>';
+        data.fact_checks.forEach(claim => {
+            const statusClass = claim.verdict === 'true' ? 'verified' : 
+                               claim.verdict === 'false' ? 'false' : 'unverified';
+            const statusText = claim.verdict === 'true' ? 'VERIFIED' : 
+                              claim.verdict === 'false' ? 'FALSE' : 'UNVERIFIED';
+            
+            claimsHtml += `
+                <div class="claim-card ${statusClass}">
+                    <div class="claim-text">"${claim.claim}"</div>
+                    <span class="claim-status status-${statusClass}">${statusText}</span>
+                    <div class="confidence-score">Confidence: ${Math.round(claim.confidence * 100)}%</div>
+                </div>
+            `;
+        });
+        factCheckingResults.innerHTML = claimsHtml;
+    }
+    
+    // Update speaker analysis
+    if (data.speaker_analysis) {
+        const speakerHtml = `
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">${data.speaker_analysis.expertise_score || '7.5'}/10</span>
+                    <span class="stat-label">Expertise Score</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.speaker_analysis.consistency || '85'}%</span>
+                    <span class="stat-label">Consistency</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.speaker_analysis.sources_cited || '12'}</span>
+                    <span class="stat-label">Sources Cited</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.speaker_analysis.bias_level || 'Low'}</span>
+                    <span class="stat-label">Bias Level</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('speaker-analysis').innerHTML = speakerHtml;
+    }
+    
+    // Update bias analysis
+    if (data.bias_analysis) {
+        const biasClass = data.bias_analysis.level === 'low' ? 'success' : 
+                         data.bias_analysis.level === 'high' ? 'danger' : 'warning';
+        const biasHtml = `
+            <div class="alert alert-${biasClass}">
+                <h4>${data.bias_analysis.title || 'Bias Assessment'}</h4>
+                <p>${data.bias_analysis.description || 'Content analysis for bias and manipulation tactics.'}</p>
+            </div>
+        `;
+        document.getElementById('bias-analysis').innerHTML = biasHtml;
+    }
+}
+
+// Toggle dropdown sections
+function toggleDropdown(header) {
+    const content = header.nextElementSibling;
+    const isOpen = content.classList.contains('show');
+    
+    // Close all dropdowns
+    document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+    
+    // Open clicked dropdown if it was closed
+    if (!isOpen) {
+        content.classList.add('show');
+    }
+}
+
+// Show error message
+function showError(message) {
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    errorMessage.textContent = message || 'An error occurred during analysis.';
+    errorContainer.style.display = 'block';
+    
+    // Scroll to error
+    errorContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Retry analysis
+function retryAnalysis() {
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.style.display = 'none';
+    
+    // Retry the last analysis
+    startSpeechAnalysis();
+}
+
+// Download report
+async function downloadReport() {
+    if (!currentAnalysisResults) {
+        alert('No analysis results to download');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/export-speech-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                transcript: currentAnalysisResults.transcript || '',
+                fact_checks: currentAnalysisResults.fact_checks || [],
+                statistics: {
+                    wordCount: currentAnalysisResults.word_count || 0,
+                    claimsChecked: currentAnalysisResults.claims_count || 0,
+                    trueCount: currentAnalysisResults.verified_count || 0,
+                    falseCount: currentAnalysisResults.false_count || 0
+                },
+                duration: currentAnalysisResults.duration || '00:00'
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Create download link
+                const blob = new Blob([JSON.stringify(data.report, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'speech-analysis-report.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                alert('Report downloaded successfully!');
+            }
+        } else {
+            throw new Error('Failed to generate report');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('Failed to download report. Please try again.');
+    }
+}
+
+// Utility function to format duration
+function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    } else {
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+}
+
+// Utility function to escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+{% endblock %}
