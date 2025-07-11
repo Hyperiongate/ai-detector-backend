@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -74,7 +74,8 @@ csp = {
         "'self'",
         "data:",  # For data URLs in SVG icons
         "https://www.google-analytics.com",
-        "https://www.googletagmanager.com"
+        "https://www.googletagmanager.com",
+        "https://img.youtube.com"  # For YouTube thumbnails
     ],
     'connect-src': [
         "'self'",
@@ -589,6 +590,267 @@ def health_check():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
         }), 500
+
+# YouTube transcript endpoint
+@app.route('/api/youtube-transcript', methods=['POST'])
+@csrf.exempt
+def api_youtube_transcript():
+    """Fetch YouTube video transcript"""
+    try:
+        data = request.get_json()
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({'success': False, 'error': 'No URL provided'}), 400
+        
+        # Get transcript using existing function
+        from analysis.speech_analysis import get_youtube_transcript
+        transcript = get_youtube_transcript(url)
+        
+        if not transcript:
+            return jsonify({
+                'success': False, 
+                'error': 'Could not fetch transcript. Video may not have captions enabled.'
+            }), 404
+        
+        # Extract video info
+        video_info = extract_youtube_info(url)
+        
+        return jsonify({
+            'success': True,
+            'transcript': transcript,
+            'video_info': video_info
+        })
+        
+    except Exception as e:
+        logger.error(f"YouTube transcript error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def extract_youtube_info(url):
+    """Extract basic YouTube video information"""
+    try:
+        # Extract video ID
+        video_id = None
+        if 'v=' in url:
+            video_id = url.split('v=')[1].split('&')[0]
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[1].split('?')[0]
+        
+        if video_id:
+            # Basic info without additional API calls
+            # In production, you could use youtube-dl or yt-dlp for more info
+            return {
+                'title': 'YouTube Video',
+                'channel': 'YouTube Channel',
+                'duration': 'Unknown',
+                'views': 'Unknown',
+                'thumbnail': f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg',
+                'video_id': video_id
+            }
+    except Exception as e:
+        logger.error(f"YouTube info extraction error: {str(e)}")
+    
+    return {
+        'title': 'Unknown Video',
+        'channel': 'Unknown',
+        'duration': 'Unknown',
+        'views': 'Unknown',
+        'thumbnail': ''
+    }
+
+# Enhanced speech analysis endpoint
+@app.route('/api/analyze-speech', methods=['POST'])
+@csrf.exempt
+@track_usage('speech')
+def api_analyze_speech():
+    """Enhanced speech analysis endpoint with YouTube support"""
+    try:
+        content = request.form.get('content', '').strip()
+        content_type = request.form.get('type', 'text')
+        is_pro = request.form.get('is_pro', 'true').lower() == 'true'
+        
+        transcript = None
+        
+        # Handle different content types
+        if content_type == 'youtube':
+            # Content is already the transcript from frontend
+            transcript = content
+            if not transcript:
+                return jsonify({'success': False, 'error': 'No transcript provided'}), 400
+                
+        elif content_type == 'file':
+            # Handle file upload
+            if 'file' not in request.files:
+                return jsonify({'success': False, 'error': 'No file provided'}), 400
+            
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'success': False, 'error': 'No file selected'}), 400
+                
+            # Save file temporarily
+            import tempfile
+            import os
+            
+            # Create temp file with proper extension
+            _, ext = os.path.splitext(file.filename)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp_file:
+                file.save(tmp_file.name)
+                tmp_filename = tmp_file.name
+            
+            try:
+                # Convert speech to text
+                from analysis.speech_analysis import speech_to_text
+                transcript = speech_to_text(tmp_filename)
+                
+                if not transcript:
+                    return jsonify({
+                        'success': False, 
+                        'error': 'Could not transcribe audio. Please ensure the audio is clear.'
+                    }), 400
+                    
+            finally:
+                # Clean up temp file
+                if os.path.exists(tmp_filename):
+                    os.unlink(tmp_filename)
+                    
+        else:
+            # Direct text input
+            transcript = content
+            if not transcript:
+                return jsonify({'success': False, 'error': 'No text provided'}), 400
+        
+        # Validate transcript length
+        if len(transcript) < 50:
+            return jsonify({
+                'success': False, 
+                'error': 'Content too short for meaningful analysis. Please provide at least 50 characters.'
+            }), 400
+        
+        # Extract claims from transcript
+        from analysis.speech_analysis import extract_claims_from_speech, batch_factcheck
+        
+        logger.info(f"Extracting claims from transcript of length: {len(transcript)}")
+        claims = extract_claims_from_speech(transcript)
+        
+        if not claims:
+            # If no claims found, create a general claim for analysis
+            claims = [transcript[:500]]  # Use first 500 chars as a claim
+        
+        logger.info(f"Found {len(claims)} claims to fact-check")
+        
+        # Fact-check claims
+        fact_check_results = []
+        
+        if is_pro:
+            # Professional analysis with full fact-checking
+            fact_check_results = batch_factcheck(claims, is_pro=True)
+        else:
+            # Basic analysis with limited fact-checking
+            # For basic tier, only check first 3 claims
+            limited_claims = claims[:3]
+            fact_check_results = batch_factcheck(limited_claims, is_pro=False)
+            
+            # Add placeholder results for remaining claims
+            for claim in claims[3:]:
+                fact_check_results.append({
+                    'claim': claim,
+                    'verdict': 'UNVERIFIED',
+                    'explanation': 'Upgrade to Professional for full fact-checking'
+                })
+        
+        # Calculate trust score
+        total_claims = len(fact_check_results)
+        verified_claims = sum(1 for r in fact_check_results 
+                            if r.get('verdict') in ['TRUE', 'VERIFIED'])
+        false_claims = sum(1 for r in fact_check_results 
+                         if r.get('verdict') in ['FALSE', 'MISLEADING'])
+        
+        # Calculate trust score (0-100)
+        if total_claims > 0:
+            # Base score on verified vs false claims
+            trust_score = int((verified_claims / total_claims) * 100)
+            
+            # Penalize for false claims
+            trust_score -= (false_claims * 15)
+            
+            # Ensure score is within bounds
+            trust_score = max(0, min(100, trust_score))
+        else:
+            trust_score = 50  # Default neutral score
+        
+        # Prepare response
+        results = {
+            'success': True,
+            'transcript': transcript[:1000] + '...' if len(transcript) > 1000 else transcript,
+            'claims_analyzed': total_claims,
+            'claims_verified': verified_claims,
+            'claims_false': false_claims,
+            'trust_score': trust_score,
+            'fact_check_results': fact_check_results,
+            'word_count': len(transcript.split()),
+            'analysis_type': 'professional' if is_pro else 'basic',
+            'content_type': content_type
+        }
+        
+        # Add source info for YouTube videos
+        if content_type == 'youtube':
+            results['source'] = 'YouTube Video Transcript'
+        
+        # Save to database
+        try:
+            analysis = Analysis(
+                user_id=getattr(current_user, 'id', 1),
+                content_type='speech',
+                content_snippet=transcript[:500],
+                results=json.dumps(results),
+                trust_score=trust_score,
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(analysis)
+            db.session.commit()
+            results['analysis_id'] = analysis.id
+        except Exception as e:
+            logger.error(f"Database save error: {str(e)}")
+            # Continue even if save fails
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Speech analysis error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False, 
+            'error': 'Analysis failed. Please try again.'
+        }), 500
+
+@app.route('/api/export-speech-report', methods=['POST'])
+@csrf.exempt
+def api_export_speech_report():
+    """Export speech analysis results as PDF"""
+    try:
+        results = json.loads(request.form.get('results', '{}'))
+        
+        if not results:
+            return jsonify({'success': False, 'error': 'No results provided'}), 400
+        
+        # Generate PDF report
+        from analysis.speech_analysis import export_speech_report
+        pdf_buffer = export_speech_report(results)
+        
+        if not pdf_buffer:
+            return jsonify({'success': False, 'error': 'Failed to generate report'}), 500
+        
+        # Return PDF file
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'speech_analysis_report_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+        
+    except Exception as e:
+        logger.error(f"Export report error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # NEW: Enhanced unified analysis endpoint
 @app.route('/api/analyze-unified', methods=['POST'])
