@@ -332,42 +332,8 @@ def track_usage(analysis_type):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            try:
-                # Determine if this is a pro analysis from the request
-                is_pro = request.form.get('tier', 'basic') == 'professional'
-                
-                # Check usage limit
-                can_proceed, error_msg = check_usage_limit(current_user, analysis_type, is_pro)
-                
-                if not can_proceed and os.environ.get('FLASK_ENV') != 'development':
-                    return jsonify({
-                        'success': False,
-                        'error': error_msg,
-                        'limit_reached': True,
-                        'usage_status': get_usage_status(current_user)
-                    }), 429
-                
-                # Log usage with session tracking for anonymous users
-                user_id = getattr(current_user, 'id', None) if hasattr(current_user, 'id') else None
-                session_id = None
-                
-                if user_id is None:
-                    session_id = session.get('anonymous_id', request.remote_addr)
-                
-                analysis_level = 'pro' if is_pro else 'basic'
-                usage_log = UsageLog(
-                    user_id=user_id,
-                    session_id=session_id,
-                    analysis_type=f"{analysis_type}_{analysis_level}",
-                    timestamp=datetime.utcnow(),
-                    ip_address=request.remote_addr
-                )
-                db.session.add(usage_log)
-                db.session.commit()
-                
-            except Exception as e:
-                logger.error(f"Usage tracking error: {str(e)}")
-            
+            # TEMPORARY: Skip all usage tracking
+            logger.info(f"Usage tracking bypassed for {analysis_type}")
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -1513,63 +1479,30 @@ def api_logout():
 @app.route('/api/user/status', methods=['GET'])
 def api_user_status():
     """Get user authentication status"""
-    try:
-        # Try to get user status, but handle database errors gracefully
-        try:
-            # Check if user is authenticated
-            if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-                return jsonify({
-                    'authenticated': True,
-                    'email': current_user.email,
-                    'subscription_tier': current_user.subscription_tier,
-                    'usage_status': get_usage_status(current_user),
-                    'usage_today': get_usage_count(current_user.id, 'unified_basic', 'daily'),
-                    'daily_limit': USAGE_LIMITS[current_user.subscription_tier]['daily']['basic']
-                })
-            else:
-                # Anonymous user
-                return jsonify({
-                    'authenticated': False,
-                    'subscription_tier': 'anonymous',
-                    'usage_status': get_usage_status(None),
-                    'usage_today': get_usage_count(None, 'unified_basic', 'weekly'),
-                    'daily_limit': 0,
-                    'weekly_limit': USAGE_LIMITS['anonymous']['weekly']['basic']
-                })
-        except Exception as db_error:
-            # Database error - rollback and return safe default
-            logger.error(f"Database error in user status: {str(db_error)}")
-            try:
-                db.session.rollback()
-            except:
-                pass
-            
-            # Return a minimal response that allows the app to continue
-            return jsonify({
-                'authenticated': False,
-                'subscription_tier': 'pro',  # Give pro access during database issues
-                'usage_status': {
-                    'tier': 'pro',
-                    'usage': {'daily': {'basic': 0, 'pro': 0}, 'weekly': {'basic': 0, 'pro': 0}},
-                    'limits': {'daily': {'basic': -1, 'pro': -1}, 'weekly': {'basic': -1, 'pro': -1}},
-                    'resets': {'daily': '', 'weekly': ''}
-                },
-                'usage_today': 0,
-                'daily_limit': -1
-            })
-    except Exception as e:
-        logger.error(f"User status error: {str(e)}")
-        # Return a safe default response with pro access
-        return jsonify({
-            'authenticated': False,
-            'subscription_tier': 'pro',
-            'usage_status': {
-                'tier': 'pro',
-                'usage': {'daily': {'basic': 0, 'pro': 0}, 'weekly': {'basic': 0, 'pro': 0}},
-                'limits': {'daily': {'basic': -1, 'pro': -1}, 'weekly': {'basic': -1, 'pro': -1}},
-                'resets': {'daily': '', 'weekly': ''}
+    # TEMPORARY: Skip all database checks and return pro user
+    logger.info("User status check - returning pro tier (database bypassed)")
+    return jsonify({
+        'authenticated': True,
+        'email': 'test@factsandfakes.ai',
+        'subscription_tier': 'pro',
+        'usage_status': {
+            'tier': 'pro',
+            'usage': {
+                'daily': {'basic': 0, 'pro': 0},
+                'weekly': {'basic': 0, 'pro': 0}
+            },
+            'limits': {
+                'daily': {'basic': -1, 'pro': -1},
+                'weekly': {'basic': -1, 'pro': -1}
+            },
+            'resets': {
+                'daily': datetime.utcnow().isoformat(),
+                'weekly': datetime.utcnow().isoformat()
             }
-        })
+        },
+        'usage_today': 0,
+        'daily_limit': -1
+    })
 
 # Contact and beta signup routes
 
