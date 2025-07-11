@@ -13,10 +13,27 @@
     window.UnifiedApp.results.displayResults = function(results) {
         currentResults = results;
         
-        // Show results section
+        // Show results section - with null check
         const resultsSection = document.getElementById('resultsSection');
-        resultsSection.style.display = 'block';
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!resultsSection) {
+            console.error('Results section not found in DOM');
+            // Try alternative IDs
+            const alternativeSection = document.getElementById('results') || 
+                                     document.getElementById('analysisResults') ||
+                                     document.querySelector('.results-section');
+            
+            if (alternativeSection) {
+                alternativeSection.style.display = 'block';
+                alternativeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                console.error('No results container found. Creating one...');
+                // Create a results section if it doesn't exist
+                createResultsSection();
+            }
+        } else {
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         
         // Update trust meter with animation
         createAdvancedTrustMeter(results);
@@ -34,14 +51,62 @@
         const firstSection = document.querySelector('.analysis-section');
         if (firstSection) {
             const content = firstSection.querySelector('.section-content');
-            content.classList.add('expanded');
-            firstSection.classList.add('expanded');
+            if (content) {
+                content.classList.add('expanded');
+                firstSection.classList.add('expanded');
+            }
         }
     };
+    
+    // Create results section if it doesn't exist
+    function createResultsSection() {
+        const mainContent = document.querySelector('main') || document.querySelector('.container') || document.body;
+        
+        const resultsHTML = `
+            <section id="resultsSection" class="results-section" style="display: block; margin-top: 2rem;">
+                <div class="section-header">
+                    <h2>Analysis Results</h2>
+                </div>
+                
+                <div class="results-container">
+                    <!-- Trust Score -->
+                    <div class="trust-score-section">
+                        <div id="trustMeter" class="trust-meter"></div>
+                        <div id="scoreDescription" class="score-description"></div>
+                    </div>
+                    
+                    <!-- AI Detection Results -->
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h3>🤖 AI Detection Analysis</h3>
+                        </div>
+                        <div id="aiDetectionResults" class="section-content"></div>
+                    </div>
+                    
+                    <!-- Plagiarism Results -->
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h3>📋 Plagiarism Check</h3>
+                        </div>
+                        <div id="plagiarismResults" class="section-content"></div>
+                    </div>
+                </div>
+            </section>
+        `;
+        
+        const div = document.createElement('div');
+        div.innerHTML = resultsHTML;
+        mainContent.appendChild(div.firstElementChild);
+    }
     
     // Create advanced animated trust meter
     function createAdvancedTrustMeter(results) {
         const svg = document.getElementById('trustMeter');
+        if (!svg) {
+            console.error('Trust meter element not found');
+            return;
+        }
+        
         const aiScore = results.ai_probability || 0;
         const plagiarismScore = results.plagiarism_score || 0;
         
@@ -50,6 +115,22 @@
         
         svg.innerHTML = `
             <svg viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+                <!-- Define gradients -->
+                <defs>
+                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                
                 <!-- Outer decorative ring -->
                 <circle cx="125" cy="125" r="120" fill="none" stroke="#e5e7eb" stroke-width="1" opacity="0.5"/>
                 
@@ -112,6 +193,11 @@
     // Update score description with detailed insights
     function updateDetailedScoreDescription(results) {
         const desc = document.getElementById('scoreDescription');
+        if (!desc) {
+            console.error('Score description element not found');
+            return;
+        }
+        
         const aiScore = results.ai_probability || 0;
         const plagiarismScore = results.plagiarism_score || 0;
         const trustScore = Math.max(0, 100 - ((aiScore + plagiarismScore) / 2));
@@ -148,6 +234,10 @@
     // Display enhanced AI detection results
     function displayEnhancedAIDetection(aiData) {
         const container = document.getElementById('aiDetectionResults');
+        if (!container) {
+            console.error('AI detection results container not found');
+            return;
+        }
         
         const probability = aiData.probability || 0;
         const patterns = aiData.patterns || [];
@@ -303,6 +393,10 @@
     // Display enhanced plagiarism results
     function displayEnhancedPlagiarism(plagiarismData) {
         const container = document.getElementById('plagiarismResults');
+        if (!container) {
+            console.error('Plagiarism results container not found');
+            return;
+        }
         
         const score = plagiarismData.score || 0;
         const matches = plagiarismData.matches || [];
@@ -679,8 +773,12 @@
     // Clear results
     window.UnifiedApp.results.clearResults = function() {
         currentResults = null;
-        const resultsSection = document.getElementById('resultsSection');
-        resultsSection.style.display = 'none';
+        const resultsSection = document.getElementById('resultsSection') || 
+                              document.getElementById('results') || 
+                              document.querySelector('.results-section');
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
+        }
     };
     
     // Save to history (placeholder)
@@ -703,7 +801,13 @@
         }
         
         localStorage.setItem('analysisHistory', JSON.stringify(history));
-        UnifiedApp.ui.showToast('Results saved to history', 'success');
+        
+        // Show toast if UI module is available
+        if (window.UnifiedApp && window.UnifiedApp.ui && window.UnifiedApp.ui.showToast) {
+            window.UnifiedApp.ui.showToast('Results saved to history', 'success');
+        } else {
+            alert('Results saved to history');
+        }
     };
     
 })();
