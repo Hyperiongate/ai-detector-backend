@@ -200,34 +200,43 @@ def get_user_tier(user):
 
 def get_usage_count(user_id, analysis_type, period='daily'):
     """Get user's usage count for specified period"""
-    if period == 'daily':
-        start_time = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    else:  # weekly
-        today = datetime.utcnow()
-        start_time = today - timedelta(days=today.weekday())  # Start of week (Monday)
-        start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    # For anonymous users, we need to track by session or IP
-    if user_id is None:
-        # Track by session ID or IP address
-        session_id = session.get('anonymous_id')
-        if not session_id:
-            session_id = request.remote_addr  # Use IP as fallback
-            session['anonymous_id'] = session_id
+    try:
+        if period == 'daily':
+            start_time = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        else:  # weekly
+            today = datetime.utcnow()
+            start_time = today - timedelta(days=today.weekday())  # Start of week (Monday)
+            start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        count = UsageLog.query.filter(
-            UsageLog.session_id == session_id,
-            UsageLog.analysis_type == analysis_type,
-            UsageLog.timestamp >= start_time
-        ).count()
-    else:
-        count = UsageLog.query.filter(
-            UsageLog.user_id == user_id,
-            UsageLog.analysis_type == analysis_type,
-            UsageLog.timestamp >= start_time
-        ).count()
-    
-    return count
+        # For anonymous users, we need to track by session or IP
+        if user_id is None:
+            # Track by session ID or IP address
+            session_id = session.get('anonymous_id')
+            if not session_id:
+                session_id = request.remote_addr  # Use IP as fallback
+                session['anonymous_id'] = session_id
+            
+            count = UsageLog.query.filter(
+                UsageLog.session_id == session_id,
+                UsageLog.analysis_type == analysis_type,
+                UsageLog.timestamp >= start_time
+            ).count()
+        else:
+            count = UsageLog.query.filter(
+                UsageLog.user_id == user_id,
+                UsageLog.analysis_type == analysis_type,
+                UsageLog.timestamp >= start_time
+            ).count()
+        
+        return count
+    except Exception as e:
+        logger.error(f"Error getting usage count: {str(e)}")
+        # Rollback any failed transaction
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 0  # Return 0 on error to allow continued operation
 
 def check_usage_limit(user, analysis_type, is_pro_analysis=False):
     """Check if user has exceeded their usage limit"""
@@ -264,40 +273,59 @@ def check_usage_limit(user, analysis_type, is_pro_analysis=False):
 
 def get_usage_status(user):
     """Get detailed usage status for user"""
-    tier = get_user_tier(user)
-    limits = USAGE_LIMITS.get(tier, USAGE_LIMITS['anonymous'])
-    user_id = getattr(user, 'id', None) if user else None
-    
-    # Calculate usage for both basic and pro
-    daily_basic = get_usage_count(user_id, 'unified_basic', 'daily')
-    daily_pro = get_usage_count(user_id, 'unified_pro', 'daily')
-    weekly_basic = get_usage_count(user_id, 'unified_basic', 'weekly')
-    weekly_pro = get_usage_count(user_id, 'unified_pro', 'weekly')
-    
-    # Calculate time until reset
-    now = datetime.utcnow()
-    midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    next_monday = now + timedelta(days=(7 - now.weekday()))
-    next_monday = next_monday.replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    return {
-        'tier': tier,
-        'usage': {
-            'daily': {
-                'basic': daily_basic,
-                'pro': daily_pro
+    try:
+        tier = get_user_tier(user)
+        limits = USAGE_LIMITS.get(tier, USAGE_LIMITS['anonymous'])
+        user_id = getattr(user, 'id', None) if user else None
+        
+        # Calculate usage for both basic and pro
+        daily_basic = get_usage_count(user_id, 'unified_basic', 'daily')
+        daily_pro = get_usage_count(user_id, 'unified_pro', 'daily')
+        weekly_basic = get_usage_count(user_id, 'unified_basic', 'weekly')
+        weekly_pro = get_usage_count(user_id, 'unified_pro', 'weekly')
+        
+        # Calculate time until reset
+        now = datetime.utcnow()
+        midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        next_monday = now + timedelta(days=(7 - now.weekday()))
+        next_monday = next_monday.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        return {
+            'tier': tier,
+            'usage': {
+                'daily': {
+                    'basic': daily_basic,
+                    'pro': daily_pro
+                },
+                'weekly': {
+                    'basic': weekly_basic,
+                    'pro': weekly_pro
+                }
             },
-            'weekly': {
-                'basic': weekly_basic,
-                'pro': weekly_pro
+            'limits': limits,
+            'resets': {
+                'daily': midnight.isoformat(),
+                'weekly': next_monday.isoformat()
             }
-        },
-        'limits': limits,
-        'resets': {
-            'daily': midnight.isoformat(),
-            'weekly': next_monday.isoformat()
         }
-    }
+    except Exception as e:
+        logger.error(f"Error getting usage status: {str(e)}")
+        # Return pro tier with no limits on error
+        return {
+            'tier': 'pro',
+            'usage': {
+                'daily': {'basic': 0, 'pro': 0},
+                'weekly': {'basic': 0, 'pro': 0}
+            },
+            'limits': {
+                'daily': {'basic': -1, 'pro': -1},
+                'weekly': {'basic': -1, 'pro': -1}
+            },
+            'resets': {
+                'daily': datetime.utcnow().isoformat(),
+                'weekly': datetime.utcnow().isoformat()
+            }
+        }
 
 # Updated track_usage decorator
 def track_usage(analysis_type):
@@ -1486,33 +1514,61 @@ def api_logout():
 def api_user_status():
     """Get user authentication status"""
     try:
-        # Check if user is authenticated
-        if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-            return jsonify({
-                'authenticated': True,
-                'email': current_user.email,
-                'subscription_tier': current_user.subscription_tier,
-                'usage_status': get_usage_status(current_user),
-                'usage_today': get_usage_count(current_user.id, 'unified_basic', 'daily'),
-                'daily_limit': USAGE_LIMITS[current_user.subscription_tier]['daily']['basic']
-            })
-        else:
-            # Anonymous user
+        # Try to get user status, but handle database errors gracefully
+        try:
+            # Check if user is authenticated
+            if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+                return jsonify({
+                    'authenticated': True,
+                    'email': current_user.email,
+                    'subscription_tier': current_user.subscription_tier,
+                    'usage_status': get_usage_status(current_user),
+                    'usage_today': get_usage_count(current_user.id, 'unified_basic', 'daily'),
+                    'daily_limit': USAGE_LIMITS[current_user.subscription_tier]['daily']['basic']
+                })
+            else:
+                # Anonymous user
+                return jsonify({
+                    'authenticated': False,
+                    'subscription_tier': 'anonymous',
+                    'usage_status': get_usage_status(None),
+                    'usage_today': get_usage_count(None, 'unified_basic', 'weekly'),
+                    'daily_limit': 0,
+                    'weekly_limit': USAGE_LIMITS['anonymous']['weekly']['basic']
+                })
+        except Exception as db_error:
+            # Database error - rollback and return safe default
+            logger.error(f"Database error in user status: {str(db_error)}")
+            try:
+                db.session.rollback()
+            except:
+                pass
+            
+            # Return a minimal response that allows the app to continue
             return jsonify({
                 'authenticated': False,
-                'subscription_tier': 'anonymous',
-                'usage_status': get_usage_status(None),
-                'usage_today': get_usage_count(None, 'unified_basic', 'weekly'),
-                'daily_limit': 0,
-                'weekly_limit': USAGE_LIMITS['anonymous']['weekly']['basic']
+                'subscription_tier': 'pro',  # Give pro access during database issues
+                'usage_status': {
+                    'tier': 'pro',
+                    'usage': {'daily': {'basic': 0, 'pro': 0}, 'weekly': {'basic': 0, 'pro': 0}},
+                    'limits': {'daily': {'basic': -1, 'pro': -1}, 'weekly': {'basic': -1, 'pro': -1}},
+                    'resets': {'daily': '', 'weekly': ''}
+                },
+                'usage_today': 0,
+                'daily_limit': -1
             })
     except Exception as e:
         logger.error(f"User status error: {str(e)}")
-        # Return a safe default response
+        # Return a safe default response with pro access
         return jsonify({
             'authenticated': False,
-            'subscription_tier': 'anonymous',
-            'usage_status': get_usage_status(None)
+            'subscription_tier': 'pro',
+            'usage_status': {
+                'tier': 'pro',
+                'usage': {'daily': {'basic': 0, 'pro': 0}, 'weekly': {'basic': 0, 'pro': 0}},
+                'limits': {'daily': {'basic': -1, 'pro': -1}, 'weekly': {'basic': -1, 'pro': -1}},
+                'resets': {'daily': '', 'weekly': ''}
+            }
         })
 
 # Contact and beta signup routes
