@@ -1,4 +1,4 @@
-// unified-analysis.js - AI Detection and Plagiarism Check
+// unified-analysis.js - AI Detection and Plagiarism Check with Real-Time Progress
 (function() {
     'use strict';
     
@@ -6,25 +6,34 @@
     window.UnifiedApp = window.UnifiedApp || {};
     window.UnifiedApp.analysis = {};
     
-    // Analysis stages for progress tracking
-    const ANALYSIS_STAGES = [
-        { stage: 'Preparing text for analysis...', progress: 15 },
-        { stage: 'Analyzing writing patterns...', progress: 30 },
-        { stage: 'Detecting AI signatures...', progress: 45 },
-        { stage: 'Checking for plagiarism...', progress: 60 },
-        { stage: 'Comparing with sources...', progress: 80 },
-        { stage: 'Finalizing report...', progress: 100 }
-    ];
+    // Store current analysis state
+    let currentAnalysis = {
+        eventSource: null,
+        results: null,
+        isAnalyzing: false
+    };
     
-    // Main analysis function
+    // Main analysis function with streaming
     window.UnifiedApp.analysis.runAnalysis = async function(text, tier = 'pro') {
         try {
-            // Show loading overlay
-            UnifiedApp.ui.showLoading();
+            // Prevent multiple simultaneous analyses
+            if (currentAnalysis.isAnalyzing) {
+                UnifiedApp.ui.showToast('Analysis already in progress', 'warning');
+                return;
+            }
             
             // Validate input
             if (!text || text.trim().length < 50) {
                 throw new Error('Please enter at least 50 characters for analysis');
+            }
+            
+            // Show loading overlay
+            UnifiedApp.ui.showLoading();
+            currentAnalysis.isAnalyzing = true;
+            
+            // Close any existing connection
+            if (currentAnalysis.eventSource) {
+                currentAnalysis.eventSource.close();
             }
             
             // Prepare analysis data
@@ -32,60 +41,130 @@
                 content: text.trim(),
                 type: 'text',
                 is_pro: tier === 'pro',
-                analysis_type: 'ai_plagiarism' // New analysis type for backend
+                analysis_type: 'ai_plagiarism'
             };
             
-            // Simulate progress stages
-            let stageIndex = 0;
-            const progressInterval = setInterval(() => {
-                if (stageIndex < ANALYSIS_STAGES.length) {
-                    const stage = ANALYSIS_STAGES[stageIndex];
-                    UnifiedApp.ui.updateProgress(stage.stage, stage.progress);
-                    stageIndex++;
+            // Create EventSource for streaming
+            const eventSource = new EventSource('/api/analyze-unified/stream?' + new URLSearchParams({
+                data: JSON.stringify(analysisData)
+            }));
+            
+            currentAnalysis.eventSource = eventSource;
+            
+            // Handle progress updates
+            eventSource.addEventListener('progress', function(event) {
+                const data = JSON.parse(event.data);
+                UnifiedApp.ui.updateProgress(data.stage, data.progress);
+                
+                // Show partial results if available
+                if (data.partial_results) {
+                    UnifiedApp.ui.showPartialResults(data.partial_results);
                 }
-            }, 800);
+            });
             
-            // Call API
-            const response = await window.ffAPI.analyzeUnified(analysisData);
-            
-            // Clear progress interval
-            clearInterval(progressInterval);
-            
-            // Ensure we're at 100%
-            UnifiedApp.ui.updateProgress('Analysis complete!', 100);
-            
-            // Process response
-            if (response.success && response.results) {
+            // Handle completion
+            eventSource.addEventListener('complete', function(event) {
+                const data = JSON.parse(event.data);
+                
                 // Add analysis metadata
-                response.results.timestamp = new Date().toISOString();
-                response.results.textLength = text.length;
-                response.results.wordCount = text.trim().split(/\s+/).length;
+                data.results.timestamp = new Date().toISOString();
+                data.results.textLength = text.length;
+                data.results.wordCount = text.trim().split(/\s+/).length;
+                
+                currentAnalysis.results = data.results;
+                
+                // Ensure we're at 100%
+                UnifiedApp.ui.updateProgress('Analysis complete!', 100);
                 
                 // Display results
                 setTimeout(() => {
                     UnifiedApp.ui.hideLoading();
-                    UnifiedApp.results.displayResults(response.results);
+                    UnifiedApp.results.displayResults(data.results);
+                    currentAnalysis.isAnalyzing = false;
                 }, 500);
                 
-                return response.results;
-            } else {
-                throw new Error(response.error || 'Analysis failed');
-            }
+                eventSource.close();
+            });
+            
+            // Handle errors
+            eventSource.addEventListener('error', function(event) {
+                console.error('SSE error:', event);
+                eventSource.close();
+                currentAnalysis.isAnalyzing = false;
+                
+                let errorMessage = 'Connection lost. Trying fallback method...';
+                if (event.data) {
+                    try {
+                        const errorData = JSON.parse(event.data);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
+                }
+                
+                // Fallback to regular API call
+                UnifiedApp.ui.showToast(errorMessage, 'warning');
+                fallbackAnalysis(text, tier);
+            });
+            
+            // Connection opened successfully
+            eventSource.addEventListener('open', function() {
+                console.log('Streaming connection established');
+            });
             
         } catch (error) {
             console.error('Analysis error:', error);
             UnifiedApp.ui.hideLoading();
             UnifiedApp.ui.showError(error.message || 'An error occurred during analysis');
+            currentAnalysis.isAnalyzing = false;
             return null;
         }
     };
     
+    // Fallback to regular API if streaming fails
+    async function fallbackAnalysis(text, tier) {
+        try {
+            UnifiedApp.ui.showToast('Using standard analysis method...', 'info');
+            
+            const response = await window.ffAPI.analyzeUnified({
+                content: text.trim(),
+                type: 'text',
+                is_pro: tier === 'pro',
+                analysis_type: 'ai_plagiarism'
+            });
+            
+            if (response.success && response.results) {
+                // Add metadata
+                response.results.timestamp = new Date().toISOString();
+                response.results.textLength = text.length;
+                response.results.wordCount = text.trim().split(/\s+/).length;
+                
+                currentAnalysis.results = response.results;
+                
+                UnifiedApp.ui.updateProgress('Analysis complete!', 100);
+                
+                setTimeout(() => {
+                    UnifiedApp.ui.hideLoading();
+                    UnifiedApp.results.displayResults(response.results);
+                    currentAnalysis.isAnalyzing = false;
+                }, 500);
+            } else {
+                throw new Error(response.error || 'Analysis failed');
+            }
+        } catch (error) {
+            console.error('Fallback analysis error:', error);
+            UnifiedApp.ui.hideLoading();
+            UnifiedApp.ui.showError(error.message || 'Analysis failed');
+            currentAnalysis.isAnalyzing = false;
+        }
+    }
+    
     // Export PDF report
     window.UnifiedApp.analysis.generatePDF = async function() {
         try {
-            UnifiedApp.ui.showToast('Generating PDF report...');
+            UnifiedApp.ui.showToast('Generating PDF report...', 'info');
             
-            const results = UnifiedApp.results.getCurrentResults();
+            const results = currentAnalysis.results || UnifiedApp.results.getCurrentResults();
             if (!results) {
                 throw new Error('No results to export');
             }
@@ -116,7 +195,7 @@
     // Share results
     window.UnifiedApp.analysis.shareResults = async function() {
         try {
-            const results = UnifiedApp.results.getCurrentResults();
+            const results = currentAnalysis.results || UnifiedApp.results.getCurrentResults();
             if (!results) {
                 UnifiedApp.ui.showToast('No results to share', 'error');
                 return;
@@ -143,6 +222,17 @@
         }
     };
     
+    // Cancel ongoing analysis
+    window.UnifiedApp.analysis.cancelAnalysis = function() {
+        if (currentAnalysis.eventSource) {
+            currentAnalysis.eventSource.close();
+            currentAnalysis.eventSource = null;
+        }
+        currentAnalysis.isAnalyzing = false;
+        UnifiedApp.ui.hideLoading();
+        UnifiedApp.ui.showToast('Analysis cancelled', 'info');
+    };
+    
     // Global functions
     window.analyzeUnified = function() {
         const text = document.getElementById('textInput').value;
@@ -158,10 +248,16 @@
     };
     
     window.resetUnifiedAnalysis = function() {
+        // Cancel any ongoing analysis
+        if (currentAnalysis.isAnalyzing) {
+            UnifiedApp.analysis.cancelAnalysis();
+        }
+        
         document.getElementById('textInput').value = '';
         document.getElementById('charCount').textContent = '0';
         document.getElementById('resultsSection').style.display = 'none';
         UnifiedApp.results.clearResults();
+        currentAnalysis.results = null;
         UnifiedApp.ui.showToast('Form cleared', 'info');
     };
     
