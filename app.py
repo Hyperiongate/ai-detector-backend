@@ -1024,9 +1024,48 @@ def analyze_unified_stream():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Content too short for meaningful analysis (minimum 50 characters)'})}\n\n"
                 return
             
-            # Check service availability
+            # Check service availability - with fallback
             if not service_registry:
-                yield f"data: {json.dumps({'type': 'error', 'message': 'Analysis services temporarily unavailable'})}\n\n"
+                logger.warning("Service registry not available - using fallback analysis")
+                # Use fallback analysis
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Using basic analysis mode...', 'progress': 10, 'step': 1})}\n\n"
+                
+                # Perform basic text analysis as fallback
+                basic_results = perform_realistic_unified_text_analysis(content)
+                
+                # Convert basic results to unified format
+                results = {
+                    'trust_score': basic_results.get('trust_score', 50),
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'plagiarism_score': 0,  # Not available in basic mode
+                    'analysis_sections': {
+                        'ai_detection': {
+                            'title': 'AI Content Detection',
+                            'content': basic_results.get('summary', 'Basic analysis completed'),
+                            'ai_probability': basic_results.get('ai_probability', 0),
+                            'human_probability': basic_results.get('human_probability', 100),
+                            'patterns_detected': basic_results.get('patterns_detected', []),
+                            'status': 'basic'
+                        },
+                        'quality': {
+                            'title': 'Content Quality Analysis',
+                            'metrics': basic_results.get('metrics', {}),
+                            'status': 'completed'
+                        }
+                    },
+                    'summary': basic_results.get('summary', ''),
+                    'recommendations': basic_results.get('recommendations', []),
+                    'metadata': {
+                        'analysis_time': datetime.utcnow().isoformat(),
+                        'services_used': ['basic_analysis'],
+                        'is_pro': False,
+                        'analysis_tier': 'basic',
+                        'content_type': content_type
+                    }
+                }
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
                 return
             
             # Initialize results structure
@@ -1089,7 +1128,18 @@ def analyze_unified_stream():
                 
                 yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
             else:
-                logger.warning("AI service not available")
+                logger.warning("AI service not available - using basic analysis")
+                # Fallback to basic analysis
+                basic_results = perform_realistic_unified_text_analysis(content)
+                results['ai_probability'] = basic_results.get('ai_probability', 0)
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': 'AI service unavailable - using pattern analysis',
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'human_probability': basic_results.get('human_probability', 100),
+                    'patterns_detected': basic_results.get('patterns_detected', []),
+                    'status': 'fallback'
+                }
             
             # Stage 3: Plagiarism Check
             yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
@@ -1126,6 +1176,11 @@ def analyze_unified_stream():
                 yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
             else:
                 logger.warning("Plagiarism service not available")
+                results['analysis_sections']['plagiarism'] = {
+                    'title': 'Plagiarism Detection',
+                    'content': 'Plagiarism checking unavailable in basic mode',
+                    'status': 'unavailable'
+                }
             
             # Stage 4: Quality Analysis
             yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
@@ -1222,11 +1277,7 @@ def analyze_unified_stream():
 @csrf.exempt
 @track_usage('unified')
 def analyze_unified():
-    """Original unified analysis endpoint"""
-    # This now redirects to the streaming version
-    # But returns a standard JSON response for compatibility
-    
-    # For now, keep the original implementation
+    """Original unified analysis endpoint with fallback support"""
     try:
         # Get request data
         content = request.form.get('content', '').strip()
@@ -1265,13 +1316,90 @@ def analyze_unified():
                 'error': 'No content or image provided for analysis'
             }), 400
         
-        # Check service availability
+        # Check service availability - with fallback
         if not service_registry:
-            logger.error("Service registry not available")
+            logger.warning("Service registry not available - using fallback analysis")
+            
+            # Use fallback analysis when services are unavailable
+            results = {
+                'trust_score': 50,
+                'ai_probability': 0,
+                'plagiarism_score': 0,
+                'analysis_sections': {},
+                'summary': '',
+                'recommendations': [],
+                'metadata': {
+                    'analysis_time': datetime.utcnow().isoformat(),
+                    'services_used': ['fallback_analysis'],
+                    'is_pro': is_pro,
+                    'analysis_tier': 'basic'
+                }
+            }
+            
+            # Perform basic text analysis as fallback
+            if content:
+                basic_results = perform_realistic_unified_text_analysis(content)
+                
+                results['ai_probability'] = basic_results.get('ai_probability', 0)
+                results['trust_score'] = basic_results.get('trust_score', 50)
+                
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': basic_results.get('summary', 'Basic analysis completed'),
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'human_probability': basic_results.get('human_probability', 100),
+                    'patterns_detected': basic_results.get('patterns_detected', []),
+                    'status': 'fallback'
+                }
+                
+                results['analysis_sections']['quality'] = {
+                    'title': 'Content Quality Analysis',
+                    'metrics': basic_results.get('metrics', {}),
+                    'status': 'completed'
+                }
+                
+                results['summary'] = basic_results.get('summary', 'Analysis completed using basic mode')
+                results['recommendations'] = basic_results.get('recommendations', [])
+            
+            # Handle image analysis if image provided
+            if image_file:
+                try:
+                    if is_pro:
+                        image_results = perform_realistic_image_analysis(image_file)
+                    else:
+                        image_results = perform_basic_image_analysis(image_file)
+                    
+                    results['analysis_sections']['image_authenticity'] = {
+                        'title': 'Image Authenticity',
+                        'content': image_results.get('summary', 'Image analysis completed'),
+                        'authenticity_score': image_results.get('authenticity_score', 0.5),
+                        'status': 'completed'
+                    }
+                except Exception as e:
+                    logger.error(f"Image analysis error: {str(e)}")
+            
+            # Save and return results
+            try:
+                analysis = Analysis(
+                    user_id=getattr(current_user, 'id', 1),
+                    content_type='unified',
+                    content_snippet=content[:500] if content else 'Analysis',
+                    results=json.dumps(results),
+                    trust_score=results['trust_score'],
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                results['metadata']['analysis_id'] = analysis.id
+            except Exception as e:
+                logger.error(f"Database save error: {str(e)}")
+            
+            results['usage_status'] = get_usage_status(current_user)
+            
             return jsonify({
-                'success': False,
-                'error': 'Analysis services temporarily unavailable'
-            }), 503
+                'success': True,
+                'results': results
+            })
         
         # Initialize results structure
         results = {
@@ -1328,6 +1456,18 @@ def analyze_unified():
                     'content': f'Analysis error: {str(e)}',
                     'status': 'error'
                 }
+        else:
+            # Fallback to basic analysis
+            basic_results = perform_realistic_unified_text_analysis(content)
+            results['ai_probability'] = basic_results.get('ai_probability', 0)
+            results['analysis_sections']['ai_detection'] = {
+                'title': 'AI Content Detection',
+                'content': 'Using basic pattern analysis',
+                'ai_probability': basic_results.get('ai_probability', 0),
+                'human_probability': basic_results.get('human_probability', 100),
+                'patterns_detected': basic_results.get('patterns_detected', []),
+                'status': 'fallback'
+            }
         
         # Perform Plagiarism Analysis
         plagiarism_service = service_registry.get_service('plagiarism')
@@ -1430,6 +1570,23 @@ def analyze_unified():
                     'content': f'News analysis error: {str(e)}',
                     'status': 'error'
                 }
+        
+        # Add quality metrics
+        if content:
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': 'completed'
+            }
         
         # Ensure trust score is within bounds
         results['trust_score'] = max(0, min(100, results['trust_score']))
