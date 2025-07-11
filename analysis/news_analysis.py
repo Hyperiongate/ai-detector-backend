@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
 
-# OLD OpenAI import style (for version 0.28.1)
+# CORRECT OpenAI import for version 0.28.1
 import openai
 
 # Set up logging
@@ -199,7 +199,7 @@ class NewsAnalyzer:
     
     def get_ai_analysis(self, article_data):
         """
-        Use OpenAI GPT-4 to analyze article - OLD API style for 0.28.1
+        Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
         """
         if not OPENAI_API_KEY:
             logger.warning("OpenAI API key not configured")
@@ -209,7 +209,7 @@ class NewsAnalyzer:
             # Prepare the analysis prompt
             prompt = self._create_analysis_prompt(article_data)
             
-            # OLD OpenAI API call style (for version 0.28.1)
+            # CORRECT OpenAI API call for version 0.28.1
             response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
@@ -226,7 +226,7 @@ class NewsAnalyzer:
                 max_tokens=1500
             )
             
-            # Extract response - OLD style
+            # Extract response - CORRECT OLD style
             analysis_text = response.choices[0].message.content
             
             # Parse the structured response
