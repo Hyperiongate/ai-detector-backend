@@ -107,11 +107,13 @@
         gap: 20px;
         margin-bottom: 30px;
         justify-content: center;
+        flex-wrap: wrap;
     }
 
     .input-type-btn {
         flex: 1;
-        max-width: 300px;
+        min-width: 200px;
+        max-width: 250px;
         padding: 20px;
         border: 2px solid var(--border-color);
         background: white;
@@ -264,6 +266,136 @@
 
     .remove-file-btn:hover {
         background: #c0392b;
+    }
+
+    /* YouTube and Stream Styles */
+    .youtube-input-container,
+    .stream-input-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .url-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        background: var(--bg-light);
+    }
+
+    .url-input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        background: white;
+    }
+
+    .fetch-btn {
+        padding: 15px 30px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .fetch-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .youtube-preview {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: var(--shadow-light);
+        margin-top: 20px;
+    }
+
+    .video-info {
+        display: flex;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .video-thumbnail {
+        width: 200px;
+        height: 112px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .video-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .video-details {
+        flex: 1;
+    }
+
+    .video-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--text-primary);
+    }
+
+    .video-meta {
+        display: flex;
+        gap: 20px;
+        color: var(--text-secondary);
+        font-size: 0.9em;
+    }
+
+    .stream-options {
+        margin-top: 20px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .transcript-preview {
+        margin-top: 20px;
+        padding: 15px;
+        background: var(--bg-light);
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .transcript-preview h5 {
+        margin-bottom: 10px;
+        color: var(--text-primary);
+    }
+
+    .transcript-text {
+        font-size: 0.9em;
+        line-height: 1.6;
+        color: var(--text-secondary);
     }
 
     /* Analyze Button */
@@ -688,6 +820,12 @@
         color: #991b1b;
     }
 
+    .alert-info {
+        background: #f0f9ff;
+        border-left-color: var(--primary-blue);
+        color: #0c4a6e;
+    }
+
     .alert h4 {
         margin-bottom: 10px;
         font-size: 1.2em;
@@ -872,6 +1010,15 @@
         .progress-step {
             min-width: auto;
         }
+
+        .video-info {
+            flex-direction: column;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: auto;
+        }
     }
 
     /* Animations */
@@ -959,11 +1106,19 @@
             <div class="input-type-selector">
                 <button class="input-type-btn active" onclick="switchSpeechInputType('text')" id="text-btn">
                     <i class="fas fa-keyboard"></i>
-                    Text/Transcript Analysis
+                    Text/Transcript
                 </button>
                 <button class="input-type-btn" onclick="switchSpeechInputType('file')" id="file-btn">
                     <i class="fas fa-file-audio"></i>
                     Audio Upload
+                </button>
+                <button class="input-type-btn" onclick="switchSpeechInputType('youtube')" id="youtube-btn">
+                    <i class="fab fa-youtube"></i>
+                    YouTube Video
+                </button>
+                <button class="input-type-btn" onclick="switchSpeechInputType('stream')" id="stream-btn">
+                    <i class="fas fa-broadcast-tower"></i>
+                    Live Stream
                 </button>
             </div>
 
@@ -993,6 +1148,58 @@
                 </div>
             </div>
 
+            <!-- YouTube Input Area -->
+            <div class="input-area" id="youtube-input-area">
+                <div class="youtube-input-container">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="youtube-url-input" 
+                            class="url-input" 
+                            placeholder="Paste YouTube video URL here (e.g., https://www.youtube.com/watch?v=...)"
+                        >
+                        <button class="fetch-btn" onclick="fetchYouTubeTranscript()">
+                            <i class="fas fa-download"></i> Get Transcript
+                        </button>
+                    </div>
+                    <div class="youtube-preview" id="youtube-preview" style="display: none;">
+                        <!-- YouTube preview will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Stream Input Area -->
+            <div class="input-area" id="stream-input-area">
+                <div class="stream-input-container">
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-info-circle"></i> Live Stream Analysis</h4>
+                        <p>For live streams, we can analyze:</p>
+                        <ul>
+                            <li>YouTube Live videos with closed captions enabled</li>
+                            <li>Recorded segments of live streams</li>
+                            <li>Stream VODs (Video on Demand) after broadcast</li>
+                        </ul>
+                    </div>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="stream-url-input" 
+                            class="url-input" 
+                            placeholder="Paste live stream or VOD URL here"
+                        >
+                        <button class="fetch-btn" onclick="analyzeStream()">
+                            <i class="fas fa-satellite-dish"></i> Analyze Stream
+                        </button>
+                    </div>
+                    <div class="stream-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="realtime-analysis">
+                            <span>Enable real-time analysis (if available)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <!-- Analyze Button -->
             <div class="analyze-btn-container">
                 <button class="analyze-btn" onclick="startSpeechAnalysis()" id="analyze-speech-btn">
@@ -1011,7 +1218,7 @@
             </div>
             <div class="info-card-title">1. Upload Content</div>
             <div class="info-card-text">
-                Choose between uploading an audio/video file or pasting text content. Our system supports all major audio and video formats for maximum flexibility.
+                Choose between uploading an audio/video file, pasting text content, or analyzing YouTube videos. Our system supports all major audio and video formats for maximum flexibility.
             </div>
         </div>
         
@@ -1243,6 +1450,7 @@
 // Global variables
 let currentAnalysisResults = null;
 let currentInputType = 'text';
+let currentTranscript = null;
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -1368,6 +1576,146 @@ function removeFile() {
     document.getElementById('analyze-speech-btn').disabled = true;
 }
 
+// YouTube transcript fetching
+async function fetchYouTubeTranscript() {
+    const urlInput = document.getElementById('youtube-url-input');
+    const url = urlInput.value.trim();
+    
+    if (!url) {
+        alert('Please enter a YouTube URL');
+        return;
+    }
+    
+    // Validate YouTube URL
+    if (!isValidYouTubeUrl(url)) {
+        alert('Please enter a valid YouTube URL');
+        return;
+    }
+    
+    // Show loading
+    const preview = document.getElementById('youtube-preview');
+    preview.style.display = 'block';
+    preview.innerHTML = `
+        <div class="text-center">
+            <div class="loading-spinner" style="margin: 20px auto;"></div>
+            <p>Fetching video information and transcript...</p>
+        </div>
+    `;
+    
+    try {
+        // Call backend to get transcript
+        const response = await fetch('/api/youtube-transcript', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Display video info and transcript preview
+            displayYouTubePreview(data.video_info, data.transcript);
+            
+            // Store transcript for analysis
+            window.currentTranscript = data.transcript;
+            
+            // Enable analyze button
+            document.getElementById('analyze-speech-btn').disabled = false;
+        } else {
+            throw new Error(data.error || 'Failed to fetch transcript');
+        }
+        
+    } catch (error) {
+        console.error('YouTube fetch error:', error);
+        preview.innerHTML = `
+            <div class="alert alert-danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                <p>${error.message}</p>
+                <p>Note: Some videos may not have transcripts available.</p>
+            </div>
+        `;
+    }
+}
+
+function isValidYouTubeUrl(url) {
+    const patterns = [
+        /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
+        /^https?:\/\/youtu\.be\/[\w-]+/,
+        /^https?:\/\/(www\.)?youtube\.com\/embed\/[\w-]+/
+    ];
+    
+    return patterns.some(pattern => pattern.test(url));
+}
+
+function displayYouTubePreview(videoInfo, transcript) {
+    const preview = document.getElementById('youtube-preview');
+    
+    preview.innerHTML = `
+        <div class="video-info">
+            <div class="video-thumbnail">
+                <img src="${videoInfo.thumbnail}" alt="${videoInfo.title}">
+            </div>
+            <div class="video-details">
+                <div class="video-title">${videoInfo.title}</div>
+                <div class="video-meta">
+                    <span><i class="fas fa-user"></i> ${videoInfo.channel}</span>
+                    <span><i class="fas fa-clock"></i> ${videoInfo.duration}</span>
+                    <span><i class="fas fa-eye"></i> ${videoInfo.views}</span>
+                </div>
+            </div>
+        </div>
+        <div class="transcript-preview">
+            <h5>Transcript Preview</h5>
+            <div class="transcript-text">
+                ${transcript.substring(0, 500)}...
+            </div>
+        </div>
+        <div class="alert alert-success" style="margin-top: 15px;">
+            <i class="fas fa-check-circle"></i> Transcript loaded successfully! Click "Analyze Speech" to start fact-checking.
+        </div>
+    `;
+}
+
+// Live stream analysis
+async function analyzeStream() {
+    const urlInput = document.getElementById('stream-url-input');
+    const url = urlInput.value.trim();
+    const realtimeEnabled = document.getElementById('realtime-analysis').checked;
+    
+    if (!url) {
+        alert('Please enter a stream URL');
+        return;
+    }
+    
+    // For live streams, we'll need to handle differently
+    if (realtimeEnabled && isLiveStream(url)) {
+        startRealtimeAnalysis(url);
+    } else {
+        // Treat as VOD or recorded segment
+        if (isValidYouTubeUrl(url)) {
+            // Switch to YouTube tab and process
+            document.getElementById('youtube-url-input').value = url;
+            switchSpeechInputType('youtube');
+            fetchYouTubeTranscript();
+        } else {
+            alert('Please provide a YouTube Live URL or VOD link');
+        }
+    }
+}
+
+function isLiveStream(url) {
+    // Check if URL indicates a live stream
+    return url.includes('/live') || url.includes('?live=');
+}
+
+function startRealtimeAnalysis(url) {
+    // This would connect to a WebSocket or polling system
+    // for real-time transcript analysis
+    alert('Real-time analysis is in beta. For now, please wait for the stream to end and analyze the VOD.');
+}
+
 // Start speech analysis
 function startSpeechAnalysis() {
     let content = '';
@@ -1391,6 +1739,14 @@ function startSpeechAnalysis() {
             return;
         }
         content = fileInput.files[0];
+        isValid = true;
+    } else if (currentInputType === 'youtube' || currentInputType === 'stream') {
+        if (!window.currentTranscript) {
+            alert('Please fetch a transcript first.');
+            return;
+        }
+        content = window.currentTranscript;
+        currentInputType = 'youtube'; // Normalize for backend
         isValid = true;
     }
     
@@ -1457,11 +1813,6 @@ function animateProgress() {
             currentStage++;
         } else {
             clearInterval(interval);
-            // Complete the analysis
-            setTimeout(() => {
-                hideLoadingState();
-                showResults();
-            }, 1000);
         }
     }, 1500);
 }
@@ -1469,17 +1820,23 @@ function animateProgress() {
 // Perform speech analysis
 async function performSpeechAnalysis(content, type) {
     try {
-        // Simulate API call to your backend
+        // Create form data
+        const formData = new FormData();
+        
+        if (type === 'file') {
+            formData.append('file', content);
+            formData.append('content', '');
+        } else {
+            formData.append('content', content);
+        }
+        
+        formData.append('type', type);
+        formData.append('is_pro', 'true'); // DEV MODE: always pro
+        
+        // Call API
         const response = await fetch('/api/analyze-speech', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                content: content,
-                type: type,
-                is_pro: true
-            })
+            body: formData
         });
         
         if (!response.ok) {
@@ -1489,8 +1846,12 @@ async function performSpeechAnalysis(content, type) {
         const data = await response.json();
         
         if (data.success) {
-            currentAnalysisResults = data.results;
-            // Results will be shown after progress animation completes
+            currentAnalysisResults = data;
+            // Wait for animation to complete
+            setTimeout(() => {
+                hideLoadingState();
+                showResults(data);
+            }, 1000);
         } else {
             throw new Error(data.error || 'Analysis failed');
         }
@@ -1509,7 +1870,7 @@ function hideLoadingState() {
 }
 
 // Show results
-function showResults() {
+function showResults(data) {
     const resultsSection = document.getElementById('results-section');
     resultsSection.style.display = 'block';
     
@@ -1517,135 +1878,13 @@ function showResults() {
     document.getElementById('error-container').style.display = 'none';
     
     // Animate trust score
-    animateTrustScore(78); // Example score
+    animateTrustScore(data.trust_score || 50);
     
     // Populate results
-    populateResults();
+    populateResults(data);
     
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Animate trust meter
-function animateTrustScore(score) {
-    const circle = document.getElementById('trust-circle');
-    const scoreElement = document.getElementById('trust-score');
-    
-    if (!circle || !scoreElement) return;
-    
-    const circumference = 2 * Math.PI * 70;
-    const offset = circumference - (score / 100) * circumference;
-    
-    // Set color based on score
-    let color = '#27ae60'; // green
-    if (score < 60) color = '#e74c3c'; // red
-    else if (score < 80) color = '#f39c12'; // orange
-    
-    setTimeout(() => {
-        circle.style.stroke = color;
-        circle.style.strokeDashoffset = offset;
-        circle.style.filter = `drop-shadow(0 0 8px ${color})`;
-        
-        // Animate number
-        let current = 0;
-        const interval = setInterval(() => {
-            if (current < score) {
-                current += 2;
-                scoreElement.textContent = Math.min(current, score) + '%';
-            } else {
-                clearInterval(interval);
-            }
-        }, 30);
-    }, 100);
-}
-
-// Populate results with sample data
-function populateResults() {
-    // Update statistics
-    document.getElementById('claims-analyzed').textContent = '12';
-    document.getElementById('claims-verified').textContent = '9';
-    document.getElementById('claims-false').textContent = '2';
-    document.getElementById('word-count').textContent = '1,247';
-    
-    // Populate fact-checking results
-    const factCheckingResults = document.getElementById('fact-checking-results');
-    factCheckingResults.innerHTML = `
-        <div class="claim-card verified">
-            <div class="claim-text">"Unemployment rate dropped to 3.7% last quarter"</div>
-            <span class="claim-status status-verified">Verified</span>
-            <div class="confidence-score">Confidence: 96% • Source: Bureau of Labor Statistics</div>
-        </div>
-        
-        <div class="claim-card verified">
-            <div class="claim-text">"Infrastructure bill allocated $1.2 trillion over 8 years"</div>
-            <span class="claim-status status-verified">Verified</span>
-            <div class="confidence-score">Confidence: 98% • Source: Congressional Budget Office</div>
-        </div>
-        
-        <div class="claim-card false">
-            <div class="claim-text">"Crime rates increased by 45% nationwide"</div>
-            <span class="claim-status status-false">Misleading</span>
-            <div class="confidence-score">Confidence: 89% • Actual increase: 12% in select cities only</div>
-        </div>
-        
-        <div class="claim-card unverified">
-            <div class="claim-text">"New policy will create 2 million jobs"</div>
-            <span class="claim-status status-unverified">Unverified</span>
-            <div class="confidence-score">Confidence: 65% • Projection, not yet measurable</div>
-        </div>
-    `;
-}
-
-// Show error
-function showError(message) {
-    const errorContainer = document.getElementById('error-container');
-    const errorMessage = document.getElementById('error-message');
-    
-    errorMessage.textContent = message;
-    errorContainer.style.display = 'block';
-    
-    // Hide results
-    document.getElementById('results-section').style.display = 'none';
-    
-    // Scroll to error
-    errorContainer.scrollIntoView({ behavior: 'smooth' });
-}
-
-// Retry analysis
-function retryAnalysis() {
-    document.getElementById('error-container').style.display = 'none';
-    startSpeechAnalysis();
-}
-
-// Toggle dropdown
-function toggleDropdown(header) {
-    const content = header.nextElementSibling;
-    const isOpen = content.classList.contains('show');
-    
-    if (isOpen) {
-        content.classList.remove('show');
-    } else {
-        content.classList.add('show');
-    }
-}
-
-// Download report
-function downloadReport() {
-    if (!currentAnalysisResults) {
-        alert('Please run an analysis first to generate a report.');
-        return;
-    }
-    
-    // In a real implementation, this would call your backend
-    alert('In a full implementation, this would generate and download a comprehensive PDF report with all analysis details.');
-}
-
-// Global functions for compatibility
-window.switchSpeechInputType = switchSpeechInputType;
-window.startSpeechAnalysis = startSpeechAnalysis;
-window.removeFile = removeFile;
-window.toggleDropdown = toggleDropdown;
-window.downloadReport = downloadReport;
-window.retryAnalysis = retryAnalysis;
-</script>
-{% endblock %}
+<
