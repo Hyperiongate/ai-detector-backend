@@ -362,6 +362,100 @@ def stream_progress(generator_func):
         )
     return wrapper
 
+# Helper function to extract article content from URL
+def extract_article_content(url):
+    """Extract article content from URL using BeautifulSoup"""
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        from urllib.parse import urlparse
+        
+        # Add headers to avoid being blocked
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # Fetch the page
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Parse HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Remove script and style elements
+        for script in soup(["script", "style"]):
+            script.decompose()
+        
+        # Try to find article content
+        article_data = {
+            'url': url,
+            'title': '',
+            'content': '',
+            'author': '',
+            'publish_date': ''
+        }
+        
+        # Extract title
+        if soup.find('title'):
+            article_data['title'] = soup.find('title').get_text().strip()
+        elif soup.find('h1'):
+            article_data['title'] = soup.find('h1').get_text().strip()
+        
+        # Try to find main content
+        # Look for common article containers
+        content_selectors = [
+            'article',
+            '[role="main"]',
+            '.article-content',
+            '.entry-content',
+            '.post-content',
+            '.content',
+            'main',
+            '#content'
+        ]
+        
+        content = ''
+        for selector in content_selectors:
+            element = soup.select_one(selector)
+            if element:
+                # Get all paragraph text
+                paragraphs = element.find_all('p')
+                if paragraphs:
+                    content = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+                    if len(content) > 100:  # Minimum content length
+                        break
+        
+        # Fallback: get all paragraphs
+        if not content:
+            all_paragraphs = soup.find_all('p')
+            content = ' '.join([p.get_text().strip() for p in all_paragraphs if p.get_text().strip()])
+        
+        # Clean up content
+        content = ' '.join(content.split())  # Remove extra whitespace
+        
+        if not content or len(content) < 100:
+            # Last resort: get all text
+            content = soup.get_text()
+            content = ' '.join(content.split())
+        
+        article_data['content'] = content[:10000]  # Limit content length
+        
+        # Try to extract author
+        author_meta = soup.find('meta', {'name': 'author'}) or soup.find('meta', {'property': 'article:author'})
+        if author_meta:
+            article_data['author'] = author_meta.get('content', '')
+        
+        # Try to extract publish date
+        date_meta = soup.find('meta', {'property': 'article:published_time'}) or soup.find('meta', {'name': 'publish_date'})
+        if date_meta:
+            article_data['publish_date'] = date_meta.get('content', '')
+        
+        return article_data
+        
+    except Exception as e:
+        logger.error(f"Error extracting article content: {str(e)}")
+        return None
+
 # Routes
 
 @app.route('/')
@@ -884,22 +978,55 @@ def analyze_unified_stream():
     """Streaming version of unified analysis with real-time progress updates"""
     def generate():
         try:
-            # Parse the data from query string
-            data_str = request.args.get('data', '{}')
-            data = json.loads(data_str)
+            # Get parameters directly from query string
+            content = request.args.get('content', '').strip()
+            url = request.args.get('url', '').strip()
+            content_type = request.args.get('type', 'text')
+            is_pro = request.args.get('is_pro', 'true').lower() == 'true'
             
-            content = data.get('content', '').strip()
-            content_type = data.get('type', 'text')
-            is_pro = data.get('is_pro', True)
+            # Determine what content to analyze
+            if content_type == 'url' and url:
+                # URL analysis - fetch content from URL first
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Fetching content from URL...', 'progress': 5, 'step': 1})}\n\n"
+                
+                try:
+                    # Extract content from URL
+                    article_data = extract_article_content(url)
+                    if article_data and article_data.get('content'):
+                        content = article_data['content']
+                        # Include URL metadata in results
+                        url_metadata = {
+                            'url': url,
+                            'title': article_data.get('title', ''),
+                            'author': article_data.get('author', ''),
+                            'publish_date': article_data.get('publish_date', '')
+                        }
+                    else:
+                        yield f"data: {json.dumps({'type': 'error', 'message': 'Could not extract content from URL'})}\n\n"
+                        return
+                except Exception as e:
+                    logger.error(f"URL extraction error: {str(e)}")
+                    yield f"data: {json.dumps({'type': 'error', 'message': f'Failed to fetch URL: {str(e)}'})}\n\n"
+                    return
+                    
+            elif content_type == 'text' and content:
+                # Text analysis - content already provided
+                pass
+            elif content_type == 'file':
+                # File analysis - content should be provided
+                pass
+            else:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'No content provided for analysis'})}\n\n"
+                return
             
-            # Validate input
-            if not content:
-                yield f"event: error\ndata: {json.dumps({'error': 'No content provided'})}\n\n"
+            # Validate content
+            if not content or len(content.strip()) < 50:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Content too short for meaningful analysis (minimum 50 characters)'})}\n\n"
                 return
             
             # Check service availability
             if not service_registry:
-                yield f"event: error\ndata: {json.dumps({'error': 'Services unavailable'})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Analysis services temporarily unavailable'})}\n\n"
                 return
             
             # Initialize results structure
@@ -914,20 +1041,29 @@ def analyze_unified_stream():
                     'analysis_time': datetime.utcnow().isoformat(),
                     'services_used': [],
                     'is_pro': is_pro,
-                    'analysis_tier': 'professional' if is_pro else 'basic'
+                    'analysis_tier': 'professional' if is_pro else 'basic',
+                    'content_type': content_type
                 }
             }
             
+            # Add URL metadata if available
+            if content_type == 'url' and 'url_metadata' in locals():
+                results['metadata']['source'] = url_metadata
+            
             # Stage 1: Initial processing
-            yield f"event: progress\ndata: {json.dumps({'stage': 'Initializing Analysis...', 'progress': 10})}\n\n"
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Initializing analysis engine...', 'progress': 10, 'step': 1})}\n\n"
             time.sleep(0.5)
             
             # Stage 2: AI Analysis
-            yield f"event: progress\ndata: {json.dumps({'stage': 'Analyzing writing patterns...', 'progress': 25})}\n\n"
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Detecting AI patterns...', 'progress': 20, 'step': 2})}\n\n"
             
             ai_service = service_registry.get_service('ai_analysis')
             if ai_service and ai_service.is_available():
                 logger.info("Running AI analysis...")
+                
+                # More detailed progress updates
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing linguistic patterns...', 'progress': 30, 'step': 2})}\n\n"
+                
                 ai_results = ai_service.analyze_content(content, is_pro)
                 
                 if ai_results.get('success'):
@@ -939,6 +1075,7 @@ def analyze_unified_stream():
                         'details': ai_results.get('details', {}),
                         'ai_probability': ai_results.get('ai_probability', 0),
                         'human_probability': ai_results.get('human_probability', 100),
+                        'patterns_detected': ai_results.get('patterns', []),
                         'status': 'completed'
                     }
                     results['metadata']['services_used'].append('ai_analysis')
@@ -946,15 +1083,23 @@ def analyze_unified_stream():
                     # Adjust trust score
                     if ai_results.get('is_ai_generated'):
                         results['trust_score'] -= int(ai_results.get('confidence', 0.5) * 30)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'ai_detection': results['analysis_sections']['ai_detection']}})}\n\n"
                 
-                yield f"event: progress\ndata: {json.dumps({'stage': 'Detecting AI signatures...', 'progress': 45, 'partial_results': {'ai_indicators': {'length': 3}}})}\n\n"
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
+            else:
+                logger.warning("AI service not available")
             
             # Stage 3: Plagiarism Check
-            yield f"event: progress\ndata: {json.dumps({'stage': 'Checking for plagiarism...', 'progress': 60})}\n\n"
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
             
             plagiarism_service = service_registry.get_service('plagiarism')
             if plagiarism_service and plagiarism_service.is_available() and content:
                 logger.info("Running plagiarism analysis...")
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Searching academic databases...', 'progress': 60, 'step': 4})}\n\n"
+                
                 plagiarism_results = plagiarism_service.check_plagiarism(content, is_pro)
                 
                 if plagiarism_results.get('success'):
@@ -974,11 +1119,35 @@ def analyze_unified_stream():
                     similarity = plagiarism_results.get('max_similarity', 0)
                     if similarity > 0.5:
                         results['trust_score'] -= int(similarity * 25)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
                 
-                yield f"event: progress\ndata: {json.dumps({'stage': 'Comparing with sources...', 'progress': 80, 'partial_results': {'plagiarism_matches': plagiarism_results.get('sources_count', 0), 'confidence_level': 85}})}\n\n"
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
+            else:
+                logger.warning("Plagiarism service not available")
             
-            # Stage 4: Finalize
-            yield f"event: progress\ndata: {json.dumps({'stage': 'Finalizing report...', 'progress': 95})}\n\n"
+            # Stage 4: Quality Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
+            
+            # Add basic quality metrics
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': 'completed'
+            }
+            
+            # Stage 5: Finalize
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Generating comprehensive report...', 'progress': 90, 'step': 6})}\n\n"
             
             # Ensure trust score is within bounds
             results['trust_score'] = max(0, min(100, results['trust_score']))
@@ -1015,7 +1184,7 @@ def analyze_unified_stream():
                 analysis = Analysis(
                     user_id=getattr(current_user, 'id', 1),
                     content_type='unified',
-                    content_snippet=content[:500] if content else 'Image analysis',
+                    content_snippet=content[:500] if content else 'Analysis',
                     results=json.dumps(results),
                     trust_score=results['trust_score'],
                     timestamp=datetime.utcnow()
@@ -1025,20 +1194,26 @@ def analyze_unified_stream():
                 results['metadata']['analysis_id'] = analysis.id
             except Exception as e:
                 logger.error(f"Database save error: {str(e)}")
+                # Continue even if save fails
             
-            # Final result
-            yield f"event: complete\ndata: {json.dumps({'results': results})}\n\n"
+            # Final progress
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
+            
+            # Send complete results
+            yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
             
         except Exception as e:
             logger.error(f"Unified analysis streaming error: {str(e)}")
-            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+            logger.error(traceback.format_exc())
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
     
     return Response(
         stream_with_context(generate()),
         mimetype="text/event-stream",
         headers={
             'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no'
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive'
         }
     )
 
@@ -1549,6 +1724,230 @@ def api_beta_signup():
     except Exception as e:
         logger.error(f"Beta signup error: {str(e)}")
         return jsonify({'success': False, 'error': 'Signup failed'}), 500
+
+# PDF generation endpoints
+
+@app.route('/api/generate-pdf', methods=['POST'])
+@csrf.exempt
+def api_generate_pdf():
+    """Generate PDF report for analysis results"""
+    try:
+        data = request.get_json()
+        results = data.get('results', {})
+        analysis_type = data.get('type', 'unified')
+        
+        # Generate PDF based on analysis type
+        if analysis_type == 'speech':
+            from analysis.speech_analysis import export_speech_report
+            pdf_buffer = export_speech_report(results)
+        else:
+            # For other types, use a generic PDF generator
+            # You would implement this based on your needs
+            pdf_buffer = generate_generic_pdf_report(results, analysis_type)
+        
+        if not pdf_buffer:
+            return jsonify({'success': False, 'error': 'Failed to generate PDF'}), 500
+        
+        # Return PDF file
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'{analysis_type}_analysis_report_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+        
+    except Exception as e:
+        logger.error(f"PDF generation error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/generate-unified-pdf', methods=['POST'])
+@csrf.exempt
+def api_generate_unified_pdf():
+    """Generate PDF report specifically for unified analysis"""
+    try:
+        data = request.get_json()
+        results = data.get('results', {})
+        
+        # Generate unified analysis PDF
+        pdf_buffer = generate_unified_pdf_report(results)
+        
+        if not pdf_buffer:
+            return jsonify({'success': False, 'error': 'Failed to generate PDF'}), 500
+        
+        # Generate a unique filename
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        filename = f'ai_plagiarism_report_{timestamp}.pdf'
+        
+        # Return PDF file
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        logger.error(f"Unified PDF generation error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def generate_generic_pdf_report(results, analysis_type):
+    """Generate a generic PDF report for analysis results"""
+    try:
+        from io import BytesIO
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Title
+        title = f"{analysis_type.title()} Analysis Report"
+        story.append(Paragraph(title, styles['Title']))
+        story.append(Spacer(1, 12))
+        
+        # Summary
+        if 'summary' in results:
+            story.append(Paragraph("Summary", styles['Heading1']))
+            story.append(Paragraph(results['summary'], styles['Normal']))
+            story.append(Spacer(1, 12))
+        
+        # Trust Score
+        if 'trust_score' in results:
+            story.append(Paragraph(f"Trust Score: {results['trust_score']}%", styles['Heading2']))
+            story.append(Spacer(1, 12))
+        
+        # Analysis Sections
+        if 'analysis_sections' in results:
+            for section_key, section_data in results['analysis_sections'].items():
+                if isinstance(section_data, dict) and 'title' in section_data:
+                    story.append(Paragraph(section_data['title'], styles['Heading1']))
+                    if 'content' in section_data:
+                        story.append(Paragraph(str(section_data['content']), styles['Normal']))
+                    story.append(Spacer(1, 12))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer
+        
+    except Exception as e:
+        logger.error(f"Generic PDF generation error: {str(e)}")
+        return None
+
+def generate_unified_pdf_report(results):
+    """Generate a comprehensive PDF report for unified analysis"""
+    try:
+        from io import BytesIO
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        from reportlab.lib.units import inch
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Title'],
+            fontSize=24,
+            textColor=colors.HexColor('#4a90e2')
+        )
+        
+        # Title
+        story.append(Paragraph("AI Detection & Plagiarism Analysis Report", title_style))
+        story.append(Spacer(1, 20))
+        
+        # Report metadata
+        metadata = results.get('metadata', {})
+        story.append(Paragraph(f"Analysis Date: {metadata.get('analysis_time', 'N/A')}", styles['Normal']))
+        story.append(Paragraph(f"Analysis ID: {metadata.get('analysis_id', 'N/A')}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Overall Score Section
+        story.append(Paragraph("Overall Analysis Results", styles['Heading1']))
+        story.append(Spacer(1, 12))
+        
+        # Create score table
+        score_data = [
+            ['Metric', 'Score', 'Status'],
+            ['Trust Score', f"{results.get('trust_score', 0)}%", 'Pass' if results.get('trust_score', 0) > 60 else 'Review'],
+            ['AI Probability', f"{results.get('ai_probability', 0)}%", 'High' if results.get('ai_probability', 0) > 70 else 'Low'],
+            ['Plagiarism Score', f"{results.get('plagiarism_score', 0)}%", 'Detected' if results.get('plagiarism_score', 0) > 20 else 'Clear']
+        ]
+        
+        score_table = Table(score_data, colWidths=[3*inch, 2*inch, 2*inch])
+        score_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4a90e2')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(score_table)
+        story.append(Spacer(1, 20))
+        
+        # Summary
+        if 'summary' in results:
+            story.append(Paragraph("Executive Summary", styles['Heading1']))
+            story.append(Paragraph(results['summary'], styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Detailed Analysis Sections
+        if 'analysis_sections' in results:
+            for section_key, section_data in results['analysis_sections'].items():
+                if isinstance(section_data, dict) and 'title' in section_data:
+                    story.append(Paragraph(section_data['title'], styles['Heading1']))
+                    
+                    # Add section content
+                    if 'content' in section_data:
+                        story.append(Paragraph(str(section_data['content']), styles['Normal']))
+                    
+                    # Add specific details based on section type
+                    if section_key == 'ai_detection':
+                        if 'ai_probability' in section_data:
+                            story.append(Paragraph(f"AI Probability: {section_data['ai_probability']}%", styles['Normal']))
+                        if 'confidence' in section_data:
+                            story.append(Paragraph(f"Confidence Level: {section_data['confidence']*100:.1f}%", styles['Normal']))
+                    
+                    elif section_key == 'plagiarism':
+                        if 'sources_found' in section_data:
+                            story.append(Paragraph(f"Sources Found: {section_data['sources_found']}", styles['Normal']))
+                        if 'similarity_score' in section_data:
+                            story.append(Paragraph(f"Max Similarity: {section_data['similarity_score']*100:.1f}%", styles['Normal']))
+                    
+                    story.append(Spacer(1, 15))
+        
+        # Recommendations
+        if 'recommendations' in results and results['recommendations']:
+            story.append(Paragraph("Recommendations", styles['Heading1']))
+            for rec in results['recommendations']:
+                story.append(Paragraph(f"• {rec}", styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Footer
+        story.append(Spacer(1, 30))
+        story.append(Paragraph("Generated by Facts & Fakes AI", styles['Normal']))
+        story.append(Paragraph("© 2025 Facts & Fakes AI. All rights reserved.", styles['Normal']))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer
+        
+    except Exception as e:
+        logger.error(f"Unified PDF generation error: {str(e)}")
+        return None
 
 # Error handlers
 
