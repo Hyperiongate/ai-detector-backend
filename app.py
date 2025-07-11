@@ -327,7 +327,8 @@ def track_usage(analysis_type):
                     user_id=user_id,
                     session_id=session_id,
                     analysis_type=f"{analysis_type}_{analysis_level}",
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.utcnow(),
+                    ip_address=request.remote_addr
                 )
                 db.session.add(usage_log)
                 db.session.commit()
@@ -1578,19 +1579,23 @@ def create_tables():
     try:
         with app.app_context():
             # Import the migration functions
-            from services.database import create_missing_tables, add_session_id_column
+            from services.database import migrate_database
             
-            # Create only missing tables
-            if create_missing_tables():
+            # Run full migration
+            if migrate_database():
                 logger.info("Database migration completed successfully")
             else:
                 logger.warning("Database migration had issues - check logs")
-            
-            # Add session_id column if needed
-            add_session_id_column()
+                
+            # Ensure all tables exist by trying to create them
+            try:
+                db.create_all()
+                logger.info("Database tables verified/created")
+            except Exception as e:
+                logger.warning(f"Table creation warning (may be normal if tables exist): {str(e)}")
                 
     except Exception as e:
-        logger.error(f"Database creation error: {str(e)}")
+        logger.error(f"Database initialization error: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
 
