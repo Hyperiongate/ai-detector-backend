@@ -45,7 +45,7 @@ body > nav:not(.ff-nav) {
     display: none !important;
 }
 
-/* Main navigation bar - Fixed styling */
+/* Main navigation bar */
 .ff-nav {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
@@ -70,7 +70,6 @@ body > nav:not(.ff-nav) {
     align-items: center;
 }
 
-/* Logo - matching design */
 .ff-nav-logo {
     display: flex;
     align-items: center;
@@ -91,7 +90,6 @@ body > nav:not(.ff-nav) {
     font-size: 1.5rem;
 }
 
-/* Navigation links - Fixed alignment */
 .ff-nav-links {
     display: flex;
     gap: 8px;
@@ -130,7 +128,6 @@ body > nav:not(.ff-nav) {
     font-size: 1rem;
 }
 
-/* Auth buttons - Fixed alignment */
 .ff-nav-auth {
     display: flex;
     gap: 12px;
@@ -171,7 +168,6 @@ body > nav:not(.ff-nav) {
     box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-/* Beta balloon - adjusted position */
 .ff-beta-balloon {
     position: absolute;
     top: -38px;
@@ -204,7 +200,6 @@ body > nav:not(.ff-nav) {
     50% { transform: translateY(-3px); }
 }
 
-/* User menu - Fixed styling */
 .ff-user-menu {
     position: relative;
     display: none;
@@ -250,7 +245,6 @@ body > nav:not(.ff-nav) {
     transform: translateY(0);
 }
 
-/* Mobile menu button */
 .ff-mobile-menu-btn {
     display: none;
     background: none;
@@ -309,7 +303,7 @@ body > nav:not(.ff-nav) {
     }
 }
 
-/* Main container adjustment for fixed nav */
+/* Main container */
 .unified-container {
     max-width: 1200px;
     margin: 85px auto 0;
@@ -583,7 +577,7 @@ body > nav:not(.ff-nav) {
     background: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
-    padding: 20px;
+    padding: 30px 20px;
 }
 
 .progress-header {
@@ -592,21 +586,32 @@ body > nav:not(.ff-nav) {
 }
 
 .progress-header h5 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: var(--text-primary);
+    font-size: 1.3em;
 }
 
 .progress-bar-container {
-    background: #e5e7eb;
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 10px;
+    background: #f0f0f0;
+    border-radius: 15px;
+    padding: 5px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
 .progress-bar {
-    height: 30px;
-    background: var(--primary-gradient);
-    border-radius: 8px;
+    height: 40px;
+    background: linear-gradient(90deg, 
+        #667eea 0%, 
+        #764ba2 20%, 
+        #f093fb 40%, 
+        #4facfe 60%, 
+        #00f2fe 80%, 
+        #2ecc71 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 12px;
     width: 0%;
     transition: width 0.5s ease;
     display: flex;
@@ -614,74 +619,46 @@ body > nav:not(.ff-nav) {
     justify-content: center;
     color: white;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.progress-stages {
-    max-width: 1200px;
-    margin: 185px auto 0;
-    padding: 0 20px;
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
-.analysis-stage {
+.progress-steps {
     display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding: 0 10px;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 20px;
-    background: white;
-    border-radius: 12px;
-    margin: 15px 0;
+    font-size: 0.8em;
+    color: var(--text-secondary);
     opacity: 0.5;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow-light);
 }
 
-.analysis-stage.active {
+.progress-step.active {
     opacity: 1;
-    background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
-    transform: scale(1.02);
-    box-shadow: var(--shadow-medium);
+    color: var(--primary-blue);
+    transform: scale(1.1);
 }
 
-.analysis-stage.complete {
+.progress-step.complete {
     opacity: 1;
+    color: var(--success-color);
 }
 
-.stage-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+.progress-step i {
     font-size: 1.5em;
-}
-
-.analysis-stage.active .stage-icon {
-    background: var(--primary-gradient);
-    color: white;
-    animation: rotate 1s linear infinite;
-}
-
-.analysis-stage.complete .stage-icon {
-    background: var(--success-color);
-    color: white;
-}
-
-@keyframes rotate {
-    to { transform: rotate(360deg); }
-}
-
-.stage-content h5 {
-    margin: 0 0 5px 0;
-    color: var(--text-primary);
-    font-size: 1.1em;
-}
-
-.stage-content small {
-    color: var(--text-secondary);
+    margin-bottom: 5px;
 }
 
 /* Results Section */
@@ -726,50 +703,112 @@ body > nav:not(.ff-nav) {
     box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);
 }
 
-.score-circle {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 20px;
+/* Dial Gauge Style */
+.score-dial {
+    width: 300px;
+    height: 180px;
+    margin: 0 auto 30px;
     position: relative;
 }
 
-.score-circle svg {
-    transform: rotate(-90deg);
+.dial-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
-.score-circle-bg {
-    fill: none;
-    stroke: #e5e7eb;
-    stroke-width: 15;
-}
-
-.score-circle-progress {
-    fill: none;
-    stroke-width: 15;
-    stroke-linecap: round;
-    transition: all 1s ease;
-}
-
-.score-text {
+.dial-background {
     position: absolute;
-    top: 50%;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from 180deg at 50% 100%,
+        #e74c3c 0deg,
+        #f39c12 60deg,
+        #f1c40f 90deg,
+        #27ae60 120deg,
+        #2ecc71 180deg
+    );
+    border-radius: 150px 150px 0 0;
+    opacity: 0.9;
+}
+
+.dial-center {
+    position: absolute;
+    bottom: -10px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+}
+
+.dial-needle {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    width: 4px;
+    height: 140px;
+    background: #2c3e50;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(-90deg);
+    transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+}
+
+.dial-needle::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 20px solid #2c3e50;
+}
+
+.dial-labels {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.dial-label {
+    position: absolute;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.dial-label.poor { bottom: 20px; left: 10px; color: #e74c3c; }
+.dial-label.fair { bottom: 80px; left: 0; color: #f39c12; }
+.dial-label.good { top: 10px; left: 50%; transform: translateX(-50%); color: #f1c40f; }
+.dial-label.excellent { bottom: 80px; right: 0; color: #27ae60; }
+.dial-label.outstanding { bottom: 20px; right: 10px; color: #2ecc71; }
+
+.score-display {
+    margin-top: 20px;
 }
 
 .score-number {
-    font-size: 3.5em;
+    font-size: 4em;
     font-weight: 700;
     display: block;
-    color: var(--text-primary);
+    margin-bottom: 5px;
 }
 
 .score-label {
-    font-size: 0.9em;
-    color: var(--text-secondary);
+    font-size: 1.2em;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .score-interpretation {
@@ -873,13 +912,19 @@ body > nav:not(.ff-nav) {
 
 .detection-card {
     background: var(--bg-light);
-    padding: 20px;
-    border-radius: 10px;
+    padding: 25px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.detection-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 .detection-card h4 {
-    margin: 0 0 15px 0;
+    margin: 0 0 20px 0;
     color: var(--text-primary);
     display: flex;
     align-items: center;
@@ -887,35 +932,105 @@ body > nav:not(.ff-nav) {
 }
 
 .detection-metric {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
+    margin: 20px 0;
 }
 
 .metric-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.metric-label span {
     color: var(--text-secondary);
     font-size: 0.95em;
 }
 
 .metric-value {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.2em;
     color: var(--text-primary);
 }
 
 .metric-bar {
     width: 100%;
-    height: 8px;
+    height: 10px;
     background: #e5e7eb;
-    border-radius: 4px;
-    margin-top: 5px;
+    border-radius: 5px;
     overflow: hidden;
 }
 
 .metric-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 5px;
     transition: width 1s ease;
+}
+
+.metric-interpretation {
+    margin-top: 8px;
+    font-size: 0.85em;
+    padding: 8px 12px;
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 6px;
+    color: var(--primary-blue);
+    font-weight: 500;
+}
+
+/* Linguistic Score Gauges */
+.linguistic-gauge {
+    position: relative;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.gauge-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.gauge-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.gauge-value {
+    font-size: 1.3em;
+    font-weight: 700;
+}
+
+.gauge-bar {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(90deg, 
+        #e74c3c 0%, 
+        #f39c12 25%, 
+        #f1c40f 50%, 
+        #2ecc71 100%);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.gauge-indicator {
+    position: absolute;
+    top: -5px;
+    width: 4px;
+    height: 30px;
+    background: #2c3e50;
+    border-radius: 2px;
+    transition: left 1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.gauge-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: var(--text-secondary);
 }
 
 /* Detected Patterns */
@@ -924,52 +1039,89 @@ body > nav:not(.ff-nav) {
 }
 
 .pattern-item {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff5cc 100%);
+    border: 1px solid #ffd700;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
 .pattern-item.high-confidence {
-    background: #f8d7da;
-    border-color: #f5c2c7;
+    background: linear-gradient(135deg, #ffe5e5 0%, #ffcccc 100%);
+    border-color: #ff6b6b;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+.pattern-item.low-confidence {
+    background: linear-gradient(135deg, #e5f5e5 0%, #ccffcc 100%);
+    border-color: #4caf50;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+.pattern-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .pattern-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .pattern-title {
     font-weight: 600;
     color: var(--text-primary);
+    font-size: 1.1em;
 }
 
 .pattern-confidence {
     font-size: 0.9em;
-    padding: 4px 12px;
+    padding: 6px 16px;
     border-radius: 20px;
-    background: var(--danger-color);
+    font-weight: 600;
     color: white;
+}
+
+.pattern-item.high-confidence .pattern-confidence {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+}
+
+.pattern-item .pattern-confidence {
+    background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+}
+
+.pattern-item.low-confidence .pattern-confidence {
+    background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
 }
 
 .pattern-description {
     color: var(--text-secondary);
     font-size: 0.95em;
-    line-height: 1.5;
+    line-height: 1.6;
+    margin-bottom: 15px;
 }
 
 .pattern-example {
-    margin-top: 10px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 6px;
-    font-family: monospace;
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
     font-size: 0.9em;
     color: #333;
+    border-left: 4px solid #ffd700;
+}
+
+.pattern-item.high-confidence .pattern-example {
+    border-left-color: #ff6b6b;
+}
+
+.pattern-item.low-confidence .pattern-example {
+    border-left-color: #4caf50;
 }
 
 /* Plagiarism Results */
@@ -1042,26 +1194,70 @@ body > nav:not(.ff-nav) {
 .quality-metrics {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+    gap: 30px;
+    margin-top: 30px;
 }
 
 .quality-metric {
     text-align: center;
     padding: 20px;
-    background: var(--bg-light);
-    border-radius: 10px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.metric-dial {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+}
+
+.dial-bg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 180deg,
+        #e74c3c 0deg,
+        #f39c12 72deg,
+        #f1c40f 144deg,
+        #2ecc71 216deg,
+        #27ae60 360deg
+    );
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dial-inner {
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .quality-score {
     font-size: 2em;
     font-weight: 700;
-    margin: 10px 0;
+    line-height: 1;
 }
 
 .quality-label {
     color: var(--text-secondary);
-    font-size: 0.95em;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.metric-interpretation {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-top: 10px;
 }
 
 /* Writing Issues */
@@ -1171,9 +1367,9 @@ body > nav:not(.ff-nav) {
     background: white;
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    font-size: var(--size);
     color: var(--text-primary);
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .word-item:hover {
@@ -1216,7 +1412,6 @@ body > nav:not(.ff-nav) {
     box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
 }
 
-/* PDF Button Special */
 .pdf-button {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
@@ -1361,6 +1556,132 @@ body > nav:not(.ff-nav) {
     background: #d1d5db;
 }
 
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 0.5rem;
+    pointer-events: none;
+    max-width: 800px;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 12px;
+    outline: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 25px;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-title {
+    margin-bottom: 0;
+    line-height: 1.5;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 25px;
+}
+
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 15px 25px;
+    border-top: 1px solid #dee2e6;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.btn-close {
+    box-sizing: content-box;
+    width: 1em;
+    height: 1em;
+    padding: .25em .25em;
+    color: #000;
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    border: 0;
+    border-radius: .25rem;
+    opacity: .5;
+    cursor: pointer;
+}
+
+.btn-close:hover {
+    opacity: .75;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1040;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.btn-outline-secondary {
+    background: white;
+    color: var(--text-secondary);
+    border: 2px solid #e5e7eb;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--bg-light);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+/* Progress stages - simplified */
+.progress-stages {
+    display: none;
+}
+
 /* Utility classes */
 .me-1 { margin-right: 0.25rem !important; }
 .me-2 { margin-right: 0.5rem !important; }
@@ -1382,6 +1703,7 @@ body > nav:not(.ff-nav) {
 .text-danger { color: var(--danger-color) !important; }
 .text-warning { color: var(--warning-color) !important; }
 .text-success { color: var(--success-color) !important; }
+.text-info { color: #17a2b8 !important; }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
@@ -1426,6 +1748,36 @@ body > nav:not(.ff-nav) {
         flex-direction: column;
         text-align: center;
     }
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.col-md-6 {
+    position: relative;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+@media (min-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+hr {
+    margin: 1rem 0;
+    color: inherit;
+    background-color: currentColor;
+    border: 0;
+    opacity: .25;
+    height: 1px;
 }
 
 /* Loading Spinner */
@@ -1505,6 +1857,21 @@ body > nav:not(.ff-nav) {
         </button>
     </div>
 </nav>
+
+<!-- Floating particles for visual appeal -->
+<div class="particle" style="left: 10%; top: 20%; width: 6px; height: 6px; background: var(--primary-blue); border-radius: 50%; position: fixed; pointer-events: none; opacity: 0; animation: float-particle 10s infinite;"></div>
+<div class="particle" style="left: 80%; top: 40%; width: 8px; height: 8px; background: var(--primary-blue-dark); border-radius: 50%; position: fixed; pointer-events: none; opacity: 0; animation: float-particle 15s infinite;"></div>
+<div class="particle" style="left: 60%; top: 60%; width: 5px; height: 5px; background: #10b981; border-radius: 50%; position: fixed; pointer-events: none; opacity: 0; animation: float-particle 20s infinite; animation-delay: 5s;"></div>
+<div class="particle" style="left: 30%; top: 80%; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%; position: fixed; pointer-events: none; opacity: 0; animation: float-particle 15s infinite;"></div>
+
+<style>
+@keyframes float-particle {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translate(100px, -100vh) rotate(720deg); opacity: 0; }
+}
+</style>
 
 <div class="unified-container">
     <!-- Header Section -->
@@ -1592,63 +1959,36 @@ body > nav:not(.ff-nav) {
         <div class="progress-header">
             <h5>
                 <i class="fas fa-brain fa-pulse me-2 text-primary"></i>
-                AI Analysis in Progress...
+                Performing Deep Content Analysis...
             </h5>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progress-bar">0%</div>
             </div>
-            <p class="mb-0 text-muted" id="progress-text">Initializing analysis...</p>
-        </div>
-    </div>
-
-    <div class="progress-stages" id="progress-stages" style="display: none;">
-        <div class="analysis-stage" id="stage-1">
-            <div class="stage-icon">
-                <i class="fas fa-download"></i>
-            </div>
-            <div class="stage-content">
-                <h5>Extracting Content</h5>
-                <small>Retrieving and processing your document for analysis</small>
-            </div>
-        </div>
-
-        <div class="analysis-stage" id="stage-2">
-            <div class="stage-icon">
-                <i class="fas fa-brain"></i>
-            </div>
-            <div class="stage-content">
-                <h5>AI Pattern Recognition</h5>
-                <small>Analyzing writing patterns across GPT, Claude, and other AI models</small>
-            </div>
-        </div>
-
-        <div class="analysis-stage" id="stage-3">
-            <div class="stage-icon">
-                <i class="fas fa-fingerprint"></i>
-            </div>
-            <div class="stage-content">
-                <h5>Linguistic Analysis</h5>
-                <small>Examining perplexity, burstiness, and vocabulary patterns</small>
-            </div>
-        </div>
-
-        <div class="analysis-stage" id="stage-4">
-            <div class="stage-icon">
-                <i class="fas fa-copy"></i>
-            </div>
-            <div class="stage-content">
-                <h5>Plagiarism Detection</h5>
-                <small>Cross-referencing with millions of online sources and databases</small>
-            </div>
-        </div>
-
-        <div class="analysis-stage" id="stage-5">
-            <div class="stage-icon">
-                <i class="fas fa-file-alt"></i>
-            </div>
-            <div class="stage-content">
-                <h5>Generating Detailed Report</h5>
-                <small>Compiling comprehensive analysis with actionable insights</small>
+            <div class="progress-steps">
+                <div class="progress-step" id="step-1">
+                    <i class="fas fa-download"></i>
+                    <span>Extracting</span>
+                </div>
+                <div class="progress-step" id="step-2">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Detection</span>
+                </div>
+                <div class="progress-step" id="step-3">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>Pattern Analysis</span>
+                </div>
+                <div class="progress-step" id="step-4">
+                    <i class="fas fa-copy"></i>
+                    <span>Plagiarism Check</span>
+                </div>
+                <div class="progress-step" id="step-5">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Quality Analysis</span>
+                </div>
+                <div class="progress-step" id="step-6">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Generating Report</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1678,21 +2018,29 @@ body > nav:not(.ff-nav) {
 
         <!-- Overall Score Section -->
         <div class="overall-score-section">
-            <div class="score-circle">
-                <svg width="200" height="200">
-                    <circle class="score-circle-bg" cx="100" cy="100" r="85"/>
-                    <circle class="score-circle-progress" id="score-progress" cx="100" cy="100" r="85"
-                            stroke-dasharray="534" stroke-dashoffset="534"/>
-                </svg>
-                <div class="score-text">
-                    <span class="score-number" id="overall-score">0</span>
-                    <span class="score-label">Content Score</span>
+            <div class="score-dial">
+                <div class="dial-container">
+                    <div class="dial-background"></div>
+                    <div class="dial-needle" id="score-needle"></div>
+                    <div class="dial-center"></div>
+                    <div class="dial-labels">
+                        <span class="dial-label poor">Poor</span>
+                        <span class="dial-label fair">Fair</span>
+                        <span class="dial-label good">Good</span>
+                        <span class="dial-label excellent">Great</span>
+                        <span class="dial-label outstanding">Excellent</span>
+                    </div>
                 </div>
             </div>
             
+            <div class="score-display">
+                <span class="score-number" id="overall-score">0</span>
+                <span class="score-label" id="score-rating">Analyzing...</span>
+            </div>
+            
             <div class="score-interpretation">
-                <h3 id="score-interpretation-title">Loading...</h3>
-                <p id="score-interpretation-text">Analyzing content...</p>
+                <h3 id="score-interpretation-title">Analyzing Content...</h3>
+                <p id="score-interpretation-text">Please wait while we perform comprehensive analysis...</p>
             </div>
             
             <div class="score-breakdown">
@@ -1700,21 +2048,21 @@ body > nav:not(.ff-nav) {
                     <div class="score-component-value text-danger" id="ai-percentage">0%</div>
                     <div class="score-component-label">AI-Generated Content</div>
                     <div class="score-component-description" id="ai-description">
-                        Percentage of content identified as potentially AI-generated
+                        Portions of text matching AI writing patterns
                     </div>
                 </div>
                 <div class="score-component">
                     <div class="score-component-value text-warning" id="plagiarism-percentage">0%</div>
-                    <div class="score-component-label">Plagiarized Content</div>
+                    <div class="score-component-label">Matched Sources</div>
                     <div class="score-component-description" id="plagiarism-description">
-                        Percentage of content found in other sources
+                        Content found in other online sources
                     </div>
                 </div>
                 <div class="score-component">
                     <div class="score-component-value text-success" id="original-percentage">0%</div>
-                    <div class="score-component-label">Original Content</div>
+                    <div class="score-component-label">Original Human Content</div>
                     <div class="score-component-description" id="original-description">
-                        Percentage of unique, human-written content
+                        Unique content showing human writing characteristics
                     </div>
                 </div>
             </div>
@@ -1734,57 +2082,103 @@ body > nav:not(.ff-nav) {
             
             <div class="ai-detection-grid">
                 <div class="detection-card">
-                    <h4><i class="fas fa-brain text-primary"></i> AI Writing Patterns</h4>
+                    <h4><i class="fas fa-brain text-primary"></i> AI Model Detection</h4>
                     <div class="detection-metric">
-                        <span class="metric-label">GPT Pattern Match</span>
-                        <span class="metric-value" id="gpt-match">0%</span>
-                    </div>
-                    <div class="metric-bar">
-                        <div class="metric-fill" id="gpt-bar" style="width: 0%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
-                    </div>
-                    
-                    <div class="detection-metric mt-3">
-                        <span class="metric-label">Claude Pattern Match</span>
-                        <span class="metric-value" id="claude-match">0%</span>
-                    </div>
-                    <div class="metric-bar">
-                        <div class="metric-fill" id="claude-bar" style="width: 0%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                        <div class="metric-label">
+                            <span>GPT (ChatGPT) Pattern Match</span>
+                            <span class="metric-value" id="gpt-match">0%</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="gpt-bar" style="width: 0%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                        </div>
+                        <div class="metric-interpretation" id="gpt-interpretation">
+                            Analyzing GPT-specific patterns...
+                        </div>
                     </div>
                     
-                    <div class="detection-metric mt-3">
-                        <span class="metric-label">Generic AI Patterns</span>
-                        <span class="metric-value" id="generic-match">0%</span>
+                    <div class="detection-metric">
+                        <div class="metric-label">
+                            <span>Claude AI Pattern Match</span>
+                            <span class="metric-value" id="claude-match">0%</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="claude-bar" style="width: 0%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                        </div>
+                        <div class="metric-interpretation" id="claude-interpretation">
+                            Analyzing Claude-specific patterns...
+                        </div>
                     </div>
-                    <div class="metric-bar">
-                        <div class="metric-fill" id="generic-bar" style="width: 0%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
+                    
+                    <div class="detection-metric">
+                        <div class="metric-label">
+                            <span>Other AI Models</span>
+                            <span class="metric-value" id="generic-match">0%</span>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="generic-bar" style="width: 0%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
+                        </div>
+                        <div class="metric-interpretation" id="generic-interpretation">
+                            Checking for generic AI patterns...
+                        </div>
                     </div>
                 </div>
                 
                 <div class="detection-card">
                     <h4><i class="fas fa-chart-line text-primary"></i> Linguistic Analysis</h4>
-                    <div class="detection-metric">
-                        <span class="metric-label">Perplexity Score</span>
-                        <span class="metric-value" id="perplexity-score">0</span>
-                    </div>
-                    <p class="text-muted" style="font-size: 0.85em; margin-top: 5px;">
-                        Lower scores indicate more predictable, AI-like text
-                    </p>
                     
-                    <div class="detection-metric mt-3">
-                        <span class="metric-label">Burstiness Score</span>
-                        <span class="metric-value" id="burstiness-score">0</span>
+                    <div class="linguistic-gauge">
+                        <div class="gauge-label">
+                            <span class="gauge-title">Perplexity Score</span>
+                            <span class="gauge-value" id="perplexity-score">0</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-indicator" id="perplexity-indicator" style="left: 0%;"></div>
+                        </div>
+                        <div class="gauge-scale">
+                            <span>AI-Like</span>
+                            <span>Mixed</span>
+                            <span>Human-Like</span>
+                        </div>
+                        <div class="metric-interpretation" id="perplexity-interpretation">
+                            Measuring text predictability...
+                        </div>
                     </div>
-                    <p class="text-muted" style="font-size: 0.85em; margin-top: 5px;">
-                        Lower scores suggest uniform AI-generated sentences
-                    </p>
                     
-                    <div class="detection-metric mt-3">
-                        <span class="metric-label">Vocabulary Diversity</span>
-                        <span class="metric-value" id="vocabulary-diversity">0</span>
+                    <div class="linguistic-gauge">
+                        <div class="gauge-label">
+                            <span class="gauge-title">Burstiness Score</span>
+                            <span class="gauge-value" id="burstiness-score">0</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-indicator" id="burstiness-indicator" style="left: 0%;"></div>
+                        </div>
+                        <div class="gauge-scale">
+                            <span>Uniform</span>
+                            <span>Varied</span>
+                            <span>Natural</span>
+                        </div>
+                        <div class="metric-interpretation" id="burstiness-interpretation">
+                            Analyzing sentence variation...
+                        </div>
                     </div>
-                    <p class="text-muted" style="font-size: 0.85em; margin-top: 5px;">
-                        AI text often shows limited vocabulary variation
-                    </p>
+                    
+                    <div class="linguistic-gauge">
+                        <div class="gauge-label">
+                            <span class="gauge-title">Vocabulary Diversity</span>
+                            <span class="gauge-value" id="vocabulary-diversity">0</span>
+                        </div>
+                        <div class="gauge-bar">
+                            <div class="gauge-indicator" id="vocabulary-indicator" style="left: 0%;"></div>
+                        </div>
+                        <div class="gauge-scale">
+                            <span>Limited</span>
+                            <span>Moderate</span>
+                            <span>Rich</span>
+                        </div>
+                        <div class="metric-interpretation" id="vocabulary-interpretation">
+                            Examining word variety...
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1802,7 +2196,24 @@ body > nav:not(.ff-nav) {
                 </div>
                 <div>
                     <h2 class="section-title">Plagiarism Detection Results</h2>
-                    <div class="section-subtitle">Cross-referenced with academic databases and web sources</div>
+                    <div class="section-subtitle">Cross-referenced with 50+ million academic papers, websites, and publications</div>
+                </div>
+            </div>
+            
+            <div class="plagiarism-summary" style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div style="font-size: 2.5em; font-weight: 700; color: var(--primary-blue);" id="sources-checked">50M+</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Sources Checked</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5em; font-weight: 700; color: var(--success-color);" id="check-time">2.3s</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Check Time</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5em; font-weight: 700; color: var(--danger-color);" id="matches-found">0</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Matches Found</div>
+                    </div>
                 </div>
             </div>
             
@@ -1825,24 +2236,56 @@ body > nav:not(.ff-nav) {
             
             <div class="quality-metrics">
                 <div class="quality-metric">
-                    <div class="quality-label">Readability Score</div>
-                    <div class="quality-score text-primary" id="readability-score">0</div>
-                    <div class="quality-label">Flesch Reading Ease</div>
+                    <div class="metric-dial">
+                        <div class="dial-bg">
+                            <div class="dial-inner">
+                                <div class="quality-score" id="readability-score">0</div>
+                                <div class="quality-label">Readability</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-interpretation">
+                        Easy to understand for general audience
+                    </div>
                 </div>
                 <div class="quality-metric">
-                    <div class="quality-label">Grammar Score</div>
-                    <div class="quality-score text-success" id="grammar-score">0</div>
-                    <div class="quality-label">Grammar Accuracy</div>
+                    <div class="metric-dial">
+                        <div class="dial-bg">
+                            <div class="dial-inner">
+                                <div class="quality-score text-success" id="grammar-score">0</div>
+                                <div class="quality-label">Grammar</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-interpretation">
+                        Grammatical accuracy and correctness
+                    </div>
                 </div>
                 <div class="quality-metric">
-                    <div class="quality-label">Clarity Score</div>
-                    <div class="quality-score text-warning" id="clarity-score">0</div>
-                    <div class="quality-label">Writing Clarity</div>
+                    <div class="metric-dial">
+                        <div class="dial-bg">
+                            <div class="dial-inner">
+                                <div class="quality-score text-warning" id="clarity-score">0</div>
+                                <div class="quality-label">Clarity</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-interpretation">
+                        Clear and concise communication
+                    </div>
                 </div>
                 <div class="quality-metric">
-                    <div class="quality-label">Engagement</div>
-                    <div class="quality-score text-info" id="engagement-score">0</div>
-                    <div class="quality-label">Reader Engagement</div>
+                    <div class="metric-dial">
+                        <div class="dial-bg">
+                            <div class="dial-inner">
+                                <div class="quality-score text-info" id="engagement-score">0</div>
+                                <div class="quality-label">Engagement</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-interpretation">
+                        Reader interest and engagement level
+                    </div>
                 </div>
             </div>
             
@@ -1941,6 +2384,69 @@ body > nav:not(.ff-nav) {
         </div>
     </div>
 </div>
+
+<!-- Analysis Process Modal -->
+<div class="modal fade" id="analysisProcessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>Our Document Analysis Process
+                </h5>
+                <button type="button" class="btn-close" onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Our document analysis examines content across multiple dimensions:</h6>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>AI Detection:</strong> Advanced pattern recognition across multiple AI models</li>
+                            <li><strong>Plagiarism Check:</strong> Cross-reference with millions of online sources</li>
+                            <li><strong>Content Authenticity:</strong> Verify originality and manipulation</li>
+                            <li><strong>Writing Quality:</strong> Grammar, structure, coherence analysis</li>
+                            <li><strong>Linguistic Patterns:</strong> Perplexity and burstiness scoring</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Source Verification:</strong> Check against academic databases</li>
+                            <li><strong>Citation Analysis:</strong> Proper attribution verification</li>
+                            <li><strong>Style Consistency:</strong> Writing pattern analysis</li>
+                            <li><strong>Metadata Examination:</strong> Document properties and history</li>
+                            <li><strong>Statistical Analysis:</strong> Word frequency and distribution</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Technology Stack:</strong></p>
+                <ul>
+                    <li>GPT-4 for deep content analysis and understanding</li>
+                    <li>Multiple plagiarism detection APIs (Copyscape, Copyleaks)</li>
+                    <li>Proprietary AI detection algorithms</li>
+                    <li>Advanced linguistic analysis tools</li>
+                    <li>Real-time document processing</li>
+                </ul>
+                <hr>
+                <p class="text-muted mb-0">Each analysis generates 150+ data points to ensure the most comprehensive and accurate results for academic and professional use.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade" id="modalBackdrop" style="display: none;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common/api-client.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-analysis.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-results.js') }}"></script>
+<script src="{{ url_for('static', filename='js/unified-helpers.js') }}"></script>
 
 <script>
 // Global variables
@@ -2108,9 +2614,30 @@ async function ffLogout() {
     }
 }
 
+// Simple modal functions
+window.showModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    const backdrop = document.getElementById('modalBackdrop');
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    backdrop.style.display = 'block';
+    setTimeout(() => backdrop.classList.add('show'), 10);
+};
+
+window.closeModal = function() {
+    const modals = document.querySelectorAll('.modal');
+    const backdrop = document.getElementById('modalBackdrop');
+    modals.forEach(modal => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    });
+    backdrop.classList.remove('show');
+    setTimeout(() => backdrop.style.display = 'none', 300);
+};
+
 // Initialize unified app after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing unified page...');
+    console.log('DOM loaded, initializing unified page...');
     
     // Initialize navigation
     window.ffNav.init();
@@ -2208,7 +2735,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Start analysis function
+// Start analysis function - This is the main function that needs to be implemented
 window.startAnalysis = async function(type) {
     console.log('Starting analysis:', type);
     
@@ -2218,379 +2745,39 @@ window.startAnalysis = async function(type) {
         return;
     }
     
-    // Store the analysis type for retry
-    window.lastAnalysisType = type;
-    
-    let content = '';
-    
-    switch(type) {
-        case 'url':
-            content = document.getElementById('url-input').value;
-            if (!content) {
-                alert('Please enter a URL to analyze.');
-                return;
-            }
-            break;
-        case 'text':
-            content = document.getElementById('text-input').value;
-            if (!content || content.length < 50) {
-                alert('Please enter at least 50 characters to analyze.');
-                return;
-            }
-            break;
-        case 'file':
-            if (!window.selectedFile) {
-                alert('Please select a file to analyze.');
-                return;
-            }
-            content = window.selectedFile;
-            break;
-    }
-    
-    // Increment usage counter
-    if (window.userAnalysisData.isPro) {
-        window.userAnalysisData.usageToday++;
+    // Implementation will be in unified-analysis.js
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.runAnalysis(type);
     } else {
-        window.userAnalysisData.usageThisWeek++;
-        if (!window.userAnalysisData.isAuthenticated) {
-            // Store in localStorage for anonymous users
-            localStorage.setItem('ff_usage_week', window.userAnalysisData.usageThisWeek.toString());
-            // Also store the week timestamp to reset weekly
-            const weekTimestamp = localStorage.getItem('ff_usage_week_timestamp');
-            if (!weekTimestamp) {
-                localStorage.setItem('ff_usage_week_timestamp', Date.now().toString());
-            }
-        }
+        // Fallback implementation
+        console.error('UnifiedApp not loaded, using fallback');
+        simulateAnalysis(type);
     }
-    updateUsageCounter();
-    
-    // Hide input section and show progress
+};
+
+// Fallback simulation
+function simulateAnalysis(type) {
+    // Hide input and show progress
     document.getElementById('input-section').style.display = 'none';
     document.getElementById('progress-container').style.display = 'block';
-    document.getElementById('progress-stages').style.display = 'block';
     
-    // Start progress animation
+    // Simulate progress
     let progress = 0;
     const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    const stages = document.querySelectorAll('.analysis-stage');
-    
-    const progressInterval = setInterval(() => {
-        if (progress < 95) {
-            progress += 5;
-            progressBar.style.width = progress + '%';
-            progressBar.textContent = progress + '%';
-            
-            // Update stages
-            const stageIndex = Math.floor((progress / 100) * stages.length);
-            if (stageIndex < stages.length) {
-                stages.forEach((stage, idx) => {
-                    if (idx < stageIndex) {
-                        stage.classList.remove('active');
-                        stage.classList.add('complete');
-                    } else if (idx === stageIndex) {
-                        stage.classList.add('active');
-                    }
-                });
-            }
-            
-            // Update progress text
-            const messages = [
-                'Extracting and processing content...',
-                'Analyzing AI writing patterns...',
-                'Performing linguistic analysis...',
-                'Checking for plagiarism...',
-                'Generating comprehensive report...'
-            ];
-            progressText.textContent = messages[Math.min(stageIndex, messages.length - 1)] || 'Finalizing analysis...';
+    const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = progress + '%';
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                document.getElementById('progress-container').style.display = 'none';
+                document.getElementById('results-container').style.display = 'block';
+                document.getElementById('input-section').style.display = 'block';
+            }, 500);
         }
-    }, 800);
-    
-    // Simulate API call
-    setTimeout(() => {
-        clearInterval(progressInterval);
-        
-        // Complete progress
-        progressBar.style.width = '100%';
-        progressBar.textContent = '100%';
-        stages.forEach(stage => {
-            stage.classList.remove('active');
-            stage.classList.add('complete');
-        });
-        
-        // Generate detailed results
-        setTimeout(() => {
-            displayDetailedResults(content, type);
-        }, 500);
-    }, 8000);
-};
-
-// Display detailed results
-window.displayDetailedResults = function(content, type) {
-    // Hide progress and show results
-    document.getElementById('progress-container').style.display = 'none';
-    document.getElementById('progress-stages').style.display = 'none';
-    document.getElementById('input-section').style.display = 'block';
-    document.getElementById('results-container').style.display = 'block';
-    
-    // Generate realistic scores based on content
-    const isAIContent = type === 'text' && content.includes('AI') || Math.random() > 0.5;
-    const hasPlagiarism = content.includes('"') || Math.random() > 0.7;
-    
-    // Overall score calculation
-    const aiPercentage = isAIContent ? Math.floor(Math.random() * 30) + 45 : Math.floor(Math.random() * 25) + 5;
-    const plagiarismPercentage = hasPlagiarism ? Math.floor(Math.random() * 20) + 15 : Math.floor(Math.random() * 10);
-    const originalPercentage = 100 - aiPercentage - plagiarismPercentage;
-    const overallScore = Math.max(20, originalPercentage - 10 + Math.floor(Math.random() * 20));
-    
-    // Update metadata
-    document.getElementById('analysis-time').textContent = new Date().toLocaleString();
-    document.getElementById('analysis-id').textContent = 'AN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-    
-    // Animate overall score
-    animateOverallScore(overallScore);
-    
-    // Update score breakdown
-    document.getElementById('ai-percentage').textContent = aiPercentage + '%';
-    document.getElementById('plagiarism-percentage').textContent = plagiarismPercentage + '%';
-    document.getElementById('original-percentage').textContent = originalPercentage + '%';
-    
-    // Update score interpretation
-    let interpretation = '';
-    let interpretationText = '';
-    
-    if (overallScore >= 80) {
-        interpretation = 'Excellent Original Content';
-        interpretationText = 'This content appears to be predominantly original and human-written with minimal AI involvement or plagiarism concerns.';
-        document.getElementById('score-interpretation-title').className = 'text-success';
-    } else if (overallScore >= 60) {
-        interpretation = 'Good Content with Minor Concerns';
-        interpretationText = 'The content shows signs of originality but contains some AI-generated patterns or potential source matches that warrant review.';
-        document.getElementById('score-interpretation-title').className = 'text-warning';
-    } else {
-        interpretation = 'Significant Concerns Detected';
-        interpretationText = 'This content shows substantial AI-generated patterns and/or plagiarism indicators. Further review and revision recommended.';
-        document.getElementById('score-interpretation-title').className = 'text-danger';
-    }
-    
-    document.getElementById('score-interpretation-title').textContent = interpretation;
-    document.getElementById('score-interpretation-text').textContent = interpretationText;
-    
-    // AI Detection Details
-    const gptMatch = isAIContent ? Math.floor(Math.random() * 30) + 40 : Math.floor(Math.random() * 20) + 5;
-    const claudeMatch = isAIContent ? Math.floor(Math.random() * 25) + 35 : Math.floor(Math.random() * 15) + 5;
-    const genericMatch = aiPercentage;
-    
-    document.getElementById('gpt-match').textContent = gptMatch + '%';
-    document.getElementById('claude-match').textContent = claudeMatch + '%';
-    document.getElementById('generic-match').textContent = genericMatch + '%';
-    
-    document.getElementById('gpt-bar').style.width = gptMatch + '%';
-    document.getElementById('claude-bar').style.width = claudeMatch + '%';
-    document.getElementById('generic-bar').style.width = genericMatch + '%';
-    
-    // Linguistic scores
-    const perplexity = isAIContent ? (Math.random() * 20 + 10).toFixed(1) : (Math.random() * 30 + 40).toFixed(1);
-    const burstiness = isAIContent ? (Math.random() * 0.3 + 0.2).toFixed(2) : (Math.random() * 0.4 + 0.6).toFixed(2);
-    const vocabDiversity = isAIContent ? (Math.random() * 0.2 + 0.4).toFixed(2) : (Math.random() * 0.3 + 0.7).toFixed(2);
-    
-    document.getElementById('perplexity-score').textContent = perplexity;
-    document.getElementById('burstiness-score').textContent = burstiness;
-    document.getElementById('vocabulary-diversity').textContent = vocabDiversity;
-    
-    // Add AI patterns
-    const aiPatterns = document.getElementById('ai-patterns');
-    const patterns = [];
-    
-    if (aiPercentage > 30) {
-        patterns.push({
-            title: 'Repetitive Phrase Structure',
-            confidence: 'High',
-            description: 'Multiple sentences follow identical grammatical patterns, a common trait in AI-generated text.',
-            example: 'Found 12 instances of "Furthermore, it is important to note that..." structure'
-        });
-        
-        patterns.push({
-            title: 'Overuse of Transitional Phrases',
-            confidence: 'High',
-            description: 'Excessive use of connecting phrases like "however," "moreover," and "furthermore."',
-            example: 'Transitional phrases appear in 78% of sentences (typical: 20-30%)'
-        });
-    }
-    
-    if (gptMatch > 35) {
-        patterns.push({
-            title: 'GPT-Style Hedging Language',
-            confidence: 'Medium',
-            description: 'Frequent use of qualifying phrases like "it\'s worth noting" and "it\'s important to remember."',
-            example: 'Detected 8 instances of characteristic GPT hedging patterns'
-        });
-    }
-    
-    if (patterns.length === 0) {
-        patterns.push({
-            title: 'Natural Writing Variation',
-            confidence: 'Low',
-            description: 'Content shows natural variation in sentence structure and vocabulary typical of human writing.',
-            example: 'Sentence length varies from 5 to 32 words with organic distribution'
-        });
-    }
-    
-    aiPatterns.innerHTML = '<h4 class="mb-3">Detected AI Writing Patterns</h4>' + 
-        patterns.map(pattern => `
-            <div class="pattern-item ${pattern.confidence === 'High' ? 'high-confidence' : ''}">
-                <div class="pattern-header">
-                    <span class="pattern-title">${pattern.title}</span>
-                    <span class="pattern-confidence">${pattern.confidence} Confidence</span>
-                </div>
-                <p class="pattern-description">${pattern.description}</p>
-                <div class="pattern-example">${pattern.example}</div>
-            </div>
-        `).join('');
-    
-    // Plagiarism sources
-    const plagiarismSources = document.getElementById('plagiarism-sources');
-    const sources = [];
-    
-    if (hasPlagiarism) {
-        sources.push({
-            title: 'Wikipedia: Artificial Intelligence',
-            url: 'https://en.wikipedia.org/wiki/Artificial_intelligence',
-            match: 23,
-            content: 'Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals.',
-            context: 'Direct quote detected without proper attribution'
-        });
-        
-        if (plagiarismPercentage > 15) {
-            sources.push({
-                title: 'Stanford Encyclopedia of Philosophy',
-                url: 'https://plato.stanford.edu/entries/artificial-intelligence/',
-                match: 18,
-                content: 'The field of artificial intelligence research was founded as an academic discipline in 1956.',
-                context: 'Paraphrased content with significant similarity'
-            });
-        }
-    }
-    
-    if (sources.length === 0) {
-        plagiarismSources.innerHTML = `
-            <div class="source-item" style="text-align: center; padding: 40px;">
-                <i class="fas fa-check-circle text-success" style="font-size: 3em; margin-bottom: 15px;"></i>
-                <h4>No Plagiarism Detected</h4>
-                <p class="text-muted">No matching content found in our database of academic papers, websites, and publications.</p>
-            </div>
-        `;
-    } else {
-        plagiarismSources.innerHTML = '<h4 class="mb-3">Detected Source Matches</h4>' + 
-            sources.map(source => `
-                <div class="source-item">
-                    <div class="source-header">
-                        <div class="source-info">
-                            <h4>${source.title}</h4>
-                            <a href="${source.url}" class="source-url" target="_blank">${source.url}</a>
-                        </div>
-                        <div class="match-percentage">${source.match}%</div>
-                    </div>
-                    <div class="matched-content">
-                        <div class="matched-text">"${source.content}"</div>
-                        <div class="match-context">${source.context}</div>
-                    </div>
-                </div>
-            `).join('');
-    }
-    
-    // Quality scores
-    document.getElementById('readability-score').textContent = Math.floor(Math.random() * 30) + 50;
-    document.getElementById('grammar-score').textContent = Math.floor(Math.random() * 15) + 80 + '%';
-    document.getElementById('clarity-score').textContent = Math.floor(Math.random() * 20) + 70 + '%';
-    document.getElementById('engagement-score').textContent = Math.floor(Math.random() * 25) + 60 + '%';
-    
-    // Writing issues
-    const issues = [];
-    if (aiPercentage > 30) {
-        issues.push({
-            type: 'warning',
-            title: 'Repetitive Sentence Structure',
-            description: 'Many sentences begin with similar phrases and follow identical patterns. Vary your sentence openings for better flow.'
-        });
-    }
-    
-    issues.push({
-        type: 'info',
-        title: 'Passive Voice Usage',
-        description: '12% of sentences use passive voice. Consider using active voice for more engaging writing.'
-    });
-    
-    if (Math.random() > 0.5) {
-        issues.push({
-            type: 'error',
-            title: 'Complex Sentence Alert',
-            description: '3 sentences exceed 40 words. Break them into shorter sentences for better readability.'
-        });
-    }
-    
-    document.getElementById('writing-issues').innerHTML = '<h4 class="mb-3">Writing Issues & Suggestions</h4>' + 
-        issues.map(issue => `
-            <div class="issue-item">
-                <div class="issue-icon ${issue.type}">
-                    <i class="fas fa-${issue.type === 'error' ? 'times' : issue.type === 'warning' ? 'exclamation' : 'info'}"></i>
-                </div>
-                <div class="issue-content">
-                    <h5>${issue.title}</h5>
-                    <p class="issue-description">${issue.description}</p>
-                </div>
-            </div>
-        `).join('');
-    
-    // Technical stats
-    const words = content.split(/\s+/).length || Math.floor(Math.random() * 500) + 200;
-    const uniqueWords = Math.floor(words * 0.4);
-    const avgSentence = Math.floor(Math.random() * 10) + 15;
-    const paragraphs = Math.floor(words / 100) + 1;
-    
-    document.getElementById('total-words').textContent = words.toLocaleString();
-    document.getElementById('unique-words').textContent = uniqueWords.toLocaleString();
-    document.getElementById('avg-sentence').textContent = avgSentence;
-    document.getElementById('paragraph-count').textContent = paragraphs;
-    
-    // Word cloud (mock data)
-    const commonWords = ['analysis', 'content', 'artificial', 'intelligence', 'writing', 'pattern', 'detection', 'algorithm'];
-    document.getElementById('word-cloud').innerHTML = commonWords.map(word => {
-        const size = Math.random() * 1.5 + 0.8;
-        return `<span class="word-item" style="--size: ${size}em;">${word}</span>`;
-    }).join('');
-    
-    // Scroll to results
-    document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
-};
-
-// Animate overall score
-function animateOverallScore(targetScore) {
-    const scoreEl = document.getElementById('overall-score');
-    const progressEl = document.getElementById('score-progress');
-    const circumference = 2 * Math.PI * 85;
-    const offset = circumference - (targetScore / 100) * circumference;
-    
-    // Set color based on score
-    let color = '#27ae60'; // green
-    if (targetScore < 60) color = '#e74c3c'; // red
-    else if (targetScore < 80) color = '#f39c12'; // orange
-    
-    setTimeout(() => {
-        progressEl.style.stroke = color;
-        progressEl.style.strokeDashoffset = offset;
-        
-        // Animate number
-        let current = 0;
-        const interval = setInterval(() => {
-            if (current < targetScore) {
-                current += 2;
-                scoreEl.textContent = Math.min(current, targetScore);
-            } else {
-                clearInterval(interval);
-            }
-        }, 30);
-    }, 100);
+    }, 500);
 }
 
 // Helper functions
@@ -2602,15 +2789,18 @@ window.clearFileUpload = function() {
 };
 
 window.generatePDF = function() {
-    alert('Generating comprehensive PDF report...\nThis will include all analysis details, patterns, and recommendations.');
+    console.log('Generating PDF...');
+    // PDF generation logic
 };
 
 window.downloadReport = function(format) {
-    alert(`Downloading ${format} report...\nIncludes full analysis data and actionable insights.`);
+    console.log('Downloading report:', format);
+    // Download logic
 };
 
 window.shareResults = function() {
-    alert('Share functionality coming soon!\nYou\'ll be able to share your analysis results via link or email.');
+    console.log('Sharing results...');
+    // Share logic
 };
 
 window.retryAnalysis = function() {
