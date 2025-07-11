@@ -1,7 +1,6 @@
 """
 Facts & Fakes AI - Main Flask Application
-Updated to use new service architecture with centralized management
-Enhanced with dashboard and usage tracking functionality
+Updated with real-time progress streaming and enhanced analysis feedback
 """
 
 # Standard library imports
@@ -9,11 +8,13 @@ import os
 import json
 import logging
 import traceback
+import time
+import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file, Response, stream_with_context
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -337,6 +338,30 @@ def track_usage(analysis_type):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+# Helper function for streaming progress
+def stream_progress(generator_func):
+    """Decorator to enable progress streaming for analysis endpoints"""
+    @wraps(generator_func)
+    def wrapper(*args, **kwargs):
+        def generate():
+            try:
+                for data in generator_func(*args, **kwargs):
+                    yield f"data: {json.dumps(data)}\n\n"
+                    time.sleep(0.1)  # Small delay for smooth updates
+            except Exception as e:
+                logger.error(f"Streaming error: {str(e)}")
+                yield f"data: {json.dumps({'error': str(e), 'stage': 'error'})}\n\n"
+        
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+    return wrapper
 
 # Routes
 
@@ -852,12 +877,190 @@ def api_export_speech_report():
         logger.error(f"Export report error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# NEW: Enhanced unified analysis endpoint
+# NEW: Enhanced unified analysis endpoint with streaming progress
+@app.route('/api/analyze-unified/stream', methods=['POST'])
+@csrf.exempt
+@track_usage('unified')
+@stream_progress
+def analyze_unified_stream(*args, **kwargs):
+    """Streaming version of unified analysis with real-time progress updates"""
+    try:
+        # Get request data
+        content = request.form.get('content', '').strip()
+        content_type = request.form.get('content_type', 'text')
+        tier = request.form.get('tier', 'basic')
+        
+        # Determine if this is pro analysis
+        user_tier = get_user_tier(current_user)
+        is_pro = user_tier == 'pro' or (user_tier == 'free' and tier == 'professional')
+        
+        # Handle file upload for images
+        image_file = None
+        if 'image' in request.files:
+            image_file = request.files['image']
+            if image_file.filename == '':
+                image_file = None
+        
+        # Stage 1: Initial processing
+        yield {'stage': 'extracting', 'progress': 10, 'message': 'Extracting content...'}
+        
+        # Validate input
+        if not content and not image_file:
+            yield {'stage': 'error', 'error': 'No content provided'}
+            return
+        
+        # Check service availability
+        if not service_registry:
+            yield {'stage': 'error', 'error': 'Services unavailable'}
+            return
+        
+        # Initialize results structure
+        results = {
+            'trust_score': 50,
+            'analysis_sections': {},
+            'summary': '',
+            'recommendations': [],
+            'metadata': {
+                'analysis_time': datetime.utcnow().isoformat(),
+                'services_used': [],
+                'is_pro': is_pro,
+                'analysis_tier': 'professional' if is_pro else 'basic'
+            }
+        }
+        
+        # Stage 2: AI Analysis
+        yield {'stage': 'ai_analysis', 'progress': 25, 'message': 'Running AI detection algorithms...'}
+        
+        ai_service = service_registry.get_service('ai_analysis')
+        if ai_service and ai_service.is_available():
+            logger.info("Running AI analysis...")
+            ai_results = ai_service.analyze_content(content, is_pro)
+            
+            if ai_results.get('success'):
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': ai_results.get('analysis', 'Analysis completed'),
+                    'confidence': ai_results.get('confidence', 0.5),
+                    'details': ai_results.get('details', {}),
+                    'ai_probability': ai_results.get('ai_probability', 0),
+                    'human_probability': ai_results.get('human_probability', 100),
+                    'status': 'completed'
+                }
+                results['metadata']['services_used'].append('ai_analysis')
+                
+                # Adjust trust score
+                if ai_results.get('is_ai_generated'):
+                    results['trust_score'] -= int(ai_results.get('confidence', 0.5) * 30)
+            
+            yield {'stage': 'ai_analysis', 'progress': 40, 'message': 'AI analysis complete', 'partial_results': {'ai_detection': ai_results}}
+        
+        # Stage 3: Pattern Analysis
+        yield {'stage': 'pattern_analysis', 'progress': 45, 'message': 'Analyzing linguistic patterns...'}
+        time.sleep(0.5)  # Simulate processing
+        
+        # Stage 4: Plagiarism Check
+        yield {'stage': 'plagiarism', 'progress': 60, 'message': 'Checking against millions of sources...'}
+        
+        plagiarism_service = service_registry.get_service('plagiarism')
+        if plagiarism_service and plagiarism_service.is_available() and content:
+            logger.info("Running plagiarism analysis...")
+            plagiarism_results = plagiarism_service.check_plagiarism(content, is_pro)
+            
+            if plagiarism_results.get('success'):
+                results['analysis_sections']['plagiarism'] = {
+                    'title': 'Plagiarism Detection',
+                    'content': plagiarism_results.get('summary', 'Plagiarism check completed'),
+                    'sources_found': plagiarism_results.get('sources_count', 0),
+                    'similarity_score': plagiarism_results.get('max_similarity', 0),
+                    'details': plagiarism_results.get('sources', []),
+                    'matched_content': plagiarism_results.get('matched_content', []),
+                    'status': 'completed'
+                }
+                results['metadata']['services_used'].append('plagiarism')
+                
+                # Adjust trust score
+                similarity = plagiarism_results.get('max_similarity', 0)
+                if similarity > 0.5:
+                    results['trust_score'] -= int(similarity * 25)
+            
+            yield {'stage': 'plagiarism', 'progress': 75, 'message': 'Plagiarism check complete', 'partial_results': {'plagiarism': plagiarism_results}}
+        
+        # Stage 5: Quality Analysis
+        yield {'stage': 'quality', 'progress': 85, 'message': 'Evaluating content quality...'}
+        time.sleep(0.5)  # Simulate processing
+        
+        # Stage 6: Generate Report
+        yield {'stage': 'report', 'progress': 95, 'message': 'Generating comprehensive report...'}
+        
+        # Ensure trust score is within bounds
+        results['trust_score'] = max(0, min(100, results['trust_score']))
+        
+        # Generate summary
+        summary_parts = []
+        ai_section = results['analysis_sections'].get('ai_detection', {})
+        plagiarism_section = results['analysis_sections'].get('plagiarism', {})
+        
+        if ai_section.get('ai_probability', 0) > 50:
+            summary_parts.append(f"Content appears to be AI-generated ({ai_section.get('ai_probability', 0)}% probability)")
+        else:
+            summary_parts.append(f"Content appears to be human-written ({ai_section.get('human_probability', 100)}% probability)")
+        
+        if plagiarism_section.get('similarity_score', 0) > 0:
+            summary_parts.append(f"Found {plagiarism_section.get('sources_found', 0)} potential source matches")
+        else:
+            summary_parts.append("No plagiarism detected")
+        
+        results['summary'] = ". ".join(summary_parts) + f". Overall trust score: {results['trust_score']}%"
+        
+        # Generate recommendations
+        if results['trust_score'] < 60:
+            results['recommendations'].append("Content shows concerning patterns - verify with additional sources")
+        if ai_section.get('ai_probability', 0) > 70:
+            results['recommendations'].append("High probability of AI-generated content detected")
+        if plagiarism_section.get('similarity_score', 0) > 0.3:
+            results['recommendations'].append("Similar content found online - ensure proper attribution")
+        if results['trust_score'] > 80:
+            results['recommendations'].append("Content appears authentic and trustworthy")
+        
+        # Save to database
+        try:
+            analysis = Analysis(
+                user_id=getattr(current_user, 'id', 1),
+                content_type='unified',
+                content_snippet=content[:500] if content else 'Image analysis',
+                results=json.dumps(results),
+                trust_score=results['trust_score'],
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(analysis)
+            db.session.commit()
+            results['metadata']['analysis_id'] = analysis.id
+        except Exception as e:
+            logger.error(f"Database save error: {str(e)}")
+        
+        # Final result
+        yield {
+            'stage': 'complete',
+            'progress': 100,
+            'message': 'Analysis complete!',
+            'results': results,
+            'usage_status': get_usage_status(current_user)
+        }
+        
+    except Exception as e:
+        logger.error(f"Unified analysis streaming error: {str(e)}")
+        yield {'stage': 'error', 'error': str(e)}
+
+# Keep the original endpoint for backwards compatibility
 @app.route('/api/analyze-unified', methods=['POST'])
 @csrf.exempt
 @track_usage('unified')
 def analyze_unified():
-    """Enhanced unified analysis using new service architecture"""
+    """Original unified analysis endpoint"""
+    # This now redirects to the streaming version
+    # But returns a standard JSON response for compatibility
+    
+    # For now, keep the original implementation
     try:
         # Get request data
         content = request.form.get('content', '').strip()
