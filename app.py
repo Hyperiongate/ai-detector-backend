@@ -13,6 +13,61 @@ import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
 
+# CRITICAL: Fix DATABASE_URL before any other imports that might use it
+def fix_database_url():
+    """Fix database URL configuration before Flask/SQLAlchemy initialization"""
+    db_url = os.environ.get('DATABASE_URL', '')
+    
+    # Skip if URL is already properly formatted
+    if db_url.startswith(('postgresql://', 'postgres://')):
+        # Just handle the postgres:// to postgresql:// conversion
+        if db_url.startswith('postgres://'):
+            fixed_url = db_url.replace('postgres://', 'postgresql://', 1)
+            os.environ['DATABASE_URL'] = fixed_url
+            os.environ['SQLALCHEMY_DATABASE_URI'] = fixed_url
+        return
+    
+    # If DATABASE_URL exists but is malformed (your case)
+    if db_url and '@' in db_url and not db_url.startswith('postgresql://'):
+        # Your URL appears to be: $WT1ebW6tALDoj3@dpg-d1fcou9r0fns73cnng1g-a/newsverify
+        # This is missing the protocol and username
+        
+        # Try to reconstruct the URL
+        parts = db_url.split('@', 1)
+        if len(parts) == 2:
+            password = parts[0].lstrip('$')  # Remove leading $ if present
+            host_and_db = parts[1]
+            
+            # Add Render's PostgreSQL suffix if missing
+            if 'render.com' not in host_and_db:
+                # Split host and database
+                host_parts = host_and_db.split('/', 1)
+                if len(host_parts) == 2:
+                    host = host_parts[0]
+                    database = host_parts[1]
+                    # Add the Render domain suffix
+                    host_and_db = f"{host}.oregon-postgres.render.com:5432/{database}"
+            
+            # Construct the complete URL
+            # You might need to adjust the username based on your actual database setup
+            fixed_url = f"postgresql://newsverify_user:{password}@{host_and_db}"
+            
+            os.environ['DATABASE_URL'] = fixed_url
+            os.environ['SQLALCHEMY_DATABASE_URI'] = fixed_url
+            
+            print(f"Fixed DATABASE_URL format")
+            return
+    
+    # If no DATABASE_URL, set a default for development
+    if not db_url:
+        fallback_url = 'sqlite:///app.db'
+        os.environ['DATABASE_URL'] = fallback_url
+        os.environ['SQLALCHEMY_DATABASE_URI'] = fallback_url
+        print("WARNING: No DATABASE_URL found, using SQLite for development")
+
+# Apply the fix immediately before any imports
+fix_database_url()
+
 # Flask imports
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file, Response, stream_with_context
 from flask_cors import CORS
@@ -47,8 +102,12 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load configuration
+# Load configuration with fixed DATABASE_URL
 app.config.from_object(config)
+
+# Ensure SQLALCHEMY_DATABASE_URI is set from environment
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI') or os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Security configuration with proper CSP
 csp = {
@@ -97,8 +156,13 @@ csrf = SeaSurf(app)
 # CORS configuration
 CORS(app, origins=["*"], supports_credentials=True)
 
-# Database initialization
-db.init_app(app)
+# Database initialization with error handling
+try:
+    db.init_app(app)
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Database initialization error: {str(e)}")
+    logger.error(f"Current DATABASE_URL format check: {app.config.get('SQLALCHEMY_DATABASE_URI', 'Not set')[:50]}...")
 
 # Login manager setup
 login_manager = LoginManager()
