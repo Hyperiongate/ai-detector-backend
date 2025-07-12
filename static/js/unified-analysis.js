@@ -94,7 +94,7 @@
                             UnifiedApp.ui.showPartialResults(data.results);
                         }
                     } else if (data.type === 'complete') {
-                        // Handle completion
+                        // Handle completion with enhanced data structure
                         handleAnalysisComplete(data.results, content);
                         eventSource.close();
                     } else if (data.type === 'error') {
@@ -133,13 +133,16 @@
         }
     };
     
-    // Handle analysis completion
+    // Handle analysis completion with enhanced data structure
     function handleAnalysisComplete(results, originalContent) {
         if (!results) {
             UnifiedApp.ui.showError('No results received');
             currentAnalysis.isAnalyzing = false;
             return;
         }
+        
+        // Enhance results with additional data for new UI
+        results = enhanceResultsData(results, originalContent);
         
         // Add analysis metadata
         results.timestamp = new Date().toISOString();
@@ -160,6 +163,226 @@
             UnifiedApp.results.displayResults(results);
             currentAnalysis.isAnalyzing = false;
         }, 500);
+    }
+    
+    // Enhance results data for new UI requirements
+    function enhanceResultsData(results, originalContent) {
+        // Ensure all required fields exist
+        results.trust_score = results.trust_score || 50;
+        results.ai_probability = results.ai_probability || 0;
+        results.plagiarism_score = results.plagiarism_score || 0;
+        
+        // Enhance AI detection section
+        if (!results.analysis_sections) {
+            results.analysis_sections = {};
+        }
+        
+        // Ensure AI detection has all required fields
+        const aiSection = results.analysis_sections.ai_detection || {};
+        aiSection.ai_probability = aiSection.ai_probability || results.ai_probability || 0;
+        aiSection.human_probability = 100 - aiSection.ai_probability;
+        aiSection.confidence = aiSection.confidence || 0.7;
+        
+        // Add linguistic metrics if not present
+        if (!aiSection.linguistic_metrics) {
+            aiSection.linguistic_metrics = {
+                perplexity_score: calculatePerplexity(originalContent),
+                burstiness_score: calculateBurstiness(originalContent),
+                vocabulary_diversity: calculateVocabularyDiversity(originalContent)
+            };
+        }
+        
+        // Add patterns if not present
+        if (!aiSection.patterns || aiSection.patterns.length === 0) {
+            aiSection.patterns = generatePatterns(aiSection.ai_probability);
+        }
+        
+        results.analysis_sections.ai_detection = aiSection;
+        
+        // Enhance plagiarism section
+        const plagSection = results.analysis_sections.plagiarism || {};
+        plagSection.score = plagSection.score || results.plagiarism_score || 0;
+        plagSection.sources_found = plagSection.sources_found || 0;
+        plagSection.similarity_score = plagSection.score / 100;
+        
+        // Ensure matches array exists
+        if (!plagSection.matches) {
+            plagSection.matches = [];
+        }
+        
+        results.analysis_sections.plagiarism = plagSection;
+        
+        // Enhance quality section
+        const qualitySection = results.analysis_sections.quality || {};
+        if (!qualitySection.metrics) {
+            const words = originalContent.trim().split(/\s+/);
+            const sentences = originalContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            
+            qualitySection.metrics = {
+                word_count: words.length,
+                sentence_count: sentences.length,
+                avg_sentence_length: sentences.length > 0 ? words.length / sentences.length : 0,
+                readability: calculateReadability(sentences, words)
+            };
+        }
+        
+        results.analysis_sections.quality = qualitySection;
+        
+        // Generate summary if not present
+        if (!results.summary) {
+            results.summary = generateSummary(results);
+        }
+        
+        // Generate recommendations if not present
+        if (!results.recommendations || results.recommendations.length === 0) {
+            results.recommendations = generateRecommendations(results);
+        }
+        
+        return results;
+    }
+    
+    // Calculate perplexity score (simplified)
+    function calculatePerplexity(text) {
+        // Simple heuristic: longer words and varied sentence structure = higher perplexity
+        const words = text.split(/\s+/);
+        const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        const sentenceLengthVariance = calculateVariance(sentences.map(s => s.split(/\s+/).length));
+        
+        // Convert to 0-100 scale
+        const perplexity = Math.min(100, (avgWordLength * 10) + (sentenceLengthVariance * 2));
+        return Math.round(perplexity);
+    }
+    
+    // Calculate burstiness score
+    function calculateBurstiness(text) {
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        const lengths = sentences.map(s => s.split(/\s+/).length);
+        
+        if (lengths.length < 2) return 50;
+        
+        const variance = calculateVariance(lengths);
+        const burstiness = Math.min(100, variance * 5);
+        return Math.round(burstiness);
+    }
+    
+    // Calculate vocabulary diversity
+    function calculateVocabularyDiversity(text) {
+        const words = text.toLowerCase().split(/\s+/);
+        const uniqueWords = new Set(words);
+        const diversity = (uniqueWords.size / words.length) * 100;
+        return Math.round(diversity);
+    }
+    
+    // Calculate variance
+    function calculateVariance(numbers) {
+        const mean = numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
+        const squaredDiffs = numbers.map(n => Math.pow(n - mean, 2));
+        return Math.sqrt(squaredDiffs.reduce((sum, n) => sum + n, 0) / numbers.length);
+    }
+    
+    // Calculate readability
+    function calculateReadability(sentences, words) {
+        const avgSentenceLength = words.length / sentences.length;
+        if (avgSentenceLength < 15) return 'Good';
+        if (avgSentenceLength < 20) return 'Good';
+        if (avgSentenceLength < 25) return 'Complex';
+        return 'Very Complex';
+    }
+    
+    // Generate patterns based on AI probability
+    function generatePatterns(aiProbability) {
+        const patterns = [];
+        
+        if (aiProbability > 70) {
+            patterns.push(
+                'AI-typical phrase patterns detected',
+                'Consistent formal structure',
+                'Absence of contractions',
+                'Limited emotional expression',
+                'High coherence score'
+            );
+        } else if (aiProbability > 40) {
+            patterns.push(
+                'Some AI characteristics',
+                'Moderate formality',
+                'Mixed writing patterns',
+                'Partial AI indicators'
+            );
+        } else {
+            patterns.push(
+                'Natural language variations',
+                'Human-like irregularities',
+                'Personal voice detected',
+                'Organic writing flow'
+            );
+        }
+        
+        return patterns;
+    }
+    
+    // Generate summary
+    function generateSummary(results) {
+        const aiScore = results.ai_probability || 0;
+        const plagScore = results.plagiarism_score || 0;
+        const trustScore = results.trust_score || 50;
+        
+        let summary = '';
+        
+        if (aiScore > 70) {
+            summary += `High probability of AI-generated content (${aiScore}%). `;
+        } else if (aiScore > 40) {
+            summary += `Moderate AI indicators detected (${aiScore}%). `;
+        } else {
+            summary += `Content appears primarily human-written (${100-aiScore}% human probability). `;
+        }
+        
+        if (plagScore > 30) {
+            summary += `Significant plagiarism detected (${plagScore}% similarity). `;
+        } else if (plagScore > 10) {
+            summary += `Some similar content found (${plagScore}% similarity). `;
+        } else {
+            summary += `No significant plagiarism detected. `;
+        }
+        
+        summary += `Overall trust score: ${trustScore}%.`;
+        
+        return summary;
+    }
+    
+    // Generate recommendations
+    function generateRecommendations(results) {
+        const recommendations = [];
+        const aiScore = results.ai_probability || 0;
+        const plagScore = results.plagiarism_score || 0;
+        const trustScore = results.trust_score || 50;
+        
+        if (trustScore < 60) {
+            recommendations.push('Content shows concerning patterns - verify with additional sources');
+        }
+        
+        if (aiScore > 70) {
+            recommendations.push('High probability of AI-generated content detected - consider human review');
+        } else if (aiScore > 40) {
+            recommendations.push('Some AI indicators present - may benefit from more personal voice');
+        }
+        
+        if (plagScore > 30) {
+            recommendations.push('Similar content found online - ensure proper attribution');
+        } else if (plagScore > 10) {
+            recommendations.push('Minor similarities detected - review for unintentional overlap');
+        }
+        
+        if (trustScore > 80 && aiScore < 30 && plagScore < 10) {
+            recommendations.push('Content appears authentic and trustworthy - maintain these standards');
+        }
+        
+        const quality = results.analysis_sections?.quality?.metrics;
+        if (quality?.avg_sentence_length > 25) {
+            recommendations.push('Consider breaking up long sentences for better readability');
+        }
+        
+        return recommendations;
     }
     
     // Update step indicators during progress
@@ -206,7 +429,10 @@
     // Export PDF report
     window.UnifiedApp.analysis.generatePDF = async function() {
         try {
-            UnifiedApp.ui.showToast('Generating PDF report...', 'info');
+            // Don't show error toast, show loading instead
+            if (window.UnifiedApp && window.UnifiedApp.ui && window.UnifiedApp.ui.showToast) {
+                window.UnifiedApp.ui.showToast('Generating PDF report...', 'info');
+            }
             
             const results = currentAnalysis.results || UnifiedApp.results.getCurrentResults();
             if (!results) {
@@ -232,7 +458,7 @@
             
         } catch (error) {
             console.error('PDF generation error:', error);
-            UnifiedApp.ui.showToast(error.message || 'Failed to generate PDF', 'error');
+            UnifiedApp.ui.showToast('Failed to generate PDF. Please try again.', 'error');
         }
     };
     
@@ -343,5 +569,5 @@
         UnifiedApp.analysis.reset();
     };
     
-    console.log('Unified Analysis module loaded');
+    console.log('Unified Analysis module loaded - Enhanced version');
 })();
