@@ -1206,7 +1206,334 @@ def analyze_unified_stream():
                     }
                     results['metadata']['services_used'].append('plagiarism')
                     
-                    # Adjust trust score based on plagiarism
+                    # Adjust trust score
+                    if plagiarism_results.get('score', 0) > 50:
+                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
+            else:
+                logger.warning("Plagiarism service not available")
+                results['analysis_sections']['plagiarism'] = {
+                    'title': 'Plagiarism Detection',
+                    'content': 'Plagiarism checking unavailable in basic mode',
+                    'status': 'unavailable'
+                }
+            
+            # Stage 4: Quality Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
+            
+            # Add basic quality metrics
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': 'completed'
+            }
+            
+            # Stage 5: Finalize
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Generating comprehensive report...', 'progress': 90, 'step': 6})}\n\n"
+            
+            # Ensure trust score is within bounds
+            results['trust_score'] = max(0, min(100, results['trust_score']))
+            
+            # Generate summary
+            summary_parts = []
+            ai_section = results['analysis_sections'].get('ai_detection', {})
+            plagiarism_section = results['analysis_sections'].get('plagiarism', {})
+            
+            if ai_section.get('ai_probability', 0) > 50:
+                summary_parts.append(f"Content appears to be AI-generated ({ai_section.get('ai_probability', 0)}% probability)")
+            else:
+                summary_parts.append(f"Content appears to be human-written ({ai_section.get('human_probability', 100)}% probability)")
+            
+            if plagiarism_section.get('similarity_score', 0) > 0:
+                summary_parts.append(f"Found {plagiarism_section.get('sources_found', 0)} potential source matches")
+            else:
+                summary_parts.append("No plagiarism detected")
+            
+            results['summary'] = ". ".join(summary_parts) + f". Overall trust score: {results['trust_score']}%"
+            
+            # Generate recommendations
+            if results['trust_score'] < 60:
+                results['recommendations'].append("Content shows concerning patterns - verify with additional sources")
+            if ai_section.get('ai_probability', 0) > 70:
+                results['recommendations'].append("High probability of AI-generated content detected")
+            if plagiarism_section.get('similarity_score', 0) > 0.3:
+                results['recommendations'].append("Similar content found online - ensure proper attribution")
+            if results['trust_score'] > 80:
+                results['recommendations'].append("Content appears authentic and trustworthy")
+            
+            # Save to database
+            try:
+                analysis = Analysis(
+                    user_id=getattr(current_user, 'id', 1),
+                    content_type='unified',
+                    content_snippet=content[:500] if content else 'Analysis',
+                    results=json.dumps(results),
+                    trust_score=results['trust_score'],
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                results['metadata']['analysis_id'] = analysis.id
+            except Exception as e:
+                logger.error(f"Database save error: {str(e)}")
+                # Continue even if save fails
+            
+            # Final progress
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
+            
+            # Send complete results
+            yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"Unified analysis streaming error: {str(e)}")
+            logger.error(traceback.format_exc())
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive'
+        }
+    )
+
+# Keep the original endpoint for backwards compatibility
+@app.route('/api/analyze-unified', methods=['POST'])
+@csrf.exempt
+@track_usage('unified')
+def analyze_unified():
+    """Original unified analysis endpoint with fallback support"""
+    try:
+        # Get request data
+        content = request.form.get('content', '').strip()
+        content_type = request.form.get('content_type', 'text')
+        tier = request.form.get('tier', 'basic')  # Get tier from request
+        
+        # Determine if this is pro analysis based on user tier and selection
+        user_tier = get_user_tier(current_user)
+        is_pro = False
+        
+        if user_tier == 'pro':
+            is_pro = True  # Pro users always get pro analysis
+        elif user_tier == 'free' and tier == 'professional':
+            # Free users can use their weekly pro analysis
+            is_pro = True
+        
+        # Handle file upload for images
+        image_file = None
+        if 'image' in request.files:
+            image_file = request.files['image']
+            if image_file.filename == '':
+                image_file = None
+        
+        # Handle file upload for documents
+        if 'file' in request.files:
+            uploaded_file = request.files['file']
+            if uploaded_file.filename != '':
+                # Read file content
+                content = uploaded_file.read().decode('utf-8', errors='ignore')
+                content_type = 'text'
+        
+        # Validate input
+        if not content and not image_file:
+            return jsonify({
+                'success': False,
+                'error': 'No content or image provided for analysis'
+            }), 400
+        
+        # Check service availability - with fallback
+        if not service_registry:
+            logger.warning("Service registry not available - using fallback analysis")
+            
+            # Use fallback analysis when services are unavailable
+            results = {
+                'trust_score': 50,
+                'ai_probability': 0,
+                'plagiarism_score': 0,
+                'analysis_sections': {},
+                'summary': '',
+                'recommendations': [],
+                'metadata': {
+                    'analysis_time': datetime.utcnow().isoformat(),
+                    'services_used': ['fallback_analysis'],
+                    'is_pro': is_pro,
+                    'analysis_tier': 'basic'
+                }
+            }
+            
+            # Perform basic text analysis as fallback
+            if content:
+                basic_results = perform_realistic_unified_text_analysis(content)
+                
+                results['ai_probability'] = basic_results.get('ai_probability', 0)
+                results['trust_score'] = basic_results.get('trust_score', 50)
+                
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': basic_results.get('summary', 'Basic analysis completed'),
+                    'probability': basic_results.get('ai_probability', 0),
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'human_probability': basic_results.get('human_probability', 100),
+                    'patterns': basic_results.get('patterns_detected', []),
+                    'status': 'fallback'
+                }
+                
+                results['analysis_sections']['quality'] = {
+                    'title': 'Content Quality Analysis',
+                    'metrics': basic_results.get('metrics', {}),
+                    'status': 'completed'
+                }
+                
+                results['summary'] = basic_results.get('summary', 'Analysis completed using basic mode')
+                results['recommendations'] = basic_results.get('recommendations', [])
+            
+            # Handle image analysis if image provided
+            if image_file:
+                try:
+                    if is_pro:
+                        image_results = perform_realistic_image_analysis(image_file)
+                    else:
+                        image_results = perform_basic_image_analysis(image_file)
+                    
+                    results['analysis_sections']['image_authenticity'] = {
+                        'title': 'Image Authenticity',
+                        'content': image_results.get('summary', 'Image analysis completed'),
+                        'authenticity_score': image_results.get('authenticity_score', 0.5),
+                        'status': 'completed'
+                    }
+                except Exception as e:
+                    logger.error(f"Image analysis error: {str(e)}")
+            
+            # Save and return results
+            try:
+                analysis = Analysis(
+                    user_id=getattr(current_user, 'id', 1),
+                    content_type='unified',
+                    content_snippet=content[:500] if content else 'Analysis',
+                    results=json.dumps(results),
+                    trust_score=results['trust_score'],
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                results['metadata']['analysis_id'] = analysis.id
+            except Exception as e:
+                logger.error(f"Database save error: {str(e)}")
+            
+            results['usage_status'] = get_usage_status(current_user)
+            
+            return jsonify({
+                'success': True,
+                'results': results
+            })
+        
+        # Initialize results structure
+        results = {
+            'trust_score': 50,
+            'ai_probability': 0,
+            'plagiarism_score': 0,
+            'analysis_sections': {},
+            'summary': '',
+            'recommendations': [],
+            'metadata': {
+                'analysis_time': datetime.utcnow().isoformat(),
+                'services_used': [],
+                'is_pro': is_pro,
+                'analysis_tier': 'professional' if is_pro else 'basic'
+            }
+        }
+        
+        # Perform AI Analysis
+        ai_service = service_registry.get_service('ai_analysis')
+        if ai_service and ai_service.is_available:
+            try:
+                logger.info("Running AI analysis...")
+                ai_results = ai_service.analyze(content, use_openai=is_pro)
+                
+                if ai_results.get('success'):
+                    data = ai_results.get('data', {})
+                    results['ai_probability'] = data.get('ai_probability', 0)
+                    results['analysis_sections']['ai_detection'] = {
+                        'title': 'AI Content Detection',
+                        'content': data.get('analysis', 'Analysis completed'),
+                        'confidence': data.get('confidence', 0.5),
+                        'details': data.get('details', {}),
+                        'probability': data.get('ai_probability', 0),
+                        'ai_probability': data.get('ai_probability', 0),
+                        'human_probability': 100 - data.get('ai_probability', 0),
+                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('ai_analysis')
+                    
+                    # Adjust trust score based on AI detection
+                    if data.get('ai_probability', 0) > 70:
+                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
+                    
+                else:
+                    results['analysis_sections']['ai_detection'] = {
+                        'title': 'AI Content Detection',
+                        'content': 'AI analysis unavailable - using pattern analysis',
+                        'status': 'fallback'
+                    }
+                    
+            except Exception as e:
+                logger.error(f"AI analysis error: {str(e)}")
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': f'Analysis error: {str(e)}',
+                    'status': 'error'
+                }
+        else:
+            # Fallback to basic analysis
+            basic_results = perform_realistic_unified_text_analysis(content)
+            results['ai_probability'] = basic_results.get('ai_probability', 0)
+            results['analysis_sections']['ai_detection'] = {
+                'title': 'AI Content Detection',
+                'content': 'Using basic pattern analysis',
+                'probability': basic_results.get('ai_probability', 0),
+                'ai_probability': basic_results.get('ai_probability', 0),
+                'human_probability': basic_results.get('human_probability', 100),
+                'patterns': basic_results.get('patterns_detected', []),
+                'status': 'fallback'
+            }
+        
+        # Perform Plagiarism Analysis
+        plagiarism_service = service_registry.get_service('plagiarism')
+        if plagiarism_service and plagiarism_service.is_available and content:
+            try:
+                logger.info("Running plagiarism analysis...")
+                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
+                
+                if plagiarism_results:
+                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
+                    results['analysis_sections']['plagiarism'] = {
+                        'title': 'Plagiarism Detection',
+                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
+                        'sources_found': len(plagiarism_results.get('matches', [])),
+                        'similarity_score': plagiarism_results.get('score', 0) / 100,
+                        'details': plagiarism_results.get('matches', []),
+                        'matched_content': plagiarism_results.get('matches', []),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('plagiarism')
+                    
+                    # Adjust trust score
                     if plagiarism_results.get('score', 0) > 50:
                         results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
                         
@@ -1224,6 +1551,12 @@ def analyze_unified_stream():
                     'content': f'Check error: {str(e)}',
                     'status': 'error'
                 }
+        else:
+            results['analysis_sections']['plagiarism'] = {
+                'title': 'Plagiarism Detection',
+                'content': 'Plagiarism checking unavailable',
+                'status': 'unavailable'
+            }
         
         # Perform Image Analysis (if image provided)
         if image_file:
@@ -1873,331 +2206,4 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info(f"Starting Facts & Fakes AI on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=debug)', [])),
-                        'similarity_score': plagiarism_results.get('score', 0) / 100,
-                        'details': plagiarism_results.get('matches', []),
-                        'matched_content': plagiarism_results.get('matches', []),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('plagiarism')
-                    
-                    # Adjust trust score
-                    if plagiarism_results.get('score', 0) > 50:
-                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
-                    
-                    # Send partial results
-                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
-            else:
-                logger.warning("Plagiarism service not available")
-                results['analysis_sections']['plagiarism'] = {
-                    'title': 'Plagiarism Detection',
-                    'content': 'Plagiarism checking unavailable in basic mode',
-                    'status': 'unavailable'
-                }
-            
-            # Stage 4: Quality Analysis
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
-            
-            # Add basic quality metrics
-            word_count = len(content.split())
-            sentence_count = len([s for s in content.split('.') if s.strip()])
-            avg_sentence_length = word_count / max(sentence_count, 1)
-            
-            results['analysis_sections']['quality'] = {
-                'title': 'Content Quality Analysis',
-                'metrics': {
-                    'word_count': word_count,
-                    'sentence_count': sentence_count,
-                    'avg_sentence_length': round(avg_sentence_length, 1),
-                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
-                },
-                'status': 'completed'
-            }
-            
-            # Stage 5: Finalize
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Generating comprehensive report...', 'progress': 90, 'step': 6})}\n\n"
-            
-            # Ensure trust score is within bounds
-            results['trust_score'] = max(0, min(100, results['trust_score']))
-            
-            # Generate summary
-            summary_parts = []
-            ai_section = results['analysis_sections'].get('ai_detection', {})
-            plagiarism_section = results['analysis_sections'].get('plagiarism', {})
-            
-            if ai_section.get('ai_probability', 0) > 50:
-                summary_parts.append(f"Content appears to be AI-generated ({ai_section.get('ai_probability', 0)}% probability)")
-            else:
-                summary_parts.append(f"Content appears to be human-written ({ai_section.get('human_probability', 100)}% probability)")
-            
-            if plagiarism_section.get('similarity_score', 0) > 0:
-                summary_parts.append(f"Found {plagiarism_section.get('sources_found', 0)} potential source matches")
-            else:
-                summary_parts.append("No plagiarism detected")
-            
-            results['summary'] = ". ".join(summary_parts) + f". Overall trust score: {results['trust_score']}%"
-            
-            # Generate recommendations
-            if results['trust_score'] < 60:
-                results['recommendations'].append("Content shows concerning patterns - verify with additional sources")
-            if ai_section.get('ai_probability', 0) > 70:
-                results['recommendations'].append("High probability of AI-generated content detected")
-            if plagiarism_section.get('similarity_score', 0) > 0.3:
-                results['recommendations'].append("Similar content found online - ensure proper attribution")
-            if results['trust_score'] > 80:
-                results['recommendations'].append("Content appears authentic and trustworthy")
-            
-            # Save to database
-            try:
-                analysis = Analysis(
-                    user_id=getattr(current_user, 'id', 1),
-                    content_type='unified',
-                    content_snippet=content[:500] if content else 'Analysis',
-                    results=json.dumps(results),
-                    trust_score=results['trust_score'],
-                    timestamp=datetime.utcnow()
-                )
-                db.session.add(analysis)
-                db.session.commit()
-                results['metadata']['analysis_id'] = analysis.id
-            except Exception as e:
-                logger.error(f"Database save error: {str(e)}")
-                # Continue even if save fails
-            
-            # Final progress
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
-            
-            # Send complete results
-            yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
-            
-        except Exception as e:
-            logger.error(f"Unified analysis streaming error: {str(e)}")
-            logger.error(traceback.format_exc())
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-    
-    return Response(
-        stream_with_context(generate()),
-        mimetype="text/event-stream",
-        headers={
-            'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no',
-            'Connection': 'keep-alive'
-        }
-    )
-
-# Keep the original endpoint for backwards compatibility
-@app.route('/api/analyze-unified', methods=['POST'])
-@csrf.exempt
-@track_usage('unified')
-def analyze_unified():
-    """Original unified analysis endpoint with fallback support"""
-    try:
-        # Get request data
-        content = request.form.get('content', '').strip()
-        content_type = request.form.get('content_type', 'text')
-        tier = request.form.get('tier', 'basic')  # Get tier from request
-        
-        # Determine if this is pro analysis based on user tier and selection
-        user_tier = get_user_tier(current_user)
-        is_pro = False
-        
-        if user_tier == 'pro':
-            is_pro = True  # Pro users always get pro analysis
-        elif user_tier == 'free' and tier == 'professional':
-            # Free users can use their weekly pro analysis
-            is_pro = True
-        
-        # Handle file upload for images
-        image_file = None
-        if 'image' in request.files:
-            image_file = request.files['image']
-            if image_file.filename == '':
-                image_file = None
-        
-        # Handle file upload for documents
-        if 'file' in request.files:
-            uploaded_file = request.files['file']
-            if uploaded_file.filename != '':
-                # Read file content
-                content = uploaded_file.read().decode('utf-8', errors='ignore')
-                content_type = 'text'
-        
-        # Validate input
-        if not content and not image_file:
-            return jsonify({
-                'success': False,
-                'error': 'No content or image provided for analysis'
-            }), 400
-        
-        # Check service availability - with fallback
-        if not service_registry:
-            logger.warning("Service registry not available - using fallback analysis")
-            
-            # Use fallback analysis when services are unavailable
-            results = {
-                'trust_score': 50,
-                'ai_probability': 0,
-                'plagiarism_score': 0,
-                'analysis_sections': {},
-                'summary': '',
-                'recommendations': [],
-                'metadata': {
-                    'analysis_time': datetime.utcnow().isoformat(),
-                    'services_used': ['fallback_analysis'],
-                    'is_pro': is_pro,
-                    'analysis_tier': 'basic'
-                }
-            }
-            
-            # Perform basic text analysis as fallback
-            if content:
-                basic_results = perform_realistic_unified_text_analysis(content)
-                
-                results['ai_probability'] = basic_results.get('ai_probability', 0)
-                results['trust_score'] = basic_results.get('trust_score', 50)
-                
-                results['analysis_sections']['ai_detection'] = {
-                    'title': 'AI Content Detection',
-                    'content': basic_results.get('summary', 'Basic analysis completed'),
-                    'probability': basic_results.get('ai_probability', 0),
-                    'ai_probability': basic_results.get('ai_probability', 0),
-                    'human_probability': basic_results.get('human_probability', 100),
-                    'patterns': basic_results.get('patterns_detected', []),
-                    'status': 'fallback'
-                }
-                
-                results['analysis_sections']['quality'] = {
-                    'title': 'Content Quality Analysis',
-                    'metrics': basic_results.get('metrics', {}),
-                    'status': 'completed'
-                }
-                
-                results['summary'] = basic_results.get('summary', 'Analysis completed using basic mode')
-                results['recommendations'] = basic_results.get('recommendations', [])
-            
-            # Handle image analysis if image provided
-            if image_file:
-                try:
-                    if is_pro:
-                        image_results = perform_realistic_image_analysis(image_file)
-                    else:
-                        image_results = perform_basic_image_analysis(image_file)
-                    
-                    results['analysis_sections']['image_authenticity'] = {
-                        'title': 'Image Authenticity',
-                        'content': image_results.get('summary', 'Image analysis completed'),
-                        'authenticity_score': image_results.get('authenticity_score', 0.5),
-                        'status': 'completed'
-                    }
-                except Exception as e:
-                    logger.error(f"Image analysis error: {str(e)}")
-            
-            # Save and return results
-            try:
-                analysis = Analysis(
-                    user_id=getattr(current_user, 'id', 1),
-                    content_type='unified',
-                    content_snippet=content[:500] if content else 'Analysis',
-                    results=json.dumps(results),
-                    trust_score=results['trust_score'],
-                    timestamp=datetime.utcnow()
-                )
-                db.session.add(analysis)
-                db.session.commit()
-                results['metadata']['analysis_id'] = analysis.id
-            except Exception as e:
-                logger.error(f"Database save error: {str(e)}")
-            
-            results['usage_status'] = get_usage_status(current_user)
-            
-            return jsonify({
-                'success': True,
-                'results': results
-            })
-        
-        # Initialize results structure
-        results = {
-            'trust_score': 50,
-            'ai_probability': 0,
-            'plagiarism_score': 0,
-            'analysis_sections': {},
-            'summary': '',
-            'recommendations': [],
-            'metadata': {
-                'analysis_time': datetime.utcnow().isoformat(),
-                'services_used': [],
-                'is_pro': is_pro,
-                'analysis_tier': 'professional' if is_pro else 'basic'
-            }
-        }
-        
-        # Perform AI Analysis
-        ai_service = service_registry.get_service('ai_analysis')
-        if ai_service and ai_service.is_available:
-            try:
-                logger.info("Running AI analysis...")
-                ai_results = ai_service.analyze(content, use_openai=is_pro)
-                
-                if ai_results.get('success'):
-                    data = ai_results.get('data', {})
-                    results['ai_probability'] = data.get('ai_probability', 0)
-                    results['analysis_sections']['ai_detection'] = {
-                        'title': 'AI Content Detection',
-                        'content': data.get('analysis', 'Analysis completed'),
-                        'confidence': data.get('confidence', 0.5),
-                        'details': data.get('details', {}),
-                        'probability': data.get('ai_probability', 0),
-                        'ai_probability': data.get('ai_probability', 0),
-                        'human_probability': 100 - data.get('ai_probability', 0),
-                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('ai_analysis')
-                    
-                    # Adjust trust score based on AI detection
-                    if data.get('ai_probability', 0) > 70:
-                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
-                    
-                else:
-                    results['analysis_sections']['ai_detection'] = {
-                        'title': 'AI Content Detection',
-                        'content': 'AI analysis unavailable - using pattern analysis',
-                        'status': 'fallback'
-                    }
-                    
-            except Exception as e:
-                logger.error(f"AI analysis error: {str(e)}")
-                results['analysis_sections']['ai_detection'] = {
-                    'title': 'AI Content Detection',
-                    'content': f'Analysis error: {str(e)}',
-                    'status': 'error'
-                }
-        else:
-            # Fallback to basic analysis
-            basic_results = perform_realistic_unified_text_analysis(content)
-            results['ai_probability'] = basic_results.get('ai_probability', 0)
-            results['analysis_sections']['ai_detection'] = {
-                'title': 'AI Content Detection',
-                'content': 'Using basic pattern analysis',
-                'probability': basic_results.get('ai_probability', 0),
-                'ai_probability': basic_results.get('ai_probability', 0),
-                'human_probability': basic_results.get('human_probability', 100),
-                'patterns': basic_results.get('patterns_detected', []),
-                'status': 'fallback'
-            }
-        
-        # Perform Plagiarism Analysis
-        plagiarism_service = service_registry.get_service('plagiarism')
-        if plagiarism_service and plagiarism_service.is_available and content:
-            try:
-                logger.info("Running plagiarism analysis...")
-                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
-                
-                if plagiarism_results:
-                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
-                    results['analysis_sections']['plagiarism'] = {
-                        'title': 'Plagiarism Detection',
-                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
-                        'sources_found': len(plagiarism_results.get('matches
+    app.run(host='0.0.0.0', port=port, debug=debug)
