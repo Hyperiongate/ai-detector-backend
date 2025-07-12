@@ -1486,8 +1486,216 @@ def analyze_unified():
                     results['analysis_sections']['image_authenticity'] = {
                         'title': 'Image Authenticity',
                         'content': image_results.get('summary', 'Image analysis completed'),
-                        'authenticity_score':
-                        # PDF generation endpoints
+                        'authenticity_score': image_results.get('authenticity_score', 50),
+                        'manipulation_detected': image_results.get('manipulation_detected', False),
+                        'metadata': image_results.get('metadata', {}),
+                        'status': 'completed'
+                    }
+                    
+                    # Adjust trust score based on image analysis
+                    if image_results.get('manipulation_detected', False):
+                        results['trust_score'] -= 30
+                    
+                except Exception as e:
+                    logger.error(f"Image analysis error: {str(e)}")
+                    results['analysis_sections']['image_authenticity'] = {
+                        'title': 'Image Authenticity',
+                        'content': 'Image analysis failed',
+                        'status': 'error'
+                    }
+            
+            # Save to database
+            try:
+                analysis = Analysis(
+                    user_id=getattr(current_user, 'id', 1),
+                    content_type='unified',
+                    content_snippet=content[:500] if content else 'Image analysis',
+                    results=json.dumps(results),
+                    trust_score=results['trust_score'],
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                results['analysis_id'] = analysis.id
+            except Exception as e:
+                logger.error(f"Database save error: {str(e)}")
+                # Continue even if save fails
+            
+            return jsonify(results)
+        
+        # If service registry is available, use full analysis
+        # Initialize results
+        results = {
+            'trust_score': 50,
+            'ai_probability': 0,
+            'plagiarism_score': 0,
+            'analysis_sections': {},
+            'summary': '',
+            'recommendations': [],
+            'metadata': {
+                'analysis_time': datetime.utcnow().isoformat(),
+                'services_used': [],
+                'is_pro': is_pro,
+                'analysis_tier': 'professional' if is_pro else 'basic'
+            }
+        }
+        
+        # Run AI analysis if text content provided
+        if content:
+            ai_service = service_registry.get_service('ai_analysis')
+            if ai_service and ai_service.is_available:
+                ai_results = ai_service.analyze(content, use_openai=is_pro)
+                
+                if ai_results.get('success'):
+                    data = ai_results.get('data', {})
+                    results['ai_probability'] = data.get('ai_probability', 0)
+                    results['analysis_sections']['ai_detection'] = {
+                        'title': 'AI Content Detection',
+                        'content': data.get('analysis', 'Analysis completed'),
+                        'confidence': data.get('confidence', 0.5),
+                        'details': data.get('details', {}),
+                        'probability': data.get('ai_probability', 0),
+                        'ai_probability': data.get('ai_probability', 0),
+                        'human_probability': 100 - data.get('ai_probability', 0),
+                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('ai_analysis')
+                    
+                    # Adjust trust score based on AI probability
+                    if data.get('ai_probability', 0) > 70:
+                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
+            
+            # Run plagiarism check
+            plagiarism_service = service_registry.get_service('plagiarism')
+            if plagiarism_service and plagiarism_service.is_available:
+                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
+                
+                if plagiarism_results:
+                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
+                    results['analysis_sections']['plagiarism'] = {
+                        'title': 'Plagiarism Detection',
+                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
+                        'sources_found': len(plagiarism_results.get('matches', [])),
+                        'similarity_score': plagiarism_results.get('score', 0) / 100,
+                        'details': plagiarism_results.get('matches', []),
+                        'matched_content': plagiarism_results.get('matches', []),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('plagiarism')
+                    
+                    # Adjust trust score based on plagiarism
+                    if plagiarism_results.get('score', 0) > 50:
+                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
+            
+            # Add quality metrics
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': 'completed'
+            }
+        
+        # Handle image analysis if image provided
+        if image_file:
+            try:
+                if is_pro:
+                    image_results = perform_realistic_image_analysis(image_file)
+                else:
+                    image_results = perform_basic_image_analysis(image_file)
+                
+                results['analysis_sections']['image_authenticity'] = {
+                    'title': 'Image Authenticity',
+                    'content': image_results.get('summary', 'Image analysis completed'),
+                    'authenticity_score': image_results.get('authenticity_score', 50),
+                    'manipulation_detected': image_results.get('manipulation_detected', False),
+                    'metadata': image_results.get('metadata', {}),
+                    'status': 'completed'
+                }
+                
+                # Adjust trust score based on image analysis
+                if image_results.get('manipulation_detected', False):
+                    results['trust_score'] -= 30
+                
+            except Exception as e:
+                logger.error(f"Image analysis error: {str(e)}")
+                results['analysis_sections']['image_authenticity'] = {
+                    'title': 'Image Authenticity',
+                    'content': 'Image analysis failed',
+                    'status': 'error'
+                }
+        
+        # Ensure trust score is within bounds
+        results['trust_score'] = max(0, min(100, results['trust_score']))
+        
+        # Generate summary
+        summary_parts = []
+        if 'ai_detection' in results['analysis_sections']:
+            ai_prob = results['analysis_sections']['ai_detection'].get('ai_probability', 0)
+            if ai_prob > 50:
+                summary_parts.append(f"Content appears to be AI-generated ({ai_prob}% probability)")
+            else:
+                summary_parts.append(f"Content appears to be human-written ({100-ai_prob}% probability)")
+        
+        if 'plagiarism' in results['analysis_sections']:
+            plag_score = results['analysis_sections']['plagiarism'].get('similarity_score', 0)
+            if plag_score > 0:
+                summary_parts.append(f"Found {results['analysis_sections']['plagiarism'].get('sources_found', 0)} potential source matches")
+            else:
+                summary_parts.append("No plagiarism detected")
+        
+        if 'image_authenticity' in results['analysis_sections']:
+            if results['analysis_sections']['image_authenticity'].get('manipulation_detected'):
+                summary_parts.append("Image shows signs of manipulation")
+            else:
+                summary_parts.append("Image appears authentic")
+        
+        results['summary'] = ". ".join(summary_parts) + f". Overall trust score: {results['trust_score']}%"
+        
+        # Generate recommendations
+        if results['trust_score'] < 60:
+            results['recommendations'].append("Content shows concerning patterns - verify with additional sources")
+        if results.get('ai_probability', 0) > 70:
+            results['recommendations'].append("High probability of AI-generated content detected")
+        if results.get('plagiarism_score', 0) > 30:
+            results['recommendations'].append("Similar content found online - ensure proper attribution")
+        if results['trust_score'] > 80:
+            results['recommendations'].append("Content appears authentic and trustworthy")
+        
+        # Save to database
+        try:
+            analysis = Analysis(
+                user_id=getattr(current_user, 'id', 1),
+                content_type='unified',
+                content_snippet=content[:500] if content else 'Analysis',
+                results=json.dumps(results),
+                trust_score=results['trust_score'],
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(analysis)
+            db.session.commit()
+            results['analysis_id'] = analysis.id
+        except Exception as e:
+            logger.error(f"Database save error: {str(e)}")
+            # Continue even if save fails
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Unified analysis error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': 'Analysis failed. Please try again.'
+        }), 500
 
 @app.route('/api/generate-pdf', methods=['POST'])
 @csrf.exempt
