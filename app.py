@@ -1042,10 +1042,10 @@ def analyze_unified_stream():
                         'ai_detection': {
                             'title': 'AI Content Detection',
                             'content': basic_results.get('summary', 'Basic analysis completed'),
-                            'probability': basic_results.get('ai_probability', 0),  # FIXED: Added this field
+                            'probability': basic_results.get('ai_probability', 0),
                             'ai_probability': basic_results.get('ai_probability', 0),
                             'human_probability': basic_results.get('human_probability', 100),
-                            'patterns': basic_results.get('patterns_detected', []),  # FIXED: Changed from patterns_detected
+                            'patterns': basic_results.get('patterns_detected', []),
                             'status': 'basic'
                         },
                         'quality': {
@@ -1113,10 +1113,10 @@ def analyze_unified_stream():
                         'content': ai_results.get('analysis', 'Analysis completed'),
                         'confidence': ai_results.get('confidence', 0.5),
                         'details': ai_results.get('details', {}),
-                        'probability': ai_results.get('ai_probability', 0),  # FIXED: Added this field
+                        'probability': ai_results.get('ai_probability', 0),
                         'ai_probability': ai_results.get('ai_probability', 0),
                         'human_probability': ai_results.get('human_probability', 100),
-                        'patterns': ai_results.get('patterns', []),  # FIXED: Use 'patterns' not 'patterns_detected'
+                        'patterns': ai_results.get('patterns', []),
                         'status': 'completed'
                     }
                     results['metadata']['services_used'].append('ai_analysis')
@@ -1137,10 +1137,10 @@ def analyze_unified_stream():
                 results['analysis_sections']['ai_detection'] = {
                     'title': 'AI Content Detection',
                     'content': 'AI service unavailable - using pattern analysis',
-                    'probability': basic_results.get('ai_probability', 0),  # FIXED: Added this field
+                    'probability': basic_results.get('ai_probability', 0),
                     'ai_probability': basic_results.get('ai_probability', 0),
                     'human_probability': basic_results.get('human_probability', 100),
-                    'patterns': basic_results.get('patterns_detected', []),  # FIXED: Changed key name
+                    'patterns': basic_results.get('patterns_detected', []),
                     'status': 'fallback'
                 }
             
@@ -1349,10 +1349,10 @@ def analyze_unified():
                 results['analysis_sections']['ai_detection'] = {
                     'title': 'AI Content Detection',
                     'content': basic_results.get('summary', 'Basic analysis completed'),
-                    'probability': basic_results.get('ai_probability', 0),  # FIXED: Added this field
+                    'probability': basic_results.get('ai_probability', 0),
                     'ai_probability': basic_results.get('ai_probability', 0),
                     'human_probability': basic_results.get('human_probability', 100),
-                    'patterns': basic_results.get('patterns_detected', []),  # FIXED: Changed from patterns_detected
+                    'patterns': basic_results.get('patterns_detected', []),
                     'status': 'fallback'
                 }
                 
@@ -1435,10 +1435,10 @@ def analyze_unified():
                         'content': ai_results.get('analysis', 'Analysis completed'),
                         'confidence': ai_results.get('confidence', 0.5),
                         'details': ai_results.get('details', {}),
-                        'probability': ai_results.get('ai_probability', 0),  # FIXED: Added this field
+                        'probability': ai_results.get('ai_probability', 0),
                         'ai_probability': ai_results.get('ai_probability', 0),
                         'human_probability': ai_results.get('human_probability', 100),
-                        'patterns': ai_results.get('patterns', []),  # FIXED: Keep as 'patterns'
+                        'patterns': ai_results.get('patterns', []),
                         'status': 'completed'
                     }
                     results['metadata']['services_used'].append('ai_analysis')
@@ -1469,10 +1469,10 @@ def analyze_unified():
             results['analysis_sections']['ai_detection'] = {
                 'title': 'AI Content Detection',
                 'content': 'Using basic pattern analysis',
-                'probability': basic_results.get('ai_probability', 0),  # FIXED: Added this field
+                'probability': basic_results.get('ai_probability', 0),
                 'ai_probability': basic_results.get('ai_probability', 0),
                 'human_probability': basic_results.get('human_probability', 100),
-                'patterns': basic_results.get('patterns_detected', []),  # FIXED: Changed from patterns_detected
+                'patterns': basic_results.get('patterns_detected', []),
                 'status': 'fallback'
             }
         
