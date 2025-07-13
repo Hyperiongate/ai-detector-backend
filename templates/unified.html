@@ -3003,7 +3003,26 @@ hr {
 {% endblock %}
 
 {% block scripts %}
+<!-- Remove scripts from head and load them here without defer -->
+<script src="/static/js/common/api-client.js"></script>
+<script src="/static/js/unified-helpers.js"></script>
+<script src="/static/js/unified-ui.js"></script>
+<script src="/static/js/unified-results.js"></script>
+<script src="/static/js/unified-analysis.js"></script>
+<script src="/static/js/unified-main.js"></script>
+
 <script>
+// Wait for scripts to load
+function waitForUnifiedApp(callback) {
+    if (window.UnifiedApp && window.UnifiedApp.analysis && window.UnifiedApp.ui && window.UnifiedApp.results) {
+        console.log('UnifiedApp fully loaded!');
+        callback();
+    } else {
+        console.log('Waiting for UnifiedApp modules...');
+        setTimeout(() => waitForUnifiedApp(callback), 50);
+    }
+}
+
 // Initialize UnifiedApp namespace first
 window.UnifiedApp = window.UnifiedApp || {};
 
@@ -3197,48 +3216,47 @@ window.closeModal = function() {
 window.startAnalysis = async function(type) {
     console.log('Starting analysis:', type);
     
-    // Check if UnifiedApp is loaded
-    if (!window.UnifiedApp || !window.UnifiedApp.analysis) {
-        console.log('UnifiedApp not yet loaded, waiting...');
-        // Try again in 100ms
-        setTimeout(() => startAnalysis(type), 100);
-        return;
-    }
+    // Store the analysis request
+    window.pendingAnalysis = { type: type };
     
-    // Check usage limits (temporarily disabled for testing)
-    // if (!canUserAnalyze()) {
-    //     showUsageLimitModal();
-    //     return;
-    // }
-    
-    // Get the appropriate input based on type
-    let content = '';
-    if (type === 'url') {
-        content = document.getElementById('url-input').value.trim();
-        if (!content) {
-            alert('Please enter a URL to analyze');
-            return;
+    // Wait for UnifiedApp to be fully loaded
+    waitForUnifiedApp(function() {
+        const pending = window.pendingAnalysis;
+        if (!pending) return;
+        
+        console.log('UnifiedApp ready, processing analysis:', pending.type);
+        
+        // Get the appropriate input based on type
+        let content = '';
+        if (pending.type === 'url') {
+            content = document.getElementById('url-input').value.trim();
+            if (!content) {
+                alert('Please enter a URL to analyze');
+                return;
+            }
+        } else if (pending.type === 'text') {
+            content = document.getElementById('text-input').value.trim();
+            if (!content || content.length < 50) {
+                alert('Please enter at least 50 characters to analyze');
+                return;
+            }
+        } else if (pending.type === 'file' && window.selectedFile) {
+            content = 'File: ' + window.selectedFile.name;
         }
-    } else if (type === 'text') {
-        content = document.getElementById('text-input').value.trim();
-        if (!content || content.length < 50) {
-            alert('Please enter at least 50 characters to analyze');
-            return;
-        }
-    } else if (type === 'file' && window.selectedFile) {
-        // File analysis would be handled differently
-        content = 'File: ' + window.selectedFile.name;
-    }
-    
-    // Store the type for retry
-    window.lastAnalysisType = type;
-    
-    // Determine tier based on user status
-    const tier = window.userAnalysisData.isPro ? 'pro' : 'free';
-    
-    // Now we know UnifiedApp is loaded
-    console.log('Running analysis with UnifiedApp');
-    window.UnifiedApp.analysis.runAnalysis(content, tier);
+        
+        // Store the type for retry
+        window.lastAnalysisType = pending.type;
+        
+        // Determine tier based on user status
+        const tier = window.userAnalysisData.isPro ? 'pro' : 'free';
+        
+        // Now we know UnifiedApp is loaded
+        console.log('Running analysis with UnifiedApp');
+        window.UnifiedApp.analysis.runAnalysis(content, tier);
+        
+        // Clear pending analysis
+        window.pendingAnalysis = null;
+    });
 };
 
 // Helper functions
@@ -3251,29 +3269,23 @@ window.clearFileUpload = function() {
 
 window.generatePDF = function() {
     console.log('Generating PDF...');
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+    waitForUnifiedApp(function() {
         window.UnifiedApp.analysis.generatePDF();
-    } else {
-        console.error('UnifiedApp.analysis not available');
-    }
+    });
 };
 
 window.downloadReport = function(format) {
     console.log('Downloading report:', format);
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+    waitForUnifiedApp(function() {
         window.UnifiedApp.analysis.generatePDF();
-    } else {
-        console.error('UnifiedApp.analysis not available');
-    }
+    });
 };
 
 window.shareResults = function() {
     console.log('Sharing results...');
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+    waitForUnifiedApp(function() {
         window.UnifiedApp.analysis.shareResults();
-    } else {
-        console.error('UnifiedApp.analysis not available');
-    }
+    });
 };
 
 window.retryAnalysis = function() {
@@ -3406,11 +3418,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // Initialize on window load to ensure all scripts are loaded
 window.addEventListener('load', function() {
     console.log('Window loaded, checking UnifiedApp status...');
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        console.log('UnifiedApp.analysis is ready');
-    } else {
-        console.error('UnifiedApp.analysis not found after window load');
+    
+    // Debug what's available
+    console.log('UnifiedApp:', window.UnifiedApp);
+    if (window.UnifiedApp) {
+        console.log('UnifiedApp modules:', {
+            ui: !!window.UnifiedApp.ui,
+            results: !!window.UnifiedApp.results,
+            analysis: !!window.UnifiedApp.analysis,
+            helpers: !!window.UnifiedApp.helpers
+        });
     }
+    
+    // Try to initialize if modules are ready
+    waitForUnifiedApp(function() {
+        console.log('All UnifiedApp modules are ready!');
+    });
 });
 </script>
 {% endblock %}
