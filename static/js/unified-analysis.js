@@ -1,7 +1,7 @@
 // Unified Analysis Module - Complete Enhanced Version with Fixed PDF Generation
 window.UnifiedApp = window.UnifiedApp || {};
 
-wwindow.UnifiedApp.analysis = (function() {
+window.UnifiedApp.analysis = (function() {
     'use strict';
     
     // Store current analysis state
