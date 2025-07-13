@@ -23,6 +23,14 @@
 
 <!-- Fix favicon 404 -->
 <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+<!-- Load unified scripts with defer to ensure they load before inline scripts -->
+<script src="/static/js/common/api-client.js" defer></script>
+<script src="/static/js/unified-helpers.js" defer></script>
+<script src="/static/js/unified-ui.js" defer></script>
+<script src="/static/js/unified-results.js" defer></script>
+<script src="/static/js/unified-analysis.js" defer></script>
+<script src="/static/js/unified-main.js" defer></script>
 {% endblock %}
 
 {% block styles %}
@@ -2995,14 +3003,10 @@ hr {
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/common/api-client.js"></script>
-<script src="/static/js/unified-helpers.js"></script>
-<script src="/static/js/unified-ui.js"></script>
-<script src="/static/js/unified-results.js"></script>
-<script src="/static/js/unified-analysis.js"></script>
-<script src="/static/js/unified-main.js"></script>
-
 <script>
+// Initialize UnifiedApp namespace first
+window.UnifiedApp = window.UnifiedApp || {};
+
 // Global variables
 window.userAnalysisData = {
     isAuthenticated: false,
@@ -3189,6 +3193,113 @@ window.closeModal = function() {
     setTimeout(() => backdrop.style.display = 'none', 300);
 };
 
+// Start analysis function - Fixed to wait for UnifiedApp
+window.startAnalysis = async function(type) {
+    console.log('Starting analysis:', type);
+    
+    // Check if UnifiedApp is loaded
+    if (!window.UnifiedApp || !window.UnifiedApp.analysis) {
+        console.log('UnifiedApp not yet loaded, waiting...');
+        // Try again in 100ms
+        setTimeout(() => startAnalysis(type), 100);
+        return;
+    }
+    
+    // Check usage limits (temporarily disabled for testing)
+    // if (!canUserAnalyze()) {
+    //     showUsageLimitModal();
+    //     return;
+    // }
+    
+    // Get the appropriate input based on type
+    let content = '';
+    if (type === 'url') {
+        content = document.getElementById('url-input').value.trim();
+        if (!content) {
+            alert('Please enter a URL to analyze');
+            return;
+        }
+    } else if (type === 'text') {
+        content = document.getElementById('text-input').value.trim();
+        if (!content || content.length < 50) {
+            alert('Please enter at least 50 characters to analyze');
+            return;
+        }
+    } else if (type === 'file' && window.selectedFile) {
+        // File analysis would be handled differently
+        content = 'File: ' + window.selectedFile.name;
+    }
+    
+    // Store the type for retry
+    window.lastAnalysisType = type;
+    
+    // Determine tier based on user status
+    const tier = window.userAnalysisData.isPro ? 'pro' : 'free';
+    
+    // Now we know UnifiedApp is loaded
+    console.log('Running analysis with UnifiedApp');
+    window.UnifiedApp.analysis.runAnalysis(content, tier);
+};
+
+// Helper functions
+window.clearFileUpload = function() {
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-preview').style.display = 'none';
+    document.getElementById('file-analyze-button').disabled = true;
+    window.selectedFile = null;
+};
+
+window.generatePDF = function() {
+    console.log('Generating PDF...');
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.generatePDF();
+    } else {
+        console.error('UnifiedApp.analysis not available');
+    }
+};
+
+window.downloadReport = function(format) {
+    console.log('Downloading report:', format);
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.generatePDF();
+    } else {
+        console.error('UnifiedApp.analysis not available');
+    }
+};
+
+window.shareResults = function() {
+    console.log('Sharing results...');
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        window.UnifiedApp.analysis.shareResults();
+    } else {
+        console.error('UnifiedApp.analysis not available');
+    }
+};
+
+window.retryAnalysis = function() {
+    document.getElementById('error-container').style.display = 'none';
+    if (window.lastAnalysisType) {
+        window.startAnalysis(window.lastAnalysisType);
+    }
+};
+
+// Check and reset weekly usage for anonymous users
+function checkWeeklyReset() {
+    if (!window.userAnalysisData.isAuthenticated) {
+        const weekTimestamp = localStorage.getItem('ff_usage_week_timestamp');
+        if (weekTimestamp) {
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            if (parseInt(weekTimestamp) < weekAgo) {
+                // Reset weekly usage
+                localStorage.setItem('ff_usage_week', '0');
+                localStorage.setItem('ff_usage_week_timestamp', Date.now().toString());
+                window.userAnalysisData.usageThisWeek = 0;
+                updateUsageCounter();
+            }
+        }
+    }
+}
+
 // Initialize unified app after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing unified page...');
@@ -3287,134 +3398,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store file for analysis
         window.selectedFile = file;
     }
+    
+    // Check weekly reset
+    checkWeeklyReset();
 });
 
-// Start analysis function - This is the main function that needs to be implemented
-window.startAnalysis = async function(type) {
-    console.log('Starting analysis:', type);
-    
-    // Check usage limits (temporarily disabled)
-    // if (!canUserAnalyze()) {
-    //     showUsageLimitModal();
-    //     return;
-    // }
-    
-    // Get the appropriate input based on type
-    let content = '';
-    if (type === 'url') {
-        content = document.getElementById('url-input').value.trim();
-        if (!content) {
-            alert('Please enter a URL to analyze');
-            return;
-        }
-    } else if (type === 'text') {
-        content = document.getElementById('text-input').value.trim();
-        if (!content || content.length < 50) {
-            alert('Please enter at least 50 characters to analyze');
-            return;
-        }
-    } else if (type === 'file' && window.selectedFile) {
-        // File analysis would be handled differently
-        content = 'File: ' + window.selectedFile.name;
-    }
-    
-    // Store the type for retry
-    window.lastAnalysisType = type;
-    
-    // Implementation will be in unified-analysis.js
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.runAnalysis(content, 'pro');
-    } else {
-        // Fallback implementation
-        console.error('UnifiedApp not loaded, using fallback');
-        simulateAnalysis(type);
-    }
-};
-
-// Fallback simulation
-function simulateAnalysis(type) {
-    // Hide input and show progress
-    document.getElementById('input-section').style.display = 'none';
-    document.getElementById('progress-container').style.display = 'block';
-    
-    // Simulate progress
-    let progress = 0;
-    const progressBar = document.getElementById('progress-bar');
-    const interval = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = progress + '%';
-        progressBar.textContent = progress + '%';
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                document.getElementById('progress-container').style.display = 'none';
-                document.getElementById('results-container').style.display = 'block';
-                document.getElementById('input-section').style.display = 'block';
-            }, 500);
-        }
-    }, 500);
-}
-
-// Helper functions
-window.clearFileUpload = function() {
-    document.getElementById('file-input').value = '';
-    document.getElementById('file-preview').style.display = 'none';
-    document.getElementById('file-analyze-button').disabled = true;
-    window.selectedFile = null;
-};
-
-window.generatePDF = function() {
-    console.log('Generating PDF...');
-    // PDF generation logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.generatePDF();
-    }
-};
-
-window.downloadReport = function(format) {
-    console.log('Downloading report:', format);
-    // Download logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.generatePDF();
-    }
-};
-
-window.shareResults = function() {
-    console.log('Sharing results...');
-    // Share logic
-    if (window.UnifiedApp && window.UnifiedApp.analysis) {
-        window.UnifiedApp.analysis.shareResults();
-    }
-};
-
-window.retryAnalysis = function() {
-    document.getElementById('error-container').style.display = 'none';
-    if (window.lastAnalysisType) {
-        window.startAnalysis(window.lastAnalysisType);
-    }
-};
-
-// Check and reset weekly usage for anonymous users
-function checkWeeklyReset() {
-    if (!window.userAnalysisData.isAuthenticated) {
-        const weekTimestamp = localStorage.getItem('ff_usage_week_timestamp');
-        if (weekTimestamp) {
-            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            if (parseInt(weekTimestamp) < weekAgo) {
-                // Reset weekly usage
-                localStorage.setItem('ff_usage_week', '0');
-                localStorage.setItem('ff_usage_week_timestamp', Date.now().toString());
-                window.userAnalysisData.usageThisWeek = 0;
-                updateUsageCounter();
-            }
-        }
-    }
-}
-
-// Initialize on load
+// Initialize on window load to ensure all scripts are loaded
 window.addEventListener('load', function() {
-    checkWeeklyReset();
+    console.log('Window loaded, checking UnifiedApp status...');
+    if (window.UnifiedApp && window.UnifiedApp.analysis) {
+        console.log('UnifiedApp.analysis is ready');
+    } else {
+        console.error('UnifiedApp.analysis not found after window load');
+    }
 });
 </script>
 {% endblock %}
