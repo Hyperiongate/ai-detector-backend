@@ -14,7 +14,7 @@ window.UnifiedApp.analysis = (function() {
    }; 
    
    // Main analysis function
-   window.UnifiedApp.analysis.runAnalysis = async function(content, tier = 'pro') {
+   const runAnalysis = async function(content, tier = 'pro') {
        try {
            // Prevent multiple simultaneous analyses
            if (currentAnalysis.isAnalyzing) {
@@ -222,7 +222,7 @@ window.UnifiedApp.analysis = (function() {
    }
    
    // Generate PDF report - FIXED with comprehensive content
-   window.UnifiedApp.analysis.generatePDF = async function() {
+   const generatePDF = async function() {
        try {
            // Show loading
            UnifiedApp.ui.showToast('Generating comprehensive PDF report...', 'info');
@@ -578,7 +578,7 @@ window.UnifiedApp.analysis = (function() {
    }
    
    // Share results
-   window.UnifiedApp.analysis.shareResults = async function() {
+   const shareResults = async function() {
        try {
            const results = currentAnalysis.results || UnifiedApp.results.getCurrentResults();
            if (!results) {
@@ -665,8 +665,8 @@ window.UnifiedApp.analysis = (function() {
    console.log('Unified Analysis module loaded - Complete Enhanced Version');
    
    return {
-       runAnalysis: window.UnifiedApp.analysis.runAnalysis,
-       generatePDF: window.UnifiedApp.analysis.generatePDF,
-       shareResults: window.UnifiedApp.analysis.shareResults
-   };
+    runAnalysis: runAnalysis,
+    generatePDF: generatePDF,
+    shareResults: shareResults
+};
 })();
