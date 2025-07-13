@@ -100,12 +100,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 # Force Flask to serve static files with proper headers
-# Configure static files
-app.static_folder = 'static'
-app.static_url_path = '/static'
 
 # Load configuration with fixed DATABASE_URL
 app.config.from_object(config)
