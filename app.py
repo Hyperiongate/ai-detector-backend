@@ -101,6 +101,38 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='static', static_url_path='/static')
+# CRITICAL: Disable Render's static file optimization
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+# Force Flask to handle static files with explicit byte serving
+@app.route('/static/<path:filename>')
+def custom_static(filename):
+    import os
+    from flask import Response
+    
+    file_path = os.path.join(app.static_folder, filename)
+    
+    # Log the request
+    if os.path.exists(file_path):
+        size = os.path.getsize(file_path)
+        logger.info(f"Serving static file: {filename} ({size} bytes)")
+        
+        # Read and serve the file explicitly
+        with open(file_path, 'rb') as f:
+            content = f.read()
+            
+        # Determine content type
+        if filename.endswith('.js'):
+            mimetype = 'application/javascript'
+        elif filename.endswith('.css'):
+            mimetype = 'text/css'
+        else:
+            mimetype = 'application/octet-stream'
+            
+        return Response(content, mimetype=mimetype)
+    else:
+        logger.error(f"Static file not found: {filename}")
+        return "File not found", 404
 
 # Force Flask to serve static files with proper headers
 
