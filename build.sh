@@ -47,3 +47,13 @@ echo "Testing scikit-image installation..."
 python -c "import skimage; print('✓ scikit-image version:', skimage.__version__)" || echo "✗ scikit-image not loaded"
 
 echo "Build process completed!"
+# Check static files after build
+echo "=== Checking static files ==="
+echo "Listing static/js directory:"
+ls -la static/js/ | head -10
+echo "Checking unified-analysis.js size:"
+wc -c static/js/unified-analysis.js
+echo "First 100 chars of unified-analysis.js:"
+head -c 100 static/js/unified-analysis.js
+echo ""
+echo "=== End static file check ==="
