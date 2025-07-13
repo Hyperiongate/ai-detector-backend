@@ -103,22 +103,9 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Force Flask to serve static files with proper headers
-from flask import send_from_directory
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files with proper content type"""
-    return send_from_directory('static', filename)
-
-@app.after_request
-def after_request(response):
-    """Ensure JavaScript files are served with correct content type"""
-    if request.path.endswith('.js'):
-        response.headers['Content-Type'] = 'application/javascript'
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-    return response
+# Configure static files
+app.static_folder = 'static'
+app.static_url_path = '/static'
 
 # Load configuration with fixed DATABASE_URL
 app.config.from_object(config)
