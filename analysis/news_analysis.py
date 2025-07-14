@@ -90,11 +90,33 @@ class NewsAnalyzer:
         try:
             # Extract article data
             if content_type == 'url':
+                # Start extraction timer
+                start_time = time.time()
                 article_data = self.extract_from_url(content)
+                extraction_time = time.time() - start_time
+                logger.info(f"Extraction took {extraction_time:.2f} seconds")
+                
                 if not article_data:
                     # Return a more detailed error response
                     domain = urlparse(content).netloc.replace('www.', '')
-                    error_message = f"Unable to extract content from this URL. This often happens with major news sites like {domain} that block automated access."
+                    
+                    # Provide specific guidance for known problematic sites
+                    problematic_sites = {
+                        'washingtonpost.com': 'The Washington Post',
+                        'nytimes.com': 'The New York Times',
+                        'wsj.com': 'The Wall Street Journal',
+                        'bloomberg.com': 'Bloomberg',
+                        'ft.com': 'Financial Times',
+                        'economist.com': 'The Economist'
+                    }
+                    
+                    site_name = problematic_sites.get(domain, domain)
+                    
+                    error_message = f"Unable to extract content from {site_name}. "
+                    if domain in problematic_sites:
+                        error_message += "This site has strong anti-bot protections that prevent automated content extraction."
+                    else:
+                        error_message += "The site may be blocking automated access or the page structure is not recognized."
                     
                     return {
                         'success': False,
@@ -150,45 +172,79 @@ class NewsAnalyzer:
     
     def extract_from_url(self, url):
         """Extract article content from URL with enhanced extraction"""
+        start_time = time.time()
+        max_duration = 20  # Maximum 20 seconds for extraction
+        
         try:
-            # Add delay to be respectful to servers
-            time.sleep(0.5)
+            # Extract domain for early checks
+            domain = urlparse(url).netloc.replace('www.', '')
             
-            # Try with different header combinations for stubborn sites
-            headers_variations = [
-                self.session.headers,  # Default headers
-                {
-                    # Minimal headers that sometimes work better
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                },
-                {
-                    # Mobile user agent sometimes bypasses paywalls
-                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-                }
+            # List of sites known to have strict anti-bot measures
+            problematic_sites = [
+                'washingtonpost.com',
+                'nytimes.com',
+                'wsj.com',
+                'bloomberg.com',
+                'ft.com',
+                'economist.com',
+                'newyorker.com',
+                'theatlantic.com'
             ]
             
+            # For problematic sites, fail immediately with helpful message
+            if domain in problematic_sites:
+                logger.warning(f"Known problematic site detected: {domain} - failing fast")
+                return None  # Don't even try - these sites have aggressive anti-bot measures
+            
+            # Check if we've exceeded time limit
+            if time.time() - start_time > max_duration:
+                logger.error(f"Extraction exceeded time limit for {url}")
+                return None
+            
+            # For other sites, try with a short timeout
             response = None
-            for headers in headers_variations:
-                try:
-                    response = self.session.get(url, timeout=15, headers=headers, allow_redirects=True)
-                    if response.status_code == 200:
-                        break
-                except:
-                    continue
+            try:
+                # Set a connection timeout and read timeout
+                response = self.session.get(url, timeout=(3, 5), allow_redirects=True)
+                
+                if response.status_code == 403 or response.status_code == 429:
+                    logger.error(f"Access denied (status {response.status_code}) for {url}")
+                    return None
+                    
+                if response.status_code != 200:
+                    # One quick retry with mobile headers
+                    mobile_headers = {
+                        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+                    }
+                    response = self.session.get(url, timeout=(2, 3), headers=mobile_headers, allow_redirects=True)
+                    
+            except requests.exceptions.Timeout:
+                logger.error(f"Timeout fetching {url} - site may be slow or blocking")
+                return None
+            except requests.exceptions.ConnectionError:
+                logger.error(f"Connection error fetching {url}")
+                return None
+            except Exception as e:
+                logger.error(f"Failed to fetch URL {url}: {str(e)}")
+                return None
             
             if not response or response.status_code != 200:
                 logger.error(f"Failed to fetch URL: {url}, status: {response.status_code if response else 'No response'}")
                 return None
             
+            # Check if we've exceeded time limit
+            if time.time() - start_time > max_duration - 5:  # Leave 5 seconds for parsing
+                logger.error(f"Not enough time left for parsing {url}")
+                return None
+            
             # Check if we got a paywall or login page
-            if any(indicator in response.text.lower() for indicator in ['paywall', 'subscribe', 'login required', 'access denied']):
+            response_text_lower = response.text.lower()
+            if any(indicator in response_text_lower for indicator in ['paywall', 'subscribe to read', 'login required', 'access denied', 'members only']):
                 logger.warning(f"Possible paywall detected at {url}")
                 return None
             
+            # Parse with BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Extract domain
-            domain = urlparse(url).netloc.replace('www.', '')
             
             # Extract title - try multiple methods
             title = None
@@ -228,18 +284,20 @@ class NewsAnalyzer:
             
             # Site-specific selectors for major news sites
             site_specific_selectors = {
-                'washingtonpost.com': 'div[data-qa="article-body"]',
-                'nytimes.com': 'section[name="articleBody"]',
-                'cnn.com': 'div.article__content',
-                'bbc.com': 'main[role="main"]',
                 'reuters.com': 'div[data-testid="article-body"]',
                 'apnews.com': 'div.RichTextStoryBody',
+                'bbc.com': 'main[role="main"]',
+                'bbc.co.uk': 'main[role="main"]',
                 'theguardian.com': 'div.article-body-commercial-selector',
-                'wsj.com': 'div.article-content',
-                'bloomberg.com': 'div.body-content',
+                'cnn.com': 'div.article__content',
                 'foxnews.com': 'div.article-body',
                 'usatoday.com': 'div.gnt_ar_b',
-                'npr.org': 'div#storytext'
+                'npr.org': 'div#storytext',
+                'politico.com': 'div.story-text',
+                'thehill.com': 'div.article__text',
+                'nbcnews.com': 'div.article-body',
+                'cbsnews.com': 'section.content__body',
+                'abcnews.go.com': 'div.Article__Content'
             }
             
             # Try site-specific selector first
@@ -284,7 +342,7 @@ class NewsAnalyzer:
                 # Filter out short paragraphs and navigation elements
                 good_paragraphs = [p.get_text().strip() for p in all_paragraphs 
                                  if len(p.get_text().strip()) > 50 and 
-                                 not any(skip in p.get_text().lower() for skip in ['cookie', 'subscribe', 'newsletter', 'sign up'])]
+                                 not any(skip in p.get_text().lower() for skip in ['cookie', 'subscribe', 'newsletter', 'sign up', 'advertisement'])]
                 
                 if len(good_paragraphs) >= 3:
                     article_text = ' '.join(good_paragraphs[:30])  # Limit to first 30 good paragraphs
@@ -325,7 +383,7 @@ class NewsAnalyzer:
                             publish_date = elem.get_text().strip()
                         break
             
-            logger.info(f"Successfully extracted {len(article_text)} chars from {domain}")
+            logger.info(f"Successfully extracted {len(article_text)} chars from {domain} in {time.time() - start_time:.2f} seconds")
             
             return {
                 'url': url,
@@ -337,6 +395,9 @@ class NewsAnalyzer:
             
         except requests.exceptions.Timeout:
             logger.error(f"Timeout while fetching URL: {url}")
+            return None
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Connection error while fetching URL: {url}")
             return None
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error for URL {url}: {str(e)}")
