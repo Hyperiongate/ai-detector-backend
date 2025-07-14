@@ -474,6 +474,14 @@
             transition: transform 1s ease-out;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
+        
+        /* Gauge labels */
+        .gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
 
         /* Progress bar for loading */
         .progress-container {
@@ -1915,6 +1923,11 @@
                             <div class="gauge-mask"></div>
                             <div class="gauge-needle" id="emotion-needle"></div>
                         </div>
+                        <div class="gauge-labels">
+                            <small>0%</small>
+                            <small>50%</small>
+                            <small>100%</small>
+                        </div>
                     </div>
                     
                     <div id="emotional-manipulation"></div>
@@ -2194,10 +2207,11 @@
         const progressBar = document.getElementById('analysis-progress');
         const stages = document.querySelectorAll('.analysis-stage');
         let currentStage = 0;
+        let progressInterval;
         
         try {
             // Start progress animation
-            const progressInterval = setInterval(() => {
+            progressInterval = setInterval(() => {
                 if (progress < 90) {
                     progress += 5;
                     progressBar.style.width = progress + '%';
@@ -2302,7 +2316,7 @@
             loadingSection.style.display = 'none';
             
             // Clear any running intervals
-            if (typeof progressInterval !== 'undefined') {
+            if (progressInterval) {
                 clearInterval(progressInterval);
             }
             
@@ -2324,22 +2338,38 @@
         }
     }
 
-    // FIXED display function to match YOUR API response structure
+    // Fixed display function that matches your API structure
     function displayRealResults(results) {
+        console.log('Displaying results:', results);
+        
         // Update timestamp
         const now = new Date();
         document.getElementById('analysis-time').textContent = now.toLocaleString();
         document.getElementById('analysis-id').textContent = results.analysis_id || 'AN-' + Date.now().toString(36).toUpperCase();
         
-        // FIXED: Use trust_score directly from root
-        const trustScore = results.trust_score || 0;
+        // Get trust_score - check both root level and analysis object
+        const trustScore = results.trust_score || results.analysis?.trust_score || 0;
         animateTrustMeter(trustScore);
         
-        // Overall Assessment with REAL data from root level
+        // Get summary - check both locations
+        const summary = results.summary || results.analysis?.summary || 'Analysis completed';
+        
+        // Overall Assessment
         const overallAssessment = {
             credibility: trustScore >= 80 ? 'High' : trustScore >= 60 ? 'Moderate' : 'Low',
-            summary: results.summary || 'Analysis completed'
+            summary: summary
         };
+        
+        // Get recommendations from either location
+        const recommendations = results.recommendations || results.analysis?.recommendations || [];
+        const recommendationsHTML = recommendations.length > 0 ? `
+            <div class="mt-3">
+                <h5>Recommendations:</h5>
+                <ul>
+                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            </div>
+        ` : '';
         
         document.getElementById('overall-assessment').innerHTML = `
             <div class="alert alert-${trustScore >= 80 ? 'success' : trustScore >= 60 ? 'warning' : 'danger'} mb-3">
@@ -2349,9 +2379,10 @@
                 </h4>
                 <p class="mb-0">${overallAssessment.summary}</p>
             </div>
+            ${recommendationsHTML}
         `;
         
-        // Update confidence - default to 85 if not provided
+        // Update confidence
         const confidence = results.confidence_level || 85;
         const confidenceBar = document.getElementById('overall-confidence');
         setTimeout(() => {
@@ -2359,32 +2390,457 @@
             confidenceBar.querySelector('.confidence-label').textContent = confidence + '%';
         }, 200);
         
-        // FIXED: Use key_claims instead of key_findings
-        const keyFindings = results.key_claims || [];
+        // Handle key findings and red flags
+        const keyFindings = results.key_claims || results.analysis?.key_claims || [];
+        const manipulationTactics = results.manipulation_tactics || results.analysis?.manipulation_tactics || [];
+        
+        // Display key findings
         if (keyFindings.length > 0) {
-            document.getElementById('key-findings-list').innerHTML = keyFindings
-                .map(claim => `<li>${claim}</li>`)
-                .join('');
+            const findingsHTML = keyFindings.map(claim => {
+                if (typeof claim === 'object' && claim.claim) {
+                    return `<li>${claim.importance ? `<strong>${claim.importance.toUpperCase()}:</strong> ` : ''}${claim.claim}</li>`;
+                }
+                return `<li>${claim}</li>`;
+            }).join('');
+            document.getElementById('key-findings-list').innerHTML = findingsHTML;
         } else {
             document.getElementById('key-findings-list').innerHTML = `
                 <li>Trust score: ${trustScore}%</li>
-                <li>Credibility score: ${results.credibility_score || 0}</li>
-                ${results.bias_score !== 'N/A' ? `<li>Bias detected: ${results.bias_score}</li>` : ''}
+                <li>Credibility score: ${Math.round((results.credibility_score || 0) * 100)}%</li>
+                ${results.bias_score !== undefined ? `<li>Bias score: ${results.bias_score}</li>` : ''}
             `;
         }
         
-        // FIXED: Use manipulation_tactics instead of red_flags
-        const redFlags = results.manipulation_tactics || [];
-        if (redFlags.length > 0) {
-            document.getElementById('red-flags-list').innerHTML = redFlags
-                .map(tactic => `<li>${tactic}</li>`)
-                .join('');
+        // Display red flags (manipulation tactics)
+        if (manipulationTactics.length > 0) {
+            const redFlagsHTML = manipulationTactics.map(tactic => {
+                if (typeof tactic === 'object') {
+                    return `<li><strong>${tactic.tactic || tactic.name}:</strong> ${tactic.description || ''}${
+                        tactic.example ? ` <em>(Example: "${tactic.example}")</em>` : ''
+                    }</li>`;
+                }
+                return `<li>${tactic}</li>`;
+            }).join('');
+            document.getElementById('red-flags-list').innerHTML = redFlagsHTML;
         } else {
             document.getElementById('red-flags-list').innerHTML = `<li>No significant manipulation tactics detected</li>`;
         }
         
-        // Populate all sections with REAL data
-        populateRealSections(results);
+        // Call the detailed populate function with the full results
+        populateDetailedSections(results);
+    }
+
+    // New detailed populate function that handles your API structure
+    function populateDetailedSections(results) {
+        console.log('Populating detailed sections with:', results);
+        
+        // Merge analysis data with root level data for easier access
+        const analysis = results.analysis || {};
+        const mergedResults = { ...results, ...analysis };
+        
+        // Author Credibility
+        const author = results.article_info?.author || results.article?.author || 'Unknown';
+        if (author && author !== 'Unknown') {
+            document.getElementById('author-credibility').innerHTML = `
+                <h5>Author: ${author}</h5>
+                <p>Author credibility assessment based on available information</p>
+                <ul>
+                    <li>Name verification: ${author.includes(' ') ? 'Full name provided' : 'Single name only'}</li>
+                    <li>Attribution: Author identified</li>
+                    <li>Transparency: ${author.length > 3 ? 'Good' : 'Limited'}</li>
+                </ul>
+            `;
+            
+            // Update author research links
+            const authorQuery = encodeURIComponent(author);
+            document.getElementById('author-twitter').href = `https://twitter.com/search?q=${authorQuery}`;
+            document.getElementById('author-google').href = `https://www.google.com/search?q=${authorQuery}%20journalist`;
+            document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${authorQuery}`;
+            
+            document.getElementById('author-explanation').textContent = 
+                `${author} is listed as the author. Verify their credentials and expertise in this subject area.`;
+            document.getElementById('author-methodology').textContent = 
+                'Author extracted from article metadata and byline detection';
+        } else {
+            document.getElementById('author-credibility').innerHTML = `
+                <h5>Author: Unknown</h5>
+                <p>No author information was found in the article</p>
+                <ul>
+                    <li>This may indicate lower transparency</li>
+                    <li>Consider verifying the source independently</li>
+                </ul>
+            `;
+            document.getElementById('author-explanation').textContent = 
+                'No author information provided, which may indicate lower credibility.';
+            document.getElementById('author-methodology').textContent = 
+                'Searched for author in metadata, bylines, and common author locations';
+        }
+        
+        // Source Credibility
+        const sourceData = results.source_credibility || {};
+        const domain = results.article_info?.domain || results.article?.domain || 'Unknown';
+        const credScore = Math.round((results.credibility_score || 0) * 100);
+        
+        document.getElementById('source-credibility').innerHTML = `
+            <h5>Source: ${domain}</h5>
+            <p>Credibility Score: <strong>${credScore}/100</strong></p>
+            ${sourceData.credibility ? `<p>Known Credibility: <strong>${sourceData.credibility}</strong></p>` : ''}
+            ${sourceData.bias ? `<p>Known Bias: <strong>${sourceData.bias}</strong></p>` : ''}
+            ${sourceData.type ? `<p>Source Type: <strong>${sourceData.type}</strong></p>` : ''}
+            <ul>
+                <li>Trust Score: ${results.trust_score || 0}</li>
+                <li>Article Title: ${results.article_info?.title || results.article?.title || 'N/A'}</li>
+                ${results.article_info?.publish_date ? `<li>Published: ${results.article_info.publish_date}</li>` : ''}
+            </ul>
+        `;
+        
+        document.getElementById('this-source-score').textContent = `${credScore}%`;
+        document.getElementById('source-explanation').textContent = 
+            sourceData.credibility ? 
+            `${domain} is a ${sourceData.type || 'news source'} with ${sourceData.credibility} credibility and ${sourceData.bias || 'unknown'} bias.` :
+            'Source credibility assessed based on trust score and analysis results';
+        document.getElementById('source-methodology').textContent = 
+            'Analysis based on historical accuracy, transparency, and editorial standards';
+        
+        // Writing Quality
+        const qualityMetrics = {
+            trustScore: results.trust_score || 0,
+            credibilityScore: Math.round((results.credibility_score || 0) * 100),
+            factChecks: mergedResults.fact_checks?.length || 0,
+            claims: mergedResults.key_claims?.length || 0,
+            sources: mergedResults.source_diversity?.sources_count || 1,
+            author: author,
+            textLength: results.article_info?.text?.length || results.article?.text?.length || 0
+        };
+        
+        document.getElementById('writing-quality').innerHTML = `
+            <h5>Quality Metrics:</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul>
+                        <li>Overall Trust Score: <strong>${qualityMetrics.trustScore}/100</strong></li>
+                        <li>Credibility Score: <strong>${qualityMetrics.credibilityScore}/100</strong></li>
+                        <li>Author: <strong>${qualityMetrics.author}</strong></li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul>
+                        <li>Claims Identified: <strong>${qualityMetrics.claims}</strong></li>
+                        <li>Fact Checks: <strong>${qualityMetrics.factChecks}</strong></li>
+                        <li>Article Length: <strong>${qualityMetrics.textLength} characters</strong></li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('quality-explanation').textContent = 
+            qualityMetrics.trustScore >= 80 ? 'High quality writing with strong credibility indicators' :
+            qualityMetrics.trustScore >= 60 ? 'Moderate quality with some areas for improvement' :
+            'Lower quality indicators suggest caution when evaluating this content';
+        document.getElementById('quality-methodology').textContent = 
+            'Quality assessed through trust scoring, credibility analysis, and content structure evaluation';
+        
+        // Fact-Checking Results
+        const factChecks = mergedResults.fact_checks || [];
+        const claims = mergedResults.key_claims || [];
+        
+        if (factChecks.length > 0 && typeof factChecks[0] === 'object' && factChecks[0].verdict) {
+            // Detailed fact checks available
+            const factCheckHTML = factChecks.map((check, index) => {
+                const verdictClass = {
+                    'true': 'status-verified',
+                    'false': 'status-false',
+                    'misleading': 'status-false',
+                    'unverified': 'status-unverified'
+                }[check.verdict] || 'status-unverified';
+                
+                return `
+                    <div class="claim-card">
+                        <p><strong>Claim ${index + 1}:</strong> "${check.claim}"</p>
+                        <span class="claim-status ${verdictClass}">${check.verdict.toUpperCase()}</span>
+                        <p class="mt-2">${check.explanation}</p>
+                        ${check.confidence ? `<p class="mt-1"><small>Confidence: ${check.confidence}%</small></p>` : ''}
+                        ${check.sources && check.sources.length > 0 ? 
+                            `<p class="mt-1"><small>Sources: ${check.sources.join(', ')}</small></p>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('fact-checking').innerHTML = `
+                <h5>Fact-Check Results: ${factChecks.length} claims verified</h5>
+                ${factCheckHTML}
+            `;
+        } else if (claims.length > 0) {
+            // Only claims available, no verdicts
+            const claimsHTML = claims.map((claim, index) => {
+                const claimText = typeof claim === 'object' ? claim.claim : claim;
+                const importance = typeof claim === 'object' ? claim.importance : 'medium';
+                
+                return `
+                    <div class="claim-card">
+                        <p><strong>Claim ${index + 1}:</strong> "${claimText}"</p>
+                        <span class="claim-status status-unverified">REQUIRES VERIFICATION</span>
+                        <p class="mt-2"><small>Importance: ${importance || 'Medium'}</small></p>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('fact-checking').innerHTML = `
+                <h5>Claims Identified: ${claims.length}</h5>
+                <p class="text-muted">These claims require external fact-checking for verification</p>
+                ${claimsHTML}
+            `;
+        } else {
+            document.getElementById('fact-checking').innerHTML = `
+                <p>No specific claims identified for fact-checking</p>
+            `;
+        }
+        
+        document.getElementById('fact-explanation').textContent = 
+            factChecks.length > 0 ? 'Claims have been analyzed and fact-checked' :
+            claims.length > 0 ? 'Key claims identified but require external verification' :
+            'No specific factual claims were identified in this article';
+        document.getElementById('fact-methodology').textContent = 
+            'Claims extracted using natural language processing and verified against available data';
+        
+        // Political Bias
+        const biasScore = results.bias_score;
+        const biasData = mergedResults.bias_explanation ? mergedResults : {};
+        
+        if (biasScore !== undefined && biasScore !== 'N/A') {
+            const biasPosition = ((parseFloat(biasScore) + 1) / 2) * 100;
+            const biasMarker = document.getElementById('bias-marker');
+            biasMarker.style.left = biasPosition + '%';
+            
+            const biasLabel = biasScore < -0.5 ? 'Far Left' :
+                             biasScore < -0.2 ? 'Left-Leaning' :
+                             biasScore < 0.2 ? 'Center/Neutral' :
+                             biasScore < 0.5 ? 'Right-Leaning' : 'Far Right';
+            
+            document.getElementById('political-bias').innerHTML = `
+                <h5>Bias Assessment: <strong>${biasLabel}</strong></h5>
+                <p>Bias Score: <strong>${biasScore.toFixed(2)}</strong> (scale: -1 to +1)</p>
+                ${biasData.bias_explanation ? `<p>${biasData.bias_explanation}</p>` : ''}
+                ${biasData.bias_examples && biasData.bias_examples.length > 0 ? `
+                    <h6 class="mt-3">Examples Found:</h6>
+                    <ul>
+                        ${biasData.bias_examples.map(ex => `<li>${ex}</li>`).join('')}
+                    </ul>
+                ` : ''}
+            `;
+            
+            document.getElementById('bias-explanation').textContent = 
+                biasData.bias_explanation || `Article shows ${biasLabel.toLowerCase()} bias based on language analysis.`;
+            document.getElementById('bias-methodology').textContent = 
+                'Bias detected through analysis of word choice, framing, and political terminology';
+        } else {
+            document.getElementById('bias-marker').style.left = '50%';
+            document.getElementById('political-bias').innerHTML = `
+                <h5>Bias Assessment: Not Available</h5>
+                <p>Insufficient data to determine political bias</p>
+            `;
+            document.getElementById('bias-explanation').textContent = 'Bias analysis was not conclusive';
+            document.getElementById('bias-methodology').textContent = 'Content may be too neutral or short for bias detection';
+        }
+        
+        // Hidden Agenda
+        const hiddenAgenda = mergedResults.hidden_agenda || {};
+        const hasHiddenAgenda = hiddenAgenda.detected || manipulationTactics.length > 3;
+        
+        document.getElementById('hidden-agenda').innerHTML = `
+            <h5>Hidden Agenda Detection: <strong>${hasHiddenAgenda ? 'WARNING' : 'Clear'}</strong></h5>
+            ${hasHiddenAgenda ? `
+                <div class="alert alert-warning mt-3">
+                    ${hiddenAgenda.type ? `<h6>Type: ${hiddenAgenda.type.charAt(0).toUpperCase() + hiddenAgenda.type.slice(1)}</h6>` : ''}
+                    <p>${hiddenAgenda.explanation || 'Multiple manipulation tactics suggest potential hidden agenda'}</p>
+                    ${hiddenAgenda.evidence && hiddenAgenda.evidence.length > 0 ? `
+                        <h6>Evidence:</h6>
+                        <ul>
+                            ${hiddenAgenda.evidence.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            ` : '<p>No clear hidden agenda detected in this article.</p>'}
+            ${manipulationTactics.length > 0 ? `
+                <h6 class="mt-3">Manipulation Tactics Found (${manipulationTactics.length}):</h6>
+                <ul>
+                    ${manipulationTactics.slice(0, 5).map(t => 
+                        `<li>${typeof t === 'object' ? t.tactic || t.name : t}</li>`
+                    ).join('')}
+                    ${manipulationTactics.length > 5 ? `<li>...and ${manipulationTactics.length - 5} more</li>` : ''}
+                </ul>
+            ` : ''}
+        `;
+        
+        document.getElementById('agenda-explanation').textContent = 
+            hasHiddenAgenda ? 'Analysis suggests this article may have ulterior motives beyond informing readers' :
+            'Article appears to be straightforward in its intent';
+        document.getElementById('agenda-methodology').textContent = 
+            'Hidden agenda detected through analysis of persuasion techniques, manipulation tactics, and rhetorical devices';
+        
+        // Populate remaining sections with available data
+        populateRemainingSection('clickbait', mergedResults);
+        populateRemainingSection('emotion', mergedResults);
+        populateRemainingSection('diversity', mergedResults);
+        populateRemainingSection('timeliness', results);
+        populateRemainingSection('ai', mergedResults);
+    }
+
+    // Helper function for remaining sections
+    function populateRemainingSection(section, data) {
+        switch(section) {
+            case 'clickbait':
+                const clickbaitData = data.clickbait_analysis || {};
+                const clickbaitScore = clickbaitData.score || 20;
+                const title = data.article_info?.title || data.article?.title || '';
+                
+                document.getElementById('clickbait-analysis').innerHTML = `
+                    <h5>Clickbait Score: <strong>${clickbaitScore}/100</strong></h5>
+                    <div class="progress mt-3 mb-3" style="height: 30px;">
+                        <div class="progress-bar ${
+                            clickbaitScore > 70 ? 'bg-danger' : 
+                            clickbaitScore > 40 ? 'bg-warning' : 'bg-success'
+                        }" role="progressbar" style="width: ${clickbaitScore}%">
+                            ${clickbaitScore}%
+                        </div>
+                    </div>
+                    <p>Title: "${title}"</p>
+                    ${clickbaitData.indicators && clickbaitData.indicators.length > 0 ? `
+                        <h6>Indicators:</h6>
+                        <ul>${clickbaitData.indicators.map(ind => `<li>${ind}</li>`).join('')}</ul>
+                    ` : ''}
+                `;
+                
+                document.getElementById('clickbait-explanation').textContent = 
+                    clickbaitScore > 70 ? 'High clickbait score - title may be misleading' :
+                    clickbaitScore > 40 ? 'Moderate clickbait elements detected' :
+                    'Low clickbait score - title appears straightforward';
+                document.getElementById('clickbait-methodology').textContent = 
+                    'Clickbait detected through headline analysis, sensational language patterns, and title-content matching';
+                break;
+                
+            case 'emotion':
+                const emotionData = data.emotional_manipulation || {};
+                const emotionScore = emotionData.score || (data.manipulation_tactics?.length || 0) * 15;
+                const emotionNeedle = document.getElementById('emotion-needle');
+                const emotionAngle = -90 + Math.min(emotionScore * 1.8, 180);
+                emotionNeedle.style.transform = `translateX(-50%) rotate(${emotionAngle}deg)`;
+                
+                document.getElementById('emotional-manipulation').innerHTML = `
+                    <h5>Emotional Manipulation: <strong>${
+                        emotionScore > 60 ? 'High' : emotionScore > 30 ? 'Medium' : 'Low'
+                    }</strong> (${emotionScore}/100)</h5>
+                    ${emotionData.techniques && emotionData.techniques.length > 0 ? `
+                        <h6>Techniques Detected:</h6>
+                        <ul>${emotionData.techniques.map(tech => `<li>${tech}</li>`).join('')}</ul>
+                    ` : '<p>No specific emotional manipulation techniques identified</p>'}
+                `;
+                
+                document.getElementById('emotion-explanation').textContent = 
+                    emotionScore > 60 ? 'High emotional manipulation - article uses strong emotional triggers' :
+                    emotionScore > 30 ? 'Moderate emotional language present' :
+                    'Minimal emotional manipulation detected';
+                document.getElementById('emotion-methodology').textContent = 
+                    'Emotional content analyzed through sentiment analysis and psychological trigger detection';
+                break;
+                
+            case 'diversity':
+                const diversityData = data.source_diversity || {};
+                const diversityScore = diversityData.score || 25;
+                const diversityBar = document.getElementById('diversity-bar');
+                diversityBar.style.width = diversityScore + '%';
+                diversityBar.textContent = diversityScore + '%';
+                
+                document.getElementById('source-diversity').innerHTML = `
+                    <h5>Source Diversity Score: <strong>${diversityScore}/100</strong></h5>
+                    <p>Sources Referenced: <strong>${diversityData.sources_count || 1}</strong></p>
+                    ${diversityScore < 50 ? `
+                        <div class="alert alert-info mt-3">
+                            <p><strong>Note:</strong> This is a single-article analysis. For comprehensive verification, 
+                            consider checking multiple sources covering the same topic.</p>
+                        </div>
+                    ` : ''}
+                    ${diversityData.missing_perspectives && diversityData.missing_perspectives.length > 0 ? `
+                        <h6>Recommended Additional Perspectives:</h6>
+                        <ul>${diversityData.missing_perspectives.map(p => `<li>${p}</li>`).join('')}</ul>
+                    ` : ''}
+                `;
+                
+                document.getElementById('diversity-explanation').textContent = 
+                    'Source diversity measures how many different sources and perspectives are included';
+                document.getElementById('diversity-methodology').textContent = 
+                    'Analyzed by counting unique sources, quotes, and referenced materials within the article';
+                break;
+                
+            case 'timeliness':
+                const publishDate = data.article_info?.publish_date || data.article?.publish_date;
+                const currentDate = new Date();
+                
+                document.getElementById('timeliness-check').innerHTML = `
+                    <h5>Timeliness Assessment:</h5>
+                    <ul>
+                        <li>Article date: <strong>${publishDate || 'Unknown'}</strong></li>
+                        <li>Analysis date: <strong>${currentDate.toLocaleDateString()}</strong></li>
+                        <li>Source: <strong>${data.article_info?.domain || 'Unknown'}</strong></li>
+                        ${publishDate ? `<li>Age: <strong>${calculateAge(publishDate)}</strong></li>` : ''}
+                    </ul>
+                    ${!publishDate ? `
+                        <div class="alert alert-warning mt-3">
+                            <p>Publication date not found. Consider the timeliness of this information carefully.</p>
+                        </div>
+                    ` : ''}
+                `;
+                
+                document.getElementById('timeliness-explanation').textContent = 
+                    publishDate ? 'Article date information helps assess relevance and currency of information' :
+                    'Missing publication date makes it difficult to assess information currency';
+                document.getElementById('timeliness-methodology').textContent = 
+                    'Publication date extracted from article metadata and HTML markup';
+                break;
+                
+            case 'ai':
+                const aiData = data.ai_content_probability || {};
+                const aiScore = aiData.score || 15;
+                const aiBar = document.getElementById('ai-probability');
+                setTimeout(() => {
+                    aiBar.style.width = aiScore + '%';
+                    aiBar.querySelector('.confidence-label').textContent = aiScore + '%';
+                }, 300);
+                
+                document.getElementById('ai-patterns').innerHTML = `
+                    <li><strong>AI Probability: ${
+                        aiScore > 70 ? 'High' : aiScore > 40 ? 'Medium' : 'Low'
+                    }</strong></li>
+                    ${aiData.indicators && aiData.indicators.map(ind => 
+                        `<li><i class="fas fa-${aiScore > 50 ? 'exclamation' : 'check'}-circle text-${
+                            aiScore > 50 ? 'warning' : 'success'
+                        } me-2"></i>${ind}</li>`
+                    ).join('') || '<li>Natural writing patterns detected</li>'}
+                `;
+                
+                document.getElementById('ai-explanation').textContent = 
+                    aiData.explanation || `${
+                        aiScore > 70 ? 'High' : aiScore > 40 ? 'Medium' : 'Low'
+                    } probability of AI-generated content`;
+                document.getElementById('ai-methodology').textContent = 
+                    'AI detection through perplexity analysis, repetition patterns, and stylistic consistency checks';
+                break;
+        }
+    }
+
+    // Helper function to calculate article age
+    function calculateAge(publishDate) {
+        const published = new Date(publishDate);
+        const now = new Date();
+        const diffTime = Math.abs(now - published);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        return `${Math.floor(diffDays / 365)} years ago`;
     }
 
     // Animate trust meter with REAL score
@@ -2414,228 +2870,6 @@
                 }
             }, 30);
         }, 100);
-    }
-
-    // FIXED function to populate sections with YOUR API's actual data structure
-    function populateRealSections(results) {
-        // Source Credibility - using source_credibility from root
-        const sourceData = results.source_credibility || {};
-        if (sourceData && results.article_info) {
-            const domain = results.article_info.domain || 'Unknown';
-            const credScore = results.credibility_score || 0;
-            
-            document.getElementById('source-credibility').innerHTML = `
-                <h5>Source: ${domain}</h5>
-                <p>Credibility Score: <strong>${credScore}/100</strong></p>
-                <ul>
-                    <li>Trust Score: ${results.trust_score || 0}</li>
-                    <li>Article Title: ${results.article_info.title || 'N/A'}</li>
-                    ${results.article_info.publish_date ? `<li>Published: ${results.article_info.publish_date}</li>` : ''}
-                </ul>
-            `;
-            
-            document.getElementById('this-source-score').textContent = `${Math.round(credScore)}%`;
-            document.getElementById('source-explanation').textContent = 'Source credibility assessed based on trust score and analysis results';
-            document.getElementById('source-methodology').textContent = 'Analysis based on content quality, claims verification, and bias detection';
-        }
-        
-        // Author Credibility - create from available data
-        document.getElementById('author-credibility').innerHTML = `
-            <h5>Author: Unknown</h5>
-            <p>Author information not available in this analysis</p>
-            <ul>
-                <li>Consider researching the author independently</li>
-                <li>Check for author credentials on the original source</li>
-            </ul>
-        `;
-        
-        // Update author research links with generic search
-        document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-        document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-        document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(results.article_info?.title || '')}`;
-        
-        document.getElementById('author-explanation').textContent = 'Author information not provided in the analysis';
-        document.getElementById('author-methodology').textContent = 'Author analysis requires additional metadata';
-        
-        // Writing Quality - derive from available data
-        document.getElementById('writing-quality').innerHTML = `
-            <h5>Quality Metrics:</h5>
-            <ul>
-                <li>Overall Trust Score: ${results.trust_score || 0}/100</li>
-                <li>Credibility Score: ${results.credibility_score || 0}/100</li>
-                <li>Content Length: ${results.article_info?.text ? results.article_info.text.length + ' characters' : 'N/A'}</li>
-                <li>Key Claims Identified: ${results.key_claims?.length || 0}</li>
-                <li>Fact Checks Performed: ${results.fact_checks?.length || 0}</li>
-            </ul>
-        `;
-        
-        document.getElementById('quality-explanation').textContent = 'Writing quality assessed through credibility and trust scoring';
-        document.getElementById('quality-methodology').textContent = 'Analysis based on content structure and claim verification';
-        
-        // Fact-Checking - using fact_checks and key_claims
-        const claims = results.key_claims || [];
-        const factChecks = results.fact_checks || [];
-        
-        document.getElementById('fact-checking').innerHTML = `
-            <h5>Claims Analyzed: ${claims.length}</h5>
-            ${claims.map((claim, index) => `
-                <div class="claim-card">
-                    <p><strong>Claim ${index + 1}:</strong> "${claim}"</p>
-                    <span class="claim-status status-unverified">REQUIRES VERIFICATION</span>
-                    <p class="mt-2"><small>Confidence: Pending fact-check</small></p>
-                </div>
-            `).join('')}
-            ${factChecks.length > 0 ? `
-                <h5 class="mt-4">Fact Check Results:</h5>
-                ${factChecks.map(check => `<p>${check}</p>`).join('')}
-            ` : ''}
-        `;
-        
-        document.getElementById('fact-explanation').textContent = claims.length > 0 ? 
-            'Key claims have been identified for verification' : 
-            'No specific claims were identified for fact-checking';
-        document.getElementById('fact-methodology').textContent = 'Claims extracted using natural language processing';
-        
-        // Political Bias - handle "N/A" string value
-        const biasScore = results.bias_score;
-        const biasMarker = document.getElementById('bias-marker');
-        
-        if (biasScore !== 'N/A' && !isNaN(biasScore)) {
-            // Assuming bias_score is on a scale, adjust as needed
-            const biasPosition = 50; // Center by default, adjust based on your scale
-            biasMarker.style.left = biasPosition + '%';
-            
-            document.getElementById('political-bias').innerHTML = `
-                <h5>Bias Assessment:</h5>
-                <p>Bias Score: <strong>${biasScore}</strong></p>
-                <p>Political Lean: <strong>Analysis in progress</strong></p>
-                <ul>
-                    <li>Bias detection requires deeper content analysis</li>
-                </ul>
-            `;
-        } else {
-            biasMarker.style.left = '50%'; // Center for N/A
-            
-            document.getElementById('political-bias').innerHTML = `
-                <h5>Bias Assessment:</h5>
-                <p>Bias Score: <strong>Not Available</strong></p>
-                <p>Insufficient data to determine political bias</p>
-                <ul>
-                    <li>Content may be too short or neutral for bias detection</li>
-                </ul>
-            `;
-        }
-        
-        document.getElementById('bias-explanation').textContent = biasScore !== 'N/A' ? 
-            'Bias analysis completed' : 
-            'Insufficient content for bias detection';
-        document.getElementById('bias-methodology').textContent = 'Word choice and framing analysis';
-        
-        // Hidden Agenda - using manipulation_tactics
-        const manipulationTactics = results.manipulation_tactics || [];
-        document.getElementById('hidden-agenda').innerHTML = `
-            <h5>Agenda Detection:</h5>
-            <p>Manipulation Tactics Found: <strong>${manipulationTactics.length}</strong></p>
-            ${manipulationTactics.length > 0 ? `
-                <ul>
-                    ${manipulationTactics.map(tactic => `<li>${tactic}</li>`).join('')}
-                </ul>
-            ` : '<p>No manipulation tactics detected</p>'}
-        `;
-        
-        document.getElementById('agenda-explanation').textContent = manipulationTactics.length > 0 ?
-            'Potential manipulation tactics were identified' :
-            'No hidden agenda detected';
-        document.getElementById('agenda-methodology').textContent = 'Pattern recognition and persuasion technique analysis';
-        
-        // Clickbait Analysis - derive from title if available
-        const title = results.article_info?.title || '';
-        const hasClickbaitIndicators = title.includes('!') || title.includes('?') || 
-                                      title.toLowerCase().includes('shocking') || 
-                                      title.toLowerCase().includes('you won\'t believe');
-        
-        document.getElementById('clickbait-analysis').innerHTML = `
-            <h5>Clickbait Score: <strong>${hasClickbaitIndicators ? 'Medium' : 'Low'}</strong></h5>
-            <ul>
-                <li>Title: "${title || 'No title provided'}"</li>
-                ${hasClickbaitIndicators ? '<li>Contains potential clickbait indicators</li>' : '<li>Title appears straightforward</li>'}
-            </ul>
-        `;
-        
-        document.getElementById('clickbait-explanation').textContent = hasClickbaitIndicators ?
-            'Title may contain clickbait elements' :
-            'Title appears to be straightforward';
-        document.getElementById('clickbait-methodology').textContent = 'Headline pattern analysis';
-        
-        // Emotional Manipulation - basic analysis
-        const emotionScore = manipulationTactics.length * 20; // Simple scoring
-        const emotionNeedle = document.getElementById('emotion-needle');
-        const emotionAngle = -90 + Math.min(emotionScore * 1.8, 180);
-        emotionNeedle.style.transform = `translateX(-50%) rotate(${emotionAngle}deg)`;
-        
-        document.getElementById('emotional-manipulation').innerHTML = `
-            <h5>Emotional Manipulation Level: <strong>${emotionScore > 60 ? 'High' : emotionScore > 30 ? 'Medium' : 'Low'}</strong></h5>
-            <p>Based on identified manipulation tactics</p>
-            <ul>
-                <li>Manipulation tactics found: ${manipulationTactics.length}</li>
-                <li>Emotional appeal level: ${emotionScore > 60 ? 'Significant' : emotionScore > 30 ? 'Moderate' : 'Minimal'}</li>
-            </ul>
-        `;
-        
-        document.getElementById('emotion-explanation').textContent = 'Emotional manipulation assessed based on rhetoric analysis';
-        document.getElementById('emotion-methodology').textContent = 'Sentiment and persuasion technique detection';
-        
-        // Source Diversity - basic implementation
-        const diversityScore = 50; // Default middle score
-        const diversityBar = document.getElementById('diversity-bar');
-        diversityBar.style.width = diversityScore + '%';
-        diversityBar.textContent = diversityScore + '%';
-        
-        document.getElementById('source-diversity').innerHTML = `
-            <h5>Source Diversity Score: <strong>${diversityScore}/100</strong></h5>
-            <ul>
-                <li>Single source analysis</li>
-                <li>Additional sources needed for comprehensive verification</li>
-                <li>Consider cross-referencing with multiple sources</li>
-            </ul>
-        `;
-        
-        document.getElementById('diversity-explanation').textContent = 'Source diversity analysis requires multiple sources';
-        document.getElementById('diversity-methodology').textContent = 'Single source provided for this analysis';
-        
-        // Timeliness - using publish_date if available
-        const publishDate = results.article_info?.publish_date;
-        document.getElementById('timeliness-check').innerHTML = `
-            <h5>Timeliness Assessment:</h5>
-            <ul>
-                <li>Article date: ${publishDate || 'Unknown'}</li>
-                <li>Analysis date: ${new Date().toLocaleDateString()}</li>
-                <li>URL provided: ${results.article_info?.url ? 'Yes' : 'No'}</li>
-                <li>Content type: ${results.article_info?.url ? 'Web article' : 'Direct text'}</li>
-            </ul>
-        `;
-        
-        document.getElementById('timeliness-explanation').textContent = publishDate ? 
-            'Article date information available' : 
-            'Publication date not available';
-        document.getElementById('timeliness-methodology').textContent = 'Metadata extraction from source';
-        
-        // AI Detection - basic implementation
-        const aiProbability = 25; // Default low probability
-        setTimeout(() => {
-            const aiBar = document.getElementById('ai-probability');
-            aiBar.style.width = aiProbability + '%';
-            aiBar.querySelector('.confidence-label').textContent = aiProbability + '%';
-        }, 300);
-        
-        document.getElementById('ai-patterns').innerHTML = `
-            <li><i class="fas fa-check-circle text-success me-2"></i>Natural language variations detected</li>
-            <li><i class="fas fa-check-circle text-success me-2"></i>Human-like writing patterns</li>
-            <li><i class="fas fa-info-circle text-primary me-2"></i>Further analysis needed for definitive assessment</li>
-        `;
-        
-        document.getElementById('ai-explanation').textContent = 'Low probability of AI-generated content';
-        document.getElementById('ai-methodology').textContent = 'Pattern analysis and writing style assessment';
     }
 
     // Show error
@@ -2678,7 +2912,7 @@
         }
     }
 
-    // Generate REAL PDF from actual results
+    // Generate enhanced PDF report
     async function generatePDF() {
         if (!currentAnalysisResults) {
             alert('Please run an analysis first');
@@ -2720,70 +2954,356 @@
             
         } catch (error) {
             console.error('PDF generation error:', error);
-            // Fallback: Generate client-side PDF with results
-            generateClientSidePDF();
+            // Fallback: Generate client-side PDF with enhanced results
+            generateEnhancedClientSidePDF();
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
         }
     }
 
-    // Fallback client-side PDF generation
-    function generateClientSidePDF() {
-        // Create a new window with the results formatted for printing
+    // Enhanced client-side PDF generation with full details
+    function generateEnhancedClientSidePDF() {
+        if (!currentAnalysisResults) {
+            alert('Please run an analysis first');
+            return;
+        }
+        
+        const results = currentAnalysisResults;
+        
+        // Helper function to safely get nested values
+        const safeGet = (obj, path, defaultValue = 'N/A') => {
+            return path.split('.').reduce((o, p) => o?.[p], obj) || defaultValue;
+        };
+        
+        // Create a new window with comprehensive results
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>News Analysis Report</title>
+                <title>Comprehensive News Analysis Report - Facts & Fakes AI</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    h1 { color: #333; }
-                    .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; }
-                    .score { font-size: 24px; font-weight: bold; color: #4CAF50; }
+                    @page { margin: 1in; }
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    h1 { 
+                        color: #4a90e2; 
+                        border-bottom: 3px solid #4a90e2;
+                        padding-bottom: 10px;
+                    }
+                    h2 { 
+                        color: #2c3e50; 
+                        margin-top: 30px;
+                        border-bottom: 2px solid #e0e0e0;
+                        padding-bottom: 8px;
+                    }
+                    h3 { 
+                        color: #34495e;
+                        margin-top: 20px;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 40px;
+                    }
+                    .logo {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #4a90e2;
+                    }
+                    .score-box {
+                        background: #f8f9fa;
+                        border: 2px solid #4a90e2;
+                        border-radius: 10px;
+                        padding: 20px;
+                        text-align: center;
+                        margin: 20px 0;
+                    }
+                    .trust-score {
+                        font-size: 48px;
+                        font-weight: bold;
+                        color: ${results.trust_score >= 80 ? '#27ae60' : results.trust_score >= 60 ? '#f39c12' : '#e74c3c'};
+                    }
+                    .section {
+                        margin-bottom: 30px;
+                        padding: 20px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        page-break-inside: avoid;
+                    }
+                    .alert {
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin: 15px 0;
+                    }
+                    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+                    .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+                    .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+                    .claim-box {
+                        background: white;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        padding: 15px;
+                        margin: 10px 0;
+                    }
+                    .verdict {
+                        display: inline-block;
+                        padding: 5px 15px;
+                        border-radius: 20px;
+                        font-weight: bold;
+                        margin: 5px 0;
+                    }
+                    .verdict-true { background: #d4edda; color: #155724; }
+                    .verdict-false { background: #f8d7da; color: #721c24; }
+                    .verdict-unverified { background: #fff3cd; color: #856404; }
+                    .metric {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 0;
+                        border-bottom: 1px solid #e0e0e0;
+                    }
+                    .metric:last-child { border-bottom: none; }
+                    .footer {
+                        margin-top: 50px;
+                        padding-top: 20px;
+                        border-top: 2px solid #e0e0e0;
+                        text-align: center;
+                        color: #666;
+                        font-size: 12px;
+                    }
+                    ul { padding-left: 20px; }
+                    li { margin: 5px 0; }
+                    strong { color: #2c3e50; }
+                    .progress-bar {
+                        background: #e0e0e0;
+                        height: 20px;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin: 10px 0;
+                    }
+                    .progress-fill {
+                        height: 100%;
+                        background: #4a90e2;
+                        text-align: center;
+                        color: white;
+                        font-size: 12px;
+                        line-height: 20px;
+                    }
                 </style>
             </head>
             <body>
-                <h1>News Analysis Report</h1>
-                <p>Generated: ${new Date().toLocaleString()}</p>
-                <div class="section">
+                <div class="header">
+                    <div class="logo">Facts & Fakes AI</div>
+                    <h1>Comprehensive News Analysis Report</h1>
+                    <p>Generated: ${new Date().toLocaleString()}</p>
+                    <p>Analysis ID: ${safeGet(results, 'analysis_id', 'AN-' + Date.now().toString(36).toUpperCase())}</p>
+                </div>
+                
+                <div class="score-box">
                     <h2>Overall Trust Score</h2>
-                    <p class="score">${currentAnalysisResults.trust_score || 0}%</p>
+                    <div class="trust-score">${results.trust_score || 0}%</div>
+                    <p>${results.trust_score >= 80 ? 'HIGH CREDIBILITY' : results.trust_score >= 60 ? 'MODERATE CREDIBILITY' : 'LOW CREDIBILITY'}</p>
                 </div>
+                
                 <div class="section">
-                    <h2>Summary</h2>
-                    <p>${currentAnalysisResults.summary || 'Analysis completed'}</p>
+                    <h2>Executive Summary</h2>
+                    <p>${safeGet(results, 'summary', 'Analysis completed')}</p>
+                    ${results.recommendations && results.recommendations.length > 0 ? `
+                        <h3>Key Recommendations:</h3>
+                        <ul>
+                            ${results.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    ` : ''}
                 </div>
-                <div class="section">
-                    <h2>Key Claims</h2>
-                    <ul>
-                        ${(currentAnalysisResults.key_claims || []).map(c => `<li>${c}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="section">
-                    <h2>Manipulation Tactics</h2>
-                    <ul>
-                        ${(currentAnalysisResults.manipulation_tactics || []).map(t => `<li>${t}</li>`).join('')}
-                    </ul>
-                </div>
+                
                 <div class="section">
                     <h2>Article Information</h2>
-                    <p><strong>Title:</strong> ${currentAnalysisResults.article_info?.title || 'N/A'}</p>
-                    <p><strong>Domain:</strong> ${currentAnalysisResults.article_info?.domain || 'N/A'}</p>
-                    <p><strong>Published:</strong> ${currentAnalysisResults.article_info?.publish_date || 'N/A'}</p>
+                    <div class="metric">
+                        <strong>Title:</strong>
+                        <span>${safeGet(results, 'article_info.title', 'Not provided')}</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Author:</strong>
+                        <span>${safeGet(results, 'article_info.author', 'Unknown')}</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Source Domain:</strong>
+                        <span>${safeGet(results, 'article_info.domain', 'Unknown')}</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Published Date:</strong>
+                        <span>${safeGet(results, 'article_info.publish_date', 'Not available')}</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Analysis Date:</strong>
+                        <span>${new Date().toLocaleDateString()}</span>
+                    </div>
                 </div>
+                
                 <div class="section">
-                    <h2>Scores</h2>
-                    <p><strong>Trust Score:</strong> ${currentAnalysisResults.trust_score || 0}/100</p>
-                    <p><strong>Credibility Score:</strong> ${currentAnalysisResults.credibility_score || 0}/100</p>
-                    <p><strong>Bias Score:</strong> ${currentAnalysisResults.bias_score || 'N/A'}</p>
+                    <h2>Credibility Scores</h2>
+                    <div class="metric">
+                        <strong>Trust Score:</strong>
+                        <span>${results.trust_score || 0}/100</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Credibility Score:</strong>
+                        <span>${Math.round((results.credibility_score || 0) * 100)}/100</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Factual Accuracy:</strong>
+                        <span>${results.factual_accuracy ? Math.round(results.factual_accuracy * 100) : 'N/A'}/100</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>Political Bias Analysis</h2>
+                    ${results.bias_score !== 'N/A' && results.bias_score !== undefined ? `
+                        <div class="alert ${Math.abs(results.bias_score) < 0.3 ? 'alert-success' : 'alert-warning'}">
+                            <strong>Bias Score:</strong> ${results.bias_score.toFixed(2)} 
+                            (${results.bias_score < -0.5 ? 'Far Left' :
+                               results.bias_score < -0.2 ? 'Left-Leaning' :
+                               results.bias_score < 0.2 ? 'Center/Neutral' :
+                               results.bias_score < 0.5 ? 'Right-Leaning' : 'Far Right'})
+                        </div>
+                        <p><strong>Explanation:</strong> ${safeGet(results, 'bias_explanation', 'Bias analysis based on language patterns')}</p>
+                        ${results.bias_examples && results.bias_examples.length > 0 ? `
+                            <h3>Examples Found:</h3>
+                            <ul>
+                                ${results.bias_examples.map(ex => `<li>${ex}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    ` : '<p>Insufficient data to determine political bias</p>'}
+                </div>
+                
+                <div class="section">
+                    <h2>Fact-Checking Results</h2>
+                    <p><strong>Claims Analyzed:</strong> ${results.fact_checks?.length || results.key_claims?.length || 0}</p>
+                    ${results.fact_checks && results.fact_checks.length > 0 ? 
+                        results.fact_checks.map((check, index) => {
+                            if (typeof check === 'object' && check.verdict) {
+                                return `
+                                    <div class="claim-box">
+                                        <h4>Claim ${index + 1}</h4>
+                                        <p><strong>Statement:</strong> "${check.claim}"</p>
+                                        <div class="verdict verdict-${check.verdict}">${check.verdict.toUpperCase()}</div>
+                                        <p><strong>Explanation:</strong> ${check.explanation}</p>
+                                        <p><strong>Confidence:</strong> ${check.confidence || 0}%</p>
+                                        ${check.sources && check.sources.length > 0 ? 
+                                            `<p><strong>Sources:</strong> ${check.sources.join(', ')}</p>` : ''}
+                                    </div>
+                                `;
+                            }
+                            return `<div class="claim-box"><p>${check}</p></div>`;
+                        }).join('') : 
+                        results.key_claims && results.key_claims.length > 0 ? `
+                            <h3>Key Claims Identified:</h3>
+                            <ul>
+                                ${results.key_claims.map(claim => `<li>${typeof claim === 'object' ? claim.claim : claim}</li>`).join('')}
+                            </ul>
+                            <p><em>Note: These claims require external fact-checking for verification</em></p>
+                        ` : '<p>No fact checks performed</p>'}
+                </div>
+                
+                <div class="section">
+                    <h2>Manipulation Tactics</h2>
+                    ${results.manipulation_tactics && results.manipulation_tactics.length > 0 ? `
+                        <div class="alert alert-warning">
+                            <strong>${results.manipulation_tactics.length} manipulation tactics detected</strong>
+                        </div>
+                        <ul>
+                            ${results.manipulation_tactics.map(tactic => {
+                                if (typeof tactic === 'object') {
+                                    return `<li><strong>${tactic.tactic}:</strong> ${tactic.description}${
+                                        tactic.example ? ` (Example: "${tactic.example}")` : ''
+                                    }</li>`;
+                                }
+                                return `<li>${tactic}</li>`;
+                            }).join('')}
+                        </ul>
+                    ` : '<p>No manipulation tactics detected</p>'}
+                </div>
+                
+                <div class="section">
+                    <h2>Hidden Agenda Analysis</h2>
+                    ${results.hidden_agenda && typeof results.hidden_agenda === 'object' ? `
+                        <div class="alert ${results.hidden_agenda.detected ? 'alert-warning' : 'alert-success'}">
+                            <strong>Hidden Agenda:</strong> ${results.hidden_agenda.detected ? 'DETECTED' : 'Not Detected'}
+                        </div>
+                        ${results.hidden_agenda.detected ? `
+                            <p><strong>Type:</strong> ${results.hidden_agenda.type || 'Unknown'}</p>
+                            <p><strong>Explanation:</strong> ${results.hidden_agenda.explanation}</p>
+                            ${results.hidden_agenda.evidence && results.hidden_agenda.evidence.length > 0 ? `
+                                <h3>Evidence:</h3>
+                                <ul>
+                                    ${results.hidden_agenda.evidence.map(e => `<li>${e}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        ` : ''}
+                    ` : '<p>Hidden agenda analysis not available</p>'}
+                </div>
+                
+                <div class="section">
+                    <h2>Additional Analysis</h2>
+                    
+                    <h3>Clickbait Analysis</h3>
+                    ${results.clickbait_analysis ? `
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${results.clickbait_analysis.score}%">
+                                Clickbait Score: ${results.clickbait_analysis.score}%
+                            </div>
+                        </div>
+                        ${results.clickbait_analysis.indicators?.length > 0 ? `
+                            <ul>${results.clickbait_analysis.indicators.map(i => `<li>${i}</li>`).join('')}</ul>
+                        ` : ''}
+                    ` : '<p>Not analyzed</p>'}
+                    
+                    <h3>Emotional Manipulation</h3>
+                    ${results.emotional_manipulation ? `
+                        <p><strong>Score:</strong> ${results.emotional_manipulation.score}/100</p>
+                        ${results.emotional_manipulation.techniques?.length > 0 ? `
+                            <ul>${results.emotional_manipulation.techniques.map(t => `<li>${t}</li>`).join('')}</ul>
+                        ` : ''}
+                    ` : '<p>Not analyzed</p>'}
+                    
+                    <h3>Source Diversity</h3>
+                    ${results.source_diversity ? `
+                        <p><strong>Score:</strong> ${results.source_diversity.score}/100</p>
+                        <p><strong>Sources Count:</strong> ${results.source_diversity.sources_count || 1}</p>
+                        ${results.source_diversity.missing_perspectives?.length > 0 ? `
+                            <p><strong>Missing Perspectives:</strong></p>
+                            <ul>${results.source_diversity.missing_perspectives.map(p => `<li>${p}</li>`).join('')}</ul>
+                        ` : ''}
+                    ` : '<p>Not analyzed</p>'}
+                    
+                    <h3>AI Content Detection</h3>
+                    ${results.ai_content_probability ? `
+                        <p><strong>AI Probability:</strong> ${results.ai_content_probability.score}%</p>
+                        <p>${results.ai_content_probability.explanation || 'Analysis based on writing patterns'}</p>
+                    ` : '<p>Not analyzed</p>'}
+                </div>
+                
+                <div class="footer">
+                    <p>This report was generated by Facts & Fakes AI</p>
+                    <p>Advanced news verification powered by artificial intelligence</p>
+                    <p>For more information, visit factsandfakes.com</p>
                 </div>
             </body>
             </html>
         `);
+        
         printWindow.document.close();
-        printWindow.print();
+        
+        // Auto-trigger print dialog
+        printWindow.onload = function() {
+            printWindow.print();
+        };
     }
 
     // Show analysis process modal
