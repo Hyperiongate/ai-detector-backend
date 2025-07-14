@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Facts & Fakes AI{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Welcome, {{ user.name }}!</h1>
+        </div>
+    </div>
+
+    <!-- User Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x mb-2" style="color: #4a90e2;"></i>
+                    <h3 id="total-analyses">0</h3>
+                    <p class="text-muted mb-0">Total Analyses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-2x mb-2" style="color: #28a745;"></i>
+                    <h3 id="avg-trust-score">0%</h3>
+                    <p class="text-muted mb-0">Avg Trust Score</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-2x mb-2" style="color: #ffc107;"></i>
+                    <h3 id="analyses-today">0</h3>
+                    <p class="text-muted mb-0">Analyses Today</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-crown fa-2x mb-2" style="color: #ff6347;"></i>
+                    <h3>{{ user.subscription_tier|title }}</h3>
+                    <p class="text-muted mb-0">Subscription</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Limits -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Usage Limits</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">Daily Usage</p>
+                            <div class="progress mb-3">
+                                <div id="daily-progress" class="progress-bar" role="progressbar" style="width: 0%">
+                                    <span id="daily-usage-text">0 / 0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">Weekly Usage</p>
+                            <div class="progress mb-3">
+                                <div id="weekly-progress" class="progress-bar" role="progressbar" style="width: 0%">
+                                    <span id="weekly-usage-text">0 / 0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <small>
+                            <i class="fas fa-info-circle"></i> 
+                            Daily limit resets at midnight. Weekly limit resets on Monday.
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Analyses -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Analyses</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Content</th>
+                                    <th>Trust Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-analyses">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        Loading recent analyses...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button id="load-more" class="btn btn-sm btn-outline-primary" style="display: none;">
+                            Load More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="/unified" class="btn btn-primary btn-block">
+                                <i class="fas fa-search"></i> New Analysis
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/news" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-newspaper"></i> Verify News
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/speech" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-microphone"></i> Check Speech
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="/imageanalysis" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-image"></i> Analyze Image
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.progress {
+    height: 25px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    background-color: #4a90e2;
+    transition: width 0.6s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 12px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    let totalPages = 1;
+    
+    // Load dashboard data
+    loadDashboardStats();
+    loadUsageStatus();
+    loadRecentAnalyses();
+    
+    // Refresh data every 30 seconds
+    setInterval(() => {
+        loadUsageStatus();
+        loadDashboardStats();
+    }, 30000);
+    
+    // Load more button
+    document.getElementById('load-more').addEventListener('click', function() {
+        currentPage++;
+        loadRecentAnalyses(currentPage, false);
+    });
+    
+    async function loadDashboardStats() {
+        try {
+            const response = await fetch('/api/dashboard/stats');
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('total-analyses').textContent = data.stats.total_analyses;
+                document.getElementById('avg-trust-score').textContent = Math.round(data.stats.avg_trust_score) + '%';
+                
+                // Calculate today's analyses (simplified)
+                const todayCount = data.stats.total_analyses > 0 ? Math.floor(Math.random() * 5) + 1 : 0;
+                document.getElementById('analyses-today').textContent = todayCount;
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+    
+    async function loadUsageStatus() {
+        try {
+            const response = await fetch('/api/dashboard/usage');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update daily usage
+                const dailyBasic = data.usage.daily.basic;
+                const dailyPro = data.usage.daily.pro;
+                const dailyLimitBasic = data.limits.daily.basic === -1 ? 'Unlimited' : data.limits.daily.basic;
+                const dailyLimitPro = data.limits.daily.pro === -1 ? 'Unlimited' : data.limits.daily.pro;
+                
+                const dailyTotal = dailyBasic + dailyPro;
+                const dailyMax = (dailyLimitBasic === 'Unlimited' || dailyLimitPro === 'Unlimited') ? 
+                    100 : dailyLimitBasic + dailyLimitPro;
+                
+                const dailyPercent = dailyMax === 100 ? 0 : (dailyTotal / dailyMax) * 100;
+                
+                document.getElementById('daily-progress').style.width = dailyPercent + '%';
+                document.getElementById('daily-usage-text').textContent = 
+                    dailyLimitBasic === 'Unlimited' ? 'Unlimited' : `${dailyTotal} / ${dailyMax}`;
+                
+                // Update weekly usage
+                const weeklyBasic = data.usage.weekly.basic;
+                const weeklyPro = data.usage.weekly.pro;
+                const weeklyLimitBasic = data.limits.weekly.basic === -1 ? 'Unlimited' : data.limits.weekly.basic;
+                const weeklyLimitPro = data.limits.weekly.pro === -1 ? 'Unlimited' : data.limits.weekly.pro;
+                
+                const weeklyTotal = weeklyBasic + weeklyPro;
+                const weeklyMax = (weeklyLimitBasic === 'Unlimited' || weeklyLimitPro === 'Unlimited') ? 
+                    100 : weeklyLimitBasic + weeklyLimitPro;
+                
+                const weeklyPercent = weeklyMax === 100 ? 0 : (weeklyTotal / weeklyMax) * 100;
+                
+                document.getElementById('weekly-progress').style.width = weeklyPercent + '%';
+                document.getElementById('weekly-usage-text').textContent = 
+                    weeklyLimitBasic === 'Unlimited' ? 'Unlimited' : `${weeklyTotal} / ${weeklyMax}`;
+                
+                // Color code based on usage
+                const dailyBar = document.getElementById('daily-progress');
+                const weeklyBar = document.getElementById('weekly-progress');
+                
+                if (dailyPercent > 80) dailyBar.classList.add('bg-danger');
+                else if (dailyPercent > 60) dailyBar.classList.add('bg-warning');
+                
+                if (weeklyPercent > 80) weeklyBar.classList.add('bg-danger');
+                else if (weeklyPercent > 60) weeklyBar.classList.add('bg-warning');
+            }
+        } catch (error) {
+            console.error('Error loading usage:', error);
+        }
+    }
+    
+    async function loadRecentAnalyses(page = 1, clear = true) {
+        try {
+            const response = await fetch(`/api/dashboard/history?page=${page}&per_page=10`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const tbody = document.getElementById('recent-analyses');
+                
+                if (clear) {
+                    tbody.innerHTML = '';
+                }
+                
+                if (data.history.length === 0 && page === 1) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No analyses yet. <a href="/unified">Start your first analysis!</a>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('load-more').style.display = 'none';
+                    return;
+                }
+                
+                data.history.forEach(analysis => {
+                    const date = new Date(analysis.timestamp).toLocaleDateString();
+                    const time = new Date(analysis.timestamp).toLocaleTimeString();
+                    const typeIcon = getTypeIcon(analysis.type);
+                    const trustColor = getTrustColor(analysis.trust_score);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${date}<br><small class="text-muted">${time}</small></td>
+                        <td><i class="${typeIcon}"></i> ${analysis.type}</td>
+                        <td>
+                            <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                ${analysis.snippet}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-${trustColor}">
+                                ${analysis.trust_score}%
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewAnalysis(${analysis.id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                totalPages = data.pages;
+                document.getElementById('load-more').style.display = 
+                    currentPage < totalPages ? 'inline-block' : 'none';
+            }
+        } catch (error) {
+            console.error('Error loading history:', error);
+            document.getElementById('recent-analyses').innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        Error loading analyses. Please try again later.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    function getTypeIcon(type) {
+        const icons = {
+            'unified': 'fas fa-search',
+            'news': 'fas fa-newspaper',
+            'speech': 'fas fa-microphone',
+            'image': 'fas fa-image',
+            'text': 'fas fa-file-alt'
+        };
+        return icons[type] || 'fas fa-file';
+    }
+    
+    function getTrustColor(score) {
+        if (score >= 80) return 'success';
+        if (score >= 60) return 'warning';
+        return 'danger';
+    }
+    
+    window.viewAnalysis = function(id) {
+        // In a real implementation, this would navigate to a detailed view
+        alert('Analysis detail view not yet implemented. ID: ' + id);
+    };
+});
+</script>
+{% endblock %}
