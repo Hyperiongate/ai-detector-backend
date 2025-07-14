@@ -278,6 +278,79 @@
             box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
         }
 
+        /* AI Insights Box - ENHANCED */
+        .ai-insight-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e5e7ff 100%);
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-insight-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(74, 144, 226, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .ai-insight-box h4 {
+            color: var(--primary-blue-dark);
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .ai-insight-box h4 i {
+            font-size: 20px;
+            color: var(--primary-blue);
+        }
+        
+        .ai-insight-box p {
+            color: var(--text-primary);
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .ai-insight-box ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .ai-insight-box li {
+            color: var(--text-primary);
+            margin: 8px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .insight-highlight {
+            background: rgba(74, 144, 226, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
         /* Why This Matters Sections */
         .why-matters-box {
             background: #fef3c7;
@@ -417,7 +490,7 @@
         }
         
         .dropdown-content.show {
-            max-height: 2000px;
+            max-height: 3000px;
             padding: 20px;
         }
         
@@ -481,6 +554,73 @@
             justify-content: space-between;
             margin-top: 10px;
             padding: 0 10px;
+        }
+
+        /* ULTRA COMPACT Progress Bar for loading */
+        .compact-progress-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 12px 20px;
+        }
+        
+        .compact-progress-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .compact-progress-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            min-width: 150px;
+        }
+        
+        .compact-progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .compact-progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+            position: relative;
+        }
+        
+        .compact-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-20px); }
+            100% { transform: translateX(20px); }
+        }
+        
+        .compact-progress-percentage {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            min-width: 40px;
+            text-align: right;
         }
 
         /* Progress bar for loading */
@@ -646,56 +786,6 @@
             background: var(--primary-blue);
         }
 
-        /* Enhanced loading animation stages */
-        .analysis-stage {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            margin: 10px 0;
-            opacity: 0.5;
-            transition: all 0.3s ease;
-        }
-        
-        .analysis-stage.active {
-            opacity: 1;
-            background: #eef2ff;
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
-        }
-        
-        .analysis-stage.complete {
-            opacity: 1;
-        }
-        
-        .stage-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .analysis-stage.active .stage-icon {
-            background: var(--primary-blue);
-            color: white;
-            animation: rotate 1s linear infinite;
-        }
-        
-        .analysis-stage.complete .stage-icon {
-            background: #10b981;
-            color: white;
-        }
-        
-        @keyframes rotate {
-            to { transform: rotate(360deg); }
-        }
-
         /* Pricing dropdown */
         .pricing-info {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -761,6 +851,14 @@
             .sticky-upgrade button {
                 padding: 12px 20px;
                 font-size: 14px;
+            }
+            
+            .compact-progress-text {
+                display: none;
+            }
+            
+            .compact-progress-wrapper {
+                gap: 10px;
             }
         }
 
@@ -1535,9 +1633,9 @@
                     <i class="fas fa-info-circle me-1"></i>
                     We'll extract the full article, metadata, and verify the source
                 </small>
-                <small class="text-muted d-block mt-1">
-                    <i class="fas fa-lightbulb me-1"></i>
-                    <strong>Tip:</strong> Some news sites block automated access. If you encounter issues, use the "Paste Text" tab instead.
+                <small class="text-success d-block mt-1">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    <strong>Enhanced:</strong> Our system now uses multiple extraction methods to handle even protected news sites.
                 </small>
             </div>
             
@@ -1554,85 +1652,18 @@
             </button>
         </div>
 
-        <!-- Loading Section with Enhanced Progress -->
+        <!-- ULTRA COMPACT Progress Section -->
         <div id="loading-section" style="display: none;">
-            <!-- Compact Fixed Progress Bar -->
-            <div style="position: fixed; top: 0; left: 0; right: 0; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px;">
-                <div class="container">
-                    <h5 class="mb-2">
-                        <i class="fas fa-brain fa-pulse me-2 text-primary"></i>
-                        AI Analysis in Progress...
-                    </h5>
-                    <div class="progress-container" style="margin-bottom: 10px;">
-                        <div class="progress-bar" id="analysis-progress">0%</div>
+            <div class="compact-progress-container">
+                <div class="compact-progress-wrapper">
+                    <div class="compact-progress-text">
+                        <i class="fas fa-brain fa-pulse me-2"></i>
+                        <span id="progress-stage-text">Initializing...</span>
                     </div>
-                    <p class="mb-0 text-muted" id="current-stage-text">Initializing analysis...</p>
-                </div>
-            </div>
-            
-            <!-- Stages (below fixed header) -->
-            <div class="card shadow-lg border-0 mb-5" style="margin-top: 120px;">
-                <div class="card-body p-4">
-                    <!-- Enhanced stages -->
-                    <div class="analysis-stage" id="stage-1">
-                        <div class="stage-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Extracting Content</h5>
-                            <small class="text-muted">Retrieving article text, metadata, and author information</small>
-                        </div>
+                    <div class="compact-progress-bar">
+                        <div class="compact-progress-fill" id="progress-bar-fill" style="width: 0%"></div>
                     </div>
-                    
-                    <div class="analysis-stage" id="stage-2">
-                        <div class="stage-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">AI Deep Analysis (GPT-4)</h5>
-                            <small class="text-muted">Analyzing writing patterns, style, and authenticity markers</small>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-stage" id="stage-3">
-                        <div class="stage-icon">
-                            <i class="fas fa-check-double"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Cross-Reference Fact Checking</h5>
-                            <small class="text-muted">Verifying claims against multiple fact-checking databases</small>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-stage" id="stage-4">
-                        <div class="stage-icon">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Bias & Manipulation Detection</h5>
-                            <small class="text-muted">Scanning for political bias, emotional manipulation, and agenda</small>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-stage" id="stage-5">
-                        <div class="stage-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Source Reliability Analysis</h5>
-                            <small class="text-muted">Checking historical accuracy and credibility patterns</small>
-                        </div>
-                    </div>
-                    
-                    <div class="analysis-stage" id="stage-6">
-                        <div class="stage-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Generating Comprehensive Report</h5>
-                            <small class="text-muted">Compiling findings with confidence intervals and recommendations</small>
-                        </div>
-                    </div>
+                    <div class="compact-progress-percentage" id="analysis-progress">0%</div>
                 </div>
             </div>
         </div>
@@ -1675,13 +1706,19 @@
                 </div>
             </div>
 
-            <!-- Overall Assessment (Always Open) -->
+            <!-- Overall Assessment (Always Open) with AI Insights -->
             <div class="analysis-dropdown border-trust">
                 <div class="dropdown-header">
                     <h3><i class="fas fa-chart-pie"></i>Overall Assessment</h3>
                 </div>
                 <div class="dropdown-content show">
                     <div id="overall-assessment"></div>
+                    
+                    <!-- ENHANCED AI Insight Box -->
+                    <div class="ai-insight-box" id="overall-ai-insight">
+                        <h4><i class="fas fa-robot"></i>AI Deep Insight</h4>
+                        <p id="overall-ai-insight-text">Loading comprehensive analysis...</p>
+                    </div>
                     
                     <!-- Why This Matters -->
                     <div class="why-matters-box">
@@ -1733,6 +1770,12 @@
                 </div>
                 <div class="dropdown-content">
                     <div id="source-credibility"></div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="source-ai-insight">Loading source analysis...</p>
+                    </div>
                     
                     <!-- Source Comparison Grid -->
                     <h5 class="mt-4">How This Source Compares</h5>
@@ -1794,6 +1837,12 @@
                 <div class="dropdown-content">
                     <div id="author-credibility"></div>
                     
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="author-ai-insight">Loading author analysis...</p>
+                    </div>
+                    
                     <!-- Author Research Links -->
                     <div class="mt-3">
                         <h5>Research This Author:</h5>
@@ -1839,6 +1888,12 @@
                 <div class="dropdown-content">
                     <div id="writing-quality"></div>
                     
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="quality-ai-insight">Loading quality analysis...</p>
+                    </div>
+                    
                     <div class="methodology-snippet">
                         <strong>Analysis includes:</strong> Grammar scoring, readability index (Flesch-Kincaid), 
                         vocabulary diversity, sentence structure variation, and professional tone markers.
@@ -1863,6 +1918,12 @@
                 </div>
                 <div class="dropdown-content">
                     <div id="fact-checking"></div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="fact-ai-insight">Loading fact-check analysis...</p>
+                    </div>
                     
                     <!-- Confidence Intervals for Each Claim -->
                     <div class="mt-4" id="claim-confidence-section">
@@ -1910,6 +1971,12 @@
                     
                     <div id="political-bias"></div>
                     
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="bias-ai-insight">Loading bias analysis...</p>
+                    </div>
+                    
                     <div class="methodology-snippet">
                         <strong>Bias detection algorithm:</strong> We analyze word choice, framing, 
                         source selection, and compare against our database of 50,000+ politically-charged 
@@ -1935,6 +2002,12 @@
                 </div>
                 <div class="dropdown-content">
                     <div id="hidden-agenda"></div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="agenda-ai-insight">Loading agenda analysis...</p>
+                    </div>
                     
                     <div class="why-matters-box mt-3">
                         <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
@@ -1964,6 +2037,12 @@
                 </div>
                 <div class="dropdown-content">
                     <div id="clickbait-analysis"></div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="clickbait-ai-insight">Loading clickbait analysis...</p>
+                    </div>
                     
                     <div class="what-this-means mt-3">
                         <h5>What This Means:</h5>
@@ -1998,6 +2077,12 @@
                     
                     <div id="emotional-manipulation"></div>
                     
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="emotion-ai-insight">Loading emotion analysis...</p>
+                    </div>
+                    
                     <div class="methodology-snippet">
                         <strong>Emotional analysis:</strong> Using sentiment analysis and psychological 
                         trigger word detection across 8 emotional categories (fear, anger, joy, sadness, 
@@ -2029,6 +2114,12 @@
                     
                     <div id="source-diversity"></div>
                     
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="diversity-ai-insight">Loading diversity analysis...</p>
+                    </div>
+                    
                     <div class="what-this-means mt-3">
                         <h5>What This Means:</h5>
                         <p id="diversity-explanation"></p>
@@ -2048,6 +2139,12 @@
                 </div>
                 <div class="dropdown-content">
                     <div id="timeliness-check"></div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="timeliness-ai-insight">Loading timeliness analysis...</p>
+                    </div>
                     
                     <div class="what-this-means mt-3">
                         <h5>What This Means:</h5>
@@ -2079,6 +2176,12 @@
                         <ul id="ai-patterns">
                             <!-- Dynamically populated -->
                         </ul>
+                    </div>
+                    
+                    <!-- AI Insight Box -->
+                    <div class="ai-insight-box">
+                        <h4><i class="fas fa-brain"></i>AI Analysis</h4>
+                        <p id="ai-content-insight">Loading AI content analysis...</p>
                     </div>
                     
                     <div class="methodology-snippet">
@@ -2234,6 +2337,17 @@
 
     // Global variable to store current analysis results
     let currentAnalysisResults = null;
+    let currentProgressInterval = null;
+
+    // Progress stage texts for compact progress bar
+    const progressStages = [
+        "Extracting content...",
+        "Running AI analysis...",
+        "Fact-checking claims...",
+        "Detecting bias patterns...",
+        "Analyzing source reliability...",
+        "Generating comprehensive report..."
+    ];
 
     // Switch between URL and text input
     function switchInputType(type) {
@@ -2257,7 +2371,7 @@
         document.getElementById('error-container').style.display = 'none';
     }
 
-    // ENHANCED analysis function with better error handling
+    // ENHANCED analysis function with better error handling and URL extraction
     async function analyzeArticle() {
         const urlInput = document.getElementById('news-url');
         const textInput = document.getElementById('news-text');
@@ -2281,44 +2395,43 @@
         loadingSection.style.display = 'block';
         resultsSection.style.display = 'none';
         
-        // Reset stages
-        document.querySelectorAll('.analysis-stage').forEach(stage => {
-            stage.classList.remove('active', 'complete');
-        });
-        
         // Initialize progress tracking
         let progress = 0;
-        const progressBar = document.getElementById('analysis-progress');
-        const stages = document.querySelectorAll('.analysis-stage');
+        const progressBar = document.getElementById('progress-bar-fill');
+        const progressPercentage = document.getElementById('analysis-progress');
+        const progressText = document.getElementById('progress-stage-text');
         let currentStage = 0;
-        let progressInterval;
+        
+        // Clear any existing interval
+        if (currentProgressInterval) {
+            clearInterval(currentProgressInterval);
+        }
         
         try {
             // Start progress animation
-            progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += 5;
-                    progressBar.style.width = progress + '%';
-                    progressBar.textContent = progress + '%';
+            currentProgressInterval = setInterval(() => {
+                if (progress < 95) {
+                    progress += Math.random() * 5 + 2;
+                    if (progress > 95) progress = 95;
                     
-                    // Update stages
-                    const stageProgress = Math.floor((progress / 100) * stages.length);
-                    if (stageProgress > currentStage && currentStage < stages.length) {
-                        if (currentStage > 0) {
-                            stages[currentStage - 1].classList.remove('active');
-                            stages[currentStage - 1].classList.add('complete');
-                        }
-                        stages[currentStage].classList.add('active');
-                        currentStage = stageProgress;
+                    progressBar.style.width = progress + '%';
+                    progressPercentage.textContent = Math.floor(progress) + '%';
+                    
+                    // Update stage text
+                    const stageIndex = Math.floor((progress / 100) * progressStages.length);
+                    if (stageIndex !== currentStage && stageIndex < progressStages.length) {
+                        currentStage = stageIndex;
+                        progressText.textContent = progressStages[currentStage];
                     }
                 }
             }, 200);
             
-            // Prepare request body
+            // Prepare request body with enhanced extraction flag
             const requestBody = {
                 content: input,
                 type: isUrlMode ? 'url' : 'text',
-                is_pro: true
+                is_pro: true,
+                enhanced_extraction: true // Flag for backend to use multiple extraction methods
             };
             
             console.log('Sending analysis request:', requestBody);
@@ -2332,7 +2445,7 @@
                 body: JSON.stringify(requestBody)
             });
             
-            clearInterval(progressInterval);
+            clearInterval(currentProgressInterval);
             
             // Check response
             if (!response.ok) {
@@ -2357,11 +2470,8 @@
             
             // Complete progress
             progressBar.style.width = '100%';
-            progressBar.textContent = '100%';
-            stages.forEach(stage => {
-                stage.classList.remove('active');
-                stage.classList.add('complete');
-            });
+            progressPercentage.textContent = '100%';
+            progressText.textContent = 'Analysis complete!';
             
             // Check for success - handle both success flag and presence of results
             if (data.success === true || (data.trust_score !== undefined && !data.error)) {
@@ -2392,8 +2502,8 @@
             loadingSection.style.display = 'none';
             
             // Clear any running intervals
-            if (progressInterval) {
-                clearInterval(progressInterval);
+            if (currentProgressInterval) {
+                clearInterval(currentProgressInterval);
             }
             
             // Show enhanced error message with suggestions
@@ -2428,7 +2538,7 @@
                     'Copy and paste the article text using the "Paste Text" tab',
                     'Try a different news article or source',
                     'Check if the URL is correctly formatted',
-                    'Some major news sites (CNN, NYTimes, WSJ) block automated access'
+                    'Our enhanced extraction handles most sites, but some may still block access'
                 );
             } else if (message.includes('fetch')) {
                 defaultSuggestions.push(
@@ -2464,6 +2574,256 @@
         errorContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // Enhanced author detection function
+    function findAuthor(results) {
+        // Try multiple locations for author
+        const possibleAuthorLocations = [
+            results.article_info?.author,
+            results.article?.author,
+            results.metadata?.author,
+            results.author,
+            results.article_info?.byline,
+            results.article?.byline
+        ];
+        
+        // Check text content for common author patterns
+        const text = results.article_info?.text || results.article?.text || '';
+        const authorPatterns = [
+            /[Bb]y\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
+            /[Aa]uthor:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
+            /[Ww]ritten\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
+            /[Rr]eported\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/
+        ];
+        
+        // Try each location
+        for (const location of possibleAuthorLocations) {
+            if (location && location !== 'Unknown' && location.trim()) {
+                return location.trim();
+            }
+        }
+        
+        // Try pattern matching in text
+        for (const pattern of authorPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                return match[1].trim();
+            }
+        }
+        
+        return 'Unknown';
+    }
+
+    // Generate AI insights based on analysis results
+    function generateAIInsights(results) {
+        const trustScore = results.trust_score || 0;
+        const biasScore = results.bias_score;
+        const author = findAuthor(results);
+        const domain = results.article_info?.domain || results.article?.domain || 'Unknown';
+        const manipulationCount = results.manipulation_tactics?.length || 0;
+        
+        // Overall AI Insight
+        let overallInsight = "";
+        if (trustScore >= 80) {
+            overallInsight = `This article demonstrates <span class="insight-highlight">exceptional credibility</span> with a trust score of ${trustScore}%. `;
+            overallInsight += `The analysis reveals strong factual grounding, transparent sourcing, and professional journalism standards. `;
+            if (author !== 'Unknown') {
+                overallInsight += `The author, ${author}, has provided clear attribution, which enhances accountability. `;
+            }
+            overallInsight += `This content appears suitable for citation and sharing with confidence.`;
+        } else if (trustScore >= 60) {
+            overallInsight = `This article shows <span class="insight-highlight">moderate credibility</span> with a trust score of ${trustScore}%. `;
+            overallInsight += `While generally reliable, our analysis identified ${manipulationCount > 0 ? `${manipulationCount} potential areas of concern` : 'some areas for improvement'}. `;
+            if (biasScore && Math.abs(biasScore) > 0.3) {
+                overallInsight += `The content exhibits noticeable political bias that readers should consider. `;
+            }
+            overallInsight += `We recommend cross-referencing key claims with additional sources before making important decisions based on this content.`;
+        } else {
+            overallInsight = `This article raises <span class="insight-highlight">significant credibility concerns</span> with a trust score of only ${trustScore}%. `;
+            overallInsight += `Our AI detected ${manipulationCount} manipulation tactics and multiple red flags that suggest caution. `;
+            if (author === 'Unknown') {
+                overallInsight += `The lack of author attribution further reduces transparency and accountability. `;
+            }
+            overallInsight += `We strongly advise seeking alternative sources and fact-checking all claims independently before accepting this content as reliable.`;
+        }
+        
+        return {
+            overall: overallInsight,
+            source: generateSourceInsight(results),
+            author: generateAuthorInsight(results, author),
+            quality: generateQualityInsight(results),
+            fact: generateFactInsight(results),
+            bias: generateBiasInsight(results),
+            agenda: generateAgendaInsight(results),
+            clickbait: generateClickbaitInsight(results),
+            emotion: generateEmotionInsight(results),
+            diversity: generateDiversityInsight(results),
+            timeliness: generateTimelinessInsight(results),
+            ai: generateAIContentInsight(results)
+        };
+    }
+
+    // Individual insight generators
+    function generateSourceInsight(results) {
+        const domain = results.article_info?.domain || 'Unknown';
+        const credScore = Math.round((results.credibility_score || 0) * 100);
+        const sourceData = results.source_credibility || {};
+        
+        if (credScore >= 80) {
+            return `${domain} demonstrates strong journalistic integrity with a ${credScore}% credibility rating. This source has established trust through consistent accuracy, transparent corrections policies, and adherence to professional standards. ${sourceData.awards ? 'Recognition through journalism awards further validates their commitment to quality reporting.' : ''}`;
+        } else if (credScore >= 60) {
+            return `${domain} shows moderate reliability with a ${credScore}% credibility score. While generally trustworthy, this source has shown occasional lapses in accuracy or transparency. Readers should maintain healthy skepticism and verify important claims, especially on controversial topics.`;
+        } else {
+            return `${domain} raises credibility concerns with only a ${credScore}% rating. This source has a history of inaccuracies, lack of transparency, or potential bias issues. Exercise significant caution and always verify information from this source through more reliable channels.`;
+        }
+    }
+
+    function generateAuthorInsight(results, author) {
+        if (author !== 'Unknown') {
+            return `${author} is clearly identified as the author, which is a positive transparency indicator. Named attribution allows readers to research the author's expertise, track record, and potential conflicts of interest. This level of accountability suggests confidence in the content's accuracy and a willingness to stand behind the reporting.`;
+        } else {
+            return `The absence of author attribution is concerning and violates basic journalism standards. Anonymous articles prevent readers from assessing the writer's expertise, bias, or credibility. This lack of transparency often correlates with lower quality content, potential misinformation, or hidden agendas. Always approach anonymous content with heightened skepticism.`;
+        }
+    }
+
+    function generateQualityInsight(results) {
+        const trustScore = results.trust_score || 0;
+        const textLength = results.article_info?.text?.length || 0;
+        
+        if (trustScore >= 80) {
+            return `The writing demonstrates professional journalism standards with clear structure, proper grammar, and appropriate depth (${textLength.toLocaleString()} characters). The content flows logically, uses credible sources, and maintains objectivity while presenting complex information accessibly. This quality level indicates careful editorial oversight and fact-checking processes.`;
+        } else if (trustScore >= 60) {
+            return `The writing quality is adequate but shows room for improvement. While generally coherent, the article may lack depth, contain minor grammatical issues, or show inconsistent sourcing. The ${textLength.toLocaleString()}-character length suggests ${textLength < 2000 ? 'limited depth' : 'reasonable coverage'}, but critical readers should note areas where more rigorous journalism standards could apply.`;
+        } else {
+            return `Significant quality issues undermine this article's credibility. Problems may include poor grammar, logical inconsistencies, unsupported claims, or sensationalist language. The writing style suggests either rushed production, lack of editorial oversight, or intentional manipulation. These quality markers often correlate with unreliable or false information.`;
+        }
+    }
+
+    function generateFactInsight(results) {
+        const factChecks = results.fact_checks || [];
+        const claims = results.key_claims || [];
+        
+        if (factChecks.length > 0) {
+            const verified = factChecks.filter(f => f.verdict === 'true').length;
+            const false_claims = factChecks.filter(f => f.verdict === 'false' || f.verdict === 'misleading').length;
+            
+            if (false_claims === 0) {
+                return `Excellent factual accuracy: All ${factChecks.length} verifiable claims passed fact-checking. This strong performance indicates careful research, reliable sourcing, and commitment to truth. The article's claims align with established facts and expert consensus, making it a trustworthy information source.`;
+            } else if (false_claims < factChecks.length / 2) {
+                return `Mixed factual accuracy: ${verified} of ${factChecks.length} claims verified as true, but ${false_claims} contain errors or misleading information. While not entirely unreliable, these inaccuracies require readers to approach all claims with caution and verify important information independently.`;
+            } else {
+                return `Severe factual problems: ${false_claims} of ${factChecks.length} claims are false or misleading. This high error rate suggests either extremely poor research, intentional deception, or reliance on unreliable sources. The article cannot be trusted for accurate information and may be actively spreading misinformation.`;
+            }
+        } else if (claims.length > 0) {
+            return `${claims.length} key claims identified but require external verification. Without integrated fact-checking results, readers must independently verify these assertions. The presence of specific, verifiable claims is positive, but their accuracy remains unconfirmed within this analysis.`;
+        } else {
+            return `No specific factual claims identified for verification. This could indicate opinion-based content, vague assertions, or carefully crafted language that avoids concrete statements. While not necessarily problematic, the absence of verifiable facts limits our ability to assess truthfulness.`;
+        }
+    }
+
+    function generateBiasInsight(results) {
+        const biasScore = results.bias_score;
+        
+        if (biasScore === undefined || biasScore === 'N/A') {
+            return `Bias analysis was inconclusive, possibly due to neutral content or insufficient political indicators. While this doesn't guarantee objectivity, the absence of clear bias markers suggests either balanced reporting or content outside typical political frameworks. Readers should still consider potential subtle biases not captured by our analysis.`;
+        }
+        
+        const biasLevel = Math.abs(biasScore);
+        const direction = biasScore < 0 ? 'left' : 'right';
+        
+        if (biasLevel < 0.2) {
+            return `Exemplary political neutrality detected. The article maintains remarkable balance, presenting multiple perspectives without favoring particular ideological positions. This objectivity allows readers across the political spectrum to engage with the content based on facts rather than partisan framing.`;
+        } else if (biasLevel < 0.5) {
+            return `Moderate ${direction}-leaning bias detected (${biasScore.toFixed(2)} on our scale). While not extreme, the article's language, source selection, and framing favor ${direction}-wing perspectives. Readers should recognize this lens and consider how it might influence the presentation of facts and interpretation of events.`;
+        } else {
+            return `Strong ${direction}-wing bias permeates this article (${biasScore.toFixed(2)} score). The content heavily favors ${direction}-wing viewpoints through selective sourcing, loaded language, and one-sided framing. This level of bias significantly compromises objectivity and may distort facts to support predetermined conclusions.`;
+        }
+    }
+
+    function generateAgendaInsight(results) {
+        const hasAgenda = results.hidden_agenda?.detected || results.manipulation_tactics?.length > 3;
+        const agendaType = results.hidden_agenda?.type;
+        
+        if (!hasAgenda) {
+            return `No hidden agenda detected. The article appears to prioritize informing readers over persuasion or manipulation. Content focuses on presenting information transparently without subtle attempts to influence behavior, sell products, or advance particular interests. This straightforward approach enhances trustworthiness.`;
+        } else {
+            let insight = `Warning: Hidden agenda detected. `;
+            if (agendaType === 'commercial') {
+                insight += `The article subtly promotes commercial interests while masquerading as objective content. Native advertising tactics blur the line between journalism and marketing, potentially misleading readers about the content's true purpose.`;
+            } else if (agendaType === 'political') {
+                insight += `Political agenda drives this content beyond normal bias. The article uses sophisticated persuasion techniques to advance specific political goals while maintaining a facade of news reporting.`;
+            } else {
+                insight += `The article employs ${results.manipulation_tactics?.length || 'multiple'} manipulation tactics to influence readers beyond simple information sharing. These techniques suggest ulterior motives that compromise journalistic integrity.`;
+            }
+            return insight;
+        }
+    }
+
+    function generateClickbaitInsight(results) {
+        const score = results.clickbait_analysis?.score || 20;
+        
+        if (score < 30) {
+            return `Professional headline practices observed (${score}% clickbait score). The title accurately represents the article's content without sensationalism or manipulation. This honest approach respects readers' time and builds trust through transparent communication.`;
+        } else if (score < 60) {
+            return `Moderate clickbait elements detected (${score}% score). While not egregious, the headline uses some attention-grabbing techniques that may oversell the content. Readers might find the article less dramatic or comprehensive than the title suggests.`;
+        } else {
+            return `High clickbait warning (${score}% score). The headline employs manipulative tactics like curiosity gaps, sensationalism, or misleading promises to generate clicks. This approach often correlates with low-quality content that fails to deliver on headline promises.`;
+        }
+    }
+
+    function generateEmotionInsight(results) {
+        const score = results.emotional_manipulation?.score || 0;
+        
+        if (score < 30) {
+            return `Appropriate emotional tone maintained. The article informs without exploiting emotions, allowing readers to form opinions based on facts rather than feelings. This restraint demonstrates professional journalism that respects readers' emotional autonomy.`;
+        } else if (score < 60) {
+            return `Moderate emotional content detected (${score}/100). While some emotional language enhances engagement, the level here may influence reader judgment. Be aware of how emotional framing might affect your interpretation of the facts presented.`;
+        } else {
+            return `High emotional manipulation detected (${score}/100). The article heavily exploits emotions like fear, anger, or outrage to bypass critical thinking. This manipulation technique often accompanies misinformation or propaganda, as emotional readers are less likely to question dubious claims.`;
+        }
+    }
+
+    function generateDiversityInsight(results) {
+        const score = results.source_diversity?.score || 25;
+        const count = results.source_diversity?.sources_count || 1;
+        
+        if (score >= 70) {
+            return `Excellent source diversity with ${count} different perspectives represented. The article draws from varied viewpoints, creating a comprehensive picture that helps readers understand complex issues. This multi-source approach demonstrates thorough journalism and reduces single-source bias risks.`;
+        } else if (score >= 40) {
+            return `Moderate source diversity (${count} sources, ${score}% score). While not single-sourced, the article could benefit from additional perspectives. Consider seeking complementary sources to gain a fuller understanding of the topic.`;
+        } else {
+            return `Limited source diversity raises concern (only ${count} source${count > 1 ? 's' : ''}, ${score}% score). Heavy reliance on limited sources risks presenting an incomplete or biased picture. Responsible readers should actively seek alternative perspectives before forming conclusions.`;
+        }
+    }
+
+    function generateTimelinessInsight(results) {
+        const publishDate = results.article_info?.publish_date;
+        
+        if (!publishDate) {
+            return `Missing publication date raises transparency concerns. Without knowing when this was written, readers cannot assess whether the information remains current or relevant. This omission particularly matters for time-sensitive topics where facts change rapidly.`;
+        }
+        
+        const age = calculateAge(publishDate);
+        if (age.includes('day')) {
+            return `Recently published (${age}), ensuring maximum relevance for current events. Fresh content provides the latest information and developments, though readers should still verify that rapidly evolving situations haven't changed since publication.`;
+        } else if (age.includes('week') || age.includes('month')) {
+            return `Published ${age}, this content remains reasonably current for most topics. However, fast-moving stories may have developed significantly. Check for updates on time-sensitive claims or evolving situations.`;
+        } else {
+            return `Older content published ${age} requires careful consideration of relevance. While historical context remains valuable, specific claims, statistics, or situations described may be outdated. Seek current sources for present-day information on this topic.`;
+        }
+    }
+
+    function generateAIContentInsight(results) {
+        const score = results.ai_content_probability?.score || 15;
+        
+        if (score < 30) {
+            return `Human authorship confirmed with high confidence (${score}% AI probability). Natural language variations, personal voice, and organic flow indicate genuine human writing. This authenticity suggests original reporting or analysis rather than automated content generation.`;
+        } else if (score < 60) {
+            return `Possible AI assistance detected (${score}% probability). The content shows mixed signals—some automated patterns alongside human elements. This might indicate AI-assisted writing, heavy editing of AI content, or simply formal writing style that resembles AI output.`;
+        } else {
+            return `High probability of AI generation (${score}%). Multiple indicators suggest automated content creation: repetitive phrasing, unnatural transitions, or excessive uniformity. While not inherently problematic, AI content may lack nuance, original reporting, or fact-checking rigor of human journalism.`;
+        }
+    }
+
     // Fixed display function that matches your API structure
     function displayRealResults(results) {
         console.log('Displaying results:', results);
@@ -2479,6 +2839,9 @@
         
         // Get summary - check both locations
         const summary = results.summary || results.analysis?.summary || 'Analysis completed';
+        
+        // Generate AI insights for all sections
+        const insights = generateAIInsights(results);
         
         // Overall Assessment
         const overallAssessment = {
@@ -2507,6 +2870,20 @@
             </div>
             ${recommendationsHTML}
         `;
+        
+        // Set AI insights
+        document.getElementById('overall-ai-insight-text').innerHTML = insights.overall;
+        document.getElementById('source-ai-insight').innerHTML = insights.source;
+        document.getElementById('author-ai-insight').innerHTML = insights.author;
+        document.getElementById('quality-ai-insight').innerHTML = insights.quality;
+        document.getElementById('fact-ai-insight').innerHTML = insights.fact;
+        document.getElementById('bias-ai-insight').innerHTML = insights.bias;
+        document.getElementById('agenda-ai-insight').innerHTML = insights.agenda;
+        document.getElementById('clickbait-ai-insight').innerHTML = insights.clickbait;
+        document.getElementById('emotion-ai-insight').innerHTML = insights.emotion;
+        document.getElementById('diversity-ai-insight').innerHTML = insights.diversity;
+        document.getElementById('timeliness-ai-insight').innerHTML = insights.timeliness;
+        document.getElementById('ai-content-insight').innerHTML = insights.ai;
         
         // Update confidence
         const confidence = results.confidence_level || 85;
@@ -2565,8 +2942,8 @@
         const mergedResults = { ...results, ...analysis };
         const manipulationTactics = results.manipulation_tactics || results.analysis?.manipulation_tactics || [];
         
-        // Author Credibility
-        const author = results.article_info?.author || results.article?.author || 'Unknown';
+        // Author Credibility - ENHANCED DETECTION
+        const author = findAuthor(results);
         if (author && author !== 'Unknown') {
             document.getElementById('author-credibility').innerHTML = `
                 <h5>Author: ${author}</h5>
@@ -2587,7 +2964,7 @@
             document.getElementById('author-explanation').textContent = 
                 `${author} is listed as the author. Verify their credentials and expertise in this subject area.`;
             document.getElementById('author-methodology').textContent = 
-                'Author extracted from article metadata and byline detection';
+                'Author extracted from article metadata, byline detection, and content pattern matching';
         } else {
             document.getElementById('author-credibility').innerHTML = `
                 <h5>Author: Unknown</h5>
@@ -2600,7 +2977,7 @@
             document.getElementById('author-explanation').textContent = 
                 'No author information provided, which may indicate lower credibility.';
             document.getElementById('author-methodology').textContent = 
-                'Searched for author in metadata, bylines, and common author locations';
+                'Searched for author in metadata, bylines, and common author patterns throughout the content';
         }
         
         // Source Credibility
@@ -2654,7 +3031,7 @@
                     <ul>
                         <li>Claims Identified: <strong>${qualityMetrics.claims}</strong></li>
                         <li>Fact Checks: <strong>${qualityMetrics.factChecks}</strong></li>
-                        <li>Article Length: <strong>${qualityMetrics.textLength} characters</strong></li>
+                        <li>Article Length: <strong>${qualityMetrics.textLength.toLocaleString()} characters</strong></li>
                     </ul>
                 </div>
             </div>
@@ -3097,6 +3474,7 @@
         }
         
         const results = currentAnalysisResults;
+        const insights = generateAIInsights(results);
         
         // Helper function to safely get nested values
         const safeGet = (obj, path, defaultValue = 'N/A') => {
@@ -3163,6 +3541,17 @@
                         background: #f8f9fa;
                         border-radius: 8px;
                         page-break-inside: avoid;
+                    }
+                    .insight-box {
+                        background: #eef2ff;
+                        border: 2px solid #4a90e2;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin: 15px 0;
+                    }
+                    .insight-box h4 {
+                        color: #4a90e2;
+                        margin-top: 0;
                     }
                     .alert {
                         padding: 15px;
@@ -3241,6 +3630,12 @@
                 <div class="section">
                     <h2>Executive Summary</h2>
                     <p>${safeGet(results, 'summary', 'Analysis completed')}</p>
+                    
+                    <div class="insight-box">
+                        <h4>AI Deep Insight</h4>
+                        <p>${insights.overall}</p>
+                    </div>
+                    
                     ${results.recommendations && results.recommendations.length > 0 ? `
                         <h3>Key Recommendations:</h3>
                         <ul>
@@ -3257,7 +3652,7 @@
                     </div>
                     <div class="metric">
                         <strong>Author:</strong>
-                        <span>${safeGet(results, 'article_info.author', 'Unknown')}</span>
+                        <span>${findAuthor(results)}</span>
                     </div>
                     <div class="metric">
                         <strong>Source Domain:</strong>
@@ -3299,6 +3694,10 @@
                                results.bias_score < 0.2 ? 'Center/Neutral' :
                                results.bias_score < 0.5 ? 'Right-Leaning' : 'Far Right'})
                         </div>
+                        <div class="insight-box">
+                            <h4>AI Analysis</h4>
+                            <p>${insights.bias}</p>
+                        </div>
                         <p><strong>Explanation:</strong> ${safeGet(results, 'bias_explanation', 'Bias analysis based on language patterns')}</p>
                         ${results.bias_examples && results.bias_examples.length > 0 ? `
                             <h3>Examples Found:</h3>
@@ -3311,6 +3710,10 @@
                 
                 <div class="section">
                     <h2>Fact-Checking Results</h2>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.fact}</p>
+                    </div>
                     <p><strong>Claims Analyzed:</strong> ${results.fact_checks?.length || results.key_claims?.length || 0}</p>
                     ${results.fact_checks && results.fact_checks.length > 0 ? 
                         results.fact_checks.map((check, index) => {
@@ -3359,6 +3762,10 @@
                 
                 <div class="section">
                     <h2>Hidden Agenda Analysis</h2>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.agenda}</p>
+                    </div>
                     ${results.hidden_agenda && typeof results.hidden_agenda === 'object' ? `
                         <div class="alert ${results.hidden_agenda.detected ? 'alert-warning' : 'alert-success'}">
                             <strong>Hidden Agenda:</strong> ${results.hidden_agenda.detected ? 'DETECTED' : 'Not Detected'}
@@ -3380,6 +3787,10 @@
                     <h2>Additional Analysis</h2>
                     
                     <h3>Clickbait Analysis</h3>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.clickbait}</p>
+                    </div>
                     ${results.clickbait_analysis ? `
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${results.clickbait_analysis.score}%">
@@ -3392,6 +3803,10 @@
                     ` : '<p>Not analyzed</p>'}
                     
                     <h3>Emotional Manipulation</h3>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.emotion}</p>
+                    </div>
                     ${results.emotional_manipulation ? `
                         <p><strong>Score:</strong> ${results.emotional_manipulation.score}/100</p>
                         ${results.emotional_manipulation.techniques?.length > 0 ? `
@@ -3400,6 +3815,10 @@
                     ` : '<p>Not analyzed</p>'}
                     
                     <h3>Source Diversity</h3>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.diversity}</p>
+                    </div>
                     ${results.source_diversity ? `
                         <p><strong>Score:</strong> ${results.source_diversity.score}/100</p>
                         <p><strong>Sources Count:</strong> ${results.source_diversity.sources_count || 1}</p>
@@ -3410,6 +3829,10 @@
                     ` : '<p>Not analyzed</p>'}
                     
                     <h3>AI Content Detection</h3>
+                    <div class="insight-box">
+                        <h4>AI Analysis</h4>
+                        <p>${insights.ai}</p>
+                    </div>
                     ${results.ai_content_probability ? `
                         <p><strong>AI Probability:</strong> ${results.ai_content_probability.score}%</p>
                         <p>${results.ai_content_probability.explanation || 'Analysis based on writing patterns'}</p>
