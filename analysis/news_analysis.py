@@ -12,6 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
+import time
 
 # CORRECT OpenAI import for version 0.28.1
 import openai
@@ -63,8 +64,15 @@ class NewsAnalyzer:
     
     def __init__(self):
         self.session = requests.Session()
+        # Enhanced headers to avoid being blocked
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
         })
     
     def analyze(self, content, content_type='url', is_pro=True):
@@ -84,9 +92,18 @@ class NewsAnalyzer:
             if content_type == 'url':
                 article_data = self.extract_from_url(content)
                 if not article_data:
+                    # Return a more detailed error response
+                    domain = urlparse(content).netloc.replace('www.', '')
+                    error_message = f"Unable to extract content from this URL. This often happens with major news sites like {domain} that block automated access."
+                    
                     return {
                         'success': False,
-                        'error': 'Could not extract article content'
+                        'error': error_message,
+                        'suggestions': [
+                            'Copy and paste the article text using the "Paste Text" tab',
+                            'Try a different news source',
+                            'Use a direct link to the article (not the homepage)'
+                        ]
                     }
             else:
                 article_data = {
@@ -111,79 +128,204 @@ class NewsAnalyzer:
                 'success': True,
                 'article': article_data,
                 'analysis': analysis,
-                'is_pro': is_pro
+                'is_pro': is_pro,
+                # Add these fields that the frontend expects
+                'bias_score': analysis.get('bias_score', 0),
+                'credibility_score': analysis.get('credibility_score', 0.5),
+                'trust_score': analysis.get('trust_score', 50),
+                'summary': analysis.get('summary', ''),
+                'manipulation_tactics': analysis.get('manipulation_tactics', []),
+                'key_claims': analysis.get('key_claims', []),
+                'fact_checks': analysis.get('fact_checks', []),
+                'source_credibility': analysis.get('source_credibility', {}),
+                'article_info': article_data
             }
             
         except Exception as e:
             logger.error(f"News analysis error: {str(e)}")
             return {
                 'success': False,
-                'error': str(e)
+                'error': f'Analysis failed: {str(e)}'
             }
     
     def extract_from_url(self, url):
-        """Extract article content from URL"""
+        """Extract article content from URL with enhanced extraction"""
         try:
-            response = self.session.get(url, timeout=10)
-            response.raise_for_status()
+            # Add delay to be respectful to servers
+            time.sleep(0.5)
+            
+            # Try with different header combinations for stubborn sites
+            headers_variations = [
+                self.session.headers,  # Default headers
+                {
+                    # Minimal headers that sometimes work better
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                },
+                {
+                    # Mobile user agent sometimes bypasses paywalls
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+                }
+            ]
+            
+            response = None
+            for headers in headers_variations:
+                try:
+                    response = self.session.get(url, timeout=15, headers=headers, allow_redirects=True)
+                    if response.status_code == 200:
+                        break
+                except:
+                    continue
+            
+            if not response or response.status_code != 200:
+                logger.error(f"Failed to fetch URL: {url}, status: {response.status_code if response else 'No response'}")
+                return None
+            
+            # Check if we got a paywall or login page
+            if any(indicator in response.text.lower() for indicator in ['paywall', 'subscribe', 'login required', 'access denied']):
+                logger.warning(f"Possible paywall detected at {url}")
+                return None
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
             # Extract domain
             domain = urlparse(url).netloc.replace('www.', '')
             
-            # Extract title
+            # Extract title - try multiple methods
             title = None
-            if soup.find('h1'):
-                title = soup.find('h1').get_text().strip()
-            elif soup.find('title'):
-                title = soup.find('title').get_text().strip()
-            
-            # Extract article text
-            article_text = ""
-            
-            # Try different content selectors
-            content_selectors = [
-                'article', 
-                '[role="main"]',
-                '.article-body',
-                '.story-body',
-                '.entry-content',
-                '.post-content',
-                'main'
+            title_selectors = [
+                'h1',
+                'meta[property="og:title"]',
+                'meta[name="twitter:title"]',
+                'title',
+                '.headline',
+                '.article-title',
+                '[class*="headline"]',
+                '[class*="title"]'
             ]
             
-            for selector in content_selectors:
-                content = soup.select_one(selector)
-                if content:
-                    # Get all paragraphs
-                    paragraphs = content.find_all('p')
-                    if paragraphs:
-                        article_text = ' '.join([p.get_text().strip() for p in paragraphs])
+            for selector in title_selectors:
+                if selector.startswith('meta'):
+                    elem = soup.select_one(selector)
+                    if elem and elem.get('content'):
+                        title = elem['content'].strip()
                         break
+                else:
+                    elem = soup.select_one(selector)
+                    if elem:
+                        title = elem.get_text().strip()
+                        if title and len(title) > 10:  # Ensure it's not empty or too short
+                            break
             
-            # Fallback to all paragraphs
+            if not title:
+                title = 'Article Title Not Found'
+            
+            # Extract article text with enhanced selectors
+            article_text = ""
+            
+            # Remove script, style, and other non-content elements
+            for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
+                element.decompose()
+            
+            # Site-specific selectors for major news sites
+            site_specific_selectors = {
+                'washingtonpost.com': 'div[data-qa="article-body"]',
+                'nytimes.com': 'section[name="articleBody"]',
+                'cnn.com': 'div.article__content',
+                'bbc.com': 'main[role="main"]',
+                'reuters.com': 'div[data-testid="article-body"]',
+                'apnews.com': 'div.RichTextStoryBody',
+                'theguardian.com': 'div.article-body-commercial-selector',
+                'wsj.com': 'div.article-content',
+                'bloomberg.com': 'div.body-content',
+                'foxnews.com': 'div.article-body',
+                'usatoday.com': 'div.gnt_ar_b',
+                'npr.org': 'div#storytext'
+            }
+            
+            # Try site-specific selector first
+            if domain in site_specific_selectors:
+                content = soup.select_one(site_specific_selectors[domain])
+                if content:
+                    paragraphs = content.find_all(['p', 'h2', 'h3'])
+                    article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+            
+            # If site-specific didn't work, try generic selectors
             if not article_text:
-                paragraphs = soup.find_all('p')
-                article_text = ' '.join([p.get_text().strip() for p in paragraphs[:20]])  # Limit to first 20
+                content_selectors = [
+                    'article',
+                    '[role="main"]',
+                    'main',
+                    '.article-body',
+                    '.story-body',
+                    '.entry-content',
+                    '.post-content',
+                    '[class*="article-content"]',
+                    '[class*="story-content"]',
+                    'div[itemprop="articleBody"]',
+                    '.content-body',
+                    '#article-body',
+                    '.article__body',
+                    '.c-entry-content'
+                ]
+                
+                for selector in content_selectors:
+                    content = soup.select_one(selector)
+                    if content:
+                        # Get all paragraphs and headers
+                        paragraphs = content.find_all(['p', 'h2', 'h3'])
+                        if paragraphs and len(paragraphs) > 3:  # Ensure we have substantial content
+                            article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+                            if len(article_text) > 200:  # Minimum content length
+                                break
+            
+            # Last resort: get all paragraphs from the page
+            if not article_text or len(article_text) < 200:
+                all_paragraphs = soup.find_all('p')
+                # Filter out short paragraphs and navigation elements
+                good_paragraphs = [p.get_text().strip() for p in all_paragraphs 
+                                 if len(p.get_text().strip()) > 50 and 
+                                 not any(skip in p.get_text().lower() for skip in ['cookie', 'subscribe', 'newsletter', 'sign up'])]
+                
+                if len(good_paragraphs) >= 3:
+                    article_text = ' '.join(good_paragraphs[:30])  # Limit to first 30 good paragraphs
+            
+            # Clean up the text
+            article_text = ' '.join(article_text.split())  # Remove extra whitespace
+            
+            # If we still don't have enough content, it's likely blocked
+            if len(article_text) < 200:
+                logger.warning(f"Insufficient content extracted from {url}: {len(article_text)} chars")
+                return None
             
             # Extract publish date
             publish_date = None
             date_selectors = [
-                'time',
-                '[property="article:published_time"]',
-                '.publish-date',
-                '.posted-on'
+                'time[datetime]',
+                'meta[property="article:published_time"]',
+                'meta[name="publish_date"]',
+                'meta[property="article:published"]',
+                'meta[name="publication_date"]',
+                '[class*="publish-date"]',
+                '[class*="posted-on"]',
+                '[class*="timestamp"]'
             ]
             
             for selector in date_selectors:
-                date_elem = soup.select_one(selector)
-                if date_elem:
-                    if date_elem.get('datetime'):
-                        publish_date = date_elem['datetime']
-                    elif date_elem.get('content'):
-                        publish_date = date_elem['content']
-                    break
+                if selector.startswith('meta'):
+                    elem = soup.select_one(selector)
+                    if elem and elem.get('content'):
+                        publish_date = elem['content']
+                        break
+                else:
+                    elem = soup.select_one(selector)
+                    if elem:
+                        if elem.get('datetime'):
+                            publish_date = elem['datetime']
+                        else:
+                            publish_date = elem.get_text().strip()
+                        break
+            
+            logger.info(f"Successfully extracted {len(article_text)} chars from {domain}")
             
             return {
                 'url': url,
@@ -193,8 +335,14 @@ class NewsAnalyzer:
                 'publish_date': publish_date
             }
             
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout while fetching URL: {url}")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request error for URL {url}: {str(e)}")
+            return None
         except Exception as e:
-            logger.error(f"URL extraction error: {str(e)}")
+            logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
             return None
     
     def get_ai_analysis(self, article_data):
@@ -276,14 +424,20 @@ class NewsAnalyzer:
                     'summary': response_text,
                     'bias_score': 0,
                     'credibility_score': 0.5,
-                    'trust_score': 50
+                    'trust_score': 50,
+                    'manipulation_tactics': [],
+                    'key_claims': [],
+                    'fact_checks': []
                 }
         except:
             return {
                 'summary': response_text,
                 'bias_score': 0,
                 'credibility_score': 0.5,
-                'trust_score': 50
+                'trust_score': 50,
+                'manipulation_tactics': [],
+                'key_claims': [],
+                'fact_checks': []
             }
     
     def fallback_analysis(self, article_data):
@@ -292,16 +446,16 @@ class NewsAnalyzer:
         
         # Basic bias detection
         bias_score = 0
-        left_keywords = ['progressive', 'liberal', 'democrat', 'left-wing', 'socialist']
-        right_keywords = ['conservative', 'republican', 'right-wing', 'traditional', 'libertarian']
+        left_keywords = ['progressive', 'liberal', 'democrat', 'left-wing', 'socialist', 'equity', 'climate crisis']
+        right_keywords = ['conservative', 'republican', 'right-wing', 'traditional', 'libertarian', 'freedom', 'patriot']
         
         text_lower = text.lower()
         left_count = sum(1 for keyword in left_keywords if keyword in text_lower)
         right_count = sum(1 for keyword in right_keywords if keyword in text_lower)
         
-        if left_count > right_count:
+        if left_count > right_count * 1.5:
             bias_score = -0.5
-        elif right_count > left_count:
+        elif right_count > left_count * 1.5:
             bias_score = 0.5
         
         # Basic credibility check
@@ -310,24 +464,51 @@ class NewsAnalyzer:
             source_info = SOURCE_CREDIBILITY.get(article_data['domain'], {})
             if source_info.get('credibility') == 'High':
                 credibility_score = 0.8
+            elif source_info.get('credibility') == 'Medium':
+                credibility_score = 0.6
             elif source_info.get('credibility') == 'Low':
                 credibility_score = 0.3
+            elif source_info.get('credibility') == 'Very Low':
+                credibility_score = 0.1
         
         # Detect manipulation tactics
         manipulation_tactics = []
-        if len(re.findall(r'[A-Z]{2,}', text)) > 10:
+        if len(re.findall(r'[A-Z]{3,}', text)) > 10:
             manipulation_tactics.append('Excessive capitalization')
         if len(re.findall(r'!{2,}', text)) > 0:
             manipulation_tactics.append('Multiple exclamation marks')
-        if any(word in text_lower for word in ['breaking', 'urgent', 'alert', 'shocking']):
+        if any(word in text_lower for word in ['breaking', 'urgent', 'alert', 'shocking', 'bombshell']):
             manipulation_tactics.append('Sensational language')
+        if any(word in text_lower for word in ['they', 'them', 'elites', 'establishment']) and not article_data.get('title'):
+            manipulation_tactics.append('Us vs. them rhetoric')
         
         # Extract key claims (simple extraction)
-        sentences = text.split('.')[:5]  # First 5 sentences
-        key_claims = [s.strip() for s in sentences if len(s.strip()) > 50][:3]
+        sentences = text.split('.')[:10]  # First 10 sentences
+        key_claims = []
+        for s in sentences:
+            s = s.strip()
+            # Look for sentences that make claims
+            if len(s) > 50 and any(word in s.lower() for word in ['is', 'are', 'was', 'were', 'will', 'would', 'should']):
+                key_claims.append(s)
+                if len(key_claims) >= 3:
+                    break
         
         # Calculate trust score
         trust_score = int((credibility_score * 100 + (1 - abs(bias_score)) * 50) / 2)
+        
+        # Adjust trust score based on manipulation tactics
+        trust_score -= len(manipulation_tactics) * 5
+        trust_score = max(0, min(100, trust_score))
+        
+        # Create summary
+        bias_label = 'Left-leaning' if bias_score < -0.3 else 'Right-leaning' if bias_score > 0.3 else 'Center/Neutral'
+        credibility_label = 'High' if credibility_score > 0.7 else 'Medium' if credibility_score > 0.4 else 'Low'
+        
+        summary = f"Basic analysis completed. Source credibility: {credibility_label} ({credibility_score*100:.0f}%). "
+        summary += f"Political bias detected: {bias_label}. "
+        if manipulation_tactics:
+            summary += f"Warning: {len(manipulation_tactics)} manipulation tactics detected. "
+        summary += f"Overall trust score: {trust_score}%."
         
         return {
             'bias_score': bias_score,
@@ -336,7 +517,7 @@ class NewsAnalyzer:
             'manipulation_tactics': manipulation_tactics,
             'key_claims': key_claims,
             'fact_checks': [],
-            'summary': f"Basic analysis completed. Source credibility: {credibility_score*100:.0f}%. Bias detected: {'Left' if bias_score < 0 else 'Right' if bias_score > 0 else 'Center'}.",
+            'summary': summary,
             'trust_score': trust_score
         }
     
@@ -365,22 +546,4 @@ def analyze_news_route(content, is_pro=True):
     content_type = 'url' if content.startswith(('http://', 'https://')) else 'text'
     
     # Perform analysis
-    results = analyzer.analyze(content, content_type, is_pro)
-    
-    # Format for API response
-    if results['success']:
-        analysis = results['analysis']
-        return {
-            'success': True,
-            'bias_score': analysis.get('bias_score', 0),
-            'credibility_score': analysis.get('credibility_score', 0.5),
-            'trust_score': analysis.get('trust_score', 50),
-            'summary': analysis.get('summary', ''),
-            'manipulation_tactics': analysis.get('manipulation_tactics', []),
-            'key_claims': analysis.get('key_claims', []),
-            'fact_checks': analysis.get('fact_checks', []),
-            'source_credibility': results.get('source_credibility', {}),
-            'article_info': results.get('article', {})
-        }
-    else:
-        return results
+    return analyzer.analyze(content, content_type, is_pro)
