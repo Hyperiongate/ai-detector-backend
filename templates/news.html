@@ -1340,6 +1340,13 @@
         checkAuthStatus: async function() {
             try {
                 const response = await fetch('/api/user/status');
+                
+                // Check if response is OK and content type is JSON
+                if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+                    console.log('Auth endpoint not available or not returning JSON');
+                    return;
+                }
+                
                 const data = await response.json();
                 
                 if (data.authenticated) {
@@ -1355,7 +1362,8 @@
                     document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
                 }
             } catch (error) {
-                console.log('Auth check failed:', error);
+                // Silently fail - user is not authenticated or endpoint doesn't exist
+                console.log('Auth check skipped:', error.message);
             }
         },
         
