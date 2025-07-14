@@ -970,15 +970,16 @@
             overflow: hidden;
         }
 
-        /* Error container styling */
+        /* Enhanced error container styling */
         .error-container {
             display: none;
             background: #fef2f2;
-            border: 1px solid #fed7d7;
+            border: 2px solid #fed7d7;
             border-radius: 12px;
             padding: 30px;
             margin: 20px 0;
             text-align: center;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.1);
         }
 
         .error-container i {
@@ -989,26 +990,91 @@
 
         .error-container h3 {
             color: var(--danger-color);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
         }
 
         .error-container p {
             color: #742a2a;
             margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .error-suggestions {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .error-suggestions h4 {
+            color: #742a2a;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .error-suggestions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .error-suggestions li {
+            padding: 10px 0 10px 35px;
+            position: relative;
+            color: #5a2121;
+            line-height: 1.5;
+        }
+
+        .error-suggestions li:before {
+            content: "→";
+            position: absolute;
+            left: 10px;
+            color: var(--danger-color);
+            font-weight: bold;
         }
 
         .retry-btn {
             background: var(--danger-color);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 30px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 10px;
         }
 
         .retry-btn:hover {
             background: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .alternate-action {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #fed7d7;
+        }
+
+        .alternate-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .alternate-btn:hover {
+            background: var(--primary-blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
         }
     </style>
 </head>
@@ -2060,14 +2126,29 @@
             </div>
         </div>
 
-        <!-- Error Container -->
+        <!-- Enhanced Error Container -->
         <div class="error-container" id="error-container">
             <i class="fas fa-exclamation-triangle"></i>
             <h3>Analysis Error</h3>
             <p id="error-message">An error occurred during analysis.</p>
-            <button class="retry-btn" onclick="retryAnalysis()">
-                <i class="fas fa-redo"></i> Retry Analysis
-            </button>
+            
+            <!-- Suggestions section (hidden by default) -->
+            <div class="error-suggestions" id="error-suggestions" style="display: none;">
+                <h4>Here's what you can do:</h4>
+                <ul id="suggestion-list">
+                    <!-- Populated dynamically -->
+                </ul>
+            </div>
+            
+            <!-- Alternate actions -->
+            <div class="alternate-action">
+                <button class="retry-btn" onclick="retryAnalysis()">
+                    <i class="fas fa-redo"></i> Retry Analysis
+                </button>
+                <button class="alternate-btn" onclick="switchInputType('text')">
+                    <i class="fas fa-file-alt"></i> Switch to Text Input
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2171,9 +2252,12 @@
             textSection.style.display = 'block';
             tabs[1].classList.add('active');
         }
+        
+        // Hide error container if switching tabs
+        document.getElementById('error-container').style.display = 'none';
     }
 
-    // FIXED analysis function that matches YOUR API response structure
+    // ENHANCED analysis function with better error handling
     async function analyzeArticle() {
         const urlInput = document.getElementById('news-url');
         const textInput = document.getElementById('news-text');
@@ -2253,13 +2337,19 @@
             // Check response
             if (!response.ok) {
                 let errorMessage = `Server error: ${response.status}`;
+                let suggestions = [];
+                
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorData.message || errorMessage;
+                    suggestions = errorData.suggestions || [];
                 } catch (e) {
                     console.error('Error parsing error response:', e);
                 }
-                throw new Error(errorMessage);
+                
+                const errorObj = new Error(errorMessage);
+                errorObj.suggestions = suggestions;
+                throw errorObj;
             }
             
             const data = await response.json();
@@ -2273,7 +2363,7 @@
                 stage.classList.add('complete');
             });
             
-            // FIXED: Check for success - handle both success flag and presence of results
+            // Check for success - handle both success flag and presence of results
             if (data.success === true || (data.trust_score !== undefined && !data.error)) {
                 // Store results globally for PDF generation - data is at root level
                 currentAnalysisResults = data;
@@ -2291,24 +2381,10 @@
                 // Log the full response for debugging
                 console.error('Analysis failed. Server response:', data);
                 
-                // Extract the actual error message from the server
-                let errorMessage = data.error || data.message || 'Could not extract article content';
-                
-                // Check if the error is the generic extraction error and enhance it
-                if (errorMessage === 'Could not extract article content' || 
-                    errorMessage.toLowerCase().includes('could not extract')) {
-                    errorMessage = 'Unable to extract content from this URL. This often happens with major news sites like Washington Post, CNN, or NYTimes that block automated access.\n\nPlease try:\n• Copy and paste the article text using the "Paste Text" tab\n• Try a different news source\n• Use a direct link to the article (not the homepage)';
-                }
-                // Make timeout errors more user-friendly
-                else if (errorMessage.includes('timed out') || errorMessage.includes('timeout')) {
-                    errorMessage = 'The website took too long to respond. This can happen with some news sites.\n\nPlease try:\n• Copy and paste the article text using the "Paste Text" tab\n• Try a different article\n• Wait a moment and try again';
-                } 
-                // URL extraction errors
-                else if (errorMessage.includes('extraction error') || errorMessage.includes('URL extraction')) {
-                    errorMessage = 'Unable to extract content from this URL. Some websites block automated access.\n\nPlease copy and paste the article text directly using the "Paste Text" tab.';
-                }
-                
-                throw new Error(errorMessage);
+                // Extract error details
+                const errorObj = new Error(data.error || data.message || 'Analysis failed');
+                errorObj.suggestions = data.suggestions || [];
+                throw errorObj;
             }
             
         } catch (error) {
@@ -2320,22 +2396,72 @@
                 clearInterval(progressInterval);
             }
             
-            // Show user-friendly error message
-            let userMessage = error.message;
+            // Show enhanced error message with suggestions
+            showEnhancedError(error.message, error.suggestions || []);
+        }
+    }
+
+    // Enhanced error display function
+    function showEnhancedError(message, suggestions = []) {
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const errorSuggestions = document.getElementById('error-suggestions');
+        const suggestionList = document.getElementById('suggestion-list');
+        
+        // Set the error message
+        errorMessage.textContent = message;
+        
+        // Handle suggestions if provided
+        if (suggestions && suggestions.length > 0) {
+            errorSuggestions.style.display = 'block';
+            suggestionList.innerHTML = suggestions.map(suggestion => 
+                `<li>${suggestion}</li>`
+            ).join('');
+        } else {
+            // Default suggestions based on error type
+            const defaultSuggestions = [];
             
-            // Make error messages more user-friendly
-            if (userMessage.includes('fetch')) {
-                userMessage = 'Unable to connect to the analysis service. Please check your internet connection and try again.';
-            } else if (userMessage.includes('404')) {
-                userMessage = 'Analysis service not found. Please contact support.';
-            } else if (userMessage.includes('500')) {
-                userMessage = 'Server error occurred. Please try again later.';
-            } else if (userMessage.includes('extract')) {
-                userMessage = 'Unable to extract article content. Please ensure the URL is valid or try pasting the article text directly.';
+            if (message.toLowerCase().includes('extract') || 
+                message.toLowerCase().includes('timeout') ||
+                message.toLowerCase().includes('blocked')) {
+                defaultSuggestions.push(
+                    'Copy and paste the article text using the "Paste Text" tab',
+                    'Try a different news article or source',
+                    'Check if the URL is correctly formatted',
+                    'Some major news sites (CNN, NYTimes, WSJ) block automated access'
+                );
+            } else if (message.includes('fetch')) {
+                defaultSuggestions.push(
+                    'Check your internet connection',
+                    'Try again in a few moments',
+                    'Use the "Paste Text" option instead'
+                );
+            } else {
+                defaultSuggestions.push(
+                    'Try again with a different article',
+                    'Use the "Paste Text" tab for better results',
+                    'Contact support if the issue persists'
+                );
             }
             
-            showError(userMessage);
+            if (defaultSuggestions.length > 0) {
+                errorSuggestions.style.display = 'block';
+                suggestionList.innerHTML = defaultSuggestions.map(suggestion => 
+                    `<li>${suggestion}</li>`
+                ).join('');
+            } else {
+                errorSuggestions.style.display = 'none';
+            }
         }
+        
+        // Show error container
+        errorContainer.style.display = 'block';
+        
+        // Hide results
+        document.getElementById('results-section').style.display = 'none';
+        
+        // Scroll to error
+        errorContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
     // Fixed display function that matches your API structure
@@ -2437,6 +2563,7 @@
         // Merge analysis data with root level data for easier access
         const analysis = results.analysis || {};
         const mergedResults = { ...results, ...analysis };
+        const manipulationTactics = results.manipulation_tactics || results.analysis?.manipulation_tactics || [];
         
         // Author Credibility
         const author = results.article_info?.author || results.article?.author || 'Unknown';
@@ -2680,14 +2807,14 @@
         
         // Populate remaining sections with available data
         populateRemainingSection('clickbait', mergedResults);
-        populateRemainingSection('emotion', mergedResults);
+        populateRemainingSection('emotion', mergedResults, manipulationTactics);
         populateRemainingSection('diversity', mergedResults);
         populateRemainingSection('timeliness', results);
         populateRemainingSection('ai', mergedResults);
     }
 
     // Helper function for remaining sections
-    function populateRemainingSection(section, data) {
+    function populateRemainingSection(section, data, manipulationTactics) {
         switch(section) {
             case 'clickbait':
                 const clickbaitData = data.clickbait_analysis || {};
@@ -2721,7 +2848,7 @@
                 
             case 'emotion':
                 const emotionData = data.emotional_manipulation || {};
-                const emotionScore = emotionData.score || (data.manipulation_tactics?.length || 0) * 15;
+                const emotionScore = emotionData.score || (manipulationTactics?.length || 0) * 15;
                 const emotionNeedle = document.getElementById('emotion-needle');
                 const emotionAngle = -90 + Math.min(emotionScore * 1.8, 180);
                 emotionNeedle.style.transform = `translateX(-50%) rotate(${emotionAngle}deg)`;
