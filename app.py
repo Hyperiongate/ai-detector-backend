@@ -68,8 +68,8 @@ def fix_database_url():
 # Apply the fix immediately before any imports
 fix_database_url()
 
-# Flask imports
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file, Response, stream_with_context
+# Flask imports - INCLUDING send_from_directory
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file, Response, stream_with_context, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -660,7 +660,14 @@ def favicon_png():
     """Serve favicon.png"""
     # Try to serve favicon.ico if .png doesn't exist
     return redirect('/static/favicon.ico')
-    # API Routes
+
+# NEW: robots.txt route
+@app.route('/robots.txt')
+def robots():
+    """Serve robots.txt"""
+    return send_from_directory(app.static_folder, 'robots.txt')
+
+# API Routes
 
 # NEW: User usage status endpoint
 @app.route('/api/user/usage', methods=['GET'])
@@ -1419,7 +1426,8 @@ def analyze_unified_stream():
             'Connection': 'keep-alive'
         }
     )
- # Keep the original endpoint for backwards compatibility
+
+# Keep the original endpoint for backwards compatibility
 @app.route('/api/analyze-unified', methods=['POST'])
 @csrf.exempt
 @track_usage('unified')
