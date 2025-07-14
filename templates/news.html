@@ -1051,6 +1051,10 @@
                     <i class="fas fa-info-circle me-1"></i>
                     We'll extract the full article, metadata, and verify the source
                 </small>
+                <small class="text-muted d-block mt-1">
+                    <i class="fas fa-lightbulb me-1"></i>
+                    <strong>Tip:</strong> Some news sites block automated access. If you encounter issues, use the "Paste Text" tab instead.
+                </small>
             </div>
             
             <div id="text-input-section" style="display: none;">
@@ -1845,8 +1849,8 @@
                 stage.classList.add('complete');
             });
             
-            // FIXED: Check for success without expecting data.results
-            if (data.success) {
+            // FIXED: Check for success - handle both success flag and presence of results
+            if (data.success === true || (data.trust_score !== undefined && !data.error)) {
                 // Store results globally for PDF generation - data is at root level
                 currentAnalysisResults = data;
                 
@@ -1860,7 +1864,20 @@
                     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 500);
             } else {
-                throw new Error(data.error || data.message || 'Analysis failed');
+                // Log the full response for debugging
+                console.error('Analysis failed. Server response:', data);
+                
+                // Extract the actual error message from the server
+                let errorMessage = data.error || data.message || 'Could not extract article content';
+                
+                // Make timeout errors more user-friendly
+                if (errorMessage.includes('timed out') || errorMessage.includes('timeout')) {
+                    errorMessage = 'The website took too long to respond. This can happen with some news sites. Please try:\n\n1. Copy and paste the article text directly using the "Paste Text" tab\n2. Try a different article\n3. Wait a moment and try again';
+                } else if (errorMessage.includes('extraction error') || errorMessage.includes('URL extraction')) {
+                    errorMessage = 'Unable to extract content from this URL. Some websites block automated access. Please copy and paste the article text directly using the "Paste Text" tab.';
+                }
+                
+                throw new Error(errorMessage);
             }
             
         } catch (error) {
@@ -2209,7 +2226,9 @@
         const errorContainer = document.getElementById('error-container');
         const errorMessage = document.getElementById('error-message');
         
-        errorMessage.textContent = message;
+        // Convert newlines to <br> for better formatting
+        const formattedMessage = message.replace(/\n/g, '<br>');
+        errorMessage.innerHTML = formattedMessage;
         errorContainer.style.display = 'block';
         
         // Hide results
