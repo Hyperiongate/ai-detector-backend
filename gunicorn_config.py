@@ -9,7 +9,7 @@ backlog = 2048
 workers = int(os.environ.get("WEB_CONCURRENCY", multiprocessing.cpu_count() * 2 + 1))
 worker_class = "sync"
 worker_connections = 1000
-timeout = 30
+timeout = 120
 keepalive = 2
 
 # Restart workers after this many requests to prevent memory leaks
