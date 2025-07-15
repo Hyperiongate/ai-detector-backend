@@ -2439,23 +2439,76 @@
             document.getElementById('source-methodology').textContent = 'Analysis based on content quality, claims verification, and bias detection';
         }
         
-        // Author Credibility - create from available data
-        document.getElementById('author-credibility').innerHTML = `
-            <h5>Author: Unknown</h5>
-            <p>Author information not available in this analysis</p>
-            <ul>
-                <li>Consider researching the author independently</li>
-                <li>Check for author credentials on the original source</li>
-            </ul>
-        `;
+        // Author Credibility - extract from article_info or other fields
+        const authorName = results.article_info?.author || results.author || 'Unknown';
+        const hasAuthor = authorName && authorName !== 'Unknown';
         
-        // Update author research links with generic search
-        document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-        document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-        document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(results.article_info?.title || '')}`;
-        
-        document.getElementById('author-explanation').textContent = 'Author information not provided in the analysis';
-        document.getElementById('author-methodology').textContent = 'Author analysis requires additional metadata';
+        if (hasAuthor) {
+            // Clean author name (remove "By" prefix if present)
+            const cleanAuthorName = authorName.replace(/^by\s+/i, '').trim();
+            
+            document.getElementById('author-credibility').innerHTML = `
+                <h5>Author: ${cleanAuthorName}</h5>
+                <p>Author detected from article metadata</p>
+                <ul>
+                    <li>Name: <strong>${cleanAuthorName}</strong></li>
+                    <li>Verification Status: Pending manual verification</li>
+                    <li>Expertise: Research author's background for subject matter expertise</li>
+                    <li>Publication History: Check author's previous work for consistency</li>
+                </ul>
+                ${results.author_info ? `
+                    <div class="mt-3">
+                        <h6>Additional Author Information:</h6>
+                        <ul>
+                            ${results.author_info.bio ? `<li>Bio: ${results.author_info.bio}</li>` : ''}
+                            ${results.author_info.credentials ? `<li>Credentials: ${results.author_info.credentials}</li>` : ''}
+                            ${results.author_info.website ? `<li>Website: <a href="${results.author_info.website}" target="_blank" rel="noopener">${results.author_info.website}</a></li>` : ''}
+                        </ul>
+                    </div>
+                ` : ''}
+            `;
+            
+            // Update author research links with actual author name
+            document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(cleanAuthorName)}`;
+            document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(cleanAuthorName + ' journalist')}`;
+            document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(cleanAuthorName)}`;
+            
+            // Add author website link if available
+            if (results.author_info?.website) {
+                const authorWebsiteBtn = document.createElement('a');
+                authorWebsiteBtn.href = results.author_info.website;
+                authorWebsiteBtn.className = 'btn btn-outline-primary btn-sm';
+                authorWebsiteBtn.target = '_blank';
+                authorWebsiteBtn.innerHTML = '<i class="fas fa-globe me-1"></i>Website';
+                document.getElementById('author-linkedin').parentNode.appendChild(authorWebsiteBtn);
+            }
+            
+            document.getElementById('author-explanation').textContent = `Author "${cleanAuthorName}" has been identified. Established journalists with verifiable credentials and consistent publication history are generally more trustworthy sources. Research this author's background to assess their expertise in the subject matter.`;
+            document.getElementById('author-methodology').textContent = `We detected the author through metadata extraction from the article. For comprehensive credibility assessment, we recommend verifying the author's credentials, checking their publication history, and confirming their expertise in the topic area. Professional journalists typically have a digital footprint that includes social media profiles, previous articles, and professional affiliations.`;
+        } else {
+            document.getElementById('author-credibility').innerHTML = `
+                <h5>Author: Not Detected</h5>
+                <p>No author information found in article metadata</p>
+                <ul>
+                    <li>Articles without clear authorship should be approached with caution</li>
+                    <li>Check the original source for author attribution</li>
+                    <li>Anonymous or missing authorship may indicate lower credibility</li>
+                    <li>Some reputable sources use editorial boards instead of individual authors</li>
+                </ul>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> The absence of author information makes it difficult to verify the writer's expertise and potential biases.
+                </div>
+            `;
+            
+            // Update author research links with article title for context
+            document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
+            document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
+            document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(results.article_info?.title || '')}`;
+            
+            document.getElementById('author-explanation').textContent = 'No author information was detected in this article. This could mean the article is unsigned, published by an editorial board, or the author metadata was not properly extracted. Articles without clear authorship attribution should be evaluated more carefully.';
+            document.getElementById('author-methodology').textContent = 'Author detection relies on metadata extraction from the article source. We look for bylines, author tags, and structured data. The absence of author information may indicate anonymous publishing or technical extraction limitations.';
+        }
         
         // Writing Quality - derive from available data
         document.getElementById('writing-quality').innerHTML = `
