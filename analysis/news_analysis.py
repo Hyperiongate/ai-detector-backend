@@ -382,7 +382,33 @@ class NewsAnalyzer:
                         else:
                             publish_date = elem.get_text().strip()
                         break
-            
+
+            # Extract author
+author = None
+author_selectors = [
+    'meta[name="author"]',
+    'meta[property="article:author"]',
+    '.byline',
+    '.author',
+    '[rel="author"]',
+    'span[itemprop="author"]'
+]
+
+# Try to find author
+for selector in author_selectors:
+    if selector.startswith('meta'):
+        elem = soup.select_one(selector)
+        if elem and elem.get('content'):
+            author = elem['content'].strip()
+            break
+    else:
+        elem = soup.select_one(selector)
+        if elem:
+            author = elem.get_text().strip()
+            # Clean up common patterns
+            author = author.replace('By ', '').replace('by ', '')
+            if author and len(author) > 2:
+                break
             logger.info(f"Successfully extracted {len(article_text)} chars from {domain} in {time.time() - start_time:.2f} seconds")
             
             return {
@@ -391,6 +417,7 @@ class NewsAnalyzer:
                 'title': title,
                 'text': article_text[:5000],  # Limit text length
                 'publish_date': publish_date
+                'author': author  # <-- ADD ONLY THIS LINE
             }
             
         except requests.exceptions.Timeout:
