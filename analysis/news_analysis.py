@@ -133,7 +133,8 @@ class NewsAnalyzer:
                     'text': content,
                     'url': None,
                     'domain': None,
-                    'publish_date': None
+                    'publish_date': None,
+                    'author': None
                 }
             
             # Perform analysis
@@ -382,33 +383,34 @@ class NewsAnalyzer:
                         else:
                             publish_date = elem.get_text().strip()
                         break
-
+            
             # Extract author
-author = None
-author_selectors = [
-    'meta[name="author"]',
-    'meta[property="article:author"]',
-    '.byline',
-    '.author',
-    '[rel="author"]',
-    'span[itemprop="author"]'
-]
-
-# Try to find author
-for selector in author_selectors:
-    if selector.startswith('meta'):
-        elem = soup.select_one(selector)
-        if elem and elem.get('content'):
-            author = elem['content'].strip()
-            break
-    else:
-        elem = soup.select_one(selector)
-        if elem:
-            author = elem.get_text().strip()
-            # Clean up common patterns
-            author = author.replace('By ', '').replace('by ', '')
-            if author and len(author) > 2:
-                break
+            author = None
+            author_selectors = [
+                'meta[name="author"]',
+                'meta[property="article:author"]',
+                '.byline',
+                '.author',
+                '[rel="author"]',
+                'span[itemprop="author"]'
+            ]
+            
+            # Try to find author
+            for selector in author_selectors:
+                if selector.startswith('meta'):
+                    elem = soup.select_one(selector)
+                    if elem and elem.get('content'):
+                        author = elem['content'].strip()
+                        break
+                else:
+                    elem = soup.select_one(selector)
+                    if elem:
+                        author = elem.get_text().strip()
+                        # Clean up common patterns
+                        author = author.replace('By ', '').replace('by ', '')
+                        if author and len(author) > 2:
+                            break
+            
             logger.info(f"Successfully extracted {len(article_text)} chars from {domain} in {time.time() - start_time:.2f} seconds")
             
             return {
@@ -416,8 +418,8 @@ for selector in author_selectors:
                 'domain': domain,
                 'title': title,
                 'text': article_text[:5000],  # Limit text length
-                'publish_date': publish_date
-                'author': author  # <-- ADD ONLY THIS LINE
+                'publish_date': publish_date,
+                'author': author
             }
             
         except requests.exceptions.Timeout:
@@ -478,7 +480,9 @@ for selector in author_selectors:
         Analyze this news article for bias, credibility, and factual accuracy.
         
         Title: {article_data.get('title', 'N/A')}
+        Author: {article_data.get('author', 'Unknown')}
         Source: {article_data.get('domain', 'Unknown')}
+        Published: {article_data.get('publish_date', 'Unknown')}
         
         Article Text:
         {article_data.get('text', '')[:3000]}
