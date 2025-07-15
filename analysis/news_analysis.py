@@ -434,22 +434,24 @@ class NewsAnalyzer:
         except Exception as e:
             logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
             return None
-    
     def get_ai_analysis(self, article_data):
         """
         Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
         """
         if not OPENAI_API_KEY:
-            logger.warning("OpenAI API key not configured")
+            logger.warning("OpenAI API key not configured - using fallback analysis")
             return self.fallback_analysis(article_data)
         
         try:
+            logger.info(f"Starting OpenAI analysis for article from {article_data.get('domain', 'unknown')}")
+            start_time = time.time()
+            
             # Prepare the analysis prompt
             prompt = self._create_analysis_prompt(article_data)
             
             # CORRECT OpenAI API call for version 0.28.1
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # Using faster model
                 messages=[
                     {
                         "role": "system",
@@ -461,11 +463,13 @@ class NewsAnalyzer:
                     }
                 ],
                 temperature=0.7,
-                max_tokens=1500
+                max_tokens=1500,
+                request_timeout=30
             )
             
             # Extract response - CORRECT OLD style
             analysis_text = response.choices[0].message.content
+            logger.info(f"OpenAI analysis completed in {time.time() - start_time:.2f} seconds")
             
             # Parse the structured response
             return self._parse_ai_response(analysis_text)
