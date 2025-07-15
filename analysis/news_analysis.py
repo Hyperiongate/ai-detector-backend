@@ -172,321 +172,356 @@ class NewsAnalyzer:
             }
     
     def extract_from_url(self, url):
-        """Extract article content from URL with enhanced extraction"""
-        start_time = time.time()
-        max_duration = 20  # Maximum 20 seconds for extraction
+    """Extract article content from URL with enhanced extraction - FIXED VERSION"""
+    start_time = time.time()
+    max_duration = 20  # Maximum 20 seconds for extraction
+    
+    try:
+        # Extract domain for early checks
+        domain = urlparse(url).netloc.replace('www.', '')
         
+        # List of sites known to have strict anti-bot measures
+        problematic_sites = [
+            'washingtonpost.com',
+            'nytimes.com',
+            'wsj.com',
+            'bloomberg.com',
+            'ft.com',
+            'economist.com',
+            'newyorker.com',
+            'theatlantic.com'
+        ]
+        
+        # For problematic sites, fail immediately with helpful message
+        if domain in problematic_sites:
+            logger.warning(f"Known problematic site detected: {domain} - failing fast")
+            return None
+        
+        # Check if we've exceeded time limit
+        if time.time() - start_time > max_duration:
+            logger.error(f"Extraction exceeded time limit for {url}")
+            return None
+        
+        # For other sites, try with a short timeout
+        response = None
         try:
-            # Extract domain for early checks
-            domain = urlparse(url).netloc.replace('www.', '')
+            # Set a connection timeout and read timeout
+            response = self.session.get(url, timeout=(3, 5), allow_redirects=True)
             
-            # List of sites known to have strict anti-bot measures
-            problematic_sites = [
-                'washingtonpost.com',
-                'nytimes.com',
-                'wsj.com',
-                'bloomberg.com',
-                'ft.com',
-                'economist.com',
-                'newyorker.com',
-                'theatlantic.com'
-            ]
-            
-            # For problematic sites, fail immediately with helpful message
-            if domain in problematic_sites:
-                logger.warning(f"Known problematic site detected: {domain} - failing fast")
-                return None  # Don't even try - these sites have aggressive anti-bot measures
-            
-            # Check if we've exceeded time limit
-            if time.time() - start_time > max_duration:
-                logger.error(f"Extraction exceeded time limit for {url}")
+            if response.status_code == 403 or response.status_code == 429:
+                logger.error(f"Access denied (status {response.status_code}) for {url}")
                 return None
-            
-            # For other sites, try with a short timeout
-            response = None
-            try:
-                # Set a connection timeout and read timeout
-                response = self.session.get(url, timeout=(3, 5), allow_redirects=True)
                 
-                if response.status_code == 403 or response.status_code == 429:
-                    logger.error(f"Access denied (status {response.status_code}) for {url}")
-                    return None
-                    
-                if response.status_code != 200:
-                    # One quick retry with mobile headers
-                    mobile_headers = {
-                        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-                    }
-                    response = self.session.get(url, timeout=(2, 3), headers=mobile_headers, allow_redirects=True)
-                    
-            except requests.exceptions.Timeout:
-                logger.error(f"Timeout fetching {url} - site may be slow or blocking")
-                return None
-            except requests.exceptions.ConnectionError:
-                logger.error(f"Connection error fetching {url}")
-                return None
-            except Exception as e:
-                logger.error(f"Failed to fetch URL {url}: {str(e)}")
-                return None
-            
-            if not response or response.status_code != 200:
-                logger.error(f"Failed to fetch URL: {url}, status: {response.status_code if response else 'No response'}")
-                return None
-            
-            # Check if we've exceeded time limit
-            if time.time() - start_time > max_duration - 5:  # Leave 5 seconds for parsing
-                logger.error(f"Not enough time left for parsing {url}")
-                return None
-            
-            # Check if we got a paywall or login page
-            response_text_lower = response.text.lower()
-            if any(indicator in response_text_lower for indicator in ['paywall', 'subscribe to read', 'login required', 'access denied', 'members only']):
-                logger.warning(f"Possible paywall detected at {url}")
-                return None
-            
-            # Parse with BeautifulSoup
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Extract title - try multiple methods
-            title = None
-            title_selectors = [
-                'h1',
-                'meta[property="og:title"]',
-                'meta[name="twitter:title"]',
-                'title',
-                '.headline',
-                '.article-title',
-                '[class*="headline"]',
-                '[class*="title"]'
-            ]
-            
-            for selector in title_selectors:
-                if selector.startswith('meta'):
-                    elem = soup.select_one(selector)
-                    if elem and elem.get('content'):
-                        title = elem['content'].strip()
-                        break
-                else:
-                    elem = soup.select_one(selector)
-                    if elem:
-                        title = elem.get_text().strip()
-                        if title and len(title) > 10:  # Ensure it's not empty or too short
-                            break
-            
-            if not title:
-                title = 'Article Title Not Found'
-            
-            # Extract article text with enhanced selectors
-            article_text = ""
-            
-            # Remove script, style, and other non-content elements
-            for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
-                element.decompose()
-            
-            # Site-specific selectors for major news sites
-            site_specific_selectors = {
-                'reuters.com': 'div[data-testid="article-body"]',
-                'apnews.com': 'div.RichTextStoryBody',
-                'bbc.com': 'main[role="main"]',
-                'bbc.co.uk': 'main[role="main"]',
-                'theguardian.com': 'div.article-body-commercial-selector',
-                'cnn.com': 'div.article__content',
-                'foxnews.com': 'div.article-body',
-                'usatoday.com': 'div.gnt_ar_b',
-                'npr.org': 'div#storytext',
-                'politico.com': 'div.story-text',
-                'thehill.com': 'div.article__text',
-                'nbcnews.com': 'div.article-body',
-                'cbsnews.com': 'section.content__body',
-                'abcnews.go.com': 'div.Article__Content'
-            }
-            
-            # Try site-specific selector first
-            if domain in site_specific_selectors:
-                content = soup.select_one(site_specific_selectors[domain])
-                if content:
-                    paragraphs = content.find_all(['p', 'h2', 'h3'])
-                    article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
-            
-            # If site-specific didn't work, try generic selectors
-            if not article_text:
-                content_selectors = [
-                    'article',
-                    '[role="main"]',
-                    'main',
-                    '.article-body',
-                    '.story-body',
-                    '.entry-content',
-                    '.post-content',
-                    '[class*="article-content"]',
-                    '[class*="story-content"]',
-                    'div[itemprop="articleBody"]',
-                    '.content-body',
-                    '#article-body',
-                    '.article__body',
-                    '.c-entry-content'
-                ]
-                
-                for selector in content_selectors:
-                    content = soup.select_one(selector)
-                    if content:
-                        # Get all paragraphs and headers
-                        paragraphs = content.find_all(['p', 'h2', 'h3'])
-                        if paragraphs and len(paragraphs) > 3:  # Ensure we have substantial content
-                            article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
-                            if len(article_text) > 200:  # Minimum content length
-                                break
-            
-            # Last resort: get all paragraphs from the page
-            if not article_text or len(article_text) < 200:
-                all_paragraphs = soup.find_all('p')
-                # Filter out short paragraphs and navigation elements
-                good_paragraphs = [p.get_text().strip() for p in all_paragraphs 
-                                 if len(p.get_text().strip()) > 50 and 
-                                 not any(skip in p.get_text().lower() for skip in ['cookie', 'subscribe', 'newsletter', 'sign up', 'advertisement'])]
-                
-                if len(good_paragraphs) >= 3:
-                    article_text = ' '.join(good_paragraphs[:30])  # Limit to first 30 good paragraphs
-            
-            # Clean up the text
-            article_text = ' '.join(article_text.split())  # Remove extra whitespace
-            
-            # If we still don't have enough content, it's likely blocked
-            if len(article_text) < 200:
-                logger.warning(f"Insufficient content extracted from {url}: {len(article_text)} chars")
-                return None
-            
-            # Extract publish date
-            publish_date = None
-            date_selectors = [
-                'time[datetime]',
-                'meta[property="article:published_time"]',
-                'meta[name="publish_date"]',
-                'meta[property="article:published"]',
-                'meta[name="publication_date"]',
-                '[class*="publish-date"]',
-                '[class*="posted-on"]',
-                '[class*="timestamp"]'
-            ]
-            
-            for selector in date_selectors:
-                if selector.startswith('meta'):
-                    elem = soup.select_one(selector)
-                    if elem and elem.get('content'):
-                        publish_date = elem['content']
-                        break
-                else:
-                    elem = soup.select_one(selector)
-                    if elem:
-                        if elem.get('datetime'):
-                            publish_date = elem['datetime']
-                        else:
-                            publish_date = elem.get_text().strip()
-                        break
-            
-            # Extract author - ENHANCED VERSION
-            author = None
-            
-            # Special handling for ABC News - look for byline with author name
-            if domain == 'abcnews.go.com':
-                # Try to find "By Name" pattern in text
-                byline_patterns = [
-                    r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-                    r'by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)'
-                ]
-                
-                for pattern in byline_patterns:
-                    # Search in the raw HTML
-                    match = re.search(pattern, response.text)
-                    if match:
-                        potential_author = match.group(1)
-                        if not any(org in potential_author.lower() for org in ['abc news', 'news staff']):
-                            author = potential_author
-                            logger.info(f"Found author using pattern match: {author}")
-                            break
-                
-                # If not found, try specific selectors
-                if not author:
-                    abc_selectors = ['.Byline__Author', '.authors', '.slByline', 'div[class*="byline"] a']
-                    for selector in abc_selectors:
-                        elem = soup.select_one(selector)
-                        if elem:
-                            text = elem.get_text().strip()
-                            if text and text != 'ABC News':
-                                author = text.replace('By ', '').replace('by ', '')
-                                logger.info(f"Found author using ABC selector: {author}")
-                                break
-            
-            # Try other sites with specific selectors
-            if not author:
-                site_author_selectors = {
-                    'reuters.com': ['div.author-name', 'span[class*="Author"]'],
-                    'apnews.com': ['span.Component-bylines', 'div.byline'],
-                    'bbc.com': ['div.ssrcss-68pt20-Text', 'span.author-name'],
-                    'cnn.com': ['span.metadata__byline__author', 'div.byline__name']
+            if response.status_code != 200:
+                # One quick retry with mobile headers
+                mobile_headers = {
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
                 }
+                response = self.session.get(url, timeout=(2, 3), headers=mobile_headers, allow_redirects=True)
                 
-                if domain in site_author_selectors:
-                    for selector in site_author_selectors[domain]:
-                        elem = soup.select_one(selector)
-                        if elem:
-                            author = elem.get_text().strip().replace('By ', '').replace('by ', '')
-                            if author and len(author) > 2:
-                                logger.info(f"Found author using site selector: {author}")
-                                break
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout fetching {url} - site may be slow or blocking")
+            return None
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Connection error fetching {url}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to fetch URL {url}: {str(e)}")
+            return None
+        
+        if not response or response.status_code != 200:
+            logger.error(f"Failed to fetch URL: {url}, status: {response.status_code if response else 'No response'}")
+            return None
+        
+        # Check if we've exceeded time limit
+        if time.time() - start_time > max_duration - 5:  # Leave 5 seconds for parsing
+            logger.error(f"Not enough time left for parsing {url}")
+            return None
+        
+        # Check if we got a paywall or login page
+        response_text_lower = response.text.lower()
+        if any(indicator in response_text_lower for indicator in ['paywall', 'subscribe to read', 'login required', 'access denied', 'members only']):
+            logger.warning(f"Possible paywall detected at {url}")
+            return None
+        
+        # Parse with BeautifulSoup
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract title - try multiple methods
+        title = None
+        title_selectors = [
+            'h1',
+            'meta[property="og:title"]',
+            'meta[name="twitter:title"]',
+            'title',
+            '.headline',
+            '.article-title',
+            '[class*="headline"]',
+            '[class*="title"]'
+        ]
+        
+        for selector in title_selectors:
+            if selector.startswith('meta'):
+                elem = soup.select_one(selector)
+                if elem and elem.get('content'):
+                    title = elem['content'].strip()
+                    break
+            else:
+                elem = soup.select_one(selector)
+                if elem:
+                    title = elem.get_text().strip()
+                    if title and len(title) > 10:  # Ensure it's not empty or too short
+                        break
+        
+        if not title:
+            title = 'Article Title Not Found'
+        
+        # Extract article text with enhanced selectors
+        article_text = ""
+        
+        # Remove script, style, and other non-content elements
+        for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
+            element.decompose()
+        
+        # Site-specific selectors for major news sites
+        site_specific_selectors = {
+            'reuters.com': 'div[data-testid="article-body"]',
+            'apnews.com': 'div.RichTextStoryBody',
+            'bbc.com': 'main[role="main"]',
+            'bbc.co.uk': 'main[role="main"]',
+            'theguardian.com': 'div.article-body-commercial-selector',
+            'cnn.com': 'div.article__content',
+            'foxnews.com': 'div.article-body',
+            'usatoday.com': 'div.gnt_ar_b',
+            'npr.org': 'div#storytext',
+            'politico.com': 'div.story-text',
+            'thehill.com': 'div.article__text',
+            'nbcnews.com': 'div.article-body',
+            'cbsnews.com': 'section.content__body',
+            'abcnews.go.com': 'div.Article__Content'
+        }
+        
+        # Try site-specific selector first
+        if domain in site_specific_selectors:
+            content = soup.select_one(site_specific_selectors[domain])
+            if content:
+                paragraphs = content.find_all(['p', 'h2', 'h3'])
+                article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+        
+        # If site-specific didn't work, try generic selectors
+        if not article_text:
+            content_selectors = [
+                'article',
+                '[role="main"]',
+                'main',
+                '.article-body',
+                '.story-body',
+                '.entry-content',
+                '.post-content',
+                '[class*="article-content"]',
+                '[class*="story-content"]',
+                'div[itemprop="articleBody"]',
+                '.content-body',
+                '#article-body',
+                '.article__body',
+                '.c-entry-content'
+            ]
             
-            # Try meta tags if still no author
+            for selector in content_selectors:
+                content = soup.select_one(selector)
+                if content:
+                    # Get all paragraphs and headers
+                    paragraphs = content.find_all(['p', 'h2', 'h3'])
+                    if paragraphs and len(paragraphs) > 3:  # Ensure we have substantial content
+                        article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+                        if len(article_text) > 200:  # Minimum content length
+                            break
+        
+        # Last resort: get all paragraphs from the page
+        if not article_text or len(article_text) < 200:
+            all_paragraphs = soup.find_all('p')
+            # Filter out short paragraphs and navigation elements
+            good_paragraphs = [p.get_text().strip() for p in all_paragraphs 
+                             if len(p.get_text().strip()) > 50 and 
+                             not any(skip in p.get_text().lower() for skip in ['cookie', 'subscribe', 'newsletter', 'sign up', 'advertisement'])]
+            
+            if len(good_paragraphs) >= 3:
+                article_text = ' '.join(good_paragraphs[:30])  # Limit to first 30 good paragraphs
+        
+        # Clean up the text
+        article_text = ' '.join(article_text.split())  # Remove extra whitespace
+        
+        # If we still don't have enough content, it's likely blocked
+        if len(article_text) < 200:
+            logger.warning(f"Insufficient content extracted from {url}: {len(article_text)} chars")
+            return None
+        
+        # Extract publish date
+        publish_date = None
+        date_selectors = [
+            'time[datetime]',
+            'meta[property="article:published_time"]',
+            'meta[name="publish_date"]',
+            'meta[property="article:published"]',
+            'meta[name="publication_date"]',
+            '[class*="publish-date"]',
+            '[class*="posted-on"]',
+            '[class*="timestamp"]'
+        ]
+        
+        for selector in date_selectors:
+            if selector.startswith('meta'):
+                elem = soup.select_one(selector)
+                if elem and elem.get('content'):
+                    publish_date = elem['content']
+                    break
+            else:
+                elem = soup.select_one(selector)
+                if elem:
+                    if elem.get('datetime'):
+                        publish_date = elem['datetime']
+                    else:
+                        publish_date = elem.get_text().strip()
+                    break
+        
+        # Extract author - FIXED VERSION
+        author = None
+        
+        # List of organization names to exclude (these are NOT authors)
+        org_names = [
+            'abc news', 'reuters', 'associated press', 'ap news', 
+            'the washington post', 'washington post', 'the new york times', 'new york times',
+            'cnn', 'fox news', 'msnbc', 'nbc news', 'cbs news', 'bbc news',
+            'the guardian', 'usa today', 'bloomberg', 'the wall street journal',
+            'npr', 'politico', 'the hill', 'huffpost', 'buzzfeed',
+            'vice', 'vox', 'axios', 'the daily beast', 'newsweek',
+            'time', 'fortune', 'forbes', 'business insider', 'cnbc',
+            'the economist', 'financial times', 'the atlantic', 'the new yorker',
+            'staff', 'news staff', 'editorial board', 'newsroom'
+        ]
+        
+        # Special handling for ABC News
+        if domain == 'abcnews.go.com':
+            # First, try ABC-specific selectors
+            abc_selectors = [
+                '.Byline__Author',
+                '.byline__author',
+                '.authors',
+                '.author-name',
+                '.contributor',
+                'span[class*="byline"]:not([class*="timestamp"])',
+                'div[class*="byline"] a',
+                'p[class*="byline"]'
+            ]
+            
+            for selector in abc_selectors:
+                elems = soup.select(selector)
+                for elem in elems:
+                    text = elem.get_text().strip()
+                    # Remove common prefixes
+                    text = re.sub(r'^(By|BY|by)\s+', '', text)
+                    
+                    # Check if it's not an organization name
+                    if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
+                        # Additional check: must contain at least one space (first and last name)
+                        if ' ' in text and text.count(' ') < 5:  # Reasonable name length
+                            author = text
+                            logger.info(f"Found author using ABC selector '{selector}': {author}")
+                            break
+                if author:
+                    break
+            
+            # If not found, try searching in the article text itself
             if not author:
-                meta_selectors = [
-                    'meta[name="author"]',
-                    'meta[property="article:author"]',
-                    'meta[name="byl"]'
-                ]
-                
-                for selector in meta_selectors:
-                    elem = soup.select_one(selector)
-                    if elem and elem.get('content'):
-                        content = elem['content'].strip()
-                        # Skip organization names
-                        if content and not any(org in content.lower() for org in ['abc news', 'reuters', 'cnn', 'bbc news']):
+                # Look for byline pattern near the beginning of the article
+                article_start = article_text[:500] if len(article_text) > 500 else article_text
+                byline_match = re.search(r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})', article_start)
+                if byline_match:
+                    potential_author = byline_match.group(1)
+                    if not any(org in potential_author.lower() for org in org_names):
+                        author = potential_author
+                        logger.info(f"Found author in article text: {author}")
+        
+        # Try meta tags if still no author
+        if not author:
+            meta_selectors = [
+                'meta[name="author"]',
+                'meta[property="article:author"]',
+                'meta[name="byl"]',
+                'meta[name="DC.creator"]',
+                'meta[property="og:article:author"]'
+            ]
+            
+            for selector in meta_selectors:
+                elem = soup.select_one(selector)
+                if elem and elem.get('content'):
+                    content = elem['content'].strip()
+                    # Remove "By" prefix if present
+                    content = re.sub(r'^(By|BY|by)\s+', '', content)
+                    
+                    # Skip organization names
+                    if content and not any(org in content.lower() for org in org_names):
+                        if ' ' in content and content.count(' ') < 5:
                             author = content
                             logger.info(f"Found author in meta tag: {author}")
                             break
+        
+        # Generic selectors as last resort
+        if not author:
+            generic_selectors = [
+                '.byline:not(.byline-timestamp)',
+                '.author:not(.author-bio)',
+                '.author-name',
+                '[rel="author"]',
+                'span.byline-name',
+                'div.author-info a',
+                'p.author'
+            ]
             
-            # Generic selectors as last resort
-            if not author:
-                generic_selectors = ['.byline', '.author', '.author-name', '[rel="author"]']
-                for selector in generic_selectors:
-                    elem = soup.select_one(selector)
-                    if elem:
-                        text = elem.get_text().strip().replace('By ', '').replace('by ', '')
-                        if text and len(text) > 2 and not any(org in text.lower() for org in ['abc news', 'reuters']):
+            for selector in generic_selectors:
+                elems = soup.select(selector)
+                for elem in elems:
+                    text = elem.get_text().strip()
+                    text = re.sub(r'^(By|BY|by)\s+', '', text)
+                    
+                    if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
+                        if ' ' in text and text.count(' ') < 5:
                             author = text
+                            logger.info(f"Found author using generic selector: {author}")
                             break
-            
-            logger.info(f"Successfully extracted {len(article_text)} chars from {domain} with author: {author or 'Unknown'} in {time.time() - start_time:.2f} seconds")
-            
-            return {
-                'url': url,
-                'domain': domain,
-                'title': title,
-                'text': article_text[:5000],  # Limit text length
-                'publish_date': publish_date,
-                'author': author
-            }
-            
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout while fetching URL: {url}")
-            return None
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Connection error while fetching URL: {url}")
-            return None
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error for URL {url}: {str(e)}")
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
-            return None
+                if author:
+                    break
+        
+        # Final validation: ensure author is a person's name, not an organization
+        if author:
+            # Additional validation: should look like a person's name
+            if len(author.split()) > 5 or any(org in author.lower() for org in org_names):
+                logger.warning(f"Rejected author '{author}' - appears to be organization")
+                author = None
+        
+        logger.info(f"Successfully extracted {len(article_text)} chars from {domain} with author: {author or 'Unknown'} in {time.time() - start_time:.2f} seconds")
+        
+        return {
+            'url': url,
+            'domain': domain,
+            'title': title,
+            'text': article_text[:5000],  # Limit text length
+            'publish_date': publish_date,
+            'author': author
+        }
+        
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout while fetching URL: {url}")
+        return None
+    except requests.exceptions.ConnectionError:
+        logger.error(f"Connection error while fetching URL: {url}")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error for URL {url}: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
+        return None
     def get_ai_analysis(self, article_data):
         """
         Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
