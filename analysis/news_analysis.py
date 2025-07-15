@@ -487,7 +487,7 @@ class NewsAnalyzer:
         except Exception as e:
             logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
             return None
-            def get_ai_analysis(self, article_data):
+    def get_ai_analysis(self, article_data):
         """
         Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
         """
