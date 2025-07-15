@@ -384,178 +384,87 @@ class NewsAnalyzer:
                             publish_date = elem.get_text().strip()
                         break
             
-            # Extract author
-author = None
-
-# Enhanced site-specific author selectors
-site_specific_author_selectors = {
-    'abcnews.go.com': [
-        '.Byline__Author',  # Primary selector for ABC News
-        '.slByline',        # Alternative ABC selector
-        '.authors',
-        '.byline a',
-        'div[class*="byline"] a'
-    ],
-    'reuters.com': [
-        'div.author-name',
-        'span[class*="Author"]',
-        '.BylineBar__byline a'
-    ],
-    'apnews.com': [
-        'span.Component-bylines',
-        'div.byline',
-        '.CardHeadline-byline'
-    ],
-    'bbc.com': [
-        'div.ssrcss-68pt20-Text',
-        'span.author-name',
-        'p[class*="Contributor"]'
-    ],
-    'cnn.com': [
-        'span.metadata__byline__author',
-        'div.byline__name',
-        '.metadata__byline a'
-    ],
-    'foxnews.com': [
-        'div.author-byline span',
-        '.author-byline a',
-        'span.author'
-    ],
-    'nytimes.com': [
-        'span.byline-author',
-        'span[itemprop="name"]',
-        '.css-1baulvz'
-    ]
-}
-
-# First try site-specific selectors
-if domain in site_specific_author_selectors:
-    for selector in site_specific_author_selectors[domain]:
-        try:
-            elem = soup.select_one(selector)
-            if elem:
-                # Get text and clean it up
-                author_text = elem.get_text().strip()
-                
-                # Clean common prefixes
-                author_text = author_text.replace('By ', '').replace('by ', '').replace('BY ', '')
-                
-                # For ABC News, check if we got the org name instead of author
-                if domain == 'abcnews.go.com' and author_text == 'ABC News':
-                    continue  # Skip this and try next selector
-                
-                if author_text and len(author_text) > 2 and len(author_text) < 100:
-                    # Additional validation - should look like a person's name
-                    if not any(org in author_text.lower() for org in ['abc news', 'reuters', 'ap news', 'cnn', 'bbc']):
-                        author = author_text
-                        logger.info(f"Found author using site-specific selector '{selector}': {author}")
-                        break
-        except Exception as e:
-            logger.debug(f"Error with selector {selector}: {e}")
-            continue
-
-# If not found, look for byline text patterns
-if not author and domain == 'abcnews.go.com':
-    # Special handling for ABC News - look for "By Name" pattern
-    byline_elements = soup.find_all(text=re.compile(r'^By\s+[A-Z][a-z]+\s+[A-Z][a-z]+'))
-    for text in byline_elements:
-        match = re.search(r'^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)', text.strip())
-        if match:
-            author = match.group(1)
-            logger.info(f"Found author using text pattern: {author}")
-            break
-
-# If not found, try meta tags (but be careful of org names)
-if not author:
-    meta_selectors = [
-        'meta[name="author"]',
-        'meta[property="article:author"]',
-        'meta[name="byl"]',
-        'meta[property="author"]',
-        'meta[name="parsely-author"]'
-    ]
-    
-    for selector in meta_selectors:
-        elem = soup.select_one(selector)
-        if elem and elem.get('content'):
-            content = elem['content'].strip()
-            # Skip if it's just the organization name
-            if content and not any(org in content.lower() for org in ['abc news', 'reuters', 'associated press', 'cnn', 'bbc news']):
-                author = content
-                logger.info(f"Found author in meta tag: {author}")
-                break
-
-# Try JSON-LD structured data
-if not author:
-    scripts = soup.find_all('script', type='application/ld+json')
-    for script in scripts:
-        try:
-            data = json.loads(script.string)
-            if isinstance(data, dict):
-                # Check for author in the data
-                if 'author' in data and isinstance(data['author'], dict):
-                    author_name = data['author'].get('name', '')
-                    if author_name and not any(org in author_name.lower() for org in ['abc news', 'reuters', 'cnn']):
-                        author = author_name
-                        logger.info(f"Found author in JSON-LD: {author}")
-                        break
-                # Check @graph structure
-                elif '@graph' in data:
-                    for item in data['@graph']:
-                        if isinstance(item, dict) and item.get('@type') in ['NewsArticle', 'Article']:
-                            if 'author' in item:
-                                if isinstance(item['author'], dict):
-                                    author_name = item['author'].get('name', '')
-                                elif isinstance(item['author'], str):
-                                    author_name = item['author']
-                                
-                                if author_name and not any(org in author_name.lower() for org in ['abc news', 'reuters', 'cnn']):
-                                    author = author_name
-                                    logger.info(f"Found author in JSON-LD @graph: {author}")
-                                    break
-        except:
-            continue
-
-# Final fallback - common selectors
-if not author:
-    common_selectors = [
-        '.byline',
-        '.author',
-        '.author-name',
-        '.by-author',
-        '.article-author',
-        '[rel="author"]',
-        'span[itemprop="author"]',
-        'div[itemprop="author"]'
-    ]
-    
-    for selector in common_selectors:
-        elem = soup.select_one(selector)
-        if elem:
-            author_text = elem.get_text().strip()
-            author_text = author_text.replace('By ', '').replace('by ', '')
+            # Extract author - ENHANCED VERSION
+            author = None
             
-            # Validate it's not an org name
-            if (author_text and len(author_text) > 2 and len(author_text) < 100 and
-                not any(org in author_text.lower() for org in ['abc news', 'reuters', 'cnn', 'bbc'])):
-                author = author_text
-                logger.info(f"Found author using common selector: {author}")
-                break
-
-# Clean up final author string
-if author:
-    # Remove extra whitespace
-    author = ' '.join(author.split())
-    # Remove trailing punctuation
-    author = author.rstrip('.,;:')
-    # One more check that it's not an organization
-    if any(org in author.lower() for org in ['abc news', 'reuters', 'associated press', 'cnn staff']):
-        logger.warning(f"Detected organization name instead of author: {author}")
-        author = None
-
-logger.info(f"Final author extraction result: {author or 'Not found'}")
+            # Special handling for ABC News - look for byline with author name
+            if domain == 'abcnews.go.com':
+                # Try to find "By Name" pattern in text
+                byline_patterns = [
+                    r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
+                    r'by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)'
+                ]
+                
+                for pattern in byline_patterns:
+                    # Search in the raw HTML
+                    match = re.search(pattern, response.text)
+                    if match:
+                        potential_author = match.group(1)
+                        if not any(org in potential_author.lower() for org in ['abc news', 'news staff']):
+                            author = potential_author
+                            logger.info(f"Found author using pattern match: {author}")
+                            break
+                
+                # If not found, try specific selectors
+                if not author:
+                    abc_selectors = ['.Byline__Author', '.authors', '.slByline', 'div[class*="byline"] a']
+                    for selector in abc_selectors:
+                        elem = soup.select_one(selector)
+                        if elem:
+                            text = elem.get_text().strip()
+                            if text and text != 'ABC News':
+                                author = text.replace('By ', '').replace('by ', '')
+                                logger.info(f"Found author using ABC selector: {author}")
+                                break
             
-            logger.info(f"Successfully extracted {len(article_text)} chars from {domain} in {time.time() - start_time:.2f} seconds")
+            # Try other sites with specific selectors
+            if not author:
+                site_author_selectors = {
+                    'reuters.com': ['div.author-name', 'span[class*="Author"]'],
+                    'apnews.com': ['span.Component-bylines', 'div.byline'],
+                    'bbc.com': ['div.ssrcss-68pt20-Text', 'span.author-name'],
+                    'cnn.com': ['span.metadata__byline__author', 'div.byline__name']
+                }
+                
+                if domain in site_author_selectors:
+                    for selector in site_author_selectors[domain]:
+                        elem = soup.select_one(selector)
+                        if elem:
+                            author = elem.get_text().strip().replace('By ', '').replace('by ', '')
+                            if author and len(author) > 2:
+                                logger.info(f"Found author using site selector: {author}")
+                                break
+            
+            # Try meta tags if still no author
+            if not author:
+                meta_selectors = [
+                    'meta[name="author"]',
+                    'meta[property="article:author"]',
+                    'meta[name="byl"]'
+                ]
+                
+                for selector in meta_selectors:
+                    elem = soup.select_one(selector)
+                    if elem and elem.get('content'):
+                        content = elem['content'].strip()
+                        # Skip organization names
+                        if content and not any(org in content.lower() for org in ['abc news', 'reuters', 'cnn', 'bbc news']):
+                            author = content
+                            logger.info(f"Found author in meta tag: {author}")
+                            break
+            
+            # Generic selectors as last resort
+            if not author:
+                generic_selectors = ['.byline', '.author', '.author-name', '[rel="author"]']
+                for selector in generic_selectors:
+                    elem = soup.select_one(selector)
+                    if elem:
+                        text = elem.get_text().strip().replace('By ', '').replace('by ', '')
+                        if text and len(text) > 2 and not any(org in text.lower() for org in ['abc news', 'reuters']):
+                            author = text
+                            break
+            
+            logger.info(f"Successfully extracted {len(article_text)} chars from {domain} with author: {author or 'Unknown'} in {time.time() - start_time:.2f} seconds")
             
             return {
                 'url': url,
@@ -578,7 +487,7 @@ logger.info(f"Final author extraction result: {author or 'Not found'}")
         except Exception as e:
             logger.error(f"Unexpected error extracting URL {url}: {str(e)}")
             return None
-    def get_ai_analysis(self, article_data):
+            def get_ai_analysis(self, article_data):
         """
         Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
         """
