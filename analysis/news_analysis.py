@@ -172,7 +172,7 @@ class NewsAnalyzer:
             }
     
     def extract_from_url(self, url):
-        """Extract article content from URL with enhanced extraction - FIXED VERSION"""
+        """Extract article content from URL with enhanced extraction - FINAL FIXED VERSION"""
         start_time = time.time()
         max_duration = 20  # Maximum 20 seconds for extraction
         
@@ -384,7 +384,7 @@ class NewsAnalyzer:
                             publish_date = elem.get_text().strip()
                         break
             
-            # Extract author - FIXED VERSION
+            # Extract author - FINAL FIXED VERSION
             author = None
             
             # List of organization names to exclude (these are NOT authors)
@@ -397,59 +397,97 @@ class NewsAnalyzer:
                 'vice', 'vox', 'axios', 'the daily beast', 'newsweek',
                 'time', 'fortune', 'forbes', 'business insider', 'cnbc',
                 'the economist', 'financial times', 'the atlantic', 'the new yorker',
-                'staff', 'news staff', 'editorial board', 'newsroom'
+                'staff', 'news staff', 'editorial board', 'newsroom', 'correspondent'
             ]
             
-            # Special handling for ABC News
+            # ENHANCED ABC News handling
             if domain == 'abcnews.go.com':
-                # First, try ABC-specific selectors
-                abc_selectors = [
-                    '.Byline__Author',
-                    '.byline__author',
-                    '.authors',
-                    '.author-name',
-                    '.contributor',
-                    'span[class*="byline"]:not([class*="timestamp"])',
-                    'div[class*="byline"] a',
-                    'p[class*="byline"]'
-                ]
+                # For ABC News, look for specific patterns in the article
+                # Check if the URL contains an author ID
+                if '/author/' in url:
+                    # Extract author from URL pattern
+                    author_match = re.search(r'/author/([^/]+)', url)
+                    if author_match:
+                        author_slug = author_match.group(1)
+                        # Convert slug to name (david_brennan -> David Brennan)
+                        author = ' '.join(word.capitalize() for word in author_slug.split('_'))
+                        logger.info(f"Found author from URL: {author}")
                 
-                for selector in abc_selectors:
-                    elems = soup.select(selector)
-                    for elem in elems:
-                        text = elem.get_text().strip()
-                        # Remove common prefixes
-                        text = re.sub(r'^(By|BY|by)\s+', '', text)
-                        
-                        # Check if it's not an organization name
-                        if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
-                            # Additional check: must contain at least one space (first and last name)
-                            if ' ' in text and text.count(' ') < 5:  # Reasonable name length
-                                author = text
-                                logger.info(f"Found author using ABC selector '{selector}': {author}")
-                                break
-                    if author:
-                        break
-                
-                # If not found, try searching in the article text itself
+                # If not found in URL, search in the HTML
                 if not author:
-                    # Look for byline pattern near the beginning of the article
-                    article_start = article_text[:500] if len(article_text) > 500 else article_text
-                    byline_match = re.search(r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})', article_start)
-                    if byline_match:
-                        potential_author = byline_match.group(1)
-                        if not any(org in potential_author.lower() for org in org_names):
-                            author = potential_author
-                            logger.info(f"Found author in article text: {author}")
+                    # Look for the article text that we already extracted
+                    # ABC News often puts the author at the beginning of the article
+                    if article_text:
+                        # Search for "By Name" at the very beginning of the article
+                        first_paragraph = article_text[:200]
+                        by_match = re.search(r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})', first_paragraph)
+                        if by_match:
+                            potential_author = by_match.group(1)
+                            if not any(org in potential_author.lower() for org in org_names):
+                                author = potential_author
+                                logger.info(f"Found author in article beginning: {author}")
+                
+                # Try JSON-LD structured data
+                if not author:
+                    json_ld_scripts = soup.find_all('script', type='application/ld+json')
+                    for script in json_ld_scripts:
+                        try:
+                            data = json.loads(script.string)
+                            if isinstance(data, dict) and 'author' in data:
+                                if isinstance(data['author'], dict) and 'name' in data['author']:
+                                    author_name = data['author']['name']
+                                    if not any(org in author_name.lower() for org in org_names):
+                                        author = author_name
+                                        logger.info(f"Found author in JSON-LD: {author}")
+                                        break
+                                elif isinstance(data['author'], str):
+                                    if not any(org in data['author'].lower() for org in org_names):
+                                        author = data['author']
+                                        logger.info(f"Found author in JSON-LD: {author}")
+                                        break
+                        except:
+                            pass
+                
+                # ABC-specific selectors
+                if not author:
+                    abc_selectors = [
+                        '.Authors__author',
+                        '.Byline__Author',
+                        '.byline__author',
+                        '.authors',
+                        '.author-name',
+                        '.by-authors',
+                        '.article-authors',
+                        'span.author',
+                        'div.author'
+                    ]
+                    
+                    for selector in abc_selectors:
+                        elems = soup.select(selector)
+                        for elem in elems:
+                            text = elem.get_text().strip()
+                            # Clean up the text
+                            text = re.sub(r'^(By|BY|by)\s+', '', text)
+                            text = re.sub(r'\s+', ' ', text)  # Normalize whitespace
+                            
+                            # Validate it's a person's name
+                            if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
+                                if ' ' in text and text.count(' ') < 5:
+                                    author = text
+                                    logger.info(f"Found author using ABC selector '{selector}': {author}")
+                                    break
+                        if author:
+                            break
             
-            # Try meta tags if still no author
+            # Try standard meta tags if still no author
             if not author:
                 meta_selectors = [
                     'meta[name="author"]',
                     'meta[property="article:author"]',
                     'meta[name="byl"]',
                     'meta[name="DC.creator"]',
-                    'meta[property="og:article:author"]'
+                    'meta[property="og:article:author"]',
+                    'meta[name="twitter:creator"]'
                 ]
                 
                 for selector in meta_selectors:
@@ -475,7 +513,9 @@ class NewsAnalyzer:
                     '[rel="author"]',
                     'span.byline-name',
                     'div.author-info a',
-                    'p.author'
+                    'p.author',
+                    '.story-byline',
+                    '.article-byline'
                 ]
                 
                 for selector in generic_selectors:
@@ -498,6 +538,15 @@ class NewsAnalyzer:
                 if len(author.split()) > 5 or any(org in author.lower() for org in org_names):
                     logger.warning(f"Rejected author '{author}' - appears to be organization")
                     author = None
+            
+            # Special case: if ABC News and no author found, check if it's actually authored by David Brennan
+            # This is based on the specific URL pattern you provided
+            if domain == 'abcnews.go.com' and not author and '/International/' in url:
+                # This is a fallback for known articles
+                if 'russia' in url.lower() and 'ukraine' in url.lower():
+                    # Based on your example, we know David Brennan writes these articles
+                    # But we should only use this as a last resort
+                    logger.info("No author found for ABC News International article about Russia/Ukraine")
             
             logger.info(f"Successfully extracted {len(article_text)} chars from {domain} with author: {author or 'Unknown'} in {time.time() - start_time:.2f} seconds")
             
