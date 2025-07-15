@@ -4738,9 +4738,14 @@
             `;
         }
         
-        document.getElementById('timeliness-explanation').textContent = 
-            publishDate ? `Article published ${age}. ${getTimelinessAdvice(age)}` :
-            'Missing publication date prevents assessment of information currency.';
+        if (publishDate) {
+    const age = calculateArticleAge(publishDate);
+    document.getElementById('timeliness-explanation').textContent = 
+        `Article published ${age}. ${getTimelinessAdvice(age)}`;
+} else {
+    document.getElementById('timeliness-explanation').textContent = 
+        'Missing publication date prevents assessment of information currency.';
+}
         document.getElementById('timeliness-methodology').textContent = 
             'Publication date extracted from article metadata, URL patterns, and content analysis.';
     }
