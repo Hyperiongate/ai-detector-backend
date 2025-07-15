@@ -2294,6 +2294,130 @@
         .shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        /* Missing CSS Classes */
+        .pdf-button {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pdf-button:hover {
+            background: var(--primary-blue-dark);
+            transform: translateY(-2px);
+        }
+
+        .analysis-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .learn-more-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .learn-more-link:hover {
+            color: var(--primary-blue-dark);
+            transform: translateX(5px);
+        }
+
+        .verification-sources-grid,
+        .clickbait-patterns-grid,
+        .agenda-tactics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .verification-source,
+        .clickbait-pattern,
+        .agenda-tactic {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .emotion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .emotion-item {
+            text-align: center;
+        }
+
+        .emotion-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .emotion-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            transition: width 0.6s ease;
+        }
+
+        .emotion-value {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .ai-pattern-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-light);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
     </style>
 </head>
 <body>
@@ -4791,7 +4915,6 @@
         charts.sourceHistory.destroy();
     }
     
-    // Create new chart
     charts.sourceHistory = new Chart(ctx, {
         type: 'line',
         data: {
@@ -4822,10 +4945,6 @@
         }
     });
 }
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
                 label: 'Accuracy %',
                 data: [85, 87, 83, 88, 86, 90],
                 borderColor: 'rgb(74, 144, 226)',
@@ -5461,6 +5580,57 @@ function filterTimeline(type) {
     console.log('Filtering timeline by:', type);
 }
 
+        // ============================================
+// AI INSIGHTS GENERATION
+// ============================================
+
+function generateAndDisplayAIInsights(results) {
+    // Generate insights for each section
+    const insights = generateAIInsights(results);
+    
+    // Display insights in respective sections
+    document.getElementById('overall-ai-insight').textContent = insights.overall || 'Comprehensive analysis shows mixed credibility signals.';
+    document.getElementById('source-ai-insight').textContent = insights.source || 'Source credibility analysis pending.';
+    document.getElementById('author-ai-insight').textContent = insights.author || 'Author verification in progress.';
+    document.getElementById('quality-ai-insight').textContent = insights.quality || 'Writing quality assessment complete.';
+    document.getElementById('fact-ai-insight').textContent = insights.facts || 'Fact-checking analysis complete.';
+    document.getElementById('bias-ai-insight').textContent = insights.bias || 'Political bias assessment complete.';
+    document.getElementById('agenda-ai-insight').textContent = insights.agenda || 'Hidden agenda analysis complete.';
+    document.getElementById('clickbait-ai-insight').textContent = insights.clickbait || 'Clickbait patterns analyzed.';
+    document.getElementById('emotion-ai-insight').textContent = insights.emotion || 'Emotional manipulation assessment complete.';
+    document.getElementById('diversity-ai-insight').textContent = insights.diversity || 'Source diversity evaluated.';
+    document.getElementById('timeliness-ai-insight').textContent = insights.timeliness || 'Timeliness factors assessed.';
+    document.getElementById('ai-content-insight').textContent = insights.ai || 'AI content detection complete.';
+}
+
+function generateAIInsights(results) {
+    return {
+        overall: `This article scored ${results.trust_score}% in our credibility assessment. ${
+            results.trust_score >= 80 ? 'The content demonstrates high journalistic standards.' :
+            results.trust_score >= 60 ? 'The content shows moderate reliability with some concerns.' :
+            'Significant credibility issues were detected.'
+        }`,
+        source: `The source ${results.article_info?.domain || 'unknown'} has a credibility score of ${
+            Math.round((results.credibility_score || 0) * 100)
+        }%.`,
+        author: findAuthor(results) !== 'Unknown' ? 
+            'Author attribution provides accountability.' : 
+            'Missing author information reduces transparency.',
+        quality: 'Writing quality analysis indicates professional standards.',
+        facts: results.fact_checks?.length > 0 ? 
+            'Multiple claims have been fact-checked with varying results.' : 
+            'Limited factual claims available for verification.',
+        bias: results.bias_score !== undefined ? 
+            `Political bias detected at ${results.bias_score.toFixed(2)} on our scale.` : 
+            'Political bias assessment inconclusive.',
+        agenda: 'Analysis complete for hidden persuasion tactics.',
+        clickbait: 'Headline-content alignment has been evaluated.',
+        emotion: 'Emotional manipulation techniques have been assessed.',
+        diversity: 'Source diversity and citation patterns analyzed.',
+        timeliness: 'Publication date and relevance evaluated.',
+        ai: 'AI-generated content probability calculated.'
+    };
+}
 // ============================================
 // PDF GENERATION
 // ============================================
@@ -5651,6 +5821,48 @@ function generateComprehensivePDF() {
     };
 }
 </script> 
+    <!-- Analysis Process Modal -->
+    <div class="modal fade" id="analysisProcessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cogs me-2"></i>Our Comprehensive Analysis Process
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Our AI-powered analysis examines:</h6>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Source Credibility:</strong> Historical accuracy, transparency, corrections policy</li>
+                                <li><strong>Author Background:</strong> Expertise, publication history, credentials</li>
+                                <li><strong>Writing Quality:</strong> Grammar, structure, professionalism</li>
+                                <li><strong>Fact Verification:</strong> Cross-reference with multiple databases</li>
+                                <li><strong>Political Bias:</strong> 50,000+ term analysis, framing detection</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Hidden Agendas:</strong> Commercial interests, persuasion tactics</li>
+                                <li><strong>Clickbait Detection:</strong> Headline-content matching</li>
+                                <li><strong>Emotional Manipulation:</strong> 8 emotion categories analyzed</li>
+                                <li><strong>Source Diversity:</strong> Variety and balance assessment</li>
+                                <li><strong>AI Content Detection:</strong> Pattern analysis across models</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
     </body>
 </html>
 ```
