@@ -1090,7 +1090,7 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info(f"Starting Facts & Fakes AI on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=debug)"""
+    app.run(host='0.0.0.0', port=port, debug=debug)
 Facts & Fakes AI - Main Flask Application
 Updated with real-time progress streaming and enhanced analysis feedback
 """
