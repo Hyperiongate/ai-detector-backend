@@ -147,7 +147,7 @@ class NewsAnalyzer:
             if article_data.get('domain'):
                 analysis['source_credibility'] = self.check_source_credibility(article_data['domain'])
             
-            # NEW: Add Google Fact Check results
+            # Add Google Fact Check results
             if is_pro and GOOGLE_FACT_CHECK_API_KEY:
                 # Get fact checks for key claims
                 fact_check_results = self.google_fact_check(analysis.get('key_claims', []))
@@ -159,6 +159,11 @@ class NewsAnalyzer:
                     if false_claims > 0:
                         penalty = min(false_claims * 10, 30)  # Max 30 point penalty
                         analysis['trust_score'] = max(0, analysis.get('trust_score', 50) - penalty)
+            
+            # NEW: Add related news articles
+            if is_pro and NEWS_API_KEY and article_data.get('title'):
+                related_articles = self.get_related_articles(article_data['title'])
+                analysis['related_articles'] = related_articles
             
             return {
                 'success': True,
@@ -174,6 +179,7 @@ class NewsAnalyzer:
                 'key_claims': analysis.get('key_claims', []),
                 'fact_checks': analysis.get('fact_checks', []),
                 'source_credibility': analysis.get('source_credibility', {}),
+                'related_articles': analysis.get('related_articles', []),
                 'article_info': article_data
             }
             
@@ -303,6 +309,128 @@ class NewsAnalyzer:
             
         except Exception as e:
             logger.error(f"Google Fact Check API error: {str(e)}")
+            return []
+    
+    def get_related_articles(self, query, max_articles=5):
+        """
+        Get related news articles using News API
+        
+        Args:
+            query: Search query (usually article title)
+            max_articles: Maximum number of articles to return
+            
+        Returns:
+            list: Related articles
+        """
+        if not NEWS_API_KEY:
+            return []
+        
+        try:
+            # News API endpoint
+            url = "https://newsapi.org/v2/everything"
+            
+            # Clean up query - remove special characters
+            clean_query = re.sub(r'[^\w\s]', ' ', query)
+            # Take first few important words
+            keywords = ' '.join(clean_query.split()[:5])
+            
+            params = {
+                'apiKey': NEWS_API_KEY,
+                'q': keywords,
+                'sortBy': 'relevancy',
+                'pageSize': max_articles,
+                'language': 'en'
+            }
+            
+            response = self.session.get(url, params=params, timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                articles = []
+                
+                if 'articles' in data:
+                    for article in data['articles'][:max_articles]:
+                        # Extract domain from URL
+                        domain = ''
+                        if article.get('url'):
+                            domain = urlparse(article['url']).netloc.replace('www.', '')
+                        
+                        articles.append({
+                            'title': article.get('title', ''),
+                            'url': article.get('url', ''),
+                            'source': article.get('source', {}).get('name', domain),
+                            'publishedAt': article.get('publishedAt', ''),
+                            'description': article.get('description', ''),
+                            'credibility': self.check_source_credibility(domain)
+                        })
+                
+                logger.info(f"Found {len(articles)} related articles via News API")
+                return articles
+            else:
+                logger.warning(f"News API error: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"News API error: {str(e)}")
+            return []
+    
+    def get_trending_news(self, country='us', category='general', max_articles=10):
+        """
+        Get trending news articles
+        
+        Args:
+            country: Country code (e.g., 'us', 'gb')
+            category: News category (e.g., 'general', 'technology', 'business')
+            max_articles: Maximum number of articles
+            
+        Returns:
+            list: Trending articles
+        """
+        if not NEWS_API_KEY:
+            return []
+        
+        try:
+            # News API top headlines endpoint
+            url = "https://newsapi.org/v2/top-headlines"
+            
+            params = {
+                'apiKey': NEWS_API_KEY,
+                'country': country,
+                'category': category,
+                'pageSize': max_articles
+            }
+            
+            response = self.session.get(url, params=params, timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                articles = []
+                
+                if 'articles' in data:
+                    for article in data['articles']:
+                        # Extract domain from URL
+                        domain = ''
+                        if article.get('url'):
+                            domain = urlparse(article['url']).netloc.replace('www.', '')
+                        
+                        articles.append({
+                            'title': article.get('title', ''),
+                            'url': article.get('url', ''),
+                            'source': article.get('source', {}).get('name', domain),
+                            'publishedAt': article.get('publishedAt', ''),
+                            'description': article.get('description', ''),
+                            'urlToImage': article.get('urlToImage', ''),
+                            'credibility': self.check_source_credibility(domain)
+                        })
+                
+                logger.info(f"Found {len(articles)} trending articles via News API")
+                return articles
+            else:
+                logger.warning(f"News API error: {response.status_code}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"News API trending error: {str(e)}")
             return []
     
     def extract_from_url(self, url):
@@ -837,7 +965,8 @@ class NewsAnalyzer:
             'key_claims': key_claims,
             'fact_checks': [],
             'summary': summary,
-            'trust_score': trust_score
+            'trust_score': trust_score,
+            'related_articles': []  # Empty in fallback mode
         }
     
     def check_source_credibility(self, domain):
@@ -866,3 +995,9 @@ def analyze_news_route(content, is_pro=True):
     
     # Perform analysis
     return analyzer.analyze(content, content_type, is_pro)
+
+# NEW: Additional utility functions for trending news
+def get_trending_news_route(country='us', category='general'):
+    """Get trending news articles"""
+    analyzer = NewsAnalyzer()
+    return analyzer.get_trending_news(country, category)
