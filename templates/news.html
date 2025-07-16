@@ -476,26 +476,181 @@
         }
 
         /* Progress bar for loading */
-        .progress-container {
-            background: #e5e7eb;
-            border-radius: 10px;
-            padding: 4px;
-            margin: 20px 0;
-        }
-        
-        .progress-bar {
-            height: 30px;
-            background: var(--primary-gradient);
-            border-radius: 8px;
-            width: 0%;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-        }
+        /* Enhanced Progress bar with WOW factor */
+.progress-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    border-radius: 20px;
+    padding: 6px;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.5),
+        0 5px 20px rgba(74, 144, 226, 0.3);
+}
+
+.progress-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #667eea);
+    background-size: 400% 400%;
+    border-radius: 20px;
+    z-index: -1;
+    animation: gradient-border 3s ease infinite;
+    filter: blur(8px);
+    opacity: 0.8;
+}
+
+@keyframes gradient-border {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.progress-bar {
+    height: 40px;
+    background: linear-gradient(90deg, 
+        #667eea 0%, 
+        #764ba2 15%, 
+        #f093fb 30%, 
+        #f5576c 45%, 
+        #4facfe 60%, 
+        #00f2fe 75%, 
+        #43e97b 90%, 
+        #38f9d7 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 15px;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 0 20px rgba(102, 126, 234, 0.6),
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255,255,255,0.4) 20%, 
+        rgba(255,255,255,0.6) 50%, 
+        rgba(255,255,255,0.4) 80%, 
+        transparent);
+    animation: sweep 2s infinite;
+}
+
+@keyframes sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to bottom, 
+        rgba(255,255,255,0.3) 0%, 
+        rgba(255,255,255,0.1) 50%, 
+        transparent 100%);
+    border-radius: 15px 15px 0 0;
+}
+
+/* Particle effects for the progress bar */
+.progress-bar.active {
+    animation: shimmer 2s linear infinite, pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        box-shadow: 
+            0 0 20px rgba(102, 126, 234, 0.6),
+            0 0 40px rgba(102, 126, 234, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.3),
+            inset 0 -1px 0 rgba(0,0,0,0.3);
+    }
+    50% { 
+        box-shadow: 
+            0 0 30px rgba(102, 126, 234, 0.8),
+            0 0 60px rgba(102, 126, 234, 0.6),
+            inset 0 1px 0 rgba(255,255,255,0.4),
+            inset 0 -1px 0 rgba(0,0,0,0.4);
+    }
+}
+
+/* Loading section progress bar specific styling */
+#loading-section .progress-container {
+    margin: 0 0 10px 0;
+    transform: scale(1);
+    transition: transform 0.3s ease;
+}
+
+#loading-section .progress-container:hover {
+    transform: scale(1.02);
+}
+
+/* Fixed header progress bar with extra effects */
+.fixed-progress-header {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.fixed-progress-header .progress-container {
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.3),
+        0 2px 10px rgba(74, 144, 226, 0.4);
+}
+
+/* Rainbow text animation for percentage */
+.progress-bar.high-progress {
+    background: linear-gradient(90deg, 
+        #00ff88 0%, 
+        #00f2fe 20%, 
+        #4facfe 40%, 
+        #667eea 60%, 
+        #764ba2 80%, 
+        #f093fb 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1s linear infinite;
+}
+
+/* Completion animation */
+.progress-bar.complete {
+    animation: shimmer 0.5s linear infinite, complete-flash 0.5s ease;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+}
+
+@keyframes complete-flash {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
 
         /* Claim cards */
         .claim-card {
@@ -2196,25 +2351,47 @@
         let currentStage = 0;
         
         try {
-            // Start progress animation
-            const progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += 5;
-                    progressBar.style.width = progress + '%';
-                    progressBar.textContent = progress + '%';
-                    
-                    // Update stages
-                    const stageProgress = Math.floor((progress / 100) * stages.length);
-                    if (stageProgress > currentStage && currentStage < stages.length) {
-                        if (currentStage > 0) {
-                            stages[currentStage - 1].classList.remove('active');
-                            stages[currentStage - 1].classList.add('complete');
-                        }
-                        stages[currentStage].classList.add('active');
-                        currentStage = stageProgress;
-                    }
-                }
-            }, 200);
+           // Start progress animation
+const progressInterval = setInterval(() => {
+    if (progress < 90) {
+        progress += 5;
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = progress + '%';
+        
+        // Add active class for enhanced animations
+        progressBar.classList.add('active');
+        
+        // Change to high-progress gradient at 60%
+        if (progress >= 60 && !progressBar.classList.contains('high-progress')) {
+            progressBar.classList.add('high-progress');
+        }
+        
+        // Update stages
+        const stageProgress = Math.floor((progress / 100) * stages.length);
+        if (stageProgress > currentStage && currentStage < stages.length) {
+            if (currentStage > 0) {
+                stages[currentStage - 1].classList.remove('active');
+                stages[currentStage - 1].classList.add('complete');
+            }
+            stages[currentStage].classList.add('active');
+            currentStage = stageProgress;
+            
+            // Update stage text with emojis
+            const stageTexts = [
+                '📥 Extracting content and metadata...',
+                '🧠 Running deep AI analysis with GPT-4...',
+                '✅ Cross-referencing fact databases...',
+                '⚖️ Detecting bias and manipulation...',
+                '📊 Analyzing source reliability...',
+                '📄 Compiling comprehensive report...'
+            ];
+            
+            if (currentStage - 1 < stageTexts.length) {
+                document.getElementById('current-stage-text').textContent = stageTexts[currentStage - 1];
+            }
+        }
+    }
+}, 200);
             
             // Prepare request body
             const requestBody = {
@@ -2254,10 +2431,12 @@
             // Complete progress
             progressBar.style.width = '100%';
             progressBar.textContent = '100%';
+            progressBar.classList.remove('active', 'high-progress');
+            progressBar.classList.add('complete');
             stages.forEach(stage => {
                 stage.classList.remove('active');
                 stage.classList.add('complete');
-            });
+    });
             
             // FIXED: Check for success - handle both success flag and presence of results
             if (data.success === true || (data.trust_score !== undefined && !data.error)) {
