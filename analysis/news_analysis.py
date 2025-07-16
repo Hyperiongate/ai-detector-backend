@@ -47,6 +47,8 @@ def extract_politico_simple(url):
         
         # Method 1: Try with different user agents
         user_agents = [
+            # Desktop Chrome - might get full HTML
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             # Googlebot
             'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
             # Bingbot
@@ -191,6 +193,11 @@ def extract_politico_simple(url):
                     
                     if article_text and len(article_text) > 500:
                         logger.info(f"Successfully extracted from Politico using {user_agent[:30]}...")
+                        
+                        # Log a sample of the extracted content for debugging
+                        logger.debug(f"First 200 chars of extracted text: {article_text[:200]}")
+                        logger.debug(f"Author found: {author if author else 'None'}")
+                        
                         return {
                             'url': url,
                             'domain': domain,
@@ -198,7 +205,7 @@ def extract_politico_simple(url):
                             'text': article_text[:5000],
                             'author': author or 'Politico Staff',
                             'publish_date': None,
-                            'extraction_method': f'fallback_{user_agent.split("/")[0]}'
+                            'extraction_method': f'fallback_{user_agent.split("/")[0].split()[0].lower()}'  # e.g., 'fallback_mozilla' or 'fallback_facebookexternalhit'
                         }
                 
             except Exception as e:
