@@ -2,6 +2,7 @@
 News Analysis Module for Facts & Fakes AI
 Uses OpenAI GPT-4 for intelligent article analysis
 Compatible with OpenAI 0.28.1
+Now with Playwright support for protected sites
 """
 
 import os
@@ -20,10 +21,31 @@ import openai
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# Add this right after logging setup
+logger.info("=== Loading News Analysis Module ===")
+
+# Import Playwright extractor with detailed logging
+PLAYWRIGHT_AVAILABLE = False
+extract_with_playwright = None
+
+try:
+    from playwright_extractor import extract_with_playwright
+    PLAYWRIGHT_AVAILABLE = True
+    logger.info("✓ Playwright extractor imported successfully")
+except ImportError as e:
+    logger.error(f"✗ Failed to import playwright_extractor: {str(e)}")
+except Exception as e:
+    logger.error(f"✗ Unexpected error importing playwright_extractor: {str(e)}")
+
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACTCHECK_API_KEY')
+
+# Log what's available
+logger.info(f"OpenAI available: {bool(OPENAI_API_KEY)}")
+logger.info(f"News API available: {bool(NEWS_API_KEY)}")
+logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
 
 # Set OpenAI API key
 if OPENAI_API_KEY:
@@ -107,7 +129,8 @@ class NewsAnalyzer:
                         'wsj.com': 'The Wall Street Journal',
                         'bloomberg.com': 'Bloomberg',
                         'ft.com': 'Financial Times',
-                        'economist.com': 'The Economist'
+                        'economist.com': 'The Economist',
+                        'politico.com': 'Politico'
                     }
                     
                     site_name = problematic_sites.get(domain, domain)
@@ -442,11 +465,15 @@ class NewsAnalyzer:
     def extract_from_url(self, url):
         """Extract article content from URL with enhanced extraction"""
         start_time = time.time()
-        max_duration = 20  # Maximum 20 seconds for extraction
+        max_duration = 30  # Increased to 30 seconds for Playwright
+        
+        logger.info(f"=== Starting extraction for {url} ===")
+        logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
         
         try:
             # Extract domain for early checks
             domain = urlparse(url).netloc.replace('www.', '')
+            logger.info(f"Domain: {domain}")
             
             # List of sites known to have strict anti-bot measures
             problematic_sites = [
@@ -457,12 +484,31 @@ class NewsAnalyzer:
                 'ft.com',
                 'economist.com',
                 'newyorker.com',
-                'theatlantic.com'
+                'theatlantic.com',
+                'politico.com'  # Added Politico
             ]
             
-            # For problematic sites, fail immediately with helpful message
+            # For problematic sites, try Playwright first
             if domain in problematic_sites:
-                logger.warning(f"Known problematic site detected: {domain} - failing fast")
+                logger.info(f"Problematic site detected: {domain}")
+                
+                # Try Playwright if available
+                if PLAYWRIGHT_AVAILABLE and extract_with_playwright:
+                    logger.info(f"Attempting Playwright extraction for {domain}")
+                    try:
+                        playwright_result = extract_with_playwright(url)
+                        if playwright_result:
+                            logger.info(f"Playwright extraction successful for {domain}")
+                            return playwright_result
+                        else:
+                            logger.warning(f"Playwright extraction returned None for {domain}")
+                    except Exception as e:
+                        logger.error(f"Playwright extraction error: {str(e)}")
+                else:
+                    logger.warning(f"Playwright not available for {domain} (PLAYWRIGHT_AVAILABLE={PLAYWRIGHT_AVAILABLE})")
+                
+                # If Playwright fails or isn't available, return None
+                logger.warning(f"Cannot extract from {domain} - all methods failed")
                 return None
             
             # Check if we've exceeded time limit
@@ -478,6 +524,15 @@ class NewsAnalyzer:
                 
                 if response.status_code == 403 or response.status_code == 429:
                     logger.error(f"Access denied (status {response.status_code}) for {url}")
+                    # Try Playwright as fallback even for non-problematic sites
+                    if PLAYWRIGHT_AVAILABLE and extract_with_playwright:
+                        logger.info(f"Attempting Playwright extraction after 403/429 error")
+                        try:
+                            playwright_result = extract_with_playwright(url)
+                            if playwright_result:
+                                return playwright_result
+                        except Exception as e:
+                            logger.error(f"Playwright fallback failed: {str(e)}")
                     return None
                     
                 if response.status_code != 200:
