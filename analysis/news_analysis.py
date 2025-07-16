@@ -172,7 +172,7 @@ class NewsAnalyzer:
             }
     
     def extract_from_url(self, url):
-        """Extract article content from URL with enhanced extraction and ABC News DEBUG"""
+        """Extract article content from URL with enhanced extraction"""
         start_time = time.time()
         max_duration = 20  # Maximum 20 seconds for extraction
         
@@ -384,7 +384,7 @@ class NewsAnalyzer:
                             publish_date = elem.get_text().strip()
                         break
             
-            # Extract author - EXTENSIVE DEBUG FOR ABC NEWS
+            # Extract author - ENHANCED VERSION
             author = None
             
             # List of organization names to exclude (these are NOT authors)
@@ -400,99 +400,52 @@ class NewsAnalyzer:
                 'staff', 'news staff', 'editorial board', 'newsroom', 'correspondent'
             ]
             
-            # SPECIAL ABC NEWS DEBUG
+            # Special handling for ABC News
             if domain == 'abcnews.go.com':
-                logger.info("=== ABC NEWS AUTHOR DEBUG ===")
-                
-                # 1. Check if "David Brennan" exists anywhere in HTML
-                if 'David Brennan' in response.text:
-                    logger.info("'David Brennan' FOUND in HTML!")
-                    # Find the context
-                    index = response.text.find('David Brennan')
-                    context = response.text[max(0, index-100):index+100]
-                    logger.info(f"Context: ...{context}...")
-                else:
-                    logger.info("'David Brennan' NOT found in HTML")
-                
-                # 2. Check all meta tags
-                logger.info("Checking all meta tags...")
-                for meta in soup.find_all('meta'):
-                    name_or_prop = meta.get('name', '') or meta.get('property', '')
-                    if any(word in name_or_prop.lower() for word in ['author', 'byl', 'creator']):
-                        content = meta.get('content', '')
-                        logger.info(f"Meta {name_or_prop}: {content}")
-                
-                # 3. Find ALL elements with author/byline in class
-                logger.info("Elements with 'author' in class:")
-                author_elements = soup.find_all(lambda tag: 
-                    tag.get('class') and any('author' in str(cls).lower() for cls in tag.get('class', []))
-                )
-                for elem in author_elements[:5]:
-                    logger.info(f"  {elem.name} {elem.get('class')}: {elem.get_text().strip()[:50]}")
-                
-                logger.info("Elements with 'byline' in class:")
-                byline_elements = soup.find_all(lambda tag: 
-                    tag.get('class') and any('byline' in str(cls).lower() for cls in tag.get('class', []))
-                )
-                for elem in byline_elements[:5]:
-                    logger.info(f"  {elem.name} {elem.get('class')}: {elem.get_text().strip()[:50]}")
-                
-                # 4. Search for By patterns in first 1000 chars of article
-                logger.info("Searching for 'By' patterns...")
-                article_preview = article_text[:1000] if article_text else ""
-                by_matches = re.findall(r'By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)', article_preview)
-                if by_matches:
-                    logger.info(f"Found 'By' patterns: {by_matches}")
-                
-                # 5. Try all possible selectors
-                abc_selectors = [
-                    'a[href*="/author/"]',
-                    'span[class*="Author"]',
-                    'div[class*="Author"]',
-                    'p[class*="Author"]',
-                    'span[class*="author"]',
-                    'div[class*="author"]',
-                    'p[class*="author"]',
-                    '.Authors__author',
-                    '.Byline__Author',
-                    '.byline__author',
-                    '.authors',
-                    '.author-name',
-                    '.by-authors',
-                    '.article-authors',
-                    'span.author',
-                    'div.author',
-                    '[rel="author"]'
-                ]
-                
-                for selector in abc_selectors:
-                    elems = soup.select(selector)
-                    if elems:
-                        logger.info(f"Selector '{selector}' found {len(elems)} elements")
-                        for elem in elems[:2]:
-                            text = elem.get_text().strip()
-                            logger.info(f"  Text: {text}")
-                            if elem.name == 'a' and elem.get('href'):
-                                logger.info(f"  Href: {elem.get('href')}")
-                
-                # If we found David Brennan in the HTML but not through selectors,
-                # try a more aggressive search
-                if 'David Brennan' in response.text and not author:
-                    logger.info("Trying aggressive search for David Brennan...")
-                    # Find the element containing David Brennan
-                    for elem in soup.find_all(text=re.compile('David Brennan')):
+                # If the author name appears in the HTML, try to find it
+                if 'David Brennan' in response.text or 'david brennan' in response.text.lower():
+                    # Search for the element containing the author name
+                    for elem in soup.find_all(text=re.compile('David Brennan', re.I)):
                         parent = elem.parent
-                        logger.info(f"Found in {parent.name} tag")
-                        if parent.name in ['a', 'span', 'div', 'p']:
+                        if parent and parent.name in ['a', 'span', 'div', 'p']:
                             text = parent.get_text().strip()
-                            if not any(org in text.lower() for org in org_names):
-                                author = "David Brennan"
-                                logger.info(f"Extracted author via text search: {author}")
+                            # Clean up the text
+                            text = re.sub(r'^(By|BY|by)\s+', '', text)
+                            if text and not any(org in text.lower() for org in org_names):
+                                author = text
                                 break
+                
+                # Try ABC-specific selectors
+                if not author:
+                    abc_selectors = [
+                        'a[href*="/author/"]',
+                        'span[class*="Author"]',
+                        'div[class*="Author"]',
+                        '.Authors__author',
+                        '.Byline__Author',
+                        '.byline__author',
+                        '.authors',
+                        '.author-name'
+                    ]
+                    
+                    for selector in abc_selectors:
+                        elems = soup.select(selector)
+                        for elem in elems:
+                            text = elem.get_text().strip()
+                            # Remove common prefixes
+                            text = re.sub(r'^(By|BY|by)\s+', '', text)
+                            
+                            # Check if it's not an organization name
+                            if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
+                                # Additional check: must contain at least one space (first and last name)
+                                if ' ' in text and text.count(' ') < 5:  # Reasonable name length
+                                    author = text
+                                    break
+                        if author:
+                            break
             
-            # Standard author extraction for non-ABC sites
+            # Try standard meta tags if still no author
             if not author:
-                # Try meta tags
                 meta_selectors = [
                     'meta[name="author"]',
                     'meta[property="article:author"]',
@@ -512,7 +465,6 @@ class NewsAnalyzer:
                         if content and not any(org in content.lower() for org in org_names):
                             if ' ' in content and content.count(' ') < 5:
                                 author = content
-                                logger.info(f"Found author in meta tag: {author}")
                                 break
             
             # Generic selectors as last resort
@@ -536,7 +488,6 @@ class NewsAnalyzer:
                         if text and len(text) > 2 and not any(org in text.lower() for org in org_names):
                             if ' ' in text and text.count(' ') < 5:
                                 author = text
-                                logger.info(f"Found author using generic selector: {author}")
                                 break
                     if author:
                         break
