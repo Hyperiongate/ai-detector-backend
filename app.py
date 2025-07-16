@@ -650,6 +650,68 @@ def dashboard():
     
     return render_template('dashboard.html', user=user_data)
 
+@app.route('/api/debug/playwright-test', methods=['GET'])
+def test_playwright_debug():
+    """Debug endpoint to test Playwright setup"""
+    import os
+    import subprocess
+    
+    result = {
+        'playwright_available': False,
+        'browser_test': False,
+        'paths_checked': [],
+        'env_vars': {
+            'PLAYWRIGHT_BROWSERS_PATH': os.environ.get('PLAYWRIGHT_BROWSERS_PATH', 'Not set')
+        },
+        'errors': []
+    }
+    
+    # Check if playwright_extractor can be imported
+    try:
+        from playwright_extractor import PLAYWRIGHT_AVAILABLE, extract_with_playwright
+        result['playwright_available'] = PLAYWRIGHT_AVAILABLE
+    except Exception as e:
+        result['errors'].append(f"Import error: {str(e)}")
+    
+    # Check multiple possible browser locations
+    browser_paths = [
+        '/opt/render/.cache/ms-playwright',
+        '/opt/render/project/.cache/ms-playwright',
+        os.path.expanduser('~/.cache/ms-playwright'),
+        './.cache/ms-playwright'
+    ]
+    
+    for base_path in browser_paths:
+        if os.path.exists(base_path):
+            result['paths_checked'].append(f"✓ {base_path} exists")
+            try:
+                contents = os.listdir(base_path)
+                result['paths_checked'].append(f"  Contents: {contents}")
+                
+                # Check for chromium directories
+                for item in contents:
+                    if item.startswith('chromium-'):
+                        chrome_path = os.path.join(base_path, item, 'chrome-linux', 'chrome')
+                        if os.path.exists(chrome_path):
+                            result['paths_checked'].append(f"  ✓ Chrome found: {chrome_path}")
+                            result['browser_test'] = True
+                            result['chrome_path'] = chrome_path
+                        else:
+                            result['paths_checked'].append(f"  ✗ Chrome not at: {chrome_path}")
+            except Exception as e:
+                result['errors'].append(f"Error checking {base_path}: {str(e)}")
+        else:
+            result['paths_checked'].append(f"✗ {base_path} does NOT exist")
+    
+    # Check where Playwright thinks browsers should be
+    try:
+        from playwright._impl._driver import get_driver_env
+        env = get_driver_env()
+        result['playwright_expects'] = env.get('PLAYWRIGHT_BROWSERS_PATH', 'Default location')
+    except:
+        pass
+    
+    return jsonify(result)
 @app.route('/favicon.ico')
 def favicon():
     """Serve favicon"""
