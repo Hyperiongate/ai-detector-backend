@@ -92,33 +92,67 @@ def extract_politico_simple(url):
                     
                     # Author extraction for Politico
                     author = None
-                    author_selectors = [
-                        'meta[name="author"]',
-                        'meta[property="article:author"]',
-                        'span.story-meta__authors',
-                        'div.story-meta__authors a',
-                        'span[class*="author"]',
-                        'div[class*="author"] a',
-                        'p.byline',
-                        'div.byline a'
-                    ]
                     
-                    for selector in author_selectors:
-                        if selector.startswith('meta'):
-                            elem = soup.find('meta', {'name': selector.split('[name="')[1].rstrip('"]')} if 'name=' in selector else {'property': selector.split('[property="')[1].rstrip('"]')})
-                            if elem and elem.get('content'):
-                                author = elem['content'].strip()
-                                # Clean up author
-                                author = re.sub(r'^(By|BY|by)\s+', '', author)
-                                if author and ' ' in author:  # Ensure it's a real name
+                    # First try meta tags
+                    meta_author = soup.find('meta', {'name': 'author'}) or soup.find('meta', {'property': 'article:author'})
+                    if meta_author and meta_author.get('content'):
+                        author = meta_author['content'].strip()
+                        author = re.sub(r'^(By|BY|by)\s+', '', author)
+                    
+                    # If no meta tag, try various selectors
+                    if not author:
+                        author_selectors = [
+                            'p.story-meta__authors',
+                            'div.story-meta__authors',
+                            'p.byline__authors',
+                            'div.byline__authors',
+                            'span.story-meta__author',
+                            'a.story-meta__author',
+                            'p[class*="author"]',
+                            'div[class*="author"]',
+                            'p.byline',
+                            'div.byline',
+                            'span.byline',
+                            '.story-meta a[href*="/staff/"]',
+                            'a[href*="/staff/"]'
+                        ]
+                        
+                        for selector in author_selectors:
+                            elems = soup.select(selector)
+                            if elems:
+                                # For Politico, authors might be in multiple <a> tags
+                                authors = []
+                                for elem in elems:
+                                    if elem.name == 'a' and '/staff/' in elem.get('href', ''):
+                                        author_text = elem.get_text().strip()
+                                        if author_text and ' ' in author_text:
+                                            authors.append(author_text)
+                                    else:
+                                        # Try to find <a> tags within the element
+                                        links = elem.find_all('a', href=lambda x: x and '/staff/' in x)
+                                        for link in links:
+                                            author_text = link.get_text().strip()
+                                            if author_text and ' ' in author_text:
+                                                authors.append(author_text)
+                                        
+                                        # If no links, try direct text
+                                        if not authors:
+                                            text = elem.get_text().strip()
+                                            text = re.sub(r'^(By|BY|by)\s+', '', text)
+                                            if text and ' ' in text and len(text) < 100:
+                                                authors.append(text)
+                                
+                                if authors:
+                                    # Join multiple authors with "and"
+                                    author = ' and '.join(authors[:3])  # Limit to 3 authors
                                     break
-                        else:
-                            elem = soup.select_one(selector)
-                            if elem:
-                                author = elem.get_text().strip()
-                                author = re.sub(r'^(By|BY|by)\s+', '', author)
-                                if author and ' ' in author and len(author) < 50:
-                                    break
+                    
+                    # Clean up the final author
+                    if author:
+                        author = re.sub(r'^(By|BY|by)\s+', '', author)
+                        # Remove any "Politico Staff" or similar generic names
+                        if 'staff' in author.lower() or len(author.split()) < 2:
+                            author = None
                     
                     # Content extraction - try multiple selectors
                     content_selectors = [
