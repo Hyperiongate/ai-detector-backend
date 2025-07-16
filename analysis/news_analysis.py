@@ -39,12 +39,17 @@ except Exception as e:
 
 # Import simple fallback extractor
 SIMPLE_EXTRACTOR_AVAILABLE = False
+extract_politico_simple = None
+extract_protected_site_simple = None
+
 try:
-    from simple_politico_extractor import extract_politico_simple
+    from simple_politico_extractor import extract_politico_simple, extract_protected_site_simple
     SIMPLE_EXTRACTOR_AVAILABLE = True
     logger.info("✓ Simple Politico extractor imported successfully")
 except ImportError:
-    logger.info("Simple Politico extractor not available")
+    logger.warning("Simple Politico extractor not available")
+except Exception as e:
+    logger.error(f"Error importing simple extractor: {str(e)}")
 
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -55,6 +60,7 @@ GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACTCHECK_API_KEY')
 logger.info(f"OpenAI available: {bool(OPENAI_API_KEY)}")
 logger.info(f"News API available: {bool(NEWS_API_KEY)}")
 logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
+logger.info(f"Simple extractor available: {SIMPLE_EXTRACTOR_AVAILABLE}")
 
 # Set OpenAI API key
 if OPENAI_API_KEY:
@@ -472,12 +478,13 @@ class NewsAnalyzer:
             return []
     
     def extract_from_url(self, url):
-        """Extract article content from URL with enhanced extraction"""
+        """Extract article content from URL with enhanced extraction and proper fallback"""
         start_time = time.time()
         max_duration = 30  # Increased to 30 seconds for Playwright
         
         logger.info(f"=== Starting extraction for {url} ===")
         logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
+        logger.info(f"Simple extractor available: {SIMPLE_EXTRACTOR_AVAILABLE}")
         
         try:
             # Extract domain for early checks
@@ -494,14 +501,14 @@ class NewsAnalyzer:
                 'economist.com',
                 'newyorker.com',
                 'theatlantic.com',
-                'politico.com'  # Added Politico
+                'politico.com'
             ]
             
-            # For problematic sites, try Playwright first
+            # For problematic sites, try special extractors
             if domain in problematic_sites:
                 logger.info(f"Problematic site detected: {domain}")
                 
-                # Try Playwright if available
+                # Try Playwright first if available
                 if PLAYWRIGHT_AVAILABLE and extract_with_playwright:
                     logger.info(f"Attempting Playwright extraction for {domain}")
                     try:
@@ -513,27 +520,38 @@ class NewsAnalyzer:
                             logger.warning(f"Playwright extraction returned None for {domain}")
                     except Exception as e:
                         logger.error(f"Playwright extraction error: {str(e)}")
-                else:
-                    logger.warning(f"Playwright not available for {domain} (PLAYWRIGHT_AVAILABLE={PLAYWRIGHT_AVAILABLE})")
                 
-                # Try simple extractor as fallback for Politico
-                if domain == 'politico.com' and SIMPLE_EXTRACTOR_AVAILABLE:
-                    logger.info("Trying simple Politico extractor as fallback")
-                    simple_result = extract_politico_simple(url)
-                    if simple_result:
-                        logger.info("Simple extractor succeeded for Politico")
-                        return simple_result
+                # CRITICAL FIX: Try simple extractor as fallback
+                if SIMPLE_EXTRACTOR_AVAILABLE and extract_politico_simple:
+                    logger.info(f"Attempting simple extractor for {domain}")
+                    try:
+                        # Use the appropriate function based on domain
+                        if domain == 'politico.com':
+                            simple_result = extract_politico_simple(url)
+                        elif extract_protected_site_simple:
+                            simple_result = extract_protected_site_simple(url, domain)
+                        else:
+                            simple_result = extract_politico_simple(url)  # Use politico extractor as generic fallback
+                        
+                        if simple_result:
+                            logger.info(f"Simple extractor succeeded for {domain}")
+                            return simple_result
+                        else:
+                            logger.warning(f"Simple extractor returned None for {domain}")
+                    except Exception as e:
+                        logger.error(f"Simple extractor error: {str(e)}")
                 
-                # If all methods fail, return None
-                logger.warning(f"Cannot extract from {domain} - all methods failed")
+                # If all special methods fail for problematic sites, return None
+                logger.warning(f"All extraction methods failed for {domain}")
                 return None
             
+            # For non-problematic sites, continue with standard extraction
             # Check if we've exceeded time limit
             if time.time() - start_time > max_duration:
                 logger.error(f"Extraction exceeded time limit for {url}")
                 return None
             
-            # For other sites, try with a short timeout
+            # Try standard extraction with a short timeout
             response = None
             try:
                 # Set a connection timeout and read timeout
@@ -541,15 +559,26 @@ class NewsAnalyzer:
                 
                 if response.status_code == 403 or response.status_code == 429:
                     logger.error(f"Access denied (status {response.status_code}) for {url}")
-                    # Try Playwright as fallback even for non-problematic sites
+                    
+                    # Try fallback extractors even for non-problematic sites
                     if PLAYWRIGHT_AVAILABLE and extract_with_playwright:
-                        logger.info(f"Attempting Playwright extraction after 403/429 error")
+                        logger.info(f"Attempting Playwright extraction after {response.status_code} error")
                         try:
                             playwright_result = extract_with_playwright(url)
                             if playwright_result:
                                 return playwright_result
                         except Exception as e:
                             logger.error(f"Playwright fallback failed: {str(e)}")
+                    
+                    if SIMPLE_EXTRACTOR_AVAILABLE and extract_politico_simple:
+                        logger.info(f"Attempting simple extraction after {response.status_code} error")
+                        try:
+                            simple_result = extract_politico_simple(url)
+                            if simple_result:
+                                return simple_result
+                        except Exception as e:
+                            logger.error(f"Simple extractor fallback failed: {str(e)}")
+                    
                     return None
                     
                 if response.status_code != 200:
@@ -582,6 +611,17 @@ class NewsAnalyzer:
             response_text_lower = response.text.lower()
             if any(indicator in response_text_lower for indicator in ['paywall', 'subscribe to read', 'login required', 'access denied', 'members only']):
                 logger.warning(f"Possible paywall detected at {url}")
+                
+                # Try fallback extractors for paywall
+                if SIMPLE_EXTRACTOR_AVAILABLE and extract_politico_simple:
+                    logger.info("Attempting simple extraction for paywall bypass")
+                    try:
+                        simple_result = extract_politico_simple(url)
+                        if simple_result:
+                            return simple_result
+                    except Exception as e:
+                        logger.error(f"Simple extractor paywall bypass failed: {str(e)}")
+                
                 return None
             
             # Parse with BeautifulSoup
@@ -691,9 +731,19 @@ class NewsAnalyzer:
             # Clean up the text
             article_text = ' '.join(article_text.split())  # Remove extra whitespace
             
-            # If we still don't have enough content, it's likely blocked
+            # If we still don't have enough content, try fallback extractors
             if len(article_text) < 200:
                 logger.warning(f"Insufficient content extracted from {url}: {len(article_text)} chars")
+                
+                if SIMPLE_EXTRACTOR_AVAILABLE and extract_politico_simple:
+                    logger.info("Attempting simple extraction due to insufficient content")
+                    try:
+                        simple_result = extract_politico_simple(url)
+                        if simple_result:
+                            return simple_result
+                    except Exception as e:
+                        logger.error(f"Simple extractor insufficient content fallback failed: {str(e)}")
+                
                 return None
             
             # Extract publish date
