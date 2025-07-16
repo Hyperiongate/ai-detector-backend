@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
-GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY')
+GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACTCHECK_API_KEY')
 
 # Set OpenAI API key
 if OPENAI_API_KEY:
@@ -147,6 +147,19 @@ class NewsAnalyzer:
             if article_data.get('domain'):
                 analysis['source_credibility'] = self.check_source_credibility(article_data['domain'])
             
+            # NEW: Add Google Fact Check results
+            if is_pro and GOOGLE_FACT_CHECK_API_KEY:
+                # Get fact checks for key claims
+                fact_check_results = self.google_fact_check(analysis.get('key_claims', []))
+                analysis['fact_checks'] = fact_check_results
+                
+                # Update trust score based on fact check results
+                if fact_check_results:
+                    false_claims = sum(1 for fc in fact_check_results if fc.get('verdict') == 'false')
+                    if false_claims > 0:
+                        penalty = min(false_claims * 10, 30)  # Max 30 point penalty
+                        analysis['trust_score'] = max(0, analysis.get('trust_score', 50) - penalty)
+            
             return {
                 'success': True,
                 'article': article_data,
@@ -170,6 +183,127 @@ class NewsAnalyzer:
                 'success': False,
                 'error': f'Analysis failed: {str(e)}'
             }
+    
+    def google_fact_check(self, claims):
+        """
+        Use Google Fact Check API to verify claims
+        
+        Args:
+            claims: List of claims to check
+            
+        Returns:
+            list: Fact check results
+        """
+        if not GOOGLE_FACT_CHECK_API_KEY or not claims:
+            return []
+        
+        fact_check_results = []
+        
+        try:
+            # Google Fact Check API endpoint
+            base_url = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
+            
+            # Check each claim (limit to first 5 to avoid rate limits)
+            for claim in claims[:5]:
+                try:
+                    # Make API request
+                    params = {
+                        'key': GOOGLE_FACT_CHECK_API_KEY,
+                        'query': claim,
+                        'languageCode': 'en'
+                    }
+                    
+                    response = self.session.get(base_url, params=params, timeout=5)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        # Process fact check results
+                        if 'claims' in data and data['claims']:
+                            # Get the most relevant fact check
+                            top_result = data['claims'][0]
+                            
+                            # Extract verdict from the first review
+                            verdict = 'unverified'
+                            explanation = 'No fact check found'
+                            source = 'Unknown'
+                            
+                            if 'claimReview' in top_result and top_result['claimReview']:
+                                review = top_result['claimReview'][0]
+                                
+                                # Get the rating
+                                if 'textualRating' in review:
+                                    rating = review['textualRating'].lower()
+                                    
+                                    # Map ratings to simple verdicts
+                                    if any(word in rating for word in ['false', 'incorrect', 'wrong', 'misleading']):
+                                        verdict = 'false'
+                                    elif any(word in rating for word in ['true', 'correct', 'accurate']):
+                                        verdict = 'true'
+                                    elif any(word in rating for word in ['partly', 'mixed', 'partially']):
+                                        verdict = 'partially_true'
+                                    else:
+                                        verdict = 'unverified'
+                                
+                                # Get explanation
+                                if 'title' in review:
+                                    explanation = review['title']
+                                
+                                # Get source
+                                if 'publisher' in review and 'name' in review['publisher']:
+                                    source = review['publisher']['name']
+                            
+                            fact_check_results.append({
+                                'claim': claim,
+                                'verdict': verdict,
+                                'explanation': explanation,
+                                'source': source,
+                                'api_response': top_result  # Include full response for debugging
+                            })
+                        else:
+                            # No fact check found for this claim
+                            fact_check_results.append({
+                                'claim': claim,
+                                'verdict': 'unverified',
+                                'explanation': 'No fact check available for this claim',
+                                'source': 'Google Fact Check API'
+                            })
+                    else:
+                        logger.warning(f"Google Fact Check API error: {response.status_code}")
+                        fact_check_results.append({
+                            'claim': claim,
+                            'verdict': 'unverified',
+                            'explanation': 'Fact check service unavailable',
+                            'source': 'Error'
+                        })
+                    
+                    # Small delay to avoid rate limiting
+                    time.sleep(0.5)
+                    
+                except Exception as e:
+                    logger.error(f"Error checking claim: {str(e)}")
+                    fact_check_results.append({
+                        'claim': claim,
+                        'verdict': 'unverified',
+                        'explanation': 'Error during fact checking',
+                        'source': 'Error'
+                    })
+            
+            # Add placeholder for remaining claims if any
+            for claim in claims[5:]:
+                fact_check_results.append({
+                    'claim': claim,
+                    'verdict': 'unverified',
+                    'explanation': 'Claim not checked (limit reached)',
+                    'source': 'Not checked'
+                })
+            
+            logger.info(f"Fact-checked {len(fact_check_results)} claims via Google Fact Check API")
+            return fact_check_results
+            
+        except Exception as e:
+            logger.error(f"Google Fact Check API error: {str(e)}")
+            return []
     
     def extract_from_url(self, url):
         """Extract article content from URL with enhanced extraction"""
