@@ -2534,6 +2534,42 @@ def api_analyze_news():
     except Exception as e:
         logger.error(f"News analysis error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+@app.route('/api/trending-news', methods=['GET'])
+def api_trending_news():
+    """Get trending news articles"""
+    try:
+        # Get parameters from query string
+        country = request.args.get('country', 'us')
+        category = request.args.get('category', 'general')
+        
+        # Validate parameters
+        valid_countries = ['us', 'gb', 'ca', 'au', 'in', 'de', 'fr', 'it', 'es', 'br']
+        valid_categories = ['general', 'business', 'entertainment', 'health', 'science', 'sports', 'technology']
+        
+        if country not in valid_countries:
+            country = 'us'
+        if category not in valid_categories:
+            category = 'general'
+        
+        # Get trending news
+        from analysis.news_analysis import get_trending_news_route
+        articles = get_trending_news_route(country, category)
+        
+        return jsonify({
+            'success': True,
+            'country': country,
+            'category': category,
+            'articles': articles,
+            'count': len(articles)
+        })
+        
+    except Exception as e:
+        logger.error(f"Trending news error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch trending news',
+            'details': str(e)
+        }), 500
 
 @app.route('/api/analyze-text', methods=['POST'])
 @csrf.exempt
