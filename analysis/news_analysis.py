@@ -355,13 +355,16 @@ class NewsAnalyzer:
                         if article.get('url'):
                             domain = urlparse(article['url']).netloc.replace('www.', '')
                         
+                        # Get source name, fallback to domain if available
+                        source_name = article.get('source', {}).get('name', domain if domain else 'Unknown')
+                        
                         articles.append({
                             'title': article.get('title', ''),
                             'url': article.get('url', ''),
-                            'source': article.get('source', {}).get('name', domain),
+                            'source': source_name,
                             'publishedAt': article.get('publishedAt', ''),
                             'description': article.get('description', ''),
-                            'credibility': self.check_source_credibility(domain)
+                            'credibility': self.check_source_credibility(domain) if domain else {'credibility': 'Unknown', 'bias': 'Unknown', 'type': 'Unknown'}
                         })
                 
                 logger.info(f"Found {len(articles)} related articles via News API")
@@ -413,14 +416,17 @@ class NewsAnalyzer:
                         if article.get('url'):
                             domain = urlparse(article['url']).netloc.replace('www.', '')
                         
+                        # Get source name, fallback to domain if available
+                        source_name = article.get('source', {}).get('name', domain if domain else 'Unknown')
+                        
                         articles.append({
                             'title': article.get('title', ''),
                             'url': article.get('url', ''),
-                            'source': article.get('source', {}).get('name', domain),
+                            'source': source_name,
                             'publishedAt': article.get('publishedAt', ''),
                             'description': article.get('description', ''),
                             'urlToImage': article.get('urlToImage', ''),
-                            'credibility': self.check_source_credibility(domain)
+                            'credibility': self.check_source_credibility(domain) if domain else {'credibility': 'Unknown', 'bias': 'Unknown', 'type': 'Unknown'}
                         })
                 
                 logger.info(f"Found {len(articles)} trending articles via News API")
