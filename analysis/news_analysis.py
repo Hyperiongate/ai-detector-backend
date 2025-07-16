@@ -90,6 +90,36 @@ def extract_politico_simple(url):
                         else:
                             title = title_elem.get_text().strip()
                     
+                    # Author extraction for Politico
+                    author = None
+                    author_selectors = [
+                        'meta[name="author"]',
+                        'meta[property="article:author"]',
+                        'span.story-meta__authors',
+                        'div.story-meta__authors a',
+                        'span[class*="author"]',
+                        'div[class*="author"] a',
+                        'p.byline',
+                        'div.byline a'
+                    ]
+                    
+                    for selector in author_selectors:
+                        if selector.startswith('meta'):
+                            elem = soup.find('meta', {'name': selector.split('[name="')[1].rstrip('"]')} if 'name=' in selector else {'property': selector.split('[property="')[1].rstrip('"]')})
+                            if elem and elem.get('content'):
+                                author = elem['content'].strip()
+                                # Clean up author
+                                author = re.sub(r'^(By|BY|by)\s+', '', author)
+                                if author and ' ' in author:  # Ensure it's a real name
+                                    break
+                        else:
+                            elem = soup.select_one(selector)
+                            if elem:
+                                author = elem.get_text().strip()
+                                author = re.sub(r'^(By|BY|by)\s+', '', author)
+                                if author and ' ' in author and len(author) < 50:
+                                    break
+                    
                     # Content extraction - try multiple selectors
                     content_selectors = [
                         'div.story-text',
@@ -134,7 +164,7 @@ def extract_politico_simple(url):
                             'domain': domain,
                             'title': title or 'Politico Article',
                             'text': article_text[:5000],
-                            'author': 'Politico',
+                            'author': author or 'Politico Staff',
                             'publish_date': None,
                             'extraction_method': f'fallback_{user_agent.split("/")[0]}'
                         }
@@ -170,7 +200,7 @@ def extract_politico_simple(url):
                             'domain': domain,
                             'title': 'Politico Article (from cache)',
                             'text': article_text[:5000],
-                            'author': 'Politico',
+                            'author': 'Politico Staff',
                             'publish_date': None,
                             'extraction_method': 'google_cache'
                         }
@@ -195,7 +225,7 @@ def extract_politico_simple(url):
                         'domain': domain,
                         'title': title,
                         'text': f"Unable to extract full article content from Politico. Article appears to be about: {title}. Please use the 'Paste Text' feature to analyze this article.",
-                        'author': 'Politico',
+                        'author': 'Politico Staff',
                         'publish_date': f"{url_parts[news_index + 1]}/{url_parts[news_index + 2]}/{url_parts[news_index + 3]}",
                         'extraction_method': 'url_parsing_only',
                         'partial_extraction': True
