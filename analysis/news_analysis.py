@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
 import time
+import sys
 
 # CORRECT OpenAI import for version 0.28.1
 import openai
@@ -37,19 +38,84 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"✗ Unexpected error importing playwright_extractor: {str(e)}")
 
-# Import simple fallback extractor
+# DIAGNOSTIC IMPORT SECTION FOR SIMPLE EXTRACTOR
 SIMPLE_EXTRACTOR_AVAILABLE = False
 extract_politico_simple = None
 extract_protected_site_simple = None
 
+logger.info("=== Attempting to import simple_politico_extractor ===")
+
+# First check if the file exists
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"Python path: {sys.path[:3]}...")  # Show first 3 paths
+
+# List files in current directory
 try:
+    files = os.listdir('.')
+    py_files = [f for f in files if f.endswith('.py')]
+    logger.info(f"Python files in current directory: {py_files}")
+    
+    # Check specifically for simple_politico_extractor
+    if 'simple_politico_extractor.py' in files:
+        logger.info("✓ simple_politico_extractor.py EXISTS in current directory")
+    else:
+        logger.warning("✗ simple_politico_extractor.py NOT FOUND in current directory")
+except Exception as e:
+    logger.error(f"Error listing current directory: {e}")
+
+# Check if analysis subdirectory exists
+if os.path.exists('analysis'):
+    try:
+        analysis_files = os.listdir('analysis')
+        py_files = [f for f in analysis_files if f.endswith('.py')]
+        logger.info(f"Python files in analysis directory: {py_files}")
+        
+        if 'simple_politico_extractor.py' in analysis_files:
+            logger.info("✓ simple_politico_extractor.py EXISTS in analysis directory")
+    except Exception as e:
+        logger.error(f"Error listing analysis directory: {e}")
+
+# Try to import with detailed error handling
+try:
+    logger.info("Attempting: from simple_politico_extractor import extract_politico_simple, extract_protected_site_simple")
     from simple_politico_extractor import extract_politico_simple, extract_protected_site_simple
     SIMPLE_EXTRACTOR_AVAILABLE = True
-    logger.info("✓ Simple Politico extractor imported successfully")
-except ImportError:
-    logger.warning("Simple Politico extractor not available")
+    logger.info("✓ Simple extractor imported successfully from current directory")
+except ImportError as e:
+    logger.warning(f"Import from current directory failed: {str(e)}")
+    
+    # Check if it's a missing dependency issue
+    if "No module named 'requests'" in str(e):
+        logger.error("✗ MISSING DEPENDENCY: requests module not installed")
+    elif "No module named 'bs4'" in str(e):
+        logger.error("✗ MISSING DEPENDENCY: beautifulsoup4 module not installed")
+    
+    # Try from analysis subdirectory
+    try:
+        logger.info("Attempting: from analysis.simple_politico_extractor import ...")
+        from analysis.simple_politico_extractor import extract_politico_simple, extract_protected_site_simple
+        SIMPLE_EXTRACTOR_AVAILABLE = True
+        logger.info("✓ Simple extractor imported successfully from analysis directory")
+    except ImportError as e2:
+        logger.warning(f"Import from analysis directory failed: {str(e2)}")
+        
+        # Try adding parent directory to path
+        try:
+            parent_dir = os.path.dirname(os.path.abspath(__file__))
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                logger.info(f"Added parent directory to path: {parent_dir}")
+            
+            from simple_politico_extractor import extract_politico_simple, extract_protected_site_simple
+            SIMPLE_EXTRACTOR_AVAILABLE = True
+            logger.info("✓ Simple extractor imported successfully after adding parent to path")
+        except ImportError as e3:
+            logger.error(f"Final import attempt failed: {str(e3)}")
+            logger.error("✗ Could not import simple_politico_extractor from any location")
 except Exception as e:
-    logger.error(f"Error importing simple extractor: {str(e)}")
+    logger.error(f"✗ Unexpected error importing simple_politico_extractor: {str(e)}")
+    import traceback
+    logger.error(f"Traceback: {traceback.format_exc()}")
 
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -57,10 +123,12 @@ NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACTCHECK_API_KEY')
 
 # Log what's available
+logger.info("=== Module Status Summary ===")
 logger.info(f"OpenAI available: {bool(OPENAI_API_KEY)}")
 logger.info(f"News API available: {bool(NEWS_API_KEY)}")
 logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
 logger.info(f"Simple extractor available: {SIMPLE_EXTRACTOR_AVAILABLE}")
+logger.info("=============================")
 
 # Set OpenAI API key
 if OPENAI_API_KEY:
@@ -540,6 +608,8 @@ class NewsAnalyzer:
                             logger.warning(f"Simple extractor returned None for {domain}")
                     except Exception as e:
                         logger.error(f"Simple extractor error: {str(e)}")
+                else:
+                    logger.warning(f"Simple extractor not available (SIMPLE_EXTRACTOR_AVAILABLE={SIMPLE_EXTRACTOR_AVAILABLE})")
                 
                 # If all special methods fail for problematic sites, return None
                 logger.warning(f"All extraction methods failed for {domain}")
