@@ -37,6 +37,15 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"✗ Unexpected error importing playwright_extractor: {str(e)}")
 
+# Import simple fallback extractor
+SIMPLE_EXTRACTOR_AVAILABLE = False
+try:
+    from simple_politico_extractor import extract_politico_simple
+    SIMPLE_EXTRACTOR_AVAILABLE = True
+    logger.info("✓ Simple Politico extractor imported successfully")
+except ImportError:
+    logger.info("Simple Politico extractor not available")
+
 # Configuration
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
@@ -507,7 +516,15 @@ class NewsAnalyzer:
                 else:
                     logger.warning(f"Playwright not available for {domain} (PLAYWRIGHT_AVAILABLE={PLAYWRIGHT_AVAILABLE})")
                 
-                # If Playwright fails or isn't available, return None
+                # Try simple extractor as fallback for Politico
+                if domain == 'politico.com' and SIMPLE_EXTRACTOR_AVAILABLE:
+                    logger.info("Trying simple Politico extractor as fallback")
+                    simple_result = extract_politico_simple(url)
+                    if simple_result:
+                        logger.info("Simple extractor succeeded for Politico")
+                        return simple_result
+                
+                # If all methods fail, return None
                 logger.warning(f"Cannot extract from {domain} - all methods failed")
                 return None
             
