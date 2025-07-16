@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author Analysis Component</title>
+    <style>
+        /* Author Section Styles */
+        .author-section {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .author-unknown {
+            text-align: center;
+        }
+
+        .author-unknown .icon-warning {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            background-color: #ffc107;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .author-unknown .icon-warning::before {
+            content: "!";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .author-unknown p {
+            color: #495057;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .author-input-form {
+            margin: 20px auto;
+            max-width: 500px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .author-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .author-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .analyze-btn {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+
+        .analyze-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .analyze-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .help-text {
+            color: #6c757d;
+            font-size: 14px;
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Author Found Styles */
+        .author-found {
+            display: none;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .author-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .credibility-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .credibility-high {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .credibility-medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .credibility-low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .credibility-unknown {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-message {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        /* Results */
+        .author-analysis {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .analysis-item {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-label {
+            font-weight: 600;
+            color: #495057;
+            display: inline-block;
+            width: 140px;
+        }
+
+        .analysis-value {
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <!-- Author Section Component -->
+    <div class="author-section">
+        <!-- When author is unknown -->
+        <div class="author-unknown" id="authorUnknown">
+            <i class="icon-warning"></i>
+            <p><strong>We couldn't automatically determine the author of this article.</strong></p>
+            <p>If you know the author's name, enter it below for a credibility assessment:</p>
+            
+            <div class="author-input-form">
+                <input type="text" 
+                       id="manualAuthorInput" 
+                       placeholder="Enter author name (e.g., John Smith)"
+                       class="author-input"
+                       onkeypress="handleEnterKey(event)">
+                <button onclick="analyzeAuthor()" class="analyze-btn" id="analyzeBtn">
+                    Analyze Author
+                </button>
+            </div>
+            
+            <small class="help-text">
+                💡 Tip: Look for "By [Name]" at the beginning of the article or check the article's webpage directly.
+            </small>
+        </div>
+
+        <!-- Loading state -->
+        <div class="loading" id="loadingState">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px;">Analyzing author credibility...</p>
+        </div>
+
+        <!-- Error message -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Author analysis results -->
+        <div class="author-analysis" id="authorAnalysis">
+            <div class="author-info">
+                <span class="author-name" id="analyzedAuthorName"></span>
+                <span class="credibility-badge" id="credibilityBadge"></span>
+            </div>
+            
+            <div class="analysis-item">
+                <span class="analysis-label">Experience:</span>
+                <span class="analysis-value" id="authorExperience">-</span>
+            </div>
+            
+            <div class="analysis-item">
+                <span class="analysis-label">Primary Topics:</span>
+                <span class="analysis-value" id="authorTopics">-</span>
+            </div>
+            
+            <div class="analysis-item">
+                <span class="analysis-label">Fact Check Record:</span>
+                <span class="analysis-value" id="factCheckRecord">-</span>
+            </div>
+            
+            <div class="analysis-item">
+                <span class="analysis-label">Bias Indicators:</span>
+                <span class="analysis-value" id="biasIndicators">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                analyzeAuthor();
+            }
+        }
+
+        async function analyzeAuthor() {
+            const input = document.getElementById('manualAuthorInput');
+            const authorName = input.value.trim();
+            
+            if (!authorName) {
+                showError('Please enter an author name');
+                return;
+            }
+
+            // Validate author name format
+            if (!isValidAuthorName(authorName)) {
+                showError('Please enter a valid author name (first and last name)');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('authorUnknown').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            try {
+                // Call your Flask API endpoint
+                const response = await fetch('/analyze_author', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        author_name: authorName,
+                        article_url: window.articleUrl || '' // Pass the current article URL if available
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to analyze author');
+                }
+
+                const data = await response.json();
+                displayAuthorAnalysis(data);
+                
+            } catch (error) {
+                showError('Unable to analyze author. Please try again.');
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('authorUnknown').style.display = 'block';
+            }
+        }
+
+        function isValidAuthorName(name) {
+            // Basic validation: at least 2 words, each starting with a capital letter
+            const parts = name.trim().split(/\s+/);
+            if (parts.length < 2 || parts.length > 4) {
+                return false;
+            }
+            
+            return parts.every(part => /^[A-Z][a-zA-Z]+$/.test(part));
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function displayAuthorAnalysis(data) {
+            // Hide loading state
+            document.getElementById('loadingState').style.display = 'none';
+            
+            // Show analysis results
+            document.getElementById('authorAnalysis').style.display = 'block';
+            document.getElementById('analyzedAuthorName').textContent = data.name;
+            
+            // Set credibility badge
+            const badge = document.getElementById('credibilityBadge');
+            const credibilityClass = getCredibilityClass(data.credibility_score);
+            badge.className = 'credibility-badge ' + credibilityClass;
+            badge.textContent = getCredibilityLabel(data.credibility_score);
+            
+            // Populate analysis fields
+            document.getElementById('authorExperience').textContent = 
+                data.experience || 'No information available';
+            
+            document.getElementById('authorTopics').textContent = 
+                data.topics ? data.topics.join(', ') : 'Not specified';
+            
+            document.getElementById('factCheckRecord').textContent = 
+                data.fact_check_record || 'No records found';
+            
+            document.getElementById('biasIndicators').textContent = 
+                data.bias_indicators && data.bias_indicators.length > 0 
+                    ? data.bias_indicators.join(', ') 
+                    : 'None detected';
+        }
+
+        function getCredibilityClass(score) {
+            if (score >= 80) return 'credibility-high';
+            if (score >= 60) return 'credibility-medium';
+            if (score >= 40) return 'credibility-low';
+            return 'credibility-unknown';
+        }
+
+        function getCredibilityLabel(score) {
+            if (score >= 80) return 'High Credibility';
+            if (score >= 60) return 'Medium Credibility';
+            if (score >= 40) return 'Low Credibility';
+            return 'Unknown';
+        }
+    </script>
+</body>
+</html>
