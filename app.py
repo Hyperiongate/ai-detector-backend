@@ -2,6 +2,14 @@
 Facts & Fakes AI - Main Flask Application
 Updated with real-time progress streaming and enhanced analysis feedback
 """
+#!/usr/bin/env python
+# Import playwright config first to ensure correct browser paths
+import playwright_config
+
+# Now your other imports
+import os
+import logging
+# ... rest of your imports
 import os
 # Force Playwright to use default browser location
 if 'PLAYWRIGHT_BROWSERS_PATH' in os.environ:
