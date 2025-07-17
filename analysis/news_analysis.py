@@ -37,26 +37,23 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"✗ Unexpected error importing playwright_extractor: {str(e)}")
 
-# EMBEDDED SIMPLE EXTRACTOR - Always available
-def extract_politico_simple(url):
+# EMBEDDED SIMPLE EXTRACTOR - Now generic for all sites
+def extract_generic_simple(url, domain=None):
     """
-    Try to extract Politico content using various fallback methods
+    Generic simple extractor for any news site
     """
     try:
-        domain = 'politico.com'
+        if not domain:
+            domain = urlparse(url).netloc.replace('www.', '')
         
         # Method 1: Try with different user agents
         user_agents = [
-            # Desktop Chrome - might get full HTML
+            # Desktop Chrome
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             # Googlebot
             'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            # Bingbot
-            'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
             # Facebook crawler
             'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-            # Twitter bot
-            'Twitterbot/1.0',
             # Generic mobile
             'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
         ]
@@ -80,199 +77,147 @@ def extract_politico_simple(url):
                     # Parse the content
                     soup = BeautifulSoup(response.text, 'html.parser')
                     
-                    # Try to extract content
+                    # Remove script and style elements
+                    for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                        element.decompose()
+                    
                     article_text = ""
                     title = ""
-                    
-                    # Title extraction
-                    title_elem = soup.find('h1') or soup.find('meta', {'property': 'og:title'})
-                    if title_elem:
-                        if title_elem.name == 'meta':
-                            title = title_elem.get('content', '')
-                        else:
-                            title = title_elem.get_text().strip()
-                    
-                    # Author extraction - comprehensive but concise
                     author = None
                     
-                    # 1. Search ALL text for "By Author Name" patterns
-                    full_text = soup.get_text()[:5000]  # Limit to first 5000 chars
-                    author_match = re.search(r'\b(?:By|by|BY)\s+([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)', full_text)
-                    if author_match:
-                        author = author_match.group(1).strip()
-                    
-                    # 2. Check meta tags
-                    if not author:
-                        for meta in soup.find_all('meta'):
-                            if meta.get('name') in ['author', 'byl', 'sailthru.author'] or \
-                               meta.get('property') in ['article:author', 'author']:
-                                content = meta.get('content', '').strip()
-                                if content and ' ' in content and 'staff' not in content.lower():
-                                    author = content
-                                    break
-                    
-                    # 3. Check JSON-LD
-                    if not author:
-                        for script in soup.find_all('script', type='application/ld+json'):
-                            try:
-                                data = json.loads(script.string)
-                                if 'author' in data:
-                                    if isinstance(data['author'], dict):
-                                        author = data['author'].get('name', '')
-                                    elif isinstance(data['author'], str):
-                                        author = data['author']
-                                    if author:
-                                        break
-                            except:
-                                pass
-                    
-                    # Clean and validate
-                    if author:
-                        author = re.sub(r'^(By|BY|by)\s+', '', author).strip()
-                        if 'staff' in author.lower() or len(author.split()) < 2:
-                            author = None
-                    
-                    # Content extraction - try multiple selectors
-                    content_selectors = [
-                        'div.story-text',
-                        'div[class*="story-text"]',
-                        'main[role="main"]',
-                        'article',
-                        'div.content',
-                        'div.article-content'
+                    # Title extraction
+                    title_selectors = [
+                        'h1',
+                        'meta[property="og:title"]',
+                        'meta[name="twitter:title"]',
+                        'title',
+                        '.headline',
+                        '.article-title',
+                        '[class*="headline"]'
                     ]
                     
-                    for selector in content_selectors:
-                        content_elem = soup.select_one(selector)
-                        if content_elem:
-                            paragraphs = content_elem.find_all(['p', 'h2', 'h3'])
-                            if paragraphs:
+                    for selector in title_selectors:
+                        if selector.startswith('meta'):
+                            elem = soup.select_one(selector)
+                            if elem and elem.get('content'):
+                                title = elem['content'].strip()
+                                break
+                        else:
+                            elem = soup.select_one(selector)
+                            if elem:
+                                title = elem.get_text().strip()
+                                if title and len(title) > 10:
+                                    break
+                    
+                    # Author extraction
+                    author_selectors = [
+                        'meta[name="author"]',
+                        'meta[property="article:author"]',
+                        '.byline',
+                        '.author-name',
+                        '[rel="author"]',
+                        'span[class*="author"]',
+                        'div[class*="author"] a'
+                    ]
+                    
+                    for selector in author_selectors:
+                        if selector.startswith('meta'):
+                            elem = soup.select_one(selector)
+                            if elem and elem.get('content'):
+                                author = elem['content'].strip()
+                                break
+                        else:
+                            elem = soup.select_one(selector)
+                            if elem:
+                                author = elem.get_text().strip()
+                                if author and len(author) > 2:
+                                    break
+                    
+                    # Clean author name
+                    if author:
+                        author = re.sub(r'^(By|BY|by)\s+', '', author).strip()
+                    
+                    # Content extraction - try multiple strategies
+                    content_strategies = [
+                        # Strategy 1: Look for article-specific containers
+                        lambda: soup.select('article p, main p, [role="main"] p, .story-body p, .article-body p'),
+                        # Strategy 2: Find the largest text block
+                        lambda: self._find_largest_text_block(soup),
+                        # Strategy 3: Get all paragraphs and filter
+                        lambda: [p for p in soup.find_all('p') if len(p.get_text().strip()) > 50]
+                    ]
+                    
+                    for strategy in content_strategies:
+                        try:
+                            paragraphs = strategy()
+                            if paragraphs and len(paragraphs) >= 3:
                                 texts = []
-                                for p in paragraphs:
-                                    text = p.get_text().strip()
-                                    if text and len(text) > 20:
+                                for p in paragraphs[:50]:  # Limit to 50 paragraphs
+                                    if hasattr(p, 'get_text'):
+                                        text = p.get_text().strip()
+                                    else:
+                                        text = str(p).strip()
+                                    
+                                    # Filter out common non-article content
+                                    if (text and len(text) > 30 and 
+                                        not any(skip in text.lower() for skip in 
+                                               ['cookie', 'subscribe', 'newsletter', 'sign up', 
+                                                'advertisement', 'sponsored'])):
                                         texts.append(text)
                                 
                                 if texts and len(' '.join(texts)) > 500:
                                     article_text = ' '.join(texts)
                                     break
-                    
-                    # If we still don't have content, try all paragraphs
-                    if not article_text or len(article_text) < 500:
-                        all_paragraphs = soup.find_all('p')
-                        good_paragraphs = []
-                        for p in all_paragraphs:
-                            text = p.get_text().strip()
-                            if len(text) > 50 and not any(skip in text.lower() for skip in ['cookie', 'subscribe', 'sign up']):
-                                good_paragraphs.append(text)
-                        
-                        if len(good_paragraphs) >= 5:
-                            article_text = ' '.join(good_paragraphs[:30])
+                        except Exception as e:
+                            logger.debug(f"Content strategy failed: {str(e)}")
+                            continue
                     
                     if article_text and len(article_text) > 500:
-                        logger.info(f"Successfully extracted from Politico using {user_agent[:30]}...")
+                        logger.info(f"Successfully extracted from {domain} using {user_agent[:30]}...")
                         
                         return {
                             'url': url,
                             'domain': domain,
-                            'title': title or 'Politico Article',
+                            'title': title or f'{domain} Article',
                             'text': article_text[:5000],
-                            'author': author or 'Politico Staff',
+                            'author': author or f'{domain} Staff',
                             'publish_date': None,
-                            'extraction_method': f'fallback_{user_agent.split("/")[0].split()[0].lower()}'
+                            'extraction_method': f'simple_{user_agent.split("/")[0].split()[0].lower()}'
                         }
                 
             except Exception as e:
                 logger.debug(f"Attempt with {user_agent[:30]}... failed: {str(e)}")
                 continue
         
-        # Method 2: Try Google Web Cache
-        try:
-            cache_url = f"https://webcache.googleusercontent.com/search?q=cache:{url}"
-            
-            response = requests.get(cache_url, headers={'User-Agent': user_agents[0]}, timeout=10)
-            
-            if response.status_code == 200 and 'politico.com' in response.text:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                # Extract from cached version
-                paragraphs = soup.find_all('p')
-                content_parts = []
-                for p in paragraphs:
-                    text = p.get_text().strip()
-                    if len(text) > 50:
-                        content_parts.append(text)
-                
-                if len(content_parts) >= 5:
-                    article_text = ' '.join(content_parts[:30])
-                    
-                    if len(article_text) > 500:
-                        logger.info("Successfully extracted from Google Cache")
-                        return {
-                            'url': url,
-                            'domain': domain,
-                            'title': 'Politico Article (from cache)',
-                            'text': article_text[:5000],
-                            'author': 'Politico Staff',
-                            'publish_date': None,
-                            'extraction_method': 'google_cache'
-                        }
-        except Exception as e:
-            logger.debug(f"Google cache attempt failed: {str(e)}")
-        
-        # Method 3: Return a helpful message with the article metadata
-        # Try to at least get the title from the URL
-        try:
-            # Politico URLs often contain the headline
-            # Example: /news/2025/07/15/trump-threatens-russia-sanctions-bashes-putin-00455596
-            url_parts = url.split('/')
-            if 'news' in url_parts:
-                news_index = url_parts.index('news')
-                if len(url_parts) > news_index + 4:
-                    # Extract title from URL slug
-                    title_slug = url_parts[news_index + 4]
-                    title = title_slug.replace('-', ' ').title()
-                    
-                    return {
-                        'url': url,
-                        'domain': domain,
-                        'title': title,
-                        'text': f"Unable to extract full article content from Politico. Article appears to be about: {title}. Please use the 'Paste Text' feature to analyze this article.",
-                        'author': 'Politico Staff',
-                        'publish_date': f"{url_parts[news_index + 1]}/{url_parts[news_index + 2]}/{url_parts[news_index + 3]}",
-                        'extraction_method': 'url_parsing_only',
-                        'partial_extraction': True
-                    }
-        except:
-            pass
-        
         # All methods failed
-        logger.warning("All Politico extraction methods failed")
-        return None
-        
-    except Exception as e:
-        logger.error(f"Simple Politico extraction error: {str(e)}")
-        return None
-
-def extract_protected_site_simple(url, domain):
-    """
-    Generic fallback extractor for other protected sites
-    """
-    try:
-        # For now, just use Politico extractor for all protected sites
-        if domain in ['washingtonpost.com', 'nytimes.com', 'wsj.com', 'bloomberg.com', 'axios.com']:
-            # Try the same methods
-            result = extract_politico_simple(url)
-            if result:
-                result['domain'] = domain
-                result['title'] = f'{domain} Article'
-            return result
-        
+        logger.warning(f"All simple extraction methods failed for {domain}")
         return None
         
     except Exception as e:
         logger.error(f"Simple extractor error for {domain}: {str(e)}")
         return None
+
+def _find_largest_text_block(soup):
+    """Helper method to find the largest contiguous text block"""
+    text_blocks = []
+    
+    # Common container tags
+    containers = soup.find_all(['div', 'section', 'article', 'main'])
+    
+    for container in containers:
+        # Get all paragraphs in this container
+        paragraphs = container.find_all('p')
+        if len(paragraphs) >= 3:
+            total_text = ' '.join([p.get_text().strip() for p in paragraphs])
+            if len(total_text) > 500:
+                text_blocks.append((len(total_text), paragraphs))
+    
+    # Return paragraphs from the largest block
+    if text_blocks:
+        text_blocks.sort(key=lambda x: x[0], reverse=True)
+        return text_blocks[0][1]
+    
+    return []
 
 # Simple extractor is always available when embedded
 SIMPLE_EXTRACTOR_AVAILABLE = True
@@ -364,25 +309,8 @@ class NewsAnalyzer:
                     # Return a more detailed error response
                     domain = urlparse(content).netloc.replace('www.', '')
                     
-                    # Provide specific guidance for known problematic sites
-                    problematic_sites = {
-                        'washingtonpost.com': 'The Washington Post',
-                        'nytimes.com': 'The New York Times',
-                        'wsj.com': 'The Wall Street Journal',
-                        'bloomberg.com': 'Bloomberg',
-                        'ft.com': 'Financial Times',
-                        'economist.com': 'The Economist',
-                        'politico.com': 'Politico',
-                        'axios.com': 'Axios'
-                    }
-                    
-                    site_name = problematic_sites.get(domain, domain)
-                    
-                    error_message = f"Unable to extract content from {site_name}. "
-                    if domain in problematic_sites:
-                        error_message += "This site has strong anti-bot protections that prevent automated content extraction."
-                    else:
-                        error_message += "The site may be blocking automated access or the page structure is not recognized."
+                    error_message = f"Unable to extract content from {domain}. "
+                    error_message += "The site may be blocking automated access or the page structure is not recognized."
                     
                     return {
                         'success': False,
@@ -790,18 +718,22 @@ class NewsAnalyzer:
                         'nbcnews.com': 'div.article-body',
                         'cbsnews.com': 'section.content__body',
                         'abcnews.go.com': 'div.Article__Content',
-                        'axios.com': 'div[class*="gtm-story-text"]'
+                        'axios.com': 'div[class*="gtm-story-text"], div.story-content, main article'
                     }
                     
                     # Try site-specific selector first
                     if domain in site_specific_selectors:
-                        content = soup.select_one(site_specific_selectors[domain])
-                        if content:
-                            paragraphs = content.find_all(['p', 'h2', 'h3'])
-                            article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+                        selectors = site_specific_selectors[domain].split(', ')
+                        for selector in selectors:
+                            content = soup.select_one(selector)
+                            if content:
+                                paragraphs = content.find_all(['p', 'h2', 'h3'])
+                                article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
+                                if article_text and len(article_text) > 200:
+                                    break
                     
                     # If site-specific didn't work, try generic selectors
-                    if not article_text:
+                    if not article_text or len(article_text) < 200:
                         content_selectors = [
                             'article',
                             '[role="main"]',
@@ -1018,7 +950,7 @@ class NewsAnalyzer:
             # Try simple extractor as final fallback
             logger.info(f"Attempting simple extractor for {domain}")
             try:
-                simple_result = extract_politico_simple(url)
+                simple_result = extract_generic_simple(url, domain)
                 if simple_result:
                     logger.info(f"Simple extractor succeeded for {domain}")
                     return simple_result
