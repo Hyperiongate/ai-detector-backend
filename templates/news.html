@@ -1033,6 +1033,135 @@
             color: #dc2626;
         }
 
+        /* Author Input Section Styles */
+        .author-input-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .manual-author-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .manual-author-form .form-control {
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .manual-author-form .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .credibility-assessment {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .credibility-indicator {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .credibility-indicator:hover {
+            background: #e9ecef;
+        }
+
+        .credibility-indicator i {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .credibility-indicator.positive i {
+            color: #28a745;
+        }
+
+        .credibility-indicator.neutral i {
+            color: #ffc107;
+        }
+
+        .credibility-indicator.negative i {
+            color: #dc3545;
+        }
+
+        .author-info-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .author-info-card h5 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+        }
+
+        .author-bio {
+            font-style: italic;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+
+        .author-credentials {
+            list-style: none;
+            padding: 0;
+        }
+
+        .author-credentials li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .author-credentials li i {
+            color: var(--primary-blue);
+            margin-right: 10px;
+        }
+
+        /* Spinner for Bootstrap 5 compatibility */
+        .spinner-border {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            vertical-align: text-bottom;
+            border: 0.25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border 0.75s linear infinite;
+        }
+
+        @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .trust-meter-container {
@@ -2091,22 +2220,6 @@
                 <div class="dropdown-content">
                     <div id="author-credibility"></div>
                     
-                    <!-- Author Research Links -->
-                    <div class="mt-3">
-                        <h5>Research This Author:</h5>
-                        <div class="btn-group" role="group">
-                            <a href="#" class="btn btn-outline-primary btn-sm" id="author-twitter" target="_blank">
-                                <i class="fab fa-twitter me-1"></i>Twitter
-                            </a>
-                            <a href="#" class="btn btn-outline-primary btn-sm" id="author-google" target="_blank">
-                                <i class="fab fa-google me-1"></i>Google
-                            </a>
-                            <a href="#" class="btn btn-outline-primary btn-sm" id="author-linkedin" target="_blank">
-                                <i class="fab fa-linkedin me-1"></i>LinkedIn
-                            </a>
-                        </div>
-                    </div>
-                    
                     <div class="why-matters-box mt-3">
                         <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
                         <p>
@@ -2861,26 +2974,34 @@ const progressInterval = setInterval(() => {
                         </ul>
                     </div>
                 ` : ''}
+                
+                <!-- Author Research Links -->
+                <div class="mt-3">
+                    <h5>Research This Author:</h5>
+                    <div class="btn-group" role="group">
+                        <a href="https://twitter.com/search?q=${encodeURIComponent(cleanAuthorName)}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fab fa-twitter me-1"></i>Twitter
+                        </a>
+                        <a href="https://www.google.com/search?q=${encodeURIComponent(cleanAuthorName + ' journalist')}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fab fa-google me-1"></i>Google
+                        </a>
+                        <a href="https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(cleanAuthorName)}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fab fa-linkedin me-1"></i>LinkedIn
+                        </a>
+                        ${results.author_info?.website ? `
+                            <a href="${results.author_info.website}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-globe me-1"></i>Website
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
             `;
-            
-            // Update author research links with actual author name
-            document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(cleanAuthorName)}`;
-            document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(cleanAuthorName + ' journalist')}`;
-            document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(cleanAuthorName)}`;
-            
-            // Add author website link if available
-            if (results.author_info?.website) {
-                const authorWebsiteBtn = document.createElement('a');
-                authorWebsiteBtn.href = results.author_info.website;
-                authorWebsiteBtn.className = 'btn btn-outline-primary btn-sm';
-                authorWebsiteBtn.target = '_blank';
-                authorWebsiteBtn.innerHTML = '<i class="fas fa-globe me-1"></i>Website';
-                document.getElementById('author-linkedin').parentNode.appendChild(authorWebsiteBtn);
-            }
             
             document.getElementById('author-explanation').textContent = `Author "${cleanAuthorName}" has been identified. Established journalists with verifiable credentials and consistent publication history are generally more trustworthy sources. Research this author's background to assess their expertise in the subject matter.`;
             document.getElementById('author-methodology').textContent = `We detected the author through metadata extraction from the article. For comprehensive credibility assessment, we recommend verifying the author's credentials, checking their publication history, and confirming their expertise in the topic area. Professional journalists typically have a digital footprint that includes social media profiles, previous articles, and professional affiliations.`;
+            
         } else {
+            // No author detected - show manual input component
             document.getElementById('author-credibility').innerHTML = `
                 <h5>Author: Not Detected</h5>
                 <p>No author information found in article metadata</p>
@@ -2890,19 +3011,96 @@ const progressInterval = setInterval(() => {
                     <li>Anonymous or missing authorship may indicate lower credibility</li>
                     <li>Some reputable sources use editorial boards instead of individual authors</li>
                 </ul>
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Note:</strong> The absence of author information makes it difficult to verify the writer's expertise and potential biases.
+                
+                <!-- Insert the author input component here -->
+                <div id="author-manual-input" class="author-input-section mt-4">
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>No author detected.</strong> You can manually enter the author's name to research their background and credibility.
+                    </div>
+                    
+                    <div class="manual-author-form">
+                        <h6 class="mb-3">Enter Author Information:</h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="manual-author-name" class="form-label">Author Name</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="manual-author-name" 
+                                       placeholder="e.g., John Smith or Jane Doe"
+                                       autocomplete="off">
+                                <small class="text-muted">Enter the full name of the article's author</small>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="manual-author-affiliation" class="form-label">Affiliation (Optional)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="manual-author-affiliation" 
+                                       placeholder="e.g., New York Times, CNN"
+                                       autocomplete="off">
+                                <small class="text-muted">Publication or organization they work for</small>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary mt-3" onclick="researchManualAuthor()">
+                            <i class="fas fa-search me-2"></i>Research Author
+                        </button>
+                    </div>
+                    
+                    <!-- Loading state for author research -->
+                    <div id="author-research-loading" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Researching...</span>
+                        </div>
+                        <p class="text-muted">Researching author background and credibility...</p>
+                    </div>
+                    
+                    <!-- Results container for manual author research -->
+                    <div id="manual-author-results" style="display: none;">
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">
+                            <i class="fas fa-user-check me-2"></i>Author Research Results
+                        </h6>
+                        
+                        <div id="author-research-content">
+                            <!-- Dynamically populated with research results -->
+                        </div>
+                        
+                        <!-- Author Research Links (dynamically updated) -->
+                        <div class="mt-3">
+                            <h6>Additional Research Links:</h6>
+                            <div class="btn-group" role="group">
+                                <a href="#" class="btn btn-outline-primary btn-sm" id="manual-author-twitter" target="_blank">
+                                    <i class="fab fa-twitter me-1"></i>Twitter
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" id="manual-author-google" target="_blank">
+                                    <i class="fab fa-google me-1"></i>Google
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" id="manual-author-linkedin" target="_blank">
+                                    <i class="fab fa-linkedin me-1"></i>LinkedIn
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" id="manual-author-website" target="_blank" style="display: none;">
+                                    <i class="fas fa-globe me-1"></i>Website
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Credibility Assessment -->
+                        <div class="credibility-assessment mt-4">
+                            <h6>Credibility Indicators:</h6>
+                            <div id="author-credibility-indicators">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
             
-            // Update author research links with article title for context
-            document.getElementById('author-twitter').href = `https://twitter.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-            document.getElementById('author-google').href = `https://www.google.com/search?q=${encodeURIComponent(results.article_info?.title || '')}`;
-            document.getElementById('author-linkedin').href = `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(results.article_info?.title || '')}`;
-            
-            document.getElementById('author-explanation').textContent = 'No author information was detected in this article. This could mean the article is unsigned, published by an editorial board, or the author metadata was not properly extracted. Articles without clear authorship attribution should be evaluated more carefully.';
-            document.getElementById('author-methodology').textContent = 'Author detection relies on metadata extraction from the article source. We look for bylines, author tags, and structured data. The absence of author information may indicate anonymous publishing or technical extraction limitations.';
+            document.getElementById('author-explanation').textContent = 'No author information was detected in this article. You can manually enter the author\'s name above to research their background and credibility. Articles without clear authorship attribution should be evaluated more carefully.';
+            document.getElementById('author-methodology').textContent = 'Author detection relies on metadata extraction from the article source. When no author is found, you can use the manual research tool above to investigate the author\'s credentials and credibility.';
         }
         
         // Writing Quality - derive from available data
@@ -3264,6 +3462,210 @@ const progressInterval = setInterval(() => {
         
         // Same as generatePDF but with more comprehensive data
         generatePDF();
+    }
+
+    // Author Research Functions
+    async function researchManualAuthor() {
+        const authorName = document.getElementById('manual-author-name').value.trim();
+        const affiliation = document.getElementById('manual-author-affiliation').value.trim();
+        
+        if (!authorName) {
+            alert('Please enter an author name');
+            return;
+        }
+        
+        // Show loading state
+        document.querySelector('.manual-author-form').style.display = 'none';
+        document.getElementById('author-research-loading').style.display = 'block';
+        document.getElementById('manual-author-results').style.display = 'none';
+        
+        try {
+            // Call your backend API to research the author
+            const response = await fetch('/api/research-author', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    author_name: authorName,
+                    affiliation: affiliation,
+                    article_url: currentAnalysisResults?.article_info?.url || '',
+                    article_title: currentAnalysisResults?.article_info?.title || ''
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Author research failed');
+            }
+            
+            const authorData = await response.json();
+            
+            // Display results
+            displayAuthorResearchResults(authorData);
+            
+        } catch (error) {
+            console.error('Author research error:', error);
+            
+            // Fallback: Show basic research links
+            displayBasicAuthorResearch(authorName, affiliation);
+        } finally {
+            document.getElementById('author-research-loading').style.display = 'none';
+            document.getElementById('manual-author-results').style.display = 'block';
+        }
+    }
+
+    // Function to display author research results
+    function displayAuthorResearchResults(authorData) {
+        const resultsContainer = document.getElementById('author-research-content');
+        
+        // If we have comprehensive data from the API
+        if (authorData.success && authorData.author_info) {
+            const info = authorData.author_info;
+            
+            resultsContainer.innerHTML = `
+                <div class="author-info-card">
+                    <h5>${info.name}</h5>
+                    ${info.bio ? `<p class="author-bio">${info.bio}</p>` : ''}
+                    
+                    ${info.credentials && info.credentials.length > 0 ? `
+                        <h6 class="mt-3">Credentials & Background:</h6>
+                        <ul class="author-credentials">
+                            ${info.credentials.map(cred => `
+                                <li><i class="fas fa-check-circle"></i> ${cred}</li>
+                            `).join('')}
+                        </ul>
+                    ` : ''}
+                    
+                    ${info.expertise && info.expertise.length > 0 ? `
+                        <h6 class="mt-3">Areas of Expertise:</h6>
+                        <div class="mb-3">
+                            ${info.expertise.map(exp => `
+                                <span class="badge bg-primary me-2">${exp}</span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${info.publications ? `
+                        <p><strong>Publications:</strong> ${info.publications}</p>
+                    ` : ''}
+                    
+                    ${info.verification_status ? `
+                        <div class="alert alert-${info.verified ? 'success' : 'warning'} mt-3">
+                            <i class="fas fa-${info.verified ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                            ${info.verification_status}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Update research links
+            updateAuthorResearchLinks(info.name, info.website);
+            
+            // Display credibility indicators
+            displayCredibilityIndicators(authorData.credibility_indicators || []);
+            
+        } else {
+            // Basic display without API data
+            displayBasicAuthorResearch(authorData.author_name || 'Unknown', authorData.affiliation);
+        }
+    }
+
+    // Function to display basic author research (fallback)
+    function displayBasicAuthorResearch(authorName, affiliation) {
+        const resultsContainer = document.getElementById('author-research-content');
+        
+        resultsContainer.innerHTML = `
+            <div class="author-info-card">
+                <h5>${authorName}</h5>
+                ${affiliation ? `<p><strong>Affiliation:</strong> ${affiliation}</p>` : ''}
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Use the research links below to verify this author's credentials and background.
+                </div>
+            </div>
+        `;
+        
+        // Update research links
+        updateAuthorResearchLinks(authorName, null);
+        
+        // Show basic credibility checklist
+        displayCredibilityIndicators([
+            {
+                type: 'neutral',
+                icon: 'fa-search',
+                text: 'Search for author\'s professional profile'
+            },
+            {
+                type: 'neutral',
+                icon: 'fa-newspaper',
+                text: 'Look for previous articles by this author'
+            },
+            {
+                type: 'neutral',
+                icon: 'fa-university',
+                text: 'Verify educational credentials if claimed'
+            },
+            {
+                type: 'neutral',
+                icon: 'fa-award',
+                text: 'Check for journalism awards or recognition'
+            }
+        ]);
+    }
+
+    // Function to update author research links
+    function updateAuthorResearchLinks(authorName, website) {
+        const searchQuery = encodeURIComponent(authorName);
+        
+        document.getElementById('manual-author-twitter').href = 
+            `https://twitter.com/search?q=${searchQuery}`;
+        document.getElementById('manual-author-google').href = 
+            `https://www.google.com/search?q=${searchQuery}+journalist`;
+        document.getElementById('manual-author-linkedin').href = 
+            `https://www.linkedin.com/search/results/all/?keywords=${searchQuery}`;
+        
+        if (website) {
+            const websiteBtn = document.getElementById('manual-author-website');
+            websiteBtn.href = website;
+            websiteBtn.style.display = 'inline-flex';
+        }
+    }
+
+    // Function to display credibility indicators
+    function displayCredibilityIndicators(indicators) {
+        const container = document.getElementById('author-credibility-indicators');
+        
+        if (indicators.length === 0) {
+            // Default indicators if none provided
+            indicators = [
+                {
+                    type: 'positive',
+                    icon: 'fa-check-circle',
+                    text: 'Author name provided for verification'
+                },
+                {
+                    type: 'neutral',
+                    icon: 'fa-question-circle',
+                    text: 'Manual verification recommended'
+                }
+            ];
+        }
+        
+        container.innerHTML = indicators.map(indicator => `
+            <div class="credibility-indicator ${indicator.type}">
+                <i class="fas ${indicator.icon}"></i>
+                <span>${indicator.text}</span>
+            </div>
+        `).join('');
+    }
+
+    // Function to reset author input form
+    function resetAuthorInput() {
+        document.getElementById('manual-author-name').value = '';
+        document.getElementById('manual-author-affiliation').value = '';
+        document.querySelector('.manual-author-form').style.display = 'block';
+        document.getElementById('author-research-loading').style.display = 'none';
+        document.getElementById('manual-author-results').style.display = 'none';
     }
     </script>
 </body>
