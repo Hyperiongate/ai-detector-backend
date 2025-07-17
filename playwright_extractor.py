@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-# DO NOT SET CUSTOM BROWSER PATH - use Playwright defaults
+# DO NOT SET CUSTOM BROWSER PATH - use Playwright defaults 
 # Remove any custom path that might have been set elsewhere
 if 'PLAYWRIGHT_BROWSERS_PATH' in os.environ:
     logger.info(f"Found PLAYWRIGHT_BROWSERS_PATH set to: {os.environ['PLAYWRIGHT_BROWSERS_PATH']}")
