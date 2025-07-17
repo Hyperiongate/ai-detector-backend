@@ -1,7 +1,7 @@
 """
 News Analysis Module for Facts & Fakes AI
 Uses OpenAI GPT-4 for intelligent article analysis
-Compatible with OpenAI 0.28.1
+Compatible with modern OpenAI API (1.x)
 Now with Playwright support for protected sites
 """
 
@@ -15,8 +15,8 @@ from urllib.parse import urlparse
 import re
 import time
 
-# CORRECT OpenAI import for version 0.28.1
-import openai
+# CORRECT OpenAI import for modern version
+from openai import OpenAI
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -374,9 +374,10 @@ logger.info(f"News API available: {bool(NEWS_API_KEY)}")
 logger.info(f"Playwright available: {PLAYWRIGHT_AVAILABLE}")
 logger.info(f"Simple extractor available: {SIMPLE_EXTRACTOR_AVAILABLE}")
 
-# Set OpenAI API key
+# Initialize OpenAI client if API key is available
+client = None
 if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Known source credibility database
 SOURCE_CREDIBILITY = {
@@ -1129,10 +1130,10 @@ class NewsAnalyzer:
     
     def get_ai_analysis(self, article_data):
         """
-        Use OpenAI GPT-4 to analyze article - CORRECT OLD API style for 0.28.1
+        Use OpenAI GPT-4 to analyze article - FIXED for modern API
         """
-        if not OPENAI_API_KEY:
-            logger.warning("OpenAI API key not configured - using fallback analysis")
+        if not client:
+            logger.warning("OpenAI client not initialized - using fallback analysis")
             return self.fallback_analysis(article_data)
         
         try:
@@ -1142,8 +1143,8 @@ class NewsAnalyzer:
             # Prepare the analysis prompt
             prompt = self._create_analysis_prompt(article_data)
             
-            # CORRECT OpenAI API call for version 0.28.1
-            response = openai.ChatCompletion.create(
+            # CORRECT OpenAI API call for modern version
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",  # Using faster model
                 messages=[
                     {
@@ -1157,10 +1158,10 @@ class NewsAnalyzer:
                 ],
                 temperature=0.7,
                 max_tokens=1500,
-                request_timeout=30
+                timeout=30
             )
             
-            # Extract response - CORRECT OLD style
+            # Extract response - CORRECT modern style
             analysis_text = response.choices[0].message.content
             logger.info(f"OpenAI analysis completed in {time.time() - start_time:.2f} seconds")
             
