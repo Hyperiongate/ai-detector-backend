@@ -679,7 +679,7 @@ def api_user_usage():
         'usage_status': get_usage_status(current_user)
     })
     
- @app.route('/api/research-author', methods=['POST'])
+@app.route('/api/research-author', methods=['POST'])
 @csrf.exempt
 def api_research_author():
     """Research author credibility and bias analysis"""
