@@ -724,14 +724,19 @@ class NewsAnalyzer:
                     # Try site-specific selector first
                     if domain in site_specific_selectors:
                         selectors = site_specific_selectors[domain].split(', ')
+                        logger.info(f"Trying selectors for {domain}: {selectors}")
                         for selector in selectors:
                             content = soup.select_one(selector)
                             if content:
+                                logger.info(f"Found content with selector: {selector}")
                                 paragraphs = content.find_all(['p', 'h2', 'h3'])
+                                logger.info(f"Found {len(paragraphs)} paragraphs")
                                 article_text = ' '.join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
                                 if article_text and len(article_text) > 200:
+                                    logger.info(f"Extracted {len(article_text)} chars")
                                     break
-                    
+                                else: 
+                                    logger.info(f"Not enough text: {len(article_text)} chars")
                     # If site-specific didn't work, try generic selectors
                     if not article_text or len(article_text) < 200:
                         content_selectors = [
