@@ -449,8 +449,24 @@ class NewsAnalyzer:
                     # Return a more detailed error response
                     domain = urlparse(content).netloc.replace('www.', '')
                     
-                    error_message = f"Unable to extract content from {domain}. "
-                    error_message += "The site may be blocking automated access or the page structure is not recognized."
+                    # Special message for known difficult sites
+                    difficult_sites = {
+                        'axios.com': 'Axios',
+                        'bloomberg.com': 'Bloomberg', 
+                        'ft.com': 'Financial Times',
+                        'wsj.com': 'The Wall Street Journal',
+                        'nytimes.com': 'The New York Times',
+                        'washingtonpost.com': 'The Washington Post',
+                        'economist.com': 'The Economist'
+                    }
+                    
+                    if domain in difficult_sites:
+                        site_name = difficult_sites[domain]
+                        error_message = f"{site_name} uses advanced anti-bot protection that prevents automatic content extraction. "
+                        error_message += "Please copy and paste the article text directly using the 'Paste Text' tab for analysis."
+                    else:
+                        error_message = f"Unable to extract content from {domain}. "
+                        error_message += "The site may be blocking automated access or the page structure is not recognized."
                     
                     return {
                         'success': False,
