@@ -10,8 +10,11 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-# Set Playwright browser path
-os.environ['PLAYWRIGHT_BROWSERS_PATH'] = '/opt/render/.cache/ms-playwright'
+# DO NOT SET CUSTOM BROWSER PATH - use Playwright defaults
+# Remove any custom path that might have been set elsewhere
+if 'PLAYWRIGHT_BROWSERS_PATH' in os.environ:
+    del os.environ['PLAYWRIGHT_BROWSERS_PATH']
+    logger.info("Removed custom PLAYWRIGHT_BROWSERS_PATH to use defaults")
 
 # Check if Playwright is available
 PLAYWRIGHT_AVAILABLE = False
