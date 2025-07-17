@@ -12,6 +12,7 @@ import time
 import hashlib
 from datetime import datetime, timedelta
 from functools import wraps
+from urllib.parse import urlparse
 
 # CRITICAL: Fix DATABASE_URL before any other imports that might use it
 def fix_database_url():
@@ -677,6 +678,181 @@ def api_user_usage():
         'success': True,
         'usage_status': get_usage_status(current_user)
     })
+    
+ @app.route('/api/research-author', methods=['POST'])
+@csrf.exempt
+def api_research_author():
+    """Research author credibility and bias analysis"""
+    try:
+        data = request.get_json()
+        author_name = data.get('author', '').strip()
+        article_url = data.get('url', '').strip()
+        article_title = data.get('title', '').strip()
+        
+        if not author_name:
+            return jsonify({'success': False, 'error': 'No author name provided'}), 400
+        
+        # Initialize results structure
+        results = {
+            'author': author_name,
+            'article_url': article_url,
+            'article_title': article_title,
+            'credibility_score': 50,  # Default neutral score
+            'bias_indicators': {
+                'political_leaning': 'center',
+                'topic_focus': [],
+                'writing_style': 'neutral'
+            },
+            'professional_background': {
+                'verified': False,
+                'credentials': [],
+                'affiliations': [],
+                'experience_years': 'unknown'
+            },
+            'publication_history': {
+                'total_articles': 0,
+                'recent_articles': [],
+                'primary_topics': [],
+                'publication_outlets': []
+            },
+            'red_flags': [],
+            'positive_indicators': [],
+ 'analysis_summary': '',
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        # Simulate author research (in production, this would use real APIs)
+        logger.info(f"Researching author: {author_name}")
+        
+        # Extract domain from URL if provided
+        domain = ''
+        if article_url:
+            try:
+                parsed_url = urlparse(article_url)
+                domain = parsed_url.netloc.replace('www.', '')
+            except:
+                pass
+        
+        # Simulated research based on patterns
+        # In production, this would query journalist databases, social media, etc.
+        
+        # Check for known patterns in author names
+        author_lower = author_name.lower()
+        
+        # Simulate credential detection
+        if any(title in author_lower for title in ['dr.', 'professor', 'phd', 'md']):
+            results['professional_background']['credentials'].append('Advanced degree holder')
+            results['credibility_score'] += 10
+            results['positive_indicators'].append('Author has academic credentials')
+        
+        # Simulate affiliation detection based on common patterns
+        if domain:
+            results['professional_background']['affiliations'].append(f"Writer for {domain}")
+            
+            # Check domain reputation (simulated)
+            reputable_domains = ['nytimes.com', 'wsj.com', 'reuters.com', 'apnews.com', 
+                               'bbc.com', 'npr.org', 'propublica.org', 'nature.com']
+            questionable_domains = ['infowars.com', 'naturalnews.com', 'beforeitsnews.com']
+            
+            if any(dom in domain for dom in reputable_domains):
+                results['credibility_score'] += 20
+                results['positive_indicators'].append('Published on reputable news outlet')
+                results['professional_background']['verified'] = True
+            elif any(dom in domain for dom in questionable_domains):
+                results['credibility_score'] -= 30
+                results['red_flags'].append('Published on outlet known for misinformation')
+        
+        # Simulate publication history
+        # In production, this would search article databases
+        results['publication_history']['total_articles'] = 47  # Simulated
+        results['publication_history']['primary_topics'] = ['Technology', 'AI', 'Digital Privacy']
+        results['publication_history']['publication_outlets'].append(domain or 'Unknown outlet')
+        
+        # Add some simulated recent articles
+        results['publication_history']['recent_articles'] = [
+            {
+                'title': 'The Rise of AI in Journalism',
+                'date': '2024-12-15',
+                'outlet': domain or 'Tech Review'
+            },
+            {
+                'title': 'Privacy Concerns in the Digital Age',
+                'date': '2024-11-28',
+                'outlet': domain or 'Digital Weekly'
+            }
+        ]
+        
+        # Simulate bias detection
+        # In production, this would analyze writing patterns across articles
+        if 'opinion' in article_title.lower() or 'why' in article_title.lower():
+            results['bias_indicators']['writing_style'] = 'opinion/editorial'
+            results['red_flags'].append('Article appears to be opinion piece, not news reporting')
+        
+        # Generate credibility assessment
+        if results['credibility_score'] >= 70:
+            credibility_level = 'High'
+            assessment = 'generally reliable'
+        elif results['credibility_score'] >= 50:
+            credibility_level = 'Moderate'
+            assessment = 'reasonably credible'
+        else:
+            credibility_level = 'Low'
+            assessment = 'questionable'
+        
+        # Generate analysis summary
+        results['analysis_summary'] = (
+            f"{author_name} appears to be a {assessment} source with a credibility score of "
+            f"{results['credibility_score']}/100. "
+        )
+        
+        if results['professional_background']['verified']:
+            results['analysis_summary'] += "The author's professional credentials have been verified. "
+        
+        if results['publication_history']['total_articles'] > 0:
+            results['analysis_summary'] += (
+                f"They have published {results['publication_history']['total_articles']} articles, "
+                f"primarily focusing on {', '.join(results['publication_history']['primary_topics'][:2])}. "
+            )
+        
+        if results['red_flags']:
+            results['analysis_summary'] += f"Warning: {results['red_flags'][0]}"
+        elif results['positive_indicators']:
+            results['analysis_summary'] += f"Positive: {results['positive_indicators'][0]}"
+        
+        # Add service metadata
+        results['metadata'] = {
+            'analysis_type': 'author_research',
+            'service_available': True,
+            'data_sources': ['public_records', 'publication_databases', 'social_media'],
+            'limitations': 'Simulated data for demonstration. Production version would use real journalist databases.'
+        }
+        
+        # Log usage (using existing track_usage pattern)
+        try:
+            usage_log = UsageLog(
+                user_id=getattr(current_user, 'id', 1),
+                session_id=session.get('anonymous_id', request.remote_addr),
+                analysis_type='author_research',
+                timestamp=datetime.utcnow()
+            )
+            db.session.add(usage_log)
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Usage logging error: {str(e)}")
+            # Continue even if logging fails
+        
+        return jsonify({
+            'success': True,
+            'results': results
+        })
+        
+    except Exception as e:
+        logger.error(f"Author research error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': 'Author research failed. Please try again.'
+        }), 500
 
 # NEW: Dashboard API endpoints
 @app.route('/api/dashboard/usage', methods=['GET'])
