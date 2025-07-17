@@ -37,6 +37,106 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"✗ Unexpected error importing playwright_extractor: {str(e)}")
 
+# Helper functions for extraction
+def _extract_text_from_object(obj):
+    """Helper to extract text from nested objects/arrays"""
+    if isinstance(obj, str):
+        return obj
+    elif isinstance(obj, dict):
+        # Look for content fields
+        for key in ['content', 'body', 'text', 'articleBody', 'description']:
+            if key in obj:
+                return _extract_text_from_object(obj[key])
+        # Try joining all string values
+        texts = []
+        for value in obj.values():
+            if isinstance(value, str) and len(value) > 50:
+                texts.append(value)
+        return ' '.join(texts)
+    elif isinstance(obj, list):
+        texts = []
+        for item in obj:
+            text = _extract_text_from_object(item)
+            if text:
+                texts.append(text)
+        return ' '.join(texts)
+    return ''
+
+def _find_in_dict(obj, keys):
+    """Helper to find a value by trying multiple keys"""
+    if isinstance(obj, dict):
+        for key in keys:
+            if key in obj and obj[key]:
+                return obj[key]
+    return None
+
+def _extract_title(soup):
+    """Extract title using multiple methods"""
+    title_selectors = [
+        'h1',
+        'meta[property="og:title"]',
+        'meta[name="twitter:title"]',
+        'title',
+        '.headline',
+        '.article-title',
+        '[class*="headline"]'
+    ]
+    
+    for selector in title_selectors:
+        if selector.startswith('meta'):
+            elem = soup.select_one(selector)
+            if elem and elem.get('content'):
+                return elem['content'].strip()
+        else:
+            elem = soup.select_one(selector)
+            if elem:
+                title = elem.get_text().strip()
+                if title and len(title) > 10:
+                    return title
+    
+    return None
+
+def _extract_author(soup, full_html):
+    """Extract author using multiple methods"""
+    # Organization names to exclude
+    org_names = [
+        'staff', 'team', 'newsroom', 'correspondent', 'editor',
+        'associated press', 'reuters', 'bloomberg', 'admin'
+    ]
+    
+    # Try meta tags
+    meta_selectors = [
+        'meta[name="author"]',
+        'meta[property="article:author"]',
+        'meta[name="byl"]'
+    ]
+    
+    for selector in meta_selectors:
+        elem = soup.select_one(selector)
+        if elem and elem.get('content'):
+            author = elem['content'].strip()
+            author = re.sub(r'^(By|BY|by)\s+', '', author)
+            if author and not any(org in author.lower() for org in org_names):
+                return author
+    
+    # Try common selectors
+    author_selectors = [
+        '.byline',
+        '.author-name',
+        '[rel="author"]',
+        'span[class*="author"]'
+    ]
+    
+    for selector in author_selectors:
+        elem = soup.select_one(selector)
+        if elem:
+            author = elem.get_text().strip()
+            author = re.sub(r'^(By|BY|by)\s+', '', author)
+            if author and len(author) > 2 and not any(org in author.lower() for org in org_names):
+                return author
+    
+    return None
+
 # EMBEDDED SIMPLE EXTRACTOR - Now generic for all sites
 def extract_generic_simple(url, domain=None):
     """
@@ -142,16 +242,16 @@ def extract_generic_simple(url, domain=None):
                                         break
                                 else:
                                     # Found article data
-                                    article_text = self._extract_text_from_object(current)
+                                    article_text = _extract_text_from_object(current)
                                     if article_text and len(article_text) > 500:
                                         logger.info(f"Successfully extracted from {domain} using Next.js data")
                                         return {
                                             'url': url,
                                             'domain': domain,
-                                            'title': self._find_in_dict(current, ['title', 'headline', 'name']) or 'Article',
+                                            'title': _find_in_dict(current, ['title', 'headline', 'name']) or 'Article',
                                             'text': article_text[:5000],
-                                            'author': self._find_in_dict(current, ['author', 'byline', 'creator']) or f'{domain} Staff',
-                                            'publish_date': self._find_in_dict(current, ['publishedAt', 'datePublished', 'date']),
+                                            'author': _find_in_dict(current, ['author', 'byline', 'creator']) or f'{domain} Staff',
+                                            'publish_date': _find_in_dict(current, ['publishedAt', 'datePublished', 'date']),
                                             'extraction_method': 'nextjs'
                                         }
                         except:
@@ -174,8 +274,8 @@ def extract_generic_simple(url, domain=None):
                     
                     if best_container and max_text_length > 500:
                         # Extract from best container
-                        title = self._extract_title(soup)
-                        author = self._extract_author(soup, response.text)
+                        title = _extract_title(soup)
+                        author = _extract_author(soup, response.text)
                         
                         # Get all text elements
                         text_elements = best_container.find_all(['p', 'h2', 'h3', 'h4', 'blockquote', 'li'])
@@ -213,7 +313,7 @@ def extract_generic_simple(url, domain=None):
                         meta_description = meta_elem.get('content', '')
                     
                     if meta_description and len(meta_description) > 100:
-                        title = self._extract_title(soup)
+                        title = _extract_title(soup)
                         logger.info(f"Using meta description fallback for {domain}")
                         return {
                             'url': url,
@@ -236,105 +336,6 @@ def extract_generic_simple(url, domain=None):
     except Exception as e:
         logger.error(f"Generic extractor error for {domain}: {str(e)}")
         return None
-
-def _extract_text_from_object(self, obj):
-    """Helper to extract text from nested objects/arrays"""
-    if isinstance(obj, str):
-        return obj
-    elif isinstance(obj, dict):
-        # Look for content fields
-        for key in ['content', 'body', 'text', 'articleBody', 'description']:
-            if key in obj:
-                return self._extract_text_from_object(obj[key])
-        # Try joining all string values
-        texts = []
-        for value in obj.values():
-            if isinstance(value, str) and len(value) > 50:
-                texts.append(value)
-        return ' '.join(texts)
-    elif isinstance(obj, list):
-        texts = []
-        for item in obj:
-            text = self._extract_text_from_object(item)
-            if text:
-                texts.append(text)
-        return ' '.join(texts)
-    return ''
-
-def _find_in_dict(self, obj, keys):
-    """Helper to find a value by trying multiple keys"""
-    if isinstance(obj, dict):
-        for key in keys:
-            if key in obj and obj[key]:
-                return obj[key]
-    return None
-
-def _extract_title(self, soup):
-    """Extract title using multiple methods"""
-    title_selectors = [
-        'h1',
-        'meta[property="og:title"]',
-        'meta[name="twitter:title"]',
-        'title',
-        '.headline',
-        '.article-title',
-        '[class*="headline"]'
-    ]
-    
-    for selector in title_selectors:
-        if selector.startswith('meta'):
-            elem = soup.select_one(selector)
-            if elem and elem.get('content'):
-                return elem['content'].strip()
-        else:
-            elem = soup.select_one(selector)
-            if elem:
-                title = elem.get_text().strip()
-                if title and len(title) > 10:
-                    return title
-    
-    return None
-
-def _extract_author(self, soup, full_html):
-    """Extract author using multiple methods"""
-    # Organization names to exclude
-    org_names = [
-        'staff', 'team', 'newsroom', 'correspondent', 'editor',
-        'associated press', 'reuters', 'bloomberg', 'admin'
-    ]
-    
-    # Try meta tags
-    meta_selectors = [
-        'meta[name="author"]',
-        'meta[property="article:author"]',
-        'meta[name="byl"]'
-    ]
-    
-    for selector in meta_selectors:
-        elem = soup.select_one(selector)
-        if elem and elem.get('content'):
-            author = elem['content'].strip()
-            author = re.sub(r'^(By|BY|by)\s+', '', author)
-            if author and not any(org in author.lower() for org in org_names):
-                return author
-    
-    # Try common selectors
-    author_selectors = [
-        '.byline',
-        '.author-name',
-        '[rel="author"]',
-        'span[class*="author"]'
-    ]
-    
-    for selector in author_selectors:
-        elem = soup.select_one(selector)
-        if elem:
-            author = elem.get_text().strip()
-            author = re.sub(r'^(By|BY|by)\s+', '', author)
-            if author and len(author) > 2 and not any(org in author.lower() for org in org_names):
-                return author
-    
-    return None
 
 def _find_largest_text_block(soup):
     """Helper method to find the largest contiguous text block"""
@@ -876,6 +877,7 @@ class NewsAnalyzer:
                                     break
                                 else: 
                                     logger.info(f"Not enough text: {len(article_text)} chars")
+                    
                     # If site-specific didn't work, try generic selectors
                     if not article_text or len(article_text) < 200:
                         content_selectors = [
