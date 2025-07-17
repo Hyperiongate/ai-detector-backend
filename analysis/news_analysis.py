@@ -40,21 +40,17 @@ except Exception as e:
 # EMBEDDED SIMPLE EXTRACTOR - Now generic for all sites
 def extract_generic_simple(url, domain=None):
     """
-    Generic simple extractor for any news site
+    Universal extractor for any news site - handles modern JS frameworks
     """
     try:
         if not domain:
             domain = urlparse(url).netloc.replace('www.', '')
         
-        # Method 1: Try with different user agents
+        # Try with different user agents
         user_agents = [
-            # Desktop Chrome
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            # Googlebot
             'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            # Facebook crawler
             'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-            # Generic mobile
             'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
         ]
         
@@ -73,129 +69,272 @@ def extract_generic_simple(url, domain=None):
                 
                 response = session.get(url, headers=headers, timeout=10, allow_redirects=True)
                 
-                if response.status_code == 200 and len(response.text) > 5000:
-                    # Parse the content
+                if response.status_code == 200:
                     soup = BeautifulSoup(response.text, 'html.parser')
                     
-                    # Remove script and style elements
-                    for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                    # Remove unwanted elements
+                    for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form', 'button']):
                         element.decompose()
                     
-                    article_text = ""
-                    title = ""
-                    author = None
-                    
-                    # Title extraction
-                    title_selectors = [
-                        'h1',
-                        'meta[property="og:title"]',
-                        'meta[name="twitter:title"]',
-                        'title',
-                        '.headline',
-                        '.article-title',
-                        '[class*="headline"]'
-                    ]
-                    
-                    for selector in title_selectors:
-                        if selector.startswith('meta'):
-                            elem = soup.select_one(selector)
-                            if elem and elem.get('content'):
-                                title = elem['content'].strip()
-                                break
-                        else:
-                            elem = soup.select_one(selector)
-                            if elem:
-                                title = elem.get_text().strip()
-                                if title and len(title) > 10:
-                                    break
-                    
-                    # Author extraction
-                    author_selectors = [
-                        'meta[name="author"]',
-                        'meta[property="article:author"]',
-                        '.byline',
-                        '.author-name',
-                        '[rel="author"]',
-                        'span[class*="author"]',
-                        'div[class*="author"] a'
-                    ]
-                    
-                    for selector in author_selectors:
-                        if selector.startswith('meta'):
-                            elem = soup.select_one(selector)
-                            if elem and elem.get('content'):
-                                author = elem['content'].strip()
-                                break
-                        else:
-                            elem = soup.select_one(selector)
-                            if elem:
-                                author = elem.get_text().strip()
-                                if author and len(author) > 2:
-                                    break
-                    
-                    # Clean author name
-                    if author:
-                        author = re.sub(r'^(By|BY|by)\s+', '', author).strip()
-                    
-                    # Content extraction - try multiple strategies
-                    content_strategies = [
-                        # Strategy 1: Look for article-specific containers
-                        lambda: soup.select('article p, main p, [role="main"] p, .story-body p, .article-body p'),
-                        # Strategy 2: Find the largest text block
-                        lambda: self._find_largest_text_block(soup),
-                        # Strategy 3: Get all paragraphs and filter
-                        lambda: [p for p in soup.find_all('p') if len(p.get_text().strip()) > 50]
-                    ]
-                    
-                    for strategy in content_strategies:
+                    # STRATEGY 1: Look for JSON-LD structured data (works for many modern sites)
+                    json_ld_data = None
+                    for script in soup.find_all('script', type='application/ld+json'):
                         try:
-                            paragraphs = strategy()
-                            if paragraphs and len(paragraphs) >= 3:
-                                texts = []
-                                for p in paragraphs[:50]:  # Limit to 50 paragraphs
-                                    if hasattr(p, 'get_text'):
-                                        text = p.get_text().strip()
-                                    else:
-                                        text = str(p).strip()
-                                    
-                                    # Filter out common non-article content
-                                    if (text and len(text) > 30 and 
-                                        not any(skip in text.lower() for skip in 
-                                               ['cookie', 'subscribe', 'newsletter', 'sign up', 
-                                                'advertisement', 'sponsored'])):
-                                        texts.append(text)
-                                
-                                if texts and len(' '.join(texts)) > 500:
-                                    article_text = ' '.join(texts)
-                                    break
-                        except Exception as e:
-                            logger.debug(f"Content strategy failed: {str(e)}")
+                            data = json.loads(script.string)
+                            if isinstance(data, dict) and data.get('@type') in ['NewsArticle', 'Article', 'BlogPosting']:
+                                json_ld_data = data
+                                break
+                            elif isinstance(data, list):
+                                for item in data:
+                                    if isinstance(item, dict) and item.get('@type') in ['NewsArticle', 'Article', 'BlogPosting']:
+                                        json_ld_data = item
+                                        break
+                        except:
                             continue
                     
-                    if article_text and len(article_text) > 500:
-                        logger.info(f"Successfully extracted from {domain} using {user_agent[:30]}...")
+                    # Extract from JSON-LD if found
+                    if json_ld_data:
+                        title = json_ld_data.get('headline', '')
+                        author = None
+                        if 'author' in json_ld_data:
+                            if isinstance(json_ld_data['author'], dict):
+                                author = json_ld_data['author'].get('name', '')
+                            else:
+                                author = str(json_ld_data['author'])
                         
+                        article_text = json_ld_data.get('articleBody', '')
+                        if not article_text and 'text' in json_ld_data:
+                            article_text = json_ld_data['text']
+                        
+                        if article_text and len(article_text) > 500:
+                            logger.info(f"Successfully extracted from {domain} using JSON-LD")
+                            return {
+                                'url': url,
+                                'domain': domain,
+                                'title': title or 'Article',
+                                'text': article_text[:5000],
+                                'author': author or f'{domain} Staff',
+                                'publish_date': json_ld_data.get('datePublished'),
+                                'extraction_method': 'json_ld'
+                            }
+                    
+                    # STRATEGY 2: Look for Next.js __NEXT_DATA__ (React sites like Axios, Verge, etc)
+                    next_data_match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', response.text, re.DOTALL)
+                    if next_data_match:
+                        try:
+                            next_data = json.loads(next_data_match.group(1))
+                            # Common paths in Next.js apps
+                            paths_to_try = [
+                                ['props', 'pageProps', 'article'],
+                                ['props', 'pageProps', 'story'],
+                                ['props', 'pageProps', 'post'],
+                                ['props', 'pageProps', 'data'],
+                                ['props', 'pageProps', 'content'],
+                                ['props', 'pageProps', 'initialData'],
+                            ]
+                            
+                            for path in paths_to_try:
+                                current = next_data
+                                for key in path:
+                                    if isinstance(current, dict) and key in current:
+                                        current = current[key]
+                                    else:
+                                        break
+                                else:
+                                    # Found article data
+                                    article_text = self._extract_text_from_object(current)
+                                    if article_text and len(article_text) > 500:
+                                        logger.info(f"Successfully extracted from {domain} using Next.js data")
+                                        return {
+                                            'url': url,
+                                            'domain': domain,
+                                            'title': self._find_in_dict(current, ['title', 'headline', 'name']) or 'Article',
+                                            'text': article_text[:5000],
+                                            'author': self._find_in_dict(current, ['author', 'byline', 'creator']) or f'{domain} Staff',
+                                            'publish_date': self._find_in_dict(current, ['publishedAt', 'datePublished', 'date']),
+                                            'extraction_method': 'nextjs'
+                                        }
+                        except:
+                            pass
+                    
+                    # STRATEGY 3: Look for common content patterns
+                    # This strategy looks for the largest cluster of <p> tags
+                    all_containers = soup.find_all(['div', 'section', 'article', 'main'])
+                    best_container = None
+                    max_text_length = 0
+                    
+                    for container in all_containers:
+                        # Count substantive paragraphs
+                        paragraphs = container.find_all('p')
+                        text_length = sum(len(p.get_text().strip()) for p in paragraphs if len(p.get_text().strip()) > 50)
+                        
+                        if text_length > max_text_length:
+                            max_text_length = text_length
+                            best_container = container
+                    
+                    if best_container and max_text_length > 500:
+                        # Extract from best container
+                        title = self._extract_title(soup)
+                        author = self._extract_author(soup, response.text)
+                        
+                        # Get all text elements
+                        text_elements = best_container.find_all(['p', 'h2', 'h3', 'h4', 'blockquote', 'li'])
+                        article_parts = []
+                        
+                        for elem in text_elements:
+                            text = elem.get_text().strip()
+                            # Filter out common non-article content
+                            if (text and len(text) > 30 and 
+                                not any(skip in text.lower() for skip in 
+                                       ['cookie', 'subscribe', 'newsletter', 'sign up', 
+                                        'advertisement', 'sponsored', 'related articles',
+                                        'read more', 'share this', 'follow us'])):
+                                article_parts.append(text)
+                        
+                        article_text = ' '.join(article_parts)
+                        
+                        if len(article_text) > 500:
+                            logger.info(f"Successfully extracted from {domain} using content clustering")
+                            return {
+                                'url': url,
+                                'domain': domain,
+                                'title': title or f'{domain} Article',
+                                'text': article_text[:5000],
+                                'author': author or f'{domain} Staff',
+                                'publish_date': None,
+                                'extraction_method': 'content_clustering'
+                            }
+                    
+                    # STRATEGY 4: Meta tags fallback
+                    # If all else fails, try to at least get metadata
+                    meta_description = None
+                    meta_elem = soup.find('meta', {'name': 'description'}) or soup.find('meta', {'property': 'og:description'})
+                    if meta_elem:
+                        meta_description = meta_elem.get('content', '')
+                    
+                    if meta_description and len(meta_description) > 100:
+                        title = self._extract_title(soup)
+                        logger.info(f"Using meta description fallback for {domain}")
                         return {
                             'url': url,
                             'domain': domain,
                             'title': title or f'{domain} Article',
-                            'text': article_text[:5000],
-                            'author': author or f'{domain} Staff',
+                            'text': f"Article summary: {meta_description}\n\nFull article content could not be extracted. Please use the 'Paste Text' feature for complete analysis.",
+                            'author': f'{domain} Staff',
                             'publish_date': None,
-                            'extraction_method': f'simple_{user_agent.split("/")[0].split()[0].lower()}'
+                            'extraction_method': 'meta_fallback',
+                            'partial_extraction': True
                         }
                 
             except Exception as e:
                 logger.debug(f"Attempt with {user_agent[:30]}... failed: {str(e)}")
                 continue
         
-        # All methods failed
-        logger.warning(f"All simple extraction methods failed for {domain}")
+        logger.warning(f"All extraction methods failed for {domain}")
         return None
         
     except Exception as e:
-        logger.error(f"Simple extractor error for {domain}: {str(e)}")
+        logger.error(f"Generic extractor error for {domain}: {str(e)}")
         return None
+
+def _extract_text_from_object(self, obj):
+    """Helper to extract text from nested objects/arrays"""
+    if isinstance(obj, str):
+        return obj
+    elif isinstance(obj, dict):
+        # Look for content fields
+        for key in ['content', 'body', 'text', 'articleBody', 'description']:
+            if key in obj:
+                return self._extract_text_from_object(obj[key])
+        # Try joining all string values
+        texts = []
+        for value in obj.values():
+            if isinstance(value, str) and len(value) > 50:
+                texts.append(value)
+        return ' '.join(texts)
+    elif isinstance(obj, list):
+        texts = []
+        for item in obj:
+            text = self._extract_text_from_object(item)
+            if text:
+                texts.append(text)
+        return ' '.join(texts)
+    return ''
+
+def _find_in_dict(self, obj, keys):
+    """Helper to find a value by trying multiple keys"""
+    if isinstance(obj, dict):
+        for key in keys:
+            if key in obj and obj[key]:
+                return obj[key]
+    return None
+
+def _extract_title(self, soup):
+    """Extract title using multiple methods"""
+    title_selectors = [
+        'h1',
+        'meta[property="og:title"]',
+        'meta[name="twitter:title"]',
+        'title',
+        '.headline',
+        '.article-title',
+        '[class*="headline"]'
+    ]
+    
+    for selector in title_selectors:
+        if selector.startswith('meta'):
+            elem = soup.select_one(selector)
+            if elem and elem.get('content'):
+                return elem['content'].strip()
+        else:
+            elem = soup.select_one(selector)
+            if elem:
+                title = elem.get_text().strip()
+                if title and len(title) > 10:
+                    return title
+    
+    return None
+
+def _extract_author(self, soup, full_html):
+    """Extract author using multiple methods"""
+    # Organization names to exclude
+    org_names = [
+        'staff', 'team', 'newsroom', 'correspondent', 'editor',
+        'associated press', 'reuters', 'bloomberg', 'admin'
+    ]
+    
+    # Try meta tags
+    meta_selectors = [
+        'meta[name="author"]',
+        'meta[property="article:author"]',
+        'meta[name="byl"]'
+    ]
+    
+    for selector in meta_selectors:
+        elem = soup.select_one(selector)
+        if elem and elem.get('content'):
+            author = elem['content'].strip()
+            author = re.sub(r'^(By|BY|by)\s+', '', author)
+            if author and not any(org in author.lower() for org in org_names):
+                return author
+    
+    # Try common selectors
+    author_selectors = [
+        '.byline',
+        '.author-name',
+        '[rel="author"]',
+        'span[class*="author"]'
+    ]
+    
+    for selector in author_selectors:
+        elem = soup.select_one(selector)
+        if elem:
+            author = elem.get_text().strip()
+            author = re.sub(r'^(By|BY|by)\s+', '', author)
+            if author and len(author) > 2 and not any(org in author.lower() for org in org_names):
+                return author
+    
+    return None
 
 def _find_largest_text_block(soup):
     """Helper method to find the largest contiguous text block"""
