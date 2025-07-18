@@ -2734,17 +2734,56 @@ def api_analyze_news():
                 'unable to extract article content'
             ]
             
+            @app.route('/api/analyze-news', methods=['POST'])
+@csrf.exempt
+@track_usage('news')
+def api_analyze_news():
+    """News analysis endpoint"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        content = data.get('content', '')
+        content_type = data.get('type', 'text')
+        is_pro = data.get('is_pro', True)  # DEV MODE: always pro
+        
+        results = analyze_news_route(content, is_pro)
+
+        # ADD THESE DEBUG LINES
+        logger.info(f"DEBUG: Results success = {results.get('success')}")
+        logger.info(f"DEBUG: Results error = {results.get('error')}")
+        
+        # Check if extraction was blocked (for Cloudflare/anti-bot sites)
+        if not results.get('success') and results.get('error'):
+            error_msg = str(results.get('error', '')).lower()
+            # ADD THIS DEBUG LINE
+            logger.info(f"DEBUG: Checking error_msg = {error_msg}")
+            
+            # Check for extraction failure indicators
+            cloudflare_indicators = [
+                'could not extract', 'extraction failed', 'unable to extract',
+                'cloudflare', 'anti-bot', 'axios', 'politico', 'bloomberg',
+                'blocking automated', 'prevent', 'article not found',
+                'extraction error',
+                'unable to extract article content'
+            ]
+            
             if 'extract' in error_msg or any(indicator in error_msg for indicator in cloudflare_indicators):
                 # ADD THIS DEBUG LINE
                 logger.info("DEBUG: Extraction blocked detected! Returning friendly message")
-                # Return the extraction_blocked error that the frontend expects
-                return jsonify({
                 # Return the extraction_blocked error that the frontend expects
                 return jsonify({
                     'success': False,
                     'error': 'extraction_blocked',
                     'message': 'This site is preventing our AI from peeking under the hood. Please use the cut and paste option to get the results you are after.'
                 })
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"News analysis error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
         
         return jsonify(results)
         
