@@ -11,9 +11,7 @@ import os
 import logging
 # ... rest of your imports
 import os
-# Force Playwright to use default browser location
-if 'PLAYWRIGHT_BROWSERS_PATH' in os.environ:
-    del os.environ['PLAYWRIGHT_BROWSERS_PATH']
+
 # Standard library imports
 import os
 import json
