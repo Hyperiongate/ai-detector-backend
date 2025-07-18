@@ -41,7 +41,7 @@ def extract_with_playwright(url):
             try:
                 # Launch with stealth options
                 browser = p.chromium.launch(
-                    headless=False,  # Non-headless is less detectable
+                    headless=True,  # Must be headless on Render
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--disable-dev-shm-usage',
