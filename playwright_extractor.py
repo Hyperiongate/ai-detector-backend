@@ -10,22 +10,10 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-# DO NOT SET CUSTOM BROWSER PATH - use Playwright defaults 
-# Remove any custom path that might have been set elsewhere
+# Keep the PLAYWRIGHT_BROWSERS_PATH that's set in the environment
+# This tells Playwright where to find the browsers we installed
 if 'PLAYWRIGHT_BROWSERS_PATH' in os.environ:
-    logger.info(f"Found PLAYWRIGHT_BROWSERS_PATH set to: {os.environ['PLAYWRIGHT_BROWSERS_PATH']}")
-    del os.environ['PLAYWRIGHT_BROWSERS_PATH']
-    logger.info("Removed custom PLAYWRIGHT_BROWSERS_PATH to use defaults")
-else:
-    logger.info("No custom PLAYWRIGHT_BROWSERS_PATH found")
-
-# Log where Playwright will look for browsers
-try:
-    from playwright._impl._driver import get_driver_env
-    env = get_driver_env()
-    logger.info(f"Playwright will use browsers from: {env.get('PLAYWRIGHT_BROWSERS_PATH', 'default location')}")
-except:
-    logger.info("Could not determine Playwright browser path")
+    logger.info(f"Using PLAYWRIGHT_BROWSERS_PATH: {os.environ['PLAYWRIGHT_BROWSERS_PATH']}")
 
 # Check if Playwright is available
 PLAYWRIGHT_AVAILABLE = False
