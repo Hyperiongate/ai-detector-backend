@@ -83,12 +83,22 @@ def extract_with_playwright(url):
                     'Sec-Fetch-User': '?1'
                 })
                 
-                # Navigate to URL
+                # Navigate to URL with better timeout handling
                 logger.info(f"Playwright: Navigating to {url}")
-                page.goto(url, wait_until='networkidle', timeout=30000)
-                
-                # Wait for content to load
-                page.wait_for_timeout(2000)
+                try:
+                    # Try with domcontentloaded first (faster, less strict)
+                    page.goto(url, wait_until='domcontentloaded', timeout=45000)
+                    # Wait a bit for dynamic content
+                    page.wait_for_timeout(3000)
+                except Exception as timeout_err:
+                    logger.warning(f"Initial page load timeout, trying with longer timeout: {timeout_err}")
+                    try:
+                        # Retry with even more lenient settings
+                        page.goto(url, wait_until='commit', timeout=60000)
+                        page.wait_for_timeout(2000)
+                    except Exception as retry_err:
+                        logger.error(f"Page load failed even with extended timeout: {retry_err}")
+                        raise
                 
                 # Get domain
                 domain = urlparse(url).netloc.replace('www.', '')
