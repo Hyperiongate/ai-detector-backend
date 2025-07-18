@@ -2725,9 +2725,10 @@ def api_analyze_news():
                 'cloudflare', 'anti-bot', 'axios', 'politico', 'bloomberg',
                 'blocking automated', 'prevent', 'article not found',
                 'extraction error'
+                'unable to extract article content'
             ]
             
-            if any(indicator in error_msg for indicator in cloudflare_indicators):
+            if 'extract' in error_msg or any(indicator in error_msg for indicator in cloudflare_indicators):
                 # Return the extraction_blocked error that the frontend expects
                 return jsonify({
                     'success': False,
