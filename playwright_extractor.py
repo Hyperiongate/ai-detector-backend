@@ -1,11 +1,12 @@
 """
 Playwright-based article extractor for Facts & Fakes AI
-Handles sites with anti-bot protection like Politico
-Fixed version with better error handling
+Handles sites with anti-bot protection like Politico and Axios
+Enhanced version with stealth techniques
 """
 
 import logging
 import os
+import random
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ except ImportError:
 
 def extract_with_playwright(url):
     """
-    Extract article content using Playwright
+    Extract article content using Playwright with stealth techniques
     Returns None if extraction fails
     """
     if not PLAYWRIGHT_AVAILABLE:
@@ -38,10 +39,26 @@ def extract_with_playwright(url):
         with sync_playwright() as p:
             # First, check if browser is actually available
             try:
-                # Try to launch with minimal options
+                # Launch with stealth options
                 browser = p.chromium.launch(
-                    headless=True,
-                    args=['--no-sandbox', '--disable-setuid-sandbox', '--single-process']
+                    headless=False,  # Non-headless is less detectable
+                    args=[
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-dev-shm-usage',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process',
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-infobars',
+                        '--window-position=0,0',
+                        '--ignore-certificate-errors',
+                        '--ignore-certificate-errors-spki-list',
+                        '--disable-accelerated-2d-canvas',
+                        '--disable-gpu',
+                        '--window-size=1920,1080',
+                        '--start-maximized',
+                        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+                    ]
                 )
                 logger.info("Browser launched successfully")
             except Exception as e:
@@ -57,16 +74,28 @@ def extract_with_playwright(url):
             
             # If we get here, browser launched successfully
             try:
-                # Create context with real browser settings
+                # Create context with enhanced stealth settings
                 context = browser.new_context(
                     viewport={'width': 1920, 'height': 1080},
+                    screen={'width': 1920, 'height': 1080},
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                    locale='en-US',
+                    timezone_id='America/New_York',
+                    permissions=['geolocation'],
+                    geolocation={'latitude': 40.7128, 'longitude': -74.0060},
+                    color_scheme='light',
                     extra_http_headers={
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                         'Accept-Language': 'en-US,en;q=0.9',
                         'Accept-Encoding': 'gzip, deflate, br',
-                        'DNT': '1',
-                        'Connection': 'keep-alive',
+                        'Cache-Control': 'max-age=0',
+                        'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="121", "Google Chrome";v="121"',
+                        'Sec-Ch-Ua-Mobile': '?0',
+                        'Sec-Ch-Ua-Platform': '"Windows"',
+                        'Sec-Fetch-Dest': 'document',
+                        'Sec-Fetch-Mode': 'navigate',
+                        'Sec-Fetch-Site': 'none',
+                        'Sec-Fetch-User': '?1',
                         'Upgrade-Insecure-Requests': '1'
                     }
                 )
@@ -74,58 +103,129 @@ def extract_with_playwright(url):
                 # Create page
                 page = context.new_page()
                 
-                # Set additional headers
-                page.set_extra_http_headers({
-                    'Referer': 'https://www.google.com/',
-                    'Sec-Fetch-Dest': 'document',
-                    'Sec-Fetch-Mode': 'navigate',
-                    'Sec-Fetch-Site': 'cross-site',
-                    'Sec-Fetch-User': '?1'
-                })
+                # Remove automation indicators
+                page.add_init_script("""
+                    // Remove webdriver property
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined
+                    });
+                    
+                    // Remove automation indicators
+                    window.chrome = {
+                        runtime: {}
+                    };
+                    
+                    // Add plugins
+                    Object.defineProperty(navigator, 'plugins', {
+                        get: () => [
+                            {
+                                0: {type: "application/x-google-chrome-pdf", suffixes: "pdf", description: "Portable Document Format"},
+                                description: "Portable Document Format",
+                                filename: "internal-pdf-viewer",
+                                length: 1,
+                                name: "Chrome PDF Plugin"
+                            }
+                        ]
+                    });
+                    
+                    // Override permissions
+                    const originalQuery = window.navigator.permissions.query;
+                    window.navigator.permissions.query = (parameters) => (
+                        parameters.name === 'notifications' ?
+                            Promise.resolve({ state: Notification.permission }) :
+                            originalQuery(parameters)
+                    );
+                    
+                    // Add realistic window properties
+                    Object.defineProperty(navigator, 'hardwareConcurrency', {
+                        get: () => 8
+                    });
+                    
+                    Object.defineProperty(navigator, 'deviceMemory', {
+                        get: () => 8
+                    });
+                """)
+                
+                # Random delay to appear more human
+                page.wait_for_timeout(random.randint(500, 1500))
                 
                 # Navigate to URL with better timeout handling
                 logger.info(f"Playwright: Navigating to {url}")
                 try:
-                    # Try with domcontentloaded first (faster, less strict)
+                    # Navigate first to a benign page (helps with some anti-bot systems)
+                    page.goto('https://www.google.com', wait_until='domcontentloaded', timeout=15000)
+                    page.wait_for_timeout(random.randint(1000, 2000))
+                    
+                    # Now navigate to the target URL
                     page.goto(url, wait_until='domcontentloaded', timeout=45000)
-                    # Wait a bit for dynamic content
-                    page.wait_for_timeout(3000)
+                    
+                    # Wait for potential Cloudflare challenge
+                    page.wait_for_timeout(5000)
+                    
+                    # Check if we're still on a challenge page
+                    page_text = page.content()
+                    if 'challenges.cloudflare.com' in page_text or 'Just a moment' in page_text:
+                        logger.info("Cloudflare challenge detected, waiting longer...")
+                        # Wait up to 15 seconds for challenge to complete
+                        try:
+                            page.wait_for_selector('article', timeout=15000)
+                        except:
+                            # Try waiting for any main content indicator
+                            page.wait_for_timeout(10000)
+                    
                 except Exception as timeout_err:
-                    logger.warning(f"Initial page load timeout, trying with longer timeout: {timeout_err}")
+                    logger.warning(f"Initial page load issue: {timeout_err}")
+                    # Try one more time with minimal waiting
                     try:
-                        # Retry with even more lenient settings
-                        page.goto(url, wait_until='commit', timeout=60000)
-                        page.wait_for_timeout(2000)
+                        page.goto(url, wait_until='commit', timeout=30000)
+                        page.wait_for_timeout(5000)
                     except Exception as retry_err:
-                        logger.error(f"Page load failed even with extended timeout: {retry_err}")
+                        logger.error(f"Page load failed even with retry: {retry_err}")
                         raise
                 
                 # Get domain
                 domain = urlparse(url).netloc.replace('www.', '')
                 
-                # Try to handle cookie consent
+                # Try to handle cookie consent with more human-like behavior
                 try:
+                    # Move mouse to center first
+                    page.mouse.move(960, 540)
+                    page.wait_for_timeout(random.randint(500, 1000))
+                    
                     # Common cookie accept button selectors
                     cookie_selectors = [
                         'button:has-text("Accept")',
                         'button:has-text("Accept all")',
                         'button:has-text("I agree")',
                         'button:has-text("Got it")',
+                        'button:has-text("OK")',
+                        '[class*="cookie"] button',
                         '[id*="cookie"] button',
-                        '[class*="cookie-banner"] button'
+                        '[class*="consent"] button'
                     ]
                     
                     for selector in cookie_selectors:
                         try:
-                            button = page.locator(selector).first
-                            if button.is_visible():
-                                button.click()
-                                page.wait_for_timeout(1000)
-                                break
+                            buttons = page.locator(selector).all()
+                            if buttons:
+                                button = buttons[0]
+                                if button.is_visible():
+                                    # Move mouse to button with human-like movement
+                                    box = button.bounding_box()
+                                    if box:
+                                        page.mouse.move(box['x'] + box['width']/2, box['y'] + box['height']/2)
+                                        page.wait_for_timeout(random.randint(200, 500))
+                                        button.click()
+                                        page.wait_for_timeout(random.randint(1000, 2000))
+                                        break
                         except:
                             continue
                 except:
                     pass  # Cookie handling is best-effort
+                
+                # Scroll down a bit to trigger lazy loading
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight * 0.3)")
+                page.wait_for_timeout(1500)
                 
                 # Get the page content
                 html_content = page.content()
@@ -175,7 +275,8 @@ def extract_data_from_soup(soup, domain, url):
         'meta[name="twitter:title"]',
         'title',
         '.headline',
-        '.article-title'
+        '.article-title',
+        '[class*="title"]'
     ]
     
     for selector in title_selectors:
@@ -194,7 +295,7 @@ def extract_data_from_soup(soup, domain, url):
     if not title:
         title = 'Article Title Not Found'
     
-    # Extract content - with special handling for Politico
+    # Extract content - with special handling for different sites
     article_text = ""
     
     if domain == 'politico.com':
@@ -208,6 +309,16 @@ def extract_data_from_soup(soup, domain, url):
             'div.story-main-content p',
             '.story-text__paragraph'
         ]
+    elif domain == 'axios.com':
+        # Axios-specific selectors
+        content_selectors = [
+            '[class*="story-module"] p',
+            '[class*="gtm-story-text"] p',
+            'div[data-module="story"] p',
+            'main article p',
+            '[class*="content-area"] p',
+            'div.story p'
+        ]
     else:
         # Generic selectors
         content_selectors = [
@@ -216,7 +327,9 @@ def extract_data_from_soup(soup, domain, url):
             '[role="main"] p',
             '.article-body p',
             '.story-body p',
-            '.entry-content p'
+            '.entry-content p',
+            '[class*="article-content"] p',
+            '[class*="story-content"] p'
         ]
     
     for selector in content_selectors:
@@ -260,7 +373,9 @@ def extract_data_from_soup(soup, domain, url):
         'meta[name="author"]',
         '.byline',
         '.author',
-        'span.byline-name'
+        'span.byline-name',
+        '[class*="author"]',
+        '[class*="byline"]'
     ]
     
     for selector in author_selectors:
@@ -282,7 +397,9 @@ def extract_data_from_soup(soup, domain, url):
     publish_date = None
     date_selectors = [
         'time[datetime]',
-        'meta[property="article:published_time"]'
+        'meta[property="article:published_time"]',
+        '[class*="publish-date"]',
+        '[class*="timestamp"]'
     ]
     
     for selector in date_selectors:
