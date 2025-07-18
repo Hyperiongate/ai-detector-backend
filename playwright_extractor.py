@@ -247,6 +247,11 @@ def extract_data_from_soup(soup, domain, url):
     
     if len(article_text) < 200:
         logger.warning(f"Insufficient content extracted from {domain}: {len(article_text)} chars")
+        # Add debugging info
+        if len(article_text) == 0:
+            logger.info(f"Debug - Page title: {title}")
+            logger.info(f"Debug - Total paragraphs found: {len(soup.find_all('p'))}")
+            logger.info(f"Debug - Page text preview: {soup.get_text()[:500]}")
         return None
     
     # Extract author
