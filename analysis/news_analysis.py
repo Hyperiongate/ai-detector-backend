@@ -469,14 +469,15 @@ class NewsAnalyzer:
                         error_message += "The site may be blocking automated access or the page structure is not recognized."
                     
                     return {
-                        'success': False,
-                        'error': error_message,
-                        'suggestions': [
-                            'Copy and paste the article text using the "Paste Text" tab',
-                            'Try a different news source',
-                            'Use a direct link to the article (not the homepage)'
-                        ]
-                    }
+    'success': False,
+    'error': error_message,
+    'domain': domain,
+    'suggestions': [
+        'Copy and paste the article text using the "Paste Text" tab',
+        'Try a different news source',
+        'Use a direct link to the article (not the homepage)'
+    ]
+}
             else:
                 article_data = {
                     'title': 'Direct Text Analysis',
