@@ -2160,7 +2160,118 @@
 .sticky-upgrade {
     display: none !important;
 }
+/* Feature Preview Dropdown with Side-by-Side Layout */
+.feature-preview-dropdown {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border-radius: 15px;
+    margin: 30px 0;
+    overflow: hidden;
+    border: 2px solid rgba(139, 92, 246, 0.2);
+}
 
+.feature-preview-header {
+    padding: 20px 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.feature-preview-header:hover {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.feature-preview-header h5 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2c3e50;
+}
+
+.feature-preview-header i.icon {
+    font-size: 24px;
+    color: #8b5cf6;
+}
+
+.feature-preview-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: white;
+}
+
+.feature-preview-content.show {
+    max-height: 600px;
+}
+
+.feature-comparison {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    padding: 25px;
+}
+
+.feature-column {
+    padding: 20px;
+}
+
+.feature-column.free {
+    background: #f8f9fa;
+    border-radius: 12px 0 0 12px;
+}
+
+.feature-column.pro {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border-radius: 0 12px 12px 0;
+}
+
+.feature-divider {
+    width: 2px;
+    background: linear-gradient(to bottom, #e5e7eb 0%, #8b5cf6 50%, #e5e7eb 100%);
+}
+
+.feature-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.feature-column .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-column .feature-list li {
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.feature-list li.disabled {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.feature-list li.disabled i {
+    color: #dc3545;
+}
+
+.feature-list li.limit {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+.feature-list li.highlight {
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .feature-comparison {
 /* ========== END NEW STYLES ========== */   
     </style>
 </head>
@@ -2623,23 +2734,60 @@
             </div>
         </div>
     </div>
-    <!-- Feature Preview Section -->
-<div class="feature-preview-section">
-    <h3 class="text-center mb-4">What to Expect from Your Analysis</h3>
-    <div class="feature-cards">
-        <div class="feature-card free">
-            <span class="feature-badge badge-free">Free Version</span>
-            <h4><i class="fas fa-chart-line me-2"></i>Overall Assessment</h4>
-            <ul class="feature-list">
-                <li><i class="fas fa-check"></i>Trust Score (0-100%)</li>
-                <li><i class="fas fa-check"></i>Key findings summary</li>
-                <li><i class="fas fa-check"></i>Source credibility check</li>
-                <li><i class="fas fa-check"></i>Basic fact verification</li>
-                <li><i class="fas fa-check"></i>Political bias detection</li>
-                <li><i class="fas fa-check"></i>Manipulation tactics alert</li>
-                <li><i class="fas fa-check"></i>1 analysis per day</li>
-            </ul>
+    <!-- Feature Preview Dropdown -->
+<div class="feature-preview-dropdown">
+    <div class="feature-preview-header" onclick="toggleFeaturePreview()">
+        <h5>
+            <i class="fas fa-sparkles icon"></i>
+            What to Expect from Your Analysis
+        </h5>
+        <i class="fas fa-chevron-down chevron-icon"></i>
+    </div>
+    <div class="feature-preview-content" id="feature-preview-content">
+        <div class="feature-comparison">
+            <div class="feature-column free">
+                <div class="feature-header">
+                    <span class="feature-badge badge-free">Free Version</span>
+                    <h4><i class="fas fa-chart-line me-2"></i>Basic Analysis</h4>
+                </div>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i>Trust Score (0-100%)</li>
+                    <li><i class="fas fa-check"></i>Key findings summary</li>
+                    <li class="disabled"><i class="fas fa-times"></i>Source credibility check</li>
+                    <li class="disabled"><i class="fas fa-times"></i>Fact verification</li>
+                    <li class="disabled"><i class="fas fa-times"></i>Political bias detection</li>
+                    <li class="disabled"><i class="fas fa-times"></i>Manipulation tactics</li>
+                    <li class="limit"><i class="fas fa-info-circle"></i>1 analysis per day</li>
+                </ul>
+            </div>
+            
+            <div class="feature-divider"></div>
+            
+            <div class="feature-column pro">
+                <div class="feature-header">
+                    <span class="feature-badge badge-pro">Pro Version</span>
+                    <h4><i class="fas fa-crown me-2"></i>Advanced Analysis</h4>
+                </div>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i>Everything in Free</li>
+                    <li><i class="fas fa-check"></i>Full source credibility analysis</li>
+                    <li><i class="fas fa-check"></i>Detailed fact-checking</li>
+                    <li><i class="fas fa-check"></i>Political bias detection</li>
+                    <li><i class="fas fa-check"></i>Manipulation tactics alert</li>
+                    <li><i class="fas fa-check"></i>Author background research</li>
+                    <li><i class="fas fa-check"></i>AI content detection</li>
+                    <li><i class="fas fa-check"></i>PDF report generation</li>
+                    <li class="highlight"><i class="fas fa-infinity"></i>Unlimited analyses</li>
+                </ul>
+                <div class="text-center mt-3">
+                    <a href="/pricing" class="btn btn-primary btn-sm">
+                        <i class="fas fa-rocket me-2"></i>Upgrade to Pro
+                    </a>
+                </div>
+            </div>
         </div>
+    </div>
+</div>
         
         <div class="feature-card pro">
             <span class="feature-badge badge-pro">Pro Version</span>
@@ -2716,13 +2864,13 @@
     </div>
 </div>
     <div id="url-input-section">
-        <input type="url" id="news-url" placeholder="https://example.com/article" 
-               style="width: 100%; padding: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease;" />
-        <div class="info-box tip mt-3">
-            <i class="fas fa-lightbulb me-2"></i>
-            <strong>Pro Tip:</strong> Some major news sites (CNN, NYTimes, etc.) block automated access. If you encounter issues, use the "Paste Text" option instead.
-        </div>
+    <input type="url" id="news-url" placeholder="https://example.com/article" 
+           style="width: 100%; padding: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease;" />
+    <div class="info-box tip mt-3" id="pro-tip-box" style="display: none;">
+        <i class="fas fa-lightbulb me-2"></i>
+        <strong>Pro Tip:</strong> This site appears to block automated access. Try using the "Paste Text" option instead.
     </div>
+</div>
     
     <div id="text-input-section" style="display: none;">
         <textarea id="news-text" placeholder="Paste the article text here..." 
@@ -3446,7 +3594,33 @@ document.getElementById('news-text').addEventListener('blur', function() {
         // Initialize any needed components
         console.log('News analyzer ready');
     });
+// Toggle resources dropdown
+function toggleResources() {
+    const content = document.getElementById('resources-content');
+    const header = document.querySelector('.resources-header');
+    
+    if (content.classList.contains('show')) {
+        content.classList.remove('show');
+        header.classList.remove('active');
+    } else {
+        content.classList.add('show');
+        header.classList.add('active');
+    }
+}
 
+// Toggle feature preview dropdown
+function toggleFeaturePreview() {
+    const content = document.getElementById('feature-preview-content');
+    const header = document.querySelector('.feature-preview-header');
+    
+    if (content.classList.contains('show')) {
+        content.classList.remove('show');
+        header.classList.remove('active');
+    } else {
+        content.classList.add('show');
+        header.classList.add('active');
+    }
+}
     // Global variable to store current analysis results
     let currentAnalysisResults = null;
 
@@ -3631,30 +3805,40 @@ const progressInterval = setInterval(() => {
             }
             
         } catch (error) {
-            console.error('Analysis error:', error);
-            loadingSection.style.display = 'none';
-            
-            // Clear any running intervals
-            if (typeof progressInterval !== 'undefined') {
-                clearInterval(progressInterval);
-            }
-            
-            // Show user-friendly error message
-            let userMessage = error.message;
-            
-            // Make error messages more user-friendly
-            if (userMessage.includes('fetch')) {
-                userMessage = 'Unable to connect to the analysis service. Please check your internet connection and try again.';
-            } else if (userMessage.includes('404')) {
-                userMessage = 'Analysis service not found. Please contact support.';
-            } else if (userMessage.includes('500')) {
-                userMessage = 'Server error occurred. Please try again later.';
-            } else if (userMessage.includes('extract')) {
-                userMessage = 'Unable to extract article content. Please ensure the URL is valid or try pasting the article text directly.';
-            }
-            
-            showError(userMessage);
-        }
+    console.error('Analysis error:', error);
+    loadingSection.style.display = 'none';
+    
+    // Clear any running intervals
+    if (typeof progressInterval !== 'undefined') {
+        clearInterval(progressInterval);
+    }
+    
+    // Show pro tip for extraction errors
+    if (error.message.includes('extract') || 
+        error.message.includes('block') || 
+        error.message.includes('Unable to extract') ||
+        error.message.includes('CNN') ||
+        error.message.includes('NYTimes') ||
+        error.message.includes('major news sites')) {
+        document.getElementById('pro-tip-box').style.display = 'block';
+    }
+    
+    // Show user-friendly error message
+    let userMessage = error.message;
+    
+    // Make error messages more user-friendly
+    if (userMessage.includes('fetch')) {
+        userMessage = 'Unable to connect to the analysis service. Please check your internet connection and try again.';
+    } else if (userMessage.includes('404')) {
+        userMessage = 'Analysis service not found. Please contact support.';
+    } else if (userMessage.includes('500')) {
+        userMessage = 'Server error occurred. Please try again later.';
+    } else if (userMessage.includes('extract')) {
+        userMessage = 'Unable to extract article content. Please ensure the URL is valid or try pasting the article text directly.';
+    }
+    
+    showError(userMessage);
+}
     }
 
     // FIXED display function to match YOUR API response structure
