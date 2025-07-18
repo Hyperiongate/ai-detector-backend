@@ -2714,21 +2714,31 @@ def api_analyze_news():
         is_pro = data.get('is_pro', True)  # DEV MODE: always pro
         
         results = analyze_news_route(content, is_pro)
+
+        # ADD THESE DEBUG LINES
+        logger.info(f"DEBUG: Results success = {results.get('success')}")
+        logger.info(f"DEBUG: Results error = {results.get('error')}")
         
         # Check if extraction was blocked (for Cloudflare/anti-bot sites)
         if not results.get('success') and results.get('error'):
             error_msg = str(results.get('error', '')).lower()
+            # ADD THIS DEBUG LINE
+            logger.info(f"DEBUG: Checking error_msg = {error_msg}")
             
             # Check for extraction failure indicators
             cloudflare_indicators = [
                 'could not extract', 'extraction failed', 'unable to extract',
                 'cloudflare', 'anti-bot', 'axios', 'politico', 'bloomberg',
                 'blocking automated', 'prevent', 'article not found',
-                'extraction error'
+                'extraction error',
                 'unable to extract article content'
             ]
             
             if 'extract' in error_msg or any(indicator in error_msg for indicator in cloudflare_indicators):
+                # ADD THIS DEBUG LINE
+                logger.info("DEBUG: Extraction blocked detected! Returning friendly message")
+                # Return the extraction_blocked error that the frontend expects
+                return jsonify({
                 # Return the extraction_blocked error that the frontend expects
                 return jsonify({
                     'success': False,
