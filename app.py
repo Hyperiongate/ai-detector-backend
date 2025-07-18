@@ -2714,11 +2714,33 @@ def api_analyze_news():
         is_pro = data.get('is_pro', True)  # DEV MODE: always pro
         
         results = analyze_news_route(content, is_pro)
+        
+        # Check if extraction was blocked (for Cloudflare/anti-bot sites)
+        if not results.get('success') and results.get('error'):
+            error_msg = str(results.get('error', '')).lower()
+            
+            # Check for extraction failure indicators
+            cloudflare_indicators = [
+                'could not extract', 'extraction failed', 'unable to extract',
+                'cloudflare', 'anti-bot', 'axios', 'politico', 'bloomberg',
+                'blocking automated', 'prevent', 'article not found',
+                'extraction error'
+            ]
+            
+            if any(indicator in error_msg for indicator in cloudflare_indicators):
+                # Return the extraction_blocked error that the frontend expects
+                return jsonify({
+                    'success': False,
+                    'error': 'extraction_blocked',
+                    'message': 'This site is preventing our AI from peeking under the hood. Please use the cut and paste option to get the results you are after.'
+                })
+        
         return jsonify(results)
         
     except Exception as e:
         logger.error(f"News analysis error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+        
 @app.route('/api/trending-news', methods=['GET'])
 def api_trending_news():
     """Get trending news articles"""
