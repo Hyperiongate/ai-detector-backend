@@ -1,9 +1,65 @@
-
 // News Analyzer - Separated JavaScript File
 // Facts & Fakes AI - Advanced News Analysis JavaScript
 
+// Toggle Plan Comparison
+function togglePlanComparison() {
+    const content = document.getElementById('plan-comparison-content');
+    const chevron = document.getElementById('plan-chevron');
+    
+    if (content && chevron) {
+        content.classList.toggle('show');
+        chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+}
+
+// Toggle Resources
+function toggleResources() {
+    const content = document.getElementById('resources-content');
+    const header = document.querySelector('.resources-header');
+    const chevron = header.querySelector('.chevron-icon');
+    
+    if (content && chevron) {
+        content.classList.toggle('show');
+        chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
+    // Attach event handlers when DOM is loaded
+    // Plan comparison dropdown
+    const planHeader = document.querySelector('.plan-comparison-header');
+    if (planHeader) {
+        planHeader.addEventListener('click', togglePlanComparison);
+    }
+    
+    // Resources dropdown
+    const resourcesHeader = document.querySelector('.resources-header');
+    if (resourcesHeader) {
+        resourcesHeader.addEventListener('click', toggleResources);
+    }
+    
+    // Analyze button
+    const analyzeBtn = document.querySelector('.analyze-button');
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', analyzeArticle);
+    }
+    
+    // Reset button
+    const resetBtn = document.querySelector('.reset-button');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetForm);
+    }
+    
+    // Input method tabs
+    const inputTabs = document.querySelectorAll('.input-tab');
+    inputTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const type = this.textContent.includes('URL') ? 'url' : 'text';
+            switchInputType(type);
+        });
+    });
+    
     // Reset form function
     window.resetForm = function() {
         document.getElementById('news-url').value = '';
@@ -29,20 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
             behavior: 'smooth', 
             block: 'center' 
         });
-    }
-
-    // Toggle resources dropdown
-    window.toggleResources = function() {
-        const content = document.getElementById('resources-content');
-        const header = document.querySelector('.resources-header');
-        
-        if (content.classList.contains('show')) {
-            content.classList.remove('show');
-            header.classList.remove('active');
-        } else {
-            content.classList.add('show');
-            header.classList.add('active');
-        }
     }
 
     // Enhanced input field focus effects
@@ -1129,7 +1171,7 @@ function updateOverallAssessment(results) {
     
     // Update metrics with clear explanations
     const sourceScore = results.credibility_score || 0;
-    document.getElementById('source-metric').textContent = sourceScore + '%';
+    document.getElementById('source-metric').textContent = sourceScore;
     document.getElementById('source-explainer').textContent = 
         sourceScore >= 80 ? '(High)' : sourceScore >= 60 ? '(Medium)' : '(Low)';
     
