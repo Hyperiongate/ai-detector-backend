@@ -16,64 +16,102 @@
     
     <!-- Additional styles for plan cards -->
     <style>
-        .plan-info-cards {
+        /* Plan Comparison Dropdown */
+        .plan-comparison-dropdown {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: 2px solid rgba(74, 144, 226, 0.2);
+        }
+        
+        .plan-comparison-header {
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-comparison-header:hover {
+            background: rgba(74, 144, 226, 0.05);
+        }
+        
+        .plan-comparison-header h5 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #2c3e50;
+        }
+        
+        .plan-comparison-header i.icon {
+            font-size: 24px;
+            color: #4a90e2;
+        }
+        
+        .plan-comparison-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+        
+        .plan-comparison-content.show {
+            max-height: 800px;
+        }
+        
+        .plan-comparison-grid {
+            padding: 25px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 30px;
         }
         
-        .plan-card {
-            background: white;
+        .plan-column {
+            padding: 25px;
             border-radius: 12px;
-            padding: 20px;
-            border: 2px solid #e5e7eb;
-            position: relative;
         }
         
-        .plan-card.basic {
-            border-color: #10b981;
+        .plan-column.basic {
+            background: #f8f9fa;
+            border: 2px solid #10b981;
         }
         
-        .plan-card.pro {
-            border-color: #8b5cf6;
-            background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+        .plan-column.pro {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border: 2px solid #8b5cf6;
         }
         
-        .plan-card h5 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-            font-size: 18px;
+        .plan-column h4 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .plan-card ul {
+        .plan-column ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
         
-        .plan-card li {
-            padding: 5px 0;
-            color: #6b7280;
+        .plan-column li {
+            padding: 8px 0;
+            display: flex;
+            align-items: start;
+            gap: 10px;
             font-size: 14px;
         }
         
-        .upgrade-link {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            color: #8b5cf6;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .upgrade-link:hover {
-            text-decoration: underline;
+        .plan-column li i {
+            flex-shrink: 0;
+            margin-top: 3px;
         }
         
         @media (max-width: 768px) {
-            .plan-info-cards {
+            .plan-comparison-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -86,17 +124,30 @@
             border-radius: 12px;
             font-size: 16px;
             transition: all 0.3s ease;
+            background: white;
+            color: #2c3e50;
         }
         
         #news-text {
             min-height: 200px;
             resize: vertical;
+            font-family: inherit;
         }
         
         #news-url:focus, #news-text:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        
+        /* Ensure inputs are not disabled */
+        #news-url:disabled, #news-text:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+        
+        .chevron-icon {
+            transition: transform 0.3s ease;
         }
     </style>
 </head>
@@ -194,24 +245,60 @@
 
         <!-- Enhanced Input Section with Colorful Borders -->
         <div class="input-section">
-            <!-- Plan Comparison Info -->
-            <div class="plan-info-cards">
-                <div class="plan-card basic">
-                    <h5><i class="fas fa-user me-2"></i>Basic Plan (Free)</h5>
-                    <ul>
-                        <li>• 1 analysis per day</li>
-                        <li>• 1 detailed analysis per week</li>
-                        <li>• Overall assessment rating</li>
-                    </ul>
+            <!-- Plan Comparison Dropdown -->
+            <div class="plan-comparison-dropdown">
+                <div class="plan-comparison-header" onclick="togglePlanComparison()">
+                    <h5>
+                        <i class="fas fa-balance-scale icon"></i>
+                        Compare Plans & Features
+                    </h5>
+                    <i class="fas fa-chevron-down chevron-icon" id="plan-chevron"></i>
                 </div>
-                <div class="plan-card pro">
-                    <h5><i class="fas fa-crown me-2"></i>Pro Plan</h5>
-                    <ul>
-                        <li>• Unlimited detailed analyses</li>
-                        <li>• All advanced features</li>
-                        <li>• Print & PDF export</li>
-                    </ul>
-                    <a href="/pricing" class="upgrade-link">Upgrade →</a>
+                <div class="plan-comparison-content" id="plan-comparison-content">
+                    <div class="plan-comparison-grid">
+                        <div class="plan-column basic">
+                            <h4><i class="fas fa-user"></i> Basic Plan (Free)</h4>
+                            <ul>
+                                <li><i class="fas fa-check text-success"></i>1 analysis per day</li>
+                                <li><i class="fas fa-check text-success"></i>1 detailed analysis per week</li>
+                                <li><i class="fas fa-check text-success"></i>Overall trust score (0-100%)</li>
+                                <li><i class="fas fa-check text-success"></i>Basic assessment rating</li>
+                                <li><i class="fas fa-times text-danger"></i>Full source credibility check</li>
+                                <li><i class="fas fa-times text-danger"></i>Detailed fact verification</li>
+                                <li><i class="fas fa-times text-danger"></i>Author background research</li>
+                                <li><i class="fas fa-times text-danger"></i>Political bias detection</li>
+                                <li><i class="fas fa-times text-danger"></i>AI/Plagiarism detection</li>
+                                <li><i class="fas fa-times text-danger"></i>Print/PDF export</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="plan-column pro">
+                            <h4><i class="fas fa-crown"></i> Pro Plan ($19/mo)</h4>
+                            <ul>
+                                <li><i class="fas fa-infinity text-primary"></i><strong>Unlimited analyses</strong></li>
+                                <li><i class="fas fa-check text-success"></i>Everything in Basic Plan</li>
+                                <li><i class="fas fa-check text-success"></i>Full source credibility analysis</li>
+                                <li><i class="fas fa-check text-success"></i>Comprehensive fact-checking with Google Fact Check API</li>
+                                <li><i class="fas fa-check text-success"></i>Author background & expertise research</li>
+                                <li><i class="fas fa-check text-success"></i>Political bias detection (50,000+ terms)</li>
+                                <li><i class="fas fa-check text-success"></i>AI content detection (GPT, Claude, etc.)</li>
+                                <li><i class="fas fa-check text-success"></i>Plagiarism checking (Copyleaks & Copyscape)</li>
+                                <li><i class="fas fa-check text-success"></i>Emotional manipulation analysis</li>
+                                <li><i class="fas fa-check text-success"></i>Hidden agenda detection</li>
+                                <li><i class="fas fa-check text-success"></i>Clickbait & sensationalism scoring</li>
+                                <li><i class="fas fa-check text-success"></i>Source diversity analysis</li>
+                                <li><i class="fas fa-check text-success"></i>Writing quality assessment</li>
+                                <li><i class="fas fa-check text-success"></i>Print-ready PDF reports</li>
+                                <li><i class="fas fa-check text-success"></i>API access for developers</li>
+                                <li><i class="fas fa-check text-success"></i>Priority support</li>
+                            </ul>
+                            <div class="text-center mt-3">
+                                <a href="/pricing" class="btn btn-primary">
+                                    <i class="fas fa-rocket me-2"></i>Upgrade to Pro
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1241,11 +1328,10 @@
     
     <!-- Dropdown Toggle Functions -->
     <script>
-    // Toggle Feature Preview
-    function toggleFeaturePreview() {
-        const content = document.getElementById('feature-preview-content');
-        const header = document.querySelector('.feature-preview-header');
-        const chevron = header.querySelector('.chevron-icon');
+    // Toggle Plan Comparison
+    function togglePlanComparison() {
+        const content = document.getElementById('plan-comparison-content');
+        const chevron = document.getElementById('plan-chevron');
         
         content.classList.toggle('show');
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
@@ -1268,6 +1354,22 @@
         document.getElementById('error-container').style.display = 'none';
         document.getElementById('results-section').style.display = 'none';
     }
+    
+    // Ensure inputs are enabled when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlInput = document.getElementById('news-url');
+        const textInput = document.getElementById('news-text');
+        
+        // Make sure inputs are not disabled
+        if (urlInput) {
+            urlInput.removeAttribute('disabled');
+            urlInput.removeAttribute('readonly');
+        }
+        if (textInput) {
+            textInput.removeAttribute('disabled');
+            textInput.removeAttribute('readonly');
+        }
+    });
     </script>
     
     <!-- News Analyzer JavaScript - Located at static/js/news-analyzer.js -->
