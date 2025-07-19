@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced News Analyzer - Facts & Fakes AI</title>
+    <meta name="description" content="AI-powered news verification with bias detection, fact-checking, and credibility analysis. Detect fake news instantly with our advanced algorithms.">
+    
+    <!-- Bootstrap CSS from cdnjs (CSP approved) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External CSS file -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Floating particles for visual appeal -->
+    <div class="particle" style="left: 10%; top: 20%; width: 6px; height: 6px; background: var(--primary-blue); border-radius: 50%;"></div>
+    <div class="particle" style="left: 80%; top: 40%; width: 8px; height: 8px; background: var(--primary-blue-dark); border-radius: 50%;"></div>
+    <div class="particle" style="left: 60%; top: 60%; width: 5px; height: 5px; background: #10b981; border-radius: 50%;"></div>
+    <div class="particle" style="left: 30%; top: 80%; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%;"></div>
+
+    <!-- Facts & Fakes AI Navigation Header --> 
+    <nav class="ff-nav">
+        <div class="ff-nav-container">
+            <a href="/" class="ff-nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Facts & Fakes AI</span>
+            </a>
+            
+            <div class="ff-nav-links" id="ffNavLinks">
+                <a href="/" class="ff-nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="/news" class="ff-nav-link active"><i class="fas fa-newspaper"></i> News Verify</a>
+                <a href="/speech" class="ff-nav-link"><i class="fas fa-microphone"></i> Speech Check</a>
+                <a href="/unified" class="ff-nav-link"><i class="fas fa-search"></i> Content Check</a>
+                <a href="/imageanalysis" class="ff-nav-link"><i class="fas fa-image"></i> Image Analysis</a>
+                <a href="/missionstatement" class="ff-nav-link"><i class="fas fa-bullseye"></i> Mission</a>
+                <a href="/pricingplan" class="ff-nav-link"><i class="fas fa-tags"></i> Pricing</a>
+                <a href="/contact" class="ff-nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+            
+            <div class="ff-nav-auth" id="ffNavAuth">
+                <a href="/login" class="ff-nav-login">Login</a>
+                <a href="/pricingplan" class="ff-nav-signup">Sign Up</a>
+                <div class="ff-beta-balloon">
+                    sign up now to start your free trial
+                </div>
+            </div>
+            
+            <div class="ff-user-menu" id="ffUserMenu">
+                <div class="ff-user-menu-toggle" onclick="ffToggleUserDropdown()">
+                    <span id="ffUserEmail">user@example.com</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="ff-user-dropdown" id="ffUserDropdown">
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 4px;" id="ffUserEmailDropdown">user@example.com</div>
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;" id="ffUserPlan">Free Plan</div>
+                    </div>
+                    <div style="padding: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 500;">Daily Usage</div>
+                        <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                            <div id="ffUsageProgress" style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #4a5568;" id="ffUsageText">0 / 5 analyses used</div>
+                    </div>
+                    <div style="padding: 10px 0;">
+                        <a href="/account" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-user"></i> Account Settings</a>
+                        <a href="/billing" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-credit-card"></i> Billing</a>
+                        <a href="/api-keys" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-key"></i> API Keys</a>
+                        <a href="#" onclick="ffLogout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #4a5568; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="ff-mobile-menu-btn" onclick="ffToggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Add spacing after fixed header -->
+    <div style="height: 60px;"></div>
+
+    <div class="news-container">
+        <!-- Header Section -->
+        <div class="news-header">
+            <h1>
+                <i class="fas fa-newspaper text-primary me-3"></i>
+                Advanced News Analyzer
+            </h1>
+            <p>
+                Verify news authenticity with AI-powered analysis
+                <span class="tooltip-container">
+                    <span class="tooltip-icon">?</span>
+                    <span class="tooltip-content">
+                        Our AI analyzes 15+ factors including source credibility, writing patterns, 
+                        bias indicators, and cross-references with fact-checking databases.
+                    </span>
+                </span>
+            </p>
+            <!-- Overview Process Button -->
+            <button class="btn btn-outline-primary mt-3" onclick="showAnalysisProcess()">
+                <i class="fas fa-info-circle me-2"></i>View Our Analysis Process
+            </button>
+        </div>
+
+        <!-- Enhanced Input Section with Colorful Borders -->
+        <div class="input-section">
+            <!-- Input Method Selector -->
+            <div class="input-selector">
+                <div class="input-selector-header">
+                    <i class="fas fa-hand-pointer"></i>
+                    <h5>Choose Your Input Method</h5>
+                </div>
+                <div class="input-tabs">
+                    <div class="input-tab active" onclick="switchInputType('url')">
+                        <i class="fas fa-link"></i>
+                        <span>Analyze URL</span>
+                    </div>
+                    <div class="input-tab" onclick="switchInputType('text')">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Paste Text</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feature Preview Dropdown -->
+            <div class="feature-preview-dropdown">
+                <div class="feature-preview-header" onclick="toggleFeaturePreview()">
+                    <h5>
+                        <i class="fas fa-sparkles icon"></i>
+                        What to Expect from Your Analysis
+                    </h5>
+                    <i class="fas fa-chevron-down chevron-icon"></i>
+                </div>
+                <div class="feature-preview-content" id="feature-preview-content">
+                    <div class="feature-comparison">
+                        <div class="feature-column free">
+                            <div class="feature-header">
+                                <span class="feature-badge badge-free">Free Version</span>
+                                <h4><i class="fas fa-chart-line me-2"></i>Basic Analysis</h4>
+                            </div>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>Trust Score (0-100%)</li>
+                                <li><i class="fas fa-check"></i>Key findings summary</li>
+                                <li class="disabled"><i class="fas fa-times"></i>Source credibility check</li>
+                                <li class="disabled"><i class="fas fa-times"></i>Fact verification</li>
+                                <li class="disabled"><i class="fas fa-times"></i>Political bias detection</li>
+                                <li class="disabled"><i class="fas fa-times"></i>Manipulation tactics</li>
+                                <li class="limit"><i class="fas fa-info-circle"></i>1 analysis per day</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="feature-divider"></div>
+                        
+                        <div class="feature-column pro">
+                            <div class="feature-header">
+                                <span class="feature-badge badge-pro">Pro Version</span>
+                                <h4><i class="fas fa-crown me-2"></i>Advanced Analysis</h4>
+                            </div>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i>Everything in Free</li>
+                                <li><i class="fas fa-check"></i>Full source credibility analysis</li>
+                                <li><i class="fas fa-check"></i>Detailed fact-checking</li>
+                                <li><i class="fas fa-check"></i>Political bias detection</li>
+                                <li><i class="fas fa-check"></i>Manipulation tactics alert</li>
+                                <li><i class="fas fa-check"></i>Author background research</li>
+                                <li><i class="fas fa-check"></i>AI content detection</li>
+                                <li><i class="fas fa-check"></i>PDF report generation</li>
+                                <li class="highlight"><i class="fas fa-infinity"></i>Unlimited analyses</li>
+                            </ul>
+                            <div class="text-center mt-3">
+                                <a href="/pricing" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-rocket me-2"></i>Upgrade to Pro
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="url-input-section">
+                <input type="url" id="news-url" placeholder="https://example.com/article" 
+                       style="width: 100%; padding: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease;" />
+                <div class="info-box tip mt-3" id="pro-tip-box" style="display: none;">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Pro Tip:</strong> This site appears to block automated access. Try using the "Paste Text" option instead.
+                </div>
+            </div>
+            
+            <div id="text-input-section" style="display: none;">
+                <textarea id="news-text" placeholder="Paste the article text here..." 
+                          style="width: 100%; padding: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; min-height: 200px; transition: all 0.3s ease;"></textarea>
+                <div class="info-box tip mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Include the headline and author name if available for best results.
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button class="analyze-button" onclick="analyzeArticle()">
+                    <i class="fas fa-search me-2"></i>Analyze Now
+                </button>
+                <button class="reset-button" onclick="resetForm()">
+                    <i class="fas fa-redo me-2"></i>Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Resources Dropdown -->
+        <div class="resources-dropdown">
+            <div class="resources-header" onclick="toggleResources()">
+                <h5>
+                    <i class="fas fa-microchip icon"></i>
+                    Powered by Advanced AI & Trusted Resources
+                </h5>
+                <i class="fas fa-chevron-down chevron-icon"></i>
+            </div>
+            <div class="resources-content" id="resources-content">
+                <div class="resources-grid">
+                    <div class="resource-item">
+                        <div class="resource-logo openai">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h6>OpenAI GPT-4</h6>
+                            <p>Deep content analysis & pattern recognition</p>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-logo factcheck">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h6>Fact-Check APIs</h6>
+                            <p>5+ trusted verification databases</p>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-logo bias">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h6>Bias Detection</h6>
+                            <p>50,000+ political term database</p>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-logo ml">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="resource-info">
+                            <h6>Machine Learning</h6>
+                            <p>Trained on 1M+ verified articles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Section with Enhanced Progress -->
+        <div id="loading-section" style="display: none;">
+            <!-- Compact Fixed Progress Bar -->
+            <div style="position: fixed; top: 60px; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); box-shadow: 0 2px 20px rgba(74, 144, 226, 0.3); z-index: 998; padding: 20px; border-bottom: 2px solid rgba(74, 144, 226, 0.2);" class="fixed-progress-header">
+                <div class="container">
+                    <h5 class="mb-2">
+                        <i class="fas fa-brain fa-pulse me-2 text-primary"></i>
+                        AI Analysis in Progress...
+                    </h5>
+                    <div class="progress-container" style="margin-bottom: 10px;">
+                        <div class="progress-bar" id="analysis-progress">0%</div>
+                    </div>
+                    <p class="mb-0 text-muted" id="current-stage-text">Initializing analysis...</p>
+                </div>
+            </div>
+            
+            <!-- Stages (below fixed header) -->
+            <div class="card shadow-lg border-0 mb-5" style="margin-top: 180px;">
+                <div class="card-body p-4">
+                    <!-- Enhanced stages -->
+                    <div class="analysis-stage" id="stage-1">
+                        <div class="stage-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Extracting Content</h5>
+                            <small class="text-muted">Retrieving article text, metadata, and author information</small>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-stage" id="stage-2">
+                        <div class="stage-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">AI Deep Analysis (GPT-4)</h5>
+                            <small class="text-muted">Analyzing writing patterns, style, and authenticity markers</small>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-stage" id="stage-3">
+                        <div class="stage-icon">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Cross-Reference Fact Checking</h5>
+                            <small class="text-muted">Verifying claims against multiple fact-checking databases</small>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-stage" id="stage-4">
+                        <div class="stage-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Bias & Manipulation Detection</h5>
+                            <small class="text-muted">Scanning for political bias, emotional manipulation, and agenda</small>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-stage" id="stage-5">
+                        <div class="stage-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Source Reliability Analysis</h5>
+                            <small class="text-muted">Checking historical accuracy and credibility patterns</small>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-stage" id="stage-6">
+                        <div class="stage-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Generating Comprehensive Report</h5>
+                            <small class="text-muted">Compiling findings with confidence intervals and recommendations</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" style="display: none;">
+            <!-- Analysis Metadata -->
+            <div class="analysis-meta">
+                <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Analyzed: <span id="analysis-time"></span></span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-code-branch"></i>
+                    <span>Model Version: GPT-4 v2.1</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-server"></i>
+                    <span>Analysis ID: <span id="analysis-id"></span></span>
+                </div>
+                <div class="meta-item">
+                    <button class="pdf-button" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf"></i>Generate PDF Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhanced Trust Meter with Resources -->
+            <div class="trust-score-section">
+                <div class="trust-meter-container">
+                    <div class="trust-meter">
+                        <svg class="trust-meter-circle" viewBox="0 0 200 200">
+                            <circle class="trust-meter-bg" cx="100" cy="100" r="90"/>
+                            <circle class="trust-meter-fill" cx="100" cy="100" r="90"
+                                    stroke-dasharray="565.48" stroke-dashoffset="565.48"/>
+                        </svg>
+                        <div class="trust-meter-text">
+                            <span class="trust-score" id="trust-score">0</span>
+                            <span class="trust-label">Trust Score</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trust-resources">
+                    <h3>Analysis Resources Applied</h3>
+                    
+                    <div class="resource-item">
+                        <div class="resource-icon ai">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="resource-content">
+                            <div class="resource-title">GPT-4 Deep Analysis</div>
+                            <div class="resource-description">Advanced AI language model analyzing writing patterns and authenticity</div>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-icon fact">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <div class="resource-content">
+                            <div class="resource-title">Multi-Database Fact Checking</div>
+                            <div class="resource-description">Cross-referenced against 5+ trusted fact-checking databases</div>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-icon bias">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="resource-content">
+                            <div class="resource-title">50,000+ Bias Indicators</div>
+                            <div class="resource-description">Political bias detection using comprehensive term analysis</div>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-icon source">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="resource-content">
+                            <div class="resource-title">Source Credibility Database</div>
+                            <div class="resource-description">Historical accuracy tracking of 10,000+ news sources</div>
+                        </div>
+                    </div>
+                    
+                    <div class="resource-item">
+                        <div class="resource-icon pattern">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <div class="resource-content">
+                            <div class="resource-title">Pattern Recognition AI</div>
+                            <div class="resource-description">Machine learning models trained on 1M+ verified articles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Assessment (Always Open) -->
+            <div class="overall-assessment-container">
+                <div class="trust-score-card">
+                    <div class="trust-score-header">
+                        <div class="trust-badge">
+                            <div class="trust-icon-wrapper" id="trust-icon-wrapper">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="trust-details">
+                                <h3>Overall Assessment</h3>
+                                <p id="credibility-label">Analyzing credibility...</p>
+                            </div>
+                        </div>
+                        <div class="trust-score-display" id="trust-score-display">
+                            0%
+                            <span class="score-meaning" id="score-meaning">Calculating...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-box">
+                    <p id="overall-summary">
+                        Our comprehensive analysis of this article is complete. Here's what we found...
+                    </p>
+                </div>
+                
+                <div class="key-metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon credibility">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">
+                                <span id="source-metric">0</span>%
+                                <span class="metric-explainer" id="source-explainer">(Unknown)</span>
+                            </div>
+                            <div class="metric-label">Source Credibility</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon accuracy">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">
+                                <span id="accuracy-metric">0/0</span>
+                                <span class="metric-explainer" id="accuracy-explainer">claims verified</span>
+                            </div>
+                            <div class="metric-label">Fact Accuracy</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon bias">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">
+                                <span id="bias-metric">Neutral</span>
+                            </div>
+                            <div class="metric-label">Political Bias</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon quality">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="metric-content">
+                            <div class="metric-value">
+                                <span id="manipulation-metric">0</span>
+                            </div>
+                            <div class="metric-label">Red Flags Found</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="findings-container">
+                    <div class="findings-card">
+                        <h5><i class="fas fa-check-circle me-2"></i>Key Findings</h5>
+                        <ul class="findings-list" id="key-findings-list">
+                            <li><i class="fas fa-check"></i>Analysis in progress...</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="flags-card">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Red Flags</h5>
+                        <ul class="flags-list" id="red-flags-list">
+                            <li><i class="fas fa-times"></i>Checking for issues...</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="score-legend">
+                    <h5><i class="fas fa-info-circle me-2"></i>Understanding Trust Scores</h5>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <span class="legend-dot high"></span>
+                            <span>80-100%: Generally Reliable</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot medium"></span>
+                            <span>60-79%: Verify Claims</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot low"></span>
+                            <span>0-59%: Highly Questionable</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="confidence-section">
+                    <div class="confidence-header">
+                        <h5>Analysis Confidence</h5>
+                        <div class="confidence-value" id="confidence-percentage">75%</div>
+                    </div>
+                    <div class="confidence-bar-enhanced">
+                        <div class="confidence-fill-enhanced" id="overall-confidence" style="width: 75%;">
+                            <span id="confidence-explanation">Based on available data</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="free-tier-notice">
+                    <p><i class="fas fa-crown"></i> Upgrade to Pro for detailed fact-checking, source history, and manipulation detection</p>
+                    <a href="/pricing">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Source Credibility -->
+            <div class="analysis-dropdown border-author">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-globe"></i>Source Credibility & Comparison</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="source-credibility"></div>
+                    
+                    <!-- Source Comparison Grid -->
+                    <h5 class="mt-4">How This Source Compares</h5>
+                    <div class="source-comparison">
+                        <div class="source-card">
+                            <div class="source-logo">CNN</div>
+                            <div class="source-score text-success">85%</div>
+                            <small class="text-muted">Avg. Accuracy</small>
+                        </div>
+                        <div class="source-card">
+                            <div class="source-logo">FOX</div>
+                            <div class="source-score text-warning">72%</div>
+                            <small class="text-muted">Avg. Accuracy</small>
+                        </div>
+                        <div class="source-card">
+                            <div class="source-logo">BBC</div>
+                            <div class="source-score text-success">91%</div>
+                            <small class="text-muted">Avg. Accuracy</small>
+                        </div>
+                        <div class="source-card">
+                            <div class="source-logo">THIS</div>
+                            <div class="source-score" id="this-source-score">--</div>
+                            <small class="text-muted">This Source</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Historical Accuracy (Pro Feature Preview) -->
+                    <div class="pro-feature-locked mt-4">
+                        <h5>Historical Accuracy Trend</h5>
+                        <div class="accuracy-chart">
+                            <div class="chart-grid">
+                                <div class="chart-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>How we calculate this:</strong> Source credibility = 
+                        <code>0.4 × historical_accuracy + 0.3 × transparency + 0.2 × corrections_policy + 0.1 × awards</code>
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="source-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="source-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Author Credibility -->
+            <div class="analysis-dropdown border-author">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-user-check"></i>Author Credibility & Background</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="author-credibility"></div>
+                    
+                    <div class="why-matters-box mt-3">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            Authors with established expertise and transparent backgrounds are more likely 
+                            to produce accurate, well-researched content. Anonymous or unverifiable authors 
+                            should be approached with more skepticism.
+                        </p>
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="author-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="author-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Writing Quality -->
+            <div class="analysis-dropdown border-quality">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-pen-fancy"></i>Writing Quality & Professionalism</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="writing-quality"></div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Analysis includes:</strong> Grammar scoring, readability index (Flesch-Kincaid), 
+                        vocabulary diversity, sentence structure variation, and professional tone markers.
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="quality-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="quality-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fact-Checking -->
+            <div class="analysis-dropdown border-fact">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-check-double"></i>Fact-Checking Results</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="fact-checking"></div>
+                    
+                    <!-- Confidence Intervals for Each Claim -->
+                    <div class="mt-4" id="claim-confidence-section">
+                        <!-- Dynamically populated -->
+                    </div>
+                    
+                    <div class="why-matters-box mt-3">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            False or misleading claims can shape opinions and decisions. We verify each 
+                            claim against multiple trusted fact-checking databases and provide confidence 
+                            levels for our assessments.
+                        </p>
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="fact-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="fact-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Political Bias -->
+            <div class="analysis-dropdown border-bias">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-balance-scale"></i>Political Bias Detection</h3>
+                </div>
+                <div class="dropdown-content">
+                    <!-- Bias spectrum bar -->
+                    <div class="bias-spectrum mt-3 mb-4">
+                        <div style="position: relative; height: 30px; background: linear-gradient(to right, #3b82f6 0%, #e5e7eb 50%, #ef4444 100%); border-radius: 15px;">
+                            <div id="bias-marker" style="position: absolute; top: -5px; width: 40px; height: 40px; background: white; border: 3px solid #1f2937; border-radius: 50%; left: 50%; transform: translateX(-50%); box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small>Far Left</small>
+                            <small>Center</small>
+                            <small>Far Right</small>
+                        </div>
+                    </div>
+                    
+                    <div id="political-bias"></div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Bias detection algorithm:</strong> We analyze word choice, framing, 
+                        source selection, and compare against our database of 50,000+ politically-charged 
+                        terms weighted by context and frequency.
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="bias-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="bias-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Agenda -->
+            <div class="analysis-dropdown border-agenda">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-user-secret"></i>Hidden Agenda Detection</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="hidden-agenda"></div>
+                    
+                    <div class="why-matters-box mt-3">
+                        <h4><i class="fas fa-lightbulb"></i>Why This Matters</h4>
+                        <p>
+                            Articles with hidden agendas may appear objective but subtly push commercial, 
+                            political, or ideological interests. Recognizing these helps you understand 
+                            the true purpose behind the content.
+                        </p>
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="agenda-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="agenda-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clickbait Analysis -->
+            <div class="analysis-dropdown border-clickbait">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-mouse-pointer"></i>Clickbait & Sensationalism</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="clickbait-analysis"></div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="clickbait-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="clickbait-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emotional Manipulation -->
+            <div class="analysis-dropdown border-emotion">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-theater-masks"></i>Emotional Manipulation Check</h3>
+                </div>
+                <div class="dropdown-content">
+                    <!-- Emotional gauge -->
+                    <div class="gauge-container">
+                        <div class="gauge">
+                            <div class="gauge-mask"></div>
+                            <div class="gauge-needle" id="emotion-needle"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="emotional-manipulation"></div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Emotional analysis:</strong> Using sentiment analysis and psychological 
+                        trigger word detection across 8 emotional categories (fear, anger, joy, sadness, 
+                        disgust, surprise, trust, anticipation).
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="emotion-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="emotion-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source Diversity -->
+            <div class="analysis-dropdown border-diversity">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-project-diagram"></i>Source Diversity & Balance</h3>
+                </div>
+                <div class="dropdown-content">
+                    <!-- Progress bar for source diversity -->
+                    <div class="progress-container mb-3">
+                        <div class="progress-bar" id="diversity-bar" style="width: 0%">0%</div>
+                    </div>
+                    
+                    <div id="source-diversity"></div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="diversity-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="diversity-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeliness Check -->
+            <div class="analysis-dropdown border-time">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-calendar-check"></i>Timeliness & Relevance</h3>
+                </div>
+                <div class="dropdown-content">
+                    <div id="timeliness-check"></div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="timeliness-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="timeliness-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI-Generated Content Detection (New Feature) -->
+            <div class="analysis-dropdown border-ai">
+                <div class="dropdown-header" onclick="toggleDropdown(this)">
+                    <h3><i class="fas fa-robot"></i>AI-Generated Content Detection</h3>
+                </div>
+                <div class="dropdown-content">
+                    <h5>AI Content Probability</h5>
+                    <div class="confidence-bar mb-3">
+                        <div class="confidence-fill" id="ai-probability" style="width: 0%">
+                            <div class="confidence-label">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>AI Pattern Indicators:</h6>
+                        <ul id="ai-patterns">
+                            <!-- Dynamically populated -->
+                        </ul>
+                    </div>
+                    
+                    <div class="methodology-snippet">
+                        <strong>Detection method:</strong> Perplexity analysis, burstiness scoring, 
+                        repetitive phrasing detection, and comparison against known AI writing patterns 
+                        from GPT, Claude, and other models.
+                    </div>
+                    
+                    <div class="what-this-means mt-3">
+                        <h5>What This Means:</h5>
+                        <p id="ai-explanation"></p>
+                    </div>
+                    
+                    <div class="how-detected mt-3">
+                        <h5>How We Detected This:</h5>
+                        <p id="ai-methodology"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Information -->
+            <div class="pricing-info">
+                <h4><i class="fas fa-crown me-2"></i>Upgrade for More Features</h4>
+                <div class="pricing-tier">
+                    <div>
+                        <h4>Free Tier</h4>
+                        <p class="mb-0">1 analysis per day</p>
+                    </div>
+                    <div class="price">$0</div>
+                </div>
+                <div class="pricing-tier">
+                    <div>
+                        <h4>Pro Tier</h4>
+                        <p class="mb-0">Unlimited analyses + API access</p>
+                    </div>
+                    <div class="price">$19/mo</div>
+                </div>
+            </div>
+
+            <!-- Download Complete Report Button -->
+            <div class="text-center mt-5">
+                <button class="btn btn-success btn-lg" onclick="downloadFullReport()">
+                    <i class="fas fa-file-pdf me-2"></i>Download Complete Analysis Report (PDF)
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Container -->
+        <div class="error-container" id="error-container">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Analysis Error</h3>
+            <p id="error-message">An error occurred during analysis.</p>
+            <button class="retry-btn" onclick="retryAnalysis()">
+                <i class="fas fa-redo"></i> Retry Analysis
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loading-text">Initializing Analysis...</div>
+            <div class="loading-subtext" id="loading-subtext">Please wait while we process your content</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Analysis Process Modal -->
+    <div class="modal fade" id="analysisProcessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cogs me-2"></i>Our Comprehensive Analysis Process
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Our AI-powered analysis examines:</h6>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Source Credibility:</strong> Historical accuracy, transparency, corrections policy</li>
+                                <li><strong>Author Background:</strong> Expertise, publication history, credentials</li>
+                                <li><strong>Writing Quality:</strong> Grammar, structure, professionalism</li>
+                                <li><strong>Fact Verification:</strong> Cross-reference with multiple databases</li>
+                                <li><strong>Political Bias:</strong> 50,000+ term analysis, framing detection</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Hidden Agendas:</strong> Commercial interests, persuasion tactics</li>
+                                <li><strong>Clickbait Detection:</strong> Headline-content matching</li>
+                                <li><strong>Emotional Manipulation:</strong> 8 emotion categories analyzed</li>
+                                <li><strong>Source Diversity:</strong> Variety and balance assessment</li>
+                                <li><strong>AI Content Detection:</strong> Pattern analysis across models</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <p><strong>Technology Stack:</strong></p>
+                    <ul>
+                        <li>GPT-4 for deep content analysis</li>
+                        <li>Natural Language Processing for linguistic patterns</li>
+                        <li>Machine Learning models trained on 1M+ articles</li>
+                        <li>Real-time fact-checking API integrations</li>
+                        <li>Proprietary bias detection algorithms</li>
+                    </ul>
+                    <hr>
+                    <p class="text-muted mb-0">Each analysis generates 100+ data points to ensure comprehensive, accurate results you can trust.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS from cdnjs (CSP approved) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Navigation JavaScript (embedded since no nav.js file) -->
+    <script>
+    // Namespace all functions to avoid conflicts
+    window.ffNav = {
+        checkAuthStatus: async function() {
+            try {
+                const response = await fetch('/api/user/status');
+                
+                // Check if response is OK and content type is JSON
+                if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
+                    console.log('Auth endpoint not available or not returning JSON');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    document.getElementById('ffNavAuth').style.display = 'none';
+                    document.getElementById('ffUserMenu').style.display = 'block';
+                    
+                    document.getElementById('ffUserEmail').textContent = data.email || 'User';
+                    document.getElementById('ffUserEmailDropdown').textContent = data.email || 'User';
+                    document.getElementById('ffUserPlan').textContent = data.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
+                    
+                    const usagePercent = (data.usage_today / data.daily_limit) * 100;
+                    document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
+                    document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
+                }
+            } catch (error) {
+                // Silently fail - user is not authenticated or endpoint doesn't exist
+                console.log('Auth check skipped:', error.message);
+            }
+        },
+        
+        init: function() {
+            this.checkAuthStatus();
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                const userMenu = document.querySelector('.ff-user-menu');
+                if (userMenu && !userMenu.contains(event.target)) {
+                    document.getElementById('ffUserDropdown').classList.remove('active');
+                }
+            });
+            
+            // Add active class to current page
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.ff-nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    };
+
+    // Global functions for onclick handlers
+    function ffToggleMobileMenu() {
+        const navLinks = document.getElementById('ffNavLinks');
+        navLinks.classList.toggle('active');
+    }
+
+    function ffToggleUserDropdown() {
+        const dropdown = document.getElementById('ffUserDropdown');
+        dropdown.classList.toggle('active');
+    }
+
+    async function ffLogout() {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            window.ffNav.init();
+        });
+    } else {
+        window.ffNav.init();
+    }
+    </script>
+    
+    <!-- Page-specific JavaScript -->
+    <script src="js/news-analyzer.js"></script>
+</body>
+</html>
