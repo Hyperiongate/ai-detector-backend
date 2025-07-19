@@ -1,4 +1,4 @@
-// News Analyzer - Separated JavaScript File
+// News Analyzer - Complete Fixed JavaScript
 // Facts & Fakes AI - Advanced News Analysis JavaScript
 
 // Toggle Plan Comparison
