@@ -1053,5 +1053,3 @@ document.addEventListener('DOMContentLoaded', function() {
         resetForm: typeof window.resetForm
     });
 });
-
-})(); // End of main wrapper
