@@ -48,7 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset button
     const resetBtn = document.querySelector('.reset-button');
     if (resetBtn) {
-        resetBtn.addEventListener('click', resetForm);
+        resetBtn.addEventListener('click', function() {
+    window.resetForm();
+});
     }
     
     // Input method tabs
