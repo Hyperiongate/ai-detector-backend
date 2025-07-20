@@ -143,7 +143,7 @@ def custom_static(filename):
                 status=404
             )
         else:
-            return "File not found", 404
+            return jsonify({'success': False, 'error': str(e)}), 404
 
 # Load configuration with fixed DATABASE_URL
 app.config.from_object(config)
@@ -1374,6 +1374,163 @@ def analyze_unified_stream():
                             'human_probability': basic_results.get('human_probability', 100),
                             'patterns': basic_results.get('patterns_detected', []),
                             'status': 'completed'
+                        }
+                    },
+                    'summary': basic_results.get('summary', ''),
+                    'recommendations': basic_results.get('recommendations', []),
+                    'metadata': {
+                        'analysis_time': datetime.utcnow().isoformat(),
+                        'services_used': ['basic_analysis'],
+                        'is_pro': False,
+                        'analysis_tier': 'basic',
+                        'content_type': content_type
+                    }
+                }
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
+                return
+            
+            # Initialize results structure
+            results = {
+                'trust_score': 50,
+                'ai_probability': 0,
+                'plagiarism_score': 0,
+                'analysis_sections': {},
+                'summary': '',
+                'recommendations': [],
+                'metadata': {
+                    'analysis_time': datetime.utcnow().isoformat(),
+                    'services_used': [],
+                    'is_pro': is_pro,
+                    'analysis_tier': 'professional' if is_pro else 'basic',
+                    'content_type': content_type
+                }
+            }
+            
+            # Add URL metadata if available
+            if content_type == 'url' and 'url_metadata' in locals():
+                results['metadata']['source'] = url_metadata
+            
+            # Stage 1: Initial processing
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Initializing analysis engine...', 'progress': 10, 'step': 1})}\n\n"
+            time.sleep(1.2)  # More realistic timing
+            
+            # Stage 2: AI Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Detecting AI patterns...', 'progress': 20, 'step': 2})}\n\n"
+            time.sleep(0.8)
+            
+            ai_service = service_registry.get_service('ai_analysis')
+            if ai_service and ai_service.is_available:
+                logger.info("Running AI analysis...")
+                
+                # More detailed progress updates
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing linguistic patterns...', 'progress': 30, 'step': 2})}\n\n"
+                time.sleep(1.5)  # Simulate analysis time
+                
+                ai_results = ai_service.analyze(content, use_openai=is_pro)
+                
+                if ai_results.get('success'):
+                    data = ai_results.get('data', {})
+                    results['ai_probability'] = data.get('ai_probability', 0)
+                    results['analysis_sections']['ai_detection'] = {
+                        'title': 'AI Content Detection',
+                        'content': data.get('analysis', 'Analysis completed'),
+                        'confidence': data.get('confidence', 0.5),
+                        'details': data.get('details', {}),
+                        'probability': data.get('ai_probability', 0),
+                        'ai_probability': data.get('ai_probability', 0),
+                        'human_probability': 100 - data.get('ai_probability', 0),
+                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('ai_analysis')
+                    
+                    # Adjust trust score
+                    if data.get('ai_probability', 0) > 70:
+                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'ai_detection': results['analysis_sections']['ai_detection']}})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
+                time.sleep(1.0)
+            else:
+                logger.warning("AI service not available - using basic analysis")
+                # Fallback to basic analysis
+                basic_results = perform_realistic_unified_text_analysis(content)
+                results['ai_probability'] = basic_results.get('ai_probability', 0)
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': 'AI service unavailable - using pattern analysis',
+                    'probability': basic_results.get('ai_probability', 0),
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'human_probability': basic_results.get('human_probability', 100),
+                    'patterns': basic_results.get('patterns_detected', []),
+                    'status': 'fallback'
+                }
+            
+            # Stage 3: Plagiarism Check
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
+            time.sleep(0.8)
+            
+            plagiarism_service = service_registry.get_service('plagiarism')
+            if plagiarism_service and plagiarism_service.is_available and content:
+                logger.info("Running plagiarism analysis...")
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Searching academic databases...', 'progress': 60, 'step': 4})}\n\n"
+                time.sleep(2.0)  # Plagiarism check takes longer
+                
+                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
+                
+                if plagiarism_results:
+                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
+                    results['analysis_sections']['plagiarism'] = {
+                        'title': 'Plagiarism Detection',
+                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
+                        'sources_found': len(plagiarism_results.get('matches', [])),
+                        'similarity_score': plagiarism_results.get('score', 0) / 100,
+                        'details': plagiarism_results.get('matches', []),
+                        'matched_content': plagiarism_results.get('matches', []),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('plagiarism')
+                    
+                    # Adjust trust score
+                    if plagiarism_results.get('score', 0) > 50:
+                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
+                time.sleep(1.5)
+            else:
+                logger.warning("Plagiarism service not available")
+                results['analysis_sections']['plagiarism'] = {
+                    'title': 'Plagiarism Detection',
+                    'content': 'Plagiarism checking unavailable in basic mode',
+                    'status': 'unavailable'
+                }
+            
+            # Stage 4: Quality Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
+            time.sleep(1.0)
+            
+            # Add basic quality metrics
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': 'completed'
             }
             
             # Stage 5: Finalize
@@ -1383,6 +1540,7 @@ def analyze_unified_stream():
             # Ensure trust score is within bounds
             results['trust_score'] = max(0, min(100, results['trust_score']))
             
+            # Generate summary
             # Generate summary
             summary_parts = []
             ai_section = results['analysis_sections'].get('ai_detection', {})
@@ -2678,165 +2836,280 @@ def api_login():
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
-                        },
-                        'quality': {
-                            'title': 'Content Quality Analysis',
-                            'metrics': basic_results.get('metrics', {}),
-                            'status': 'completed'
-                        }
-                    },
-                    'summary': basic_results.get('summary', ''),
-                    'recommendations': basic_results.get('recommendations', []),
-                    'metadata': {
-                        'analysis_time': datetime.utcnow().isoformat(),
-                        'services_used': ['basic_analysis'],
-                        'is_pro': False,
-                        'analysis_tier': 'basic',
-                        'content_type': content_type
-                    }
-                }
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
-                yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
-                return
-            
-            # Initialize results structure
-            results = {
-                'trust_score': 50,
-                'ai_probability': 0,
-                'plagiarism_score': 0,
-                'analysis_sections': {},
-                'summary': '',
-                'recommendations': [],
-                'metadata': {
-                    'analysis_time': datetime.utcnow().isoformat(),
-                    'services_used': [],
-                    'is_pro': is_pro,
-                    'analysis_tier': 'professional' if is_pro else 'basic',
-                    'content_type': content_type
-                }
+
+@app.route('/api/logout', methods=['POST'])
+@csrf.exempt
+def api_logout():
+    """Logout endpoint"""
+    logout_user()
+    @app.route('/api/logout', methods=['POST'])
+@csrf.exempt
+def api_logout():
+    """Logout endpoint"""
+    logout_user()
+    return jsonify({'success': True})
+
+@app.route('/api/signup', methods=['POST'])
+@csrf.exempt
+def api_signup():
+    """Signup endpoint"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '')
+        password = data.get('password', '')
+        name = data.get('name', '')
+        
+        # Validate input
+        if not email or not password:
+            return jsonify({'success': False, 'error': 'Email and password required'}), 400
+        
+        # Check if user exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'success': False, 'error': 'User already exists'}), 400
+        
+        # Create new user
+        user = User(
+            email=email,
+            name=name or email.split('@')[0],
+            subscription_tier='free'
+        )
+        # In production, hash the password
+        user.password = password
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        # Log the user in
+        login_user(user)
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'subscription_tier': user.subscription_tier
             }
-            
-            # Add URL metadata if available
-            if content_type == 'url' and 'url_metadata' in locals():
-                results['metadata']['source'] = url_metadata
-            
-            # Stage 1: Initial processing
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Initializing analysis engine...', 'progress': 10, 'step': 1})}\n\n"
-            time.sleep(1.2)  # More realistic timing
-            
-            # Stage 2: AI Analysis
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Detecting AI patterns...', 'progress': 20, 'step': 2})}\n\n"
-            time.sleep(0.8)
-            
-            ai_service = service_registry.get_service('ai_analysis')
-            if ai_service and ai_service.is_available:
-                logger.info("Running AI analysis...")
-                
-                # More detailed progress updates
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing linguistic patterns...', 'progress': 30, 'step': 2})}\n\n"
-                time.sleep(1.5)  # Simulate analysis time
-                
-                ai_results = ai_service.analyze(content, use_openai=is_pro)
-                
-                if ai_results.get('success'):
-                    data = ai_results.get('data', {})
-                    results['ai_probability'] = data.get('ai_probability', 0)
-                    results['analysis_sections']['ai_detection'] = {
-                        'title': 'AI Content Detection',
-                        'content': data.get('analysis', 'Analysis completed'),
-                        'confidence': data.get('confidence', 0.5),
-                        'details': data.get('details', {}),
-                        'probability': data.get('ai_probability', 0),
-                        'ai_probability': data.get('ai_probability', 0),
-                        'human_probability': 100 - data.get('ai_probability', 0),
-                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('ai_analysis')
-                    
-                    # Adjust trust score
-                    if data.get('ai_probability', 0) > 70:
-                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
-                    
-                    # Send partial results
-                    yield f"data: {json.dumps({'type': 'partial', 'results': {'ai_detection': results['analysis_sections']['ai_detection']}})}\n\n"
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
-                time.sleep(1.0)
-            else:
-                logger.warning("AI service not available - using basic analysis")
-                # Fallback to basic analysis
-                basic_results = perform_realistic_unified_text_analysis(content)
-                results['ai_probability'] = basic_results.get('ai_probability', 0)
-                results['analysis_sections']['ai_detection'] = {
-                    'title': 'AI Content Detection',
-                    'content': 'AI service unavailable - using pattern analysis',
-                    'probability': basic_results.get('ai_probability', 0),
-                    'ai_probability': basic_results.get('ai_probability', 0),
-                    'human_probability': basic_results.get('human_probability', 100),
-                    'patterns': basic_results.get('patterns_detected', []),
-                    'status': 'fallback'
-                }
-            
-            # Stage 3: Plagiarism Check
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
-            time.sleep(0.8)
-            
-            plagiarism_service = service_registry.get_service('plagiarism')
-            if plagiarism_service and plagiarism_service.is_available and content:
-                logger.info("Running plagiarism analysis...")
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Searching academic databases...', 'progress': 60, 'step': 4})}\n\n"
-                time.sleep(2.0)  # Plagiarism check takes longer
-                
-                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
-                
-                if plagiarism_results:
-                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
-                    results['analysis_sections']['plagiarism'] = {
-                        'title': 'Plagiarism Detection',
-                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
-                        'sources_found': len(plagiarism_results.get('matches', [])),
-                        'similarity_score': plagiarism_results.get('score', 0) / 100,
-                        'details': plagiarism_results.get('matches', []),
-                        'matched_content': plagiarism_results.get('matches', []),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('plagiarism')
-                    
-                    # Adjust trust score
-                    if plagiarism_results.get('score', 0) > 50:
-                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
-                    
-                    # Send partial results
-                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
-                time.sleep(1.5)
-            else:
-                logger.warning("Plagiarism service not available")
-                results['analysis_sections']['plagiarism'] = {
-                    'title': 'Plagiarism Detection',
-                    'content': 'Plagiarism checking unavailable in basic mode',
-                    'status': 'unavailable'
-                }
-            
-            # Stage 4: Quality Analysis
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
-            time.sleep(1.0)
-            
-            # Add basic quality metrics
-            word_count = len(content.split())
-            sentence_count = len([s for s in content.split('.') if s.strip()])
-            avg_sentence_length = word_count / max(sentence_count, 1)
-            
-            results['analysis_sections']['quality'] = {
-                'title': 'Content Quality Analysis',
-                'metrics': {
-                    'word_count': word_count,
-                    'sentence_count': sentence_count,
-                    'avg_sentence_length': round(avg_sentence_length, 1),
-                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
-                },
-                'status': '
+        })
+        
+    except Exception as e:
+        logger.error(f"Signup error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/contact', methods=['POST'])
+@csrf.exempt
+def api_contact():
+    """Handle contact form submissions"""
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        # Validate input
+        if not all([name, email, message]):
+            return jsonify({'success': False, 'error': 'Name, email, and message are required'}), 400
+        
+        # Save to database
+        contact = Contact(
+            name=name,
+            email=email,
+            subject=subject or 'General Inquiry',
+            message=message,
+            timestamp=datetime.utcnow()
+        )
+        
+        db.session.add(contact)
+        db.session.commit()
+        
+        # In production, send email notification here
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for contacting us. We will respond within 24-48 hours.'
+        })
+        
+    except Exception as e:
+        logger.error(f"Contact form error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to submit contact form'}), 500
+
+@app.route('/api/beta-signup', methods=['POST'])
+@csrf.exempt
+def api_beta_signup():
+    """Handle beta signup requests"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip()
+        name = data.get('name', '').strip()
+        company = data.get('company', '').strip()
+        use_case = data.get('use_case', '').strip()
+        
+        # Validate email
+        if not email:
+            return jsonify({'success': False, 'error': 'Email is required'}), 400
+        
+        # Check if already signed up
+        existing = BetaSignup.query.filter_by(email=email).first()
+        if existing:
+            return jsonify({'success': False, 'error': 'You are already on the beta list'}), 400
+        
+        # Create beta signup
+        beta_signup = BetaSignup(
+            email=email,
+            name=name,
+            company=company,
+            use_case=use_case,
+            timestamp=datetime.utcnow()
+        )
+        
+        db.session.add(beta_signup)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for signing up! We will contact you when beta access is available.'
+        })
+        
+    except Exception as e:
+        logger.error(f"Beta signup error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to process beta signup'}), 500
+
+# Error handlers
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    if request.path.startswith('/api/'):
+        return jsonify({'success': False, 'error': 'Endpoint not found'}), 404
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    db.session.rollback()
+    if request.path.startswith('/api/'):
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+    return render_template('500.html'), 500
+
+@app.errorhandler(429)
+def rate_limit_exceeded(error):
+    """Handle rate limit errors"""
+    return jsonify({
+        'success': False,
+        'error': 'Rate limit exceeded. Please try again later.'
+    }), 429
+
+# Context processors
+
+@app.context_processor
+def inject_user():
+    """Inject user data into templates"""
+    return {
+        'current_user': current_user,
+        'user_tier': get_user_tier(current_user) if current_user else 'anonymous'
+    }
+
+# CLI commands
+
+@app.cli.command()
+def init_db():
+    """Initialize the database"""
+    db.create_all()
+    print("Database initialized!")
+
+@app.cli.command()
+def seed_db():
+    """Seed the database with sample data"""
+    # Create sample users
+    users = [
+        User(email='demo@example.com', name='Demo User', subscription_tier='free'),
+        User(email='pro@example.com', name='Pro User', subscription_tier='pro'),
+    ]
+    
+    for user in users:
+        existing = User.query.filter_by(email=user.email).first()
+        if not existing:
+            db.session.add(user)
+    
+    db.session.commit()
+    print("Database seeded!")
+
+@app.cli.command()
+def test_services():
+    """Test service availability"""
+    if initialize_services():
+        print("Services initialized successfully!")
+        
+        if service_registry:
+            health = service_registry.get_registry_health_status()
+            print(f"Service health: {json.dumps(health, indent=2)}")
+    else:
+        print("Service initialization failed!")
+
+# Utility functions
+
+def allowed_file(filename, allowed_extensions):
+    """Check if file extension is allowed"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+def get_file_extension(filename):
+    """Get file extension"""
+    if '.' in filename:
+        return filename.rsplit('.', 1)[1].lower()
+    return ''
+
+def sanitize_filename(filename):
+    """Sanitize filename for security"""
+    import re
+    # Remove any path components
+    filename = os.path.basename(filename)
+    # Remove any non-alphanumeric characters except dots and hyphens
+    filename = re.sub(r'[^a-zA-Z0-9.-]', '_', filename)
+    return filename
+
+# Main execution
+if __name__ == '__main__':
+    with app.app_context():
+        # Create database tables
+        try:
+            db.create_all()
+            logger.info("Database tables created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create database tables: {str(e)}")
+        
+        # Initialize services
+        services_initialized = initialize_services()
+        if services_initialized:
+            logger.info("All services initialized successfully")
+        else:
+            logger.warning("Some services failed to initialize - running in limited mode")
+        
+        # Log startup information
+        logger.info(f"Starting Facts & Fakes AI application")
+        logger.info(f"Environment: {os.environ.get('FLASK_ENV', 'production')}")
+        logger.info(f"Database URL configured: {'Yes' if app.config.get('SQLALCHEMY_DATABASE_URI') else 'No'}")
+        
+        # Check for required environment variables
+        required_vars = ['DATABASE_URL', 'SECRET_KEY']
+        missing_vars = [var for var in required_vars if not os.environ.get(var)]
+        if missing_vars:
+            logger.warning(f"Missing environment variables: {', '.join(missing_vars)}")
+        
+        # Run the app
+        port = int(os.environ.get('PORT', 5000))
+        debug = os.environ.get('FLASK_ENV') == 'development'
+        
+        logger.info(f"Starting server on port {port}")
+        app.run(
+            host='0.0.0.0',
+            port=port,
+            debug=debug,
+            use_reloader=debug,
+            use_debugger=debug
+        )
