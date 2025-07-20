@@ -1,9 +1,3 @@
-// Prevent double execution
-if (window.NewsAnalysisLoaded) {
-    console.warn('news-analysis.js already loaded, skipping...');
-    return;
-}
-window.NewsAnalysisLoaded = true;
 // news-analysis.js - News Analysis Module with Global Function Support
 // This file maintains the modular NewsApp structure while exposing necessary global functions
 (function() {
@@ -335,7 +329,7 @@ window.NewsAnalysisLoaded = true;
 // =============================================================================
 
 // Global variable for current analysis results (for non-modular code)
-window.currentAnalysisResults = window.currentAnalysisResults || null;
+let currentAnalysisResults = null;
 
 // Main analysis function called by HTML
 window.analyzeArticle = async function() {
@@ -1059,3 +1053,5 @@ document.addEventListener('DOMContentLoaded', function() {
         resetForm: typeof window.resetForm
     });
 });
+
+})(); // End of main wrapper
