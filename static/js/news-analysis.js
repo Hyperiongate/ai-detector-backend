@@ -1,3 +1,9 @@
+// Prevent double execution
+if (window.NewsAnalysisLoaded) {
+    console.warn('news-analysis.js already loaded, skipping...');
+    return;
+}
+window.NewsAnalysisLoaded = true;
 // news-analysis.js - News Analysis Module with Global Function Support
 // This file maintains the modular NewsApp structure while exposing necessary global functions
 (function() {
