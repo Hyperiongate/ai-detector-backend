@@ -3,7 +3,7 @@
 (function() {
     'use strict';
     
-    // Create namespace
+    // Create namespace 
     window.NewsApp = window.NewsApp || {};
     
     // Create analysis object in namespace
