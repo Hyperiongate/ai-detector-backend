@@ -2675,7 +2675,9 @@ def api_login():
                 'usage_status': get_usage_status(user)
             }
         })
-    exceptbasic'
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
                         },
                         'quality': {
                             'title': 'Content Quality Analysis',
