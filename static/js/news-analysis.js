@@ -335,7 +335,7 @@ window.NewsAnalysisLoaded = true;
 // =============================================================================
 
 // Global variable for current analysis results (for non-modular code)
-let currentAnalysisResults = null;
+window.currentAnalysisResults = window.currentAnalysisResults || null;
 
 // Main analysis function called by HTML
 window.analyzeArticle = async function() {
