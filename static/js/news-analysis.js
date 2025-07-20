@@ -1,188 +1,185 @@
-// news-analysis.js - SIMPLE WORKING VERSION
-// This version makes all functions globally available for onclick handlers
-
+// news-analysis.js - SIMPLIFIED VERSION - NO CONTAINERS
 console.log('news-analysis.js loading...');
 
-// Create namespace
-window.NewsApp = window.NewsApp || {};
+// Global variable for current analysis results
+let currentAnalysisData = null;
+let analysisInProgress = false;
+let progressInterval = null;
 
-// Create analysis object
-NewsApp.analysis = {
-    currentAnalysisData: null,
-    analysisInProgress: false,
-    progressInterval: null,
+// =============================================================================
+// ANALYSIS FUNCTIONS
+// =============================================================================
+
+async function runAnalysis(url, tier = 'pro') {
+    console.log('Running analysis for URL:', url);
     
-    runAnalysis: async function(url, tier = 'pro') {
-        console.log('Running analysis for URL:', url);
-        
-        if (this.analysisInProgress) {
-            console.log('Analysis already in progress');
-            return;
-        }
-        
-        this.analysisInProgress = true;
-        
-        try {
-            this.startProgressAnimation();
-            
-            const response = await fetch('/api/analyze-news', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: url,
-                    type: 'url',
-                    is_pro: tier === 'pro'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'Analysis failed');
-            }
-            
-            this.currentAnalysisData = data;
-            await this.completeProgressAnimation();
-            window.displayRealResults(data);
-            
-        } catch (error) {
-            console.error('Analysis error:', error);
-            this.handleError(error.message);
-        } finally {
-            this.analysisInProgress = false;
-        }
-    },
-    
-    runAnalysisText: async function(text, tier = 'pro') {
-        console.log('Running analysis for text');
-        
-        if (this.analysisInProgress) {
-            console.log('Analysis already in progress');
-            return;
-        }
-        
-        this.analysisInProgress = true;
-        
-        try {
-            this.startProgressAnimation();
-            
-            const response = await fetch('/api/analyze-news', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: text,
-                    type: 'text',
-                    is_pro: tier === 'pro'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'Analysis failed');
-            }
-            
-            this.currentAnalysisData = data;
-            await this.completeProgressAnimation();
-            window.displayRealResults(data);
-            
-        } catch (error) {
-            console.error('Analysis error:', error);
-            this.handleError(error.message);
-        } finally {
-            this.analysisInProgress = false;
-        }
-    },
-    
-    startProgressAnimation: function() {
-        const loadingSection = document.getElementById('loading-section');
-        const resultsSection = document.getElementById('results-section');
-        
-        if (loadingSection) {
-            loadingSection.style.display = 'block';
-        }
-        if (resultsSection) {
-            resultsSection.style.display = 'none';
-        }
-        
-        // Reset all stages
-        document.querySelectorAll('.analysis-stage').forEach(stage => {
-            stage.classList.remove('active', 'complete');
-        });
-        
-        // Animate stages
-        let currentStage = 0;
-        const stages = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6'];
-        
-        this.progressInterval = setInterval(() => {
-            if (currentStage < stages.length) {
-                if (currentStage > 0) {
-                    const prevStage = document.getElementById(stages[currentStage - 1]);
-                    if (prevStage) {
-                        prevStage.classList.remove('active');
-                        prevStage.classList.add('complete');
-                    }
-                }
-                
-                const currentStageEl = document.getElementById(stages[currentStage]);
-                if (currentStageEl) {
-                    currentStageEl.classList.add('active');
-                }
-                
-                currentStage++;
-            }
-        }, 1000);
-    },
-    
-    completeProgressAnimation: async function() {
-        return new Promise((resolve) => {
-            if (this.progressInterval) {
-                clearInterval(this.progressInterval);
-                this.progressInterval = null;
-            }
-            
-            document.querySelectorAll('.analysis-stage').forEach(stage => {
-                stage.classList.remove('active');
-                stage.classList.add('complete');
-            });
-            
-            setTimeout(resolve, 500);
-        });
-    },
-    
-    handleError: function(message) {
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
-        }
-        
-        const loadingSection = document.getElementById('loading-section');
-        if (loadingSection) {
-            loadingSection.style.display = 'none';
-        }
-        
-        window.showError(message);
-    },
-    
-    clearAnalysis: function() {
-        this.currentAnalysisData = null;
-        this.analysisInProgress = false;
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
-        }
+    if (analysisInProgress) {
+        console.log('Analysis already in progress');
+        return;
     }
-};
+    
+    analysisInProgress = true;
+    
+    try {
+        startProgressAnimation();
+        
+        const response = await fetch('/api/analyze-news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: url,
+                type: 'url',
+                is_pro: tier === 'pro'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Analysis failed');
+        }
+        
+        currentAnalysisData = data;
+        await completeProgressAnimation();
+        displayRealResults(data);
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        handleError(error.message);
+    } finally {
+        analysisInProgress = false;
+    }
+}
+
+async function runAnalysisText(text, tier = 'pro') {
+    console.log('Running analysis for text');
+    
+    if (analysisInProgress) {
+        console.log('Analysis already in progress');
+        return;
+    }
+    
+    analysisInProgress = true;
+    
+    try {
+        startProgressAnimation();
+        
+        const response = await fetch('/api/analyze-news', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: text,
+                type: 'text',
+                is_pro: tier === 'pro'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Analysis failed');
+        }
+        
+        currentAnalysisData = data;
+        await completeProgressAnimation();
+        displayRealResults(data);
+        
+    } catch (error) {
+        console.error('Analysis error:', error);
+        handleError(error.message);
+    } finally {
+        analysisInProgress = false;
+    }
+}
+
+function startProgressAnimation() {
+    const loadingSection = document.getElementById('loading-section');
+    const resultsSection = document.getElementById('results-section');
+    
+    if (loadingSection) {
+        loadingSection.style.display = 'block';
+    }
+    if (resultsSection) {
+        resultsSection.style.display = 'none';
+    }
+    
+    // Reset all stages
+    document.querySelectorAll('.analysis-stage').forEach(stage => {
+        stage.classList.remove('active', 'complete');
+    });
+    
+    // Animate stages
+    let currentStage = 0;
+    const stages = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6'];
+    
+    progressInterval = setInterval(() => {
+        if (currentStage < stages.length) {
+            if (currentStage > 0) {
+                const prevStage = document.getElementById(stages[currentStage - 1]);
+                if (prevStage) {
+                    prevStage.classList.remove('active');
+                    prevStage.classList.add('complete');
+                }
+            }
+            
+            const currentStageEl = document.getElementById(stages[currentStage]);
+            if (currentStageEl) {
+                currentStageEl.classList.add('active');
+            }
+            
+            currentStage++;
+        }
+    }, 1000);
+}
+
+async function completeProgressAnimation() {
+    return new Promise((resolve) => {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+        
+        document.querySelectorAll('.analysis-stage').forEach(stage => {
+            stage.classList.remove('active');
+            stage.classList.add('complete');
+        });
+        
+        setTimeout(resolve, 500);
+    });
+}
+
+function handleError(message) {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+    
+    const loadingSection = document.getElementById('loading-section');
+    if (loadingSection) {
+        loadingSection.style.display = 'none';
+    }
+    
+    showError(message);
+}
+
+function clearAnalysis() {
+    currentAnalysisData = null;
+    analysisInProgress = false;
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+}
 
 // =============================================================================
-// GLOBAL FUNCTIONS - These MUST be on window object for onclick to work
+// UI FUNCTIONS - THESE ARE CALLED BY ONCLICK
 // =============================================================================
 
-window.analyzeArticle = async function() {
+function analyzeArticle() {
     console.log('analyzeArticle called');
     const urlInput = document.getElementById('news-url');
     const textInput = document.getElementById('news-text');
@@ -194,23 +191,23 @@ window.analyzeArticle = async function() {
             alert('Please enter a URL');
             return;
         }
-        await NewsApp.analysis.runAnalysis(url, 'pro');
+        runAnalysis(url, 'pro');
     } else {
         const text = textInput.value.trim();
         if (!text) {
             alert('Please paste article text');
             return;
         }
-        await NewsApp.analysis.runAnalysisText(text, 'pro');
+        runAnalysisText(text, 'pro');
     }
-};
+}
 
-window.resetForm = function() {
+function resetForm() {
     console.log('resetForm called');
     document.getElementById('news-url').value = '';
     document.getElementById('news-text').value = '';
     
-    window.switchInputType('url');
+    switchInputType('url');
     
     const errorContainer = document.getElementById('error-container');
     if (errorContainer) {
@@ -222,15 +219,15 @@ window.resetForm = function() {
         resultsSection.style.display = 'none';
     }
     
-    NewsApp.analysis.clearAnalysis();
+    clearAnalysis();
     
     document.querySelector('.input-section').scrollIntoView({ 
         behavior: 'smooth', 
         block: 'center' 
     });
-};
+}
 
-window.switchInputType = function(type) {
+function switchInputType(type) {
     console.log('switchInputType called:', type);
     const urlSection = document.getElementById('url-input-section');
     const textSection = document.getElementById('text-input-section');
@@ -247,9 +244,9 @@ window.switchInputType = function(type) {
         textSection.style.display = 'block';
         tabs[1].classList.add('active');
     }
-};
+}
 
-window.togglePlanComparison = function() {
+function togglePlanComparison() {
     console.log('togglePlanComparison called');
     const content = document.getElementById('plan-comparison-content');
     const chevron = document.getElementById('plan-chevron');
@@ -258,9 +255,9 @@ window.togglePlanComparison = function() {
         content.classList.toggle('show');
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
-};
+}
 
-window.toggleResources = function() {
+function toggleResources() {
     console.log('toggleResources called');
     const content = document.getElementById('resources-content');
     const chevron = document.querySelector('.resources-header .chevron-icon');
@@ -269,9 +266,9 @@ window.toggleResources = function() {
         content.classList.toggle('show');
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
-};
+}
 
-window.toggleFeaturePreview = function() {
+function toggleFeaturePreview() {
     console.log('toggleFeaturePreview called');
     const content = document.getElementById('feature-preview-content');
     const header = document.querySelector('.feature-preview-header');
@@ -285,9 +282,9 @@ window.toggleFeaturePreview = function() {
             if (header) header.classList.add('active');
         }
     }
-};
+}
 
-window.showError = function(message) {
+function showError(message) {
     console.log('showError called:', message);
     const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
@@ -305,18 +302,18 @@ window.showError = function(message) {
     if (resultsSection) {
         resultsSection.style.display = 'none';
     }
-};
+}
 
-window.retryAnalysis = function() {
+function retryAnalysis() {
     console.log('retryAnalysis called');
     const errorContainer = document.getElementById('error-container');
     if (errorContainer) {
         errorContainer.style.display = 'none';
     }
-    window.analyzeArticle();
-};
+    analyzeArticle();
+}
 
-window.toggleDropdown = function(header) {
+function toggleDropdown(header) {
     console.log('toggleDropdown called');
     const content = header.nextElementSibling;
     const isOpen = content.classList.contains('show');
@@ -328,9 +325,9 @@ window.toggleDropdown = function(header) {
         content.classList.add('show');
         header.style.borderColor = 'var(--primary-blue)';
     }
-};
+}
 
-window.showAnalysisProcess = function() {
+function showAnalysisProcess() {
     console.log('showAnalysisProcess called');
     const modal = document.getElementById('analysisProcessModal');
     if (modal) {
@@ -342,13 +339,12 @@ window.showAnalysisProcess = function() {
             modal.classList.add('show');
         }
     }
-};
+}
 
-window.generatePDF = async function() {
+async function generatePDF() {
     console.log('generatePDF called');
-    const analysisData = NewsApp.analysis.currentAnalysisData;
     
-    if (!analysisData) {
+    if (!currentAnalysisData) {
         alert('Please run an analysis first');
         return;
     }
@@ -366,7 +362,7 @@ window.generatePDF = async function() {
             },
             body: JSON.stringify({
                 analysis_type: 'news',
-                results: analysisData
+                results: currentAnalysisData
             })
         });
         
@@ -391,14 +387,14 @@ window.generatePDF = async function() {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
     }
-};
+}
 
-window.downloadFullReport = function() {
+function downloadFullReport() {
     console.log('downloadFullReport called');
-    window.generatePDF();
-};
+    generatePDF();
+}
 
-window.displayRealResults = function(results) {
+function displayRealResults(results) {
     console.log('displayRealResults called', results);
     
     // Hide loading, show results
@@ -425,17 +421,36 @@ window.displayRealResults = function(results) {
     
     // Scroll to results
     document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
+}
 
 // Navigation functions
-window.ffNav = {
-    checkAuthStatus: async function() {
-        try {
-            const response = await fetch('/api/user/status');
-            if (!response.ok) return;
-            
-            const data = await response.json();
-            
+function ffToggleMobileMenu() {
+    const navLinks = document.getElementById('ffNavLinks');
+    navLinks.classList.toggle('active');
+}
+
+function ffToggleUserDropdown() {
+    const dropdown = document.getElementById('ffUserDropdown');
+    dropdown.classList.toggle('active');
+}
+
+async function ffLogout() {
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Logout failed:', error);
+    }
+}
+
+// Initialize navigation when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    
+    // Check auth status
+    fetch('/api/user/status')
+        .then(response => response.json())
+        .then(data => {
             if (data.authenticated) {
                 document.getElementById('ffNavAuth').style.display = 'none';
                 document.getElementById('ffUserMenu').style.display = 'block';
@@ -448,83 +463,27 @@ window.ffNav = {
                 document.getElementById('ffUsageProgress').style.width = usagePercent + '%';
                 document.getElementById('ffUsageText').textContent = `${data.usage_today} / ${data.daily_limit} analyses used`;
             }
-        } catch (error) {
-            console.log('Auth check skipped:', error.message);
+        })
+        .catch(error => console.log('Auth check skipped:', error));
+    
+    // Set active nav link
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.ff-nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
         }
-    },
+    });
     
-    init: function() {
-        this.checkAuthStatus();
-        
-        // Set active nav link
-        const currentPath = window.location.pathname;
-        document.querySelectorAll('.ff-nav-link').forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('active');
+    // Close dropdown on outside click
+    document.addEventListener('click', function(event) {
+        const userMenu = document.querySelector('.ff-user-menu');
+        if (userMenu && !userMenu.contains(event.target)) {
+            const dropdown = document.getElementById('ffUserDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('active');
             }
-        });
-        
-        // Close dropdown on outside click
-        document.addEventListener('click', function(event) {
-            const userMenu = document.querySelector('.ff-user-menu');
-            if (userMenu && !userMenu.contains(event.target)) {
-                const dropdown = document.getElementById('ffUserDropdown');
-                if (dropdown) {
-                    dropdown.classList.remove('active');
-                }
-            }
-        });
-    }
-};
-
-// Global navigation functions
-window.ffToggleMobileMenu = function() {
-    const navLinks = document.getElementById('ffNavLinks');
-    navLinks.classList.toggle('active');
-};
-
-window.ffToggleUserDropdown = function() {
-    const dropdown = document.getElementById('ffUserDropdown');
-    dropdown.classList.toggle('active');
-};
-
-window.ffLogout = async function() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Logout failed:', error);
-    }
-};
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing...');
-    
-    // Initialize navigation
-    if (window.ffNav) {
-        window.ffNav.init();
-    }
-    
-    // Verify all functions are available
-    console.log('Function availability check:', {
-        togglePlanComparison: typeof window.togglePlanComparison,
-        toggleResources: typeof window.toggleResources,
-        toggleFeaturePreview: typeof window.toggleFeaturePreview,
-        analyzeArticle: typeof window.analyzeArticle,
-        switchInputType: typeof window.switchInputType,
-        resetForm: typeof window.resetForm,
-        showError: typeof window.showError,
-        retryAnalysis: typeof window.retryAnalysis,
-        toggleDropdown: typeof window.toggleDropdown,
-        showAnalysisProcess: typeof window.showAnalysisProcess,
-        generatePDF: typeof window.generatePDF,
-        downloadFullReport: typeof window.downloadFullReport,
-        displayRealResults: typeof window.displayRealResults,
-        ffToggleMobileMenu: typeof window.ffToggleMobileMenu,
-        ffToggleUserDropdown: typeof window.ffToggleUserDropdown,
-        ffLogout: typeof window.ffLogout
+        }
     });
 });
 
-console.log('news-analysis.js loaded successfully - all functions should be available');
+console.log('news-analysis.js loaded - all functions are now global');
