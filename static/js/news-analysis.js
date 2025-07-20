@@ -1,4 +1,5 @@
-// news-analysis.js - News Analysis Module with Correct API Format
+// news-analysis.js - News Analysis Module with Global Function Support
+// This file maintains the modular NewsApp structure while exposing necessary global functions
 (function() {
     'use strict';
     
@@ -69,7 +70,7 @@
                 console.log('Analysis results:', data);
                 
                 // Check for success flag or results
-                if ((data.success && data.results) || data.results) {
+                if ((data.success && data.results) || data.results || (data.trust_score !== undefined && !data.error)) {
                     // Store the analysis data
                     this.currentAnalysisData = data;
                     
@@ -79,8 +80,11 @@
                     // Display results
                     if (NewsApp.results && NewsApp.results.displayResults) {
                         NewsApp.results.displayResults(data);
+                    } else if (typeof displayRealResults === 'function') {
+                        // Fallback to global function
+                        displayRealResults(data);
                     } else {
-                        console.error('Results display module not loaded');
+                        console.error('Results display function not found');
                     }
                 } else {
                     throw new Error(data.error || 'Analysis failed - no results returned');
@@ -157,7 +161,7 @@
                 console.log('Analysis results:', data);
                 
                 // Check for success flag or results
-                if ((data.success && data.results) || data.results) {
+                if ((data.success && data.results) || data.results || (data.trust_score !== undefined && !data.error)) {
                     // Store the analysis data
                     this.currentAnalysisData = data;
                     
@@ -167,8 +171,11 @@
                     // Display results
                     if (NewsApp.results && NewsApp.results.displayResults) {
                         NewsApp.results.displayResults(data);
+                    } else if (typeof displayRealResults === 'function') {
+                        // Fallback to global function
+                        displayRealResults(data);
                     } else {
-                        console.error('Results display module not loaded');
+                        console.error('Results display function not found');
                     }
                 } else {
                     throw new Error(data.error || 'Analysis failed - no results returned');
@@ -199,6 +206,18 @@
             let currentStage = 0;
             const claimsCounter = document.querySelector('.claims-counter');
             let claimsCount = 0;
+            
+            // For the loading section progress
+            const loadingSection = document.getElementById('loading-section');
+            if (loadingSection) {
+                loadingSection.style.display = 'block';
+                document.getElementById('results-section').style.display = 'none';
+                
+                // Reset stages
+                document.querySelectorAll('.analysis-stage').forEach(stage => {
+                    stage.classList.remove('active', 'complete');
+                });
+            }
             
             // Update progress stages
             this.progressInterval = setInterval(() => {
@@ -261,6 +280,9 @@
             // Show error in results
             if (NewsApp.results && NewsApp.results.showError) {
                 NewsApp.results.showError(message);
+            } else if (typeof showError === 'function') {
+                // Use global function
+                showError(message);
             } else {
                 // Fallback error display
                 const resultsDiv = document.getElementById('results');
@@ -300,3 +322,282 @@
     window.NewsApp.analysis = NewsApp.analysis;
     
 })();
+
+// =============================================================================
+// GLOBAL FUNCTIONS FOR HTML ONCLICK HANDLERS
+// These bridge the gap between HTML onclick and the modular NewsApp structure
+// =============================================================================
+
+// Global variable for current analysis results (for non-modular code)
+let currentAnalysisResults = null;
+
+// Main analysis function called by HTML
+window.analyzeArticle = async function() {
+    const urlInput = document.getElementById('news-url');
+    const textInput = document.getElementById('news-text');
+    const isUrlMode = document.getElementById('url-input-section').style.display !== 'none';
+    
+    if (isUrlMode) {
+        const url = urlInput.value.trim();
+        if (!url) {
+            alert('Please enter a URL');
+            return;
+        }
+        await NewsApp.analysis.runAnalysis(url, 'pro');
+    } else {
+        const text = textInput.value.trim();
+        if (!text) {
+            alert('Please paste article text');
+            return;
+        }
+        await NewsApp.analysis.runAnalysisText(text, 'pro');
+    }
+    
+    // Update global variable
+    currentAnalysisResults = NewsApp.analysis.getCurrentData();
+}
+
+// Reset form
+window.resetForm = function() {
+    document.getElementById('news-url').value = '';
+    document.getElementById('news-text').value = '';
+    
+    // Reset to URL tab
+    switchInputType('url');
+    
+    // Hide any error messages
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) {
+        errorContainer.style.display = 'none';
+    }
+    
+    // Hide results if shown
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection) {
+        resultsSection.style.display = 'none';
+    }
+    
+    // Clear analysis data
+    NewsApp.analysis.clearAnalysis();
+    currentAnalysisResults = null;
+    
+    // Scroll to top of input section
+    document.querySelector('.input-section').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+}
+
+// Switch input type
+window.switchInputType = function(type) {
+    const urlSection = document.getElementById('url-input-section');
+    const textSection = document.getElementById('text-input-section');
+    const tabs = document.querySelectorAll('.input-tab');
+    
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    if (type === 'url') {
+        urlSection.style.display = 'block';
+        textSection.style.display = 'none';
+        tabs[0].classList.add('active');
+    } else {
+        urlSection.style.display = 'none';
+        textSection.style.display = 'block';
+        tabs[1].classList.add('active');
+    }
+}
+
+// Toggle plan comparison
+window.togglePlanComparison = function() {
+    const content = document.getElementById('plan-comparison-content');
+    const chevron = document.getElementById('plan-chevron');
+    
+    if (content && chevron) {
+        content.classList.toggle('show');
+        chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+}
+
+// Toggle resources
+window.toggleResources = function() {
+    const content = document.getElementById('resources-content');
+    const chevron = document.querySelector('.resources-header .chevron-icon');
+    
+    if (content && chevron) {
+        content.classList.toggle('show');
+        chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+}
+
+// Toggle feature preview
+window.toggleFeaturePreview = function() {
+    const content = document.getElementById('feature-preview-content');
+    const header = document.querySelector('.feature-preview-header');
+    
+    if (content) {
+        if (content.classList.contains('show')) {
+            content.classList.remove('show');
+            if (header) header.classList.remove('active');
+        } else {
+            content.classList.add('show');
+            if (header) header.classList.add('active');
+        }
+    }
+}
+
+// Show error
+window.showError = function(message) {
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Format message
+    let formattedMessage = message
+        .replace(/\n/g, '<br>')
+        .replace(/•/g, '<br>•');
+    
+    errorMessage.innerHTML = formattedMessage;
+    errorContainer.style.display = 'block';
+    
+    // Hide results
+    document.getElementById('results-section').style.display = 'none';
+    
+    // Scroll to error
+    errorContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Retry analysis
+window.retryAnalysis = function() {
+    document.getElementById('error-container').style.display = 'none';
+    analyzeArticle();
+}
+
+// Toggle dropdown
+window.toggleDropdown = function(header) {
+    const content = header.nextElementSibling;
+    const isOpen = content.classList.contains('show');
+    
+    if (isOpen) {
+        content.classList.remove('show');
+        header.style.borderColor = 'transparent';
+    } else {
+        content.classList.add('show');
+        header.style.borderColor = 'var(--primary-blue)';
+    }
+}
+
+// Show analysis process modal
+window.showAnalysisProcess = function() {
+    const modal = document.getElementById('analysisProcessModal');
+    if (modal) {
+        if (typeof bootstrap !== 'undefined') {
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        } else {
+            // Fallback
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
+    }
+}
+
+// Generate PDF
+window.generatePDF = async function() {
+    const analysisData = currentAnalysisResults || NewsApp.analysis.getCurrentData();
+    
+    if (!analysisData) {
+        alert('Please run an analysis first');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                analysis_type: 'news',
+                results: analysisData
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('PDF generation failed');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `news-analysis-${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        alert('PDF generation failed. Please try again.');
+    } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    }
+}
+
+// Download full report
+window.downloadFullReport = async function() {
+    generatePDF();
+}
+
+// =============================================================================
+// DISPLAY FUNCTIONS (from news-analyzer.js)
+// These handle the actual display of results
+// =============================================================================
+
+// Display results
+window.displayRealResults = function(results) {
+    // Update timestamp
+    const now = new Date();
+    document.getElementById('analysis-time').textContent = now.toLocaleString();
+    document.getElementById('analysis-id').textContent = results.analysis_id || 'AN-' + Date.now().toString(36).toUpperCase();
+    
+    // Update trust score
+    const trustScore = results.trust_score || 0;
+    animateTrustMeter(trustScore);
+    
+    // Update overall assessment
+    updateOverallAssessment(results);
+    
+    // Populate all sections
+    populateRealSections(results);
+    
+    // Show results section
+    document.getElementById('loading-section').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    
+    // Scroll to results
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// You'll need to add these functions from your news-analyzer.js:
+// - animateTrustMeter
+// - updateOverallAssessment  
+// - populateRealSections
+// - etc.
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('News analysis module loaded');
+    
+    // Verify functions are available
+    console.log('Module loaded:', typeof NewsApp.analysis);
+    console.log('Global functions:', {
+        analyzeArticle: typeof window.analyzeArticle,
+        resetForm: typeof window.resetForm
+    });
+});
