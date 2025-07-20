@@ -581,5 +581,61 @@ document.addEventListener('DOMContentLoaded', function() {
         resetForm: typeof window.resetForm
     });
 });
-
+// Fix event handlers for all buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix plan comparison
+    const planHeader = document.querySelector('.plan-comparison-header');
+    if (planHeader) {
+        planHeader.addEventListener('click', function(e) {
+            e.stopPropagation();
+            togglePlanComparison();
+        });
+    }
+    
+    // Fix resources
+    const resourcesHeader = document.querySelector('.resources-header');
+    if (resourcesHeader) {
+        resourcesHeader.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleResources();
+        });
+    }
+    
+    // Fix feature preview
+    const featureHeader = document.querySelector('.feature-preview-header');
+    if (featureHeader) {
+        featureHeader.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleFeaturePreview();
+        });
+    }
+    
+    // Fix input tabs
+    document.querySelectorAll('.input-tab').forEach((tab, index) => {
+        tab.addEventListener('click', function(e) {
+            e.stopPropagation();
+            switchInputType(index === 0 ? 'url' : 'text');
+        });
+    });
+    
+    // Fix analyze button
+    const analyzeBtn = document.querySelector('.analyze-button');
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            analyzeArticle();
+        });
+    }
+    
+    // Fix reset button
+    const resetBtn = document.querySelector('.reset-button');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            resetForm();
+        });
+    }
+    
+    console.log('Event handlers attached');
+});
 console.log('news-analysis.js fully loaded');
