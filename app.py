@@ -9,8 +9,6 @@ import playwright_config
 # Now your other imports
 import os
 import logging
-# ... rest of your imports
-import os
 
 # Standard library imports
 import os
@@ -114,37 +112,38 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 # CRITICAL: Disable Render's static file optimization
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-# Force Flask to handle static files with explicit byte serving
+# FIXED: Better static file handler that actually works
 @app.route('/static/<path:filename>')
 def custom_static(filename):
-    import os
-    from flask import Response
-    
-    file_path = os.path.join(app.static_folder, filename)
-    
-    # Log the request
-    if os.path.exists(file_path):
-        size = os.path.getsize(file_path)
-        logger.info(f"Serving static file: {filename} ({size} bytes)")
+    """Serve static files with proper handling"""
+    try:
+        # Use Flask's send_from_directory which handles files properly
+        response = send_from_directory(app.static_folder, filename)
         
-        # Read and serve the file explicitly
-        with open(file_path, 'rb') as f:
-            content = f.read()
-            
-        # Determine content type
+        # Set proper content type for JS files
         if filename.endswith('.js'):
-            mimetype = 'application/javascript'
-        elif filename.endswith('.css'):
-            mimetype = 'text/css'
-        else:
-            mimetype = 'application/octet-stream'
+            response.headers['Content-Type'] = 'application/javascript; charset=utf-8'
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
             
-        return Response(content, mimetype=mimetype)
-    else:
-        logger.error(f"Static file not found: {filename}")
-        return "File not found", 404
-
-# Force Flask to serve static files with proper headers
+        # Log successful serving
+        logger.info(f"Served static file: {filename}")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error serving static file {filename}: {str(e)}")
+        
+        # For JS files, return a console error
+        if filename.endswith('.js'):
+            return Response(
+                f"console.error('Failed to load {filename}: {str(e)}');",
+                mimetype='application/javascript',
+                status=404
+            )
+        else:
+            return "File not found", 404
 
 # Load configuration with fixed DATABASE_URL
 app.config.from_object(config)
@@ -726,7 +725,7 @@ def api_research_author():
             },
             'red_flags': [],
             'positive_indicators': [],
- 'analysis_summary': '',
+            'analysis_summary': '',
             'timestamp': datetime.utcnow().isoformat()
         }
         
@@ -1374,169 +1373,7 @@ def analyze_unified_stream():
                             'ai_probability': basic_results.get('ai_probability', 0),
                             'human_probability': basic_results.get('human_probability', 100),
                             'patterns': basic_results.get('patterns_detected', []),
-                            'status': 'basic'
-                        },
-                        'quality': {
-                            'title': 'Content Quality Analysis',
-                            'metrics': basic_results.get('metrics', {}),
                             'status': 'completed'
-                        }
-                    },
-                    'summary': basic_results.get('summary', ''),
-                    'recommendations': basic_results.get('recommendations', []),
-                    'metadata': {
-                        'analysis_time': datetime.utcnow().isoformat(),
-                        'services_used': ['basic_analysis'],
-                        'is_pro': False,
-                        'analysis_tier': 'basic',
-                        'content_type': content_type
-                    }
-                }
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
-                yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
-                return
-            
-            # Initialize results structure
-            results = {
-                'trust_score': 50,
-                'ai_probability': 0,
-                'plagiarism_score': 0,
-                'analysis_sections': {},
-                'summary': '',
-                'recommendations': [],
-                'metadata': {
-                    'analysis_time': datetime.utcnow().isoformat(),
-                    'services_used': [],
-                    'is_pro': is_pro,
-                    'analysis_tier': 'professional' if is_pro else 'basic',
-                    'content_type': content_type
-                }
-            }
-            
-            # Add URL metadata if available
-            if content_type == 'url' and 'url_metadata' in locals():
-                results['metadata']['source'] = url_metadata
-            
-            # Stage 1: Initial processing
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Initializing analysis engine...', 'progress': 10, 'step': 1})}\n\n"
-            time.sleep(1.2)  # More realistic timing
-            
-            # Stage 2: AI Analysis
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Detecting AI patterns...', 'progress': 20, 'step': 2})}\n\n"
-            time.sleep(0.8)
-            
-            ai_service = service_registry.get_service('ai_analysis')
-            if ai_service and ai_service.is_available:
-                logger.info("Running AI analysis...")
-                
-                # More detailed progress updates
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing linguistic patterns...', 'progress': 30, 'step': 2})}\n\n"
-                time.sleep(1.5)  # Simulate analysis time
-                
-                ai_results = ai_service.analyze(content, use_openai=is_pro)
-                
-                if ai_results.get('success'):
-                    data = ai_results.get('data', {})
-                    results['ai_probability'] = data.get('ai_probability', 0)
-                    results['analysis_sections']['ai_detection'] = {
-                        'title': 'AI Content Detection',
-                        'content': data.get('analysis', 'Analysis completed'),
-                        'confidence': data.get('confidence', 0.5),
-                        'details': data.get('details', {}),
-                        'probability': data.get('ai_probability', 0),
-                        'ai_probability': data.get('ai_probability', 0),
-                        'human_probability': 100 - data.get('ai_probability', 0),
-                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('ai_analysis')
-                    
-                    # Adjust trust score
-                    if data.get('ai_probability', 0) > 70:
-                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
-                    
-                    # Send partial results
-                    yield f"data: {json.dumps({'type': 'partial', 'results': {'ai_detection': results['analysis_sections']['ai_detection']}})}\n\n"
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
-                time.sleep(1.0)
-            else:
-                logger.warning("AI service not available - using basic analysis")
-                # Fallback to basic analysis
-                basic_results = perform_realistic_unified_text_analysis(content)
-                results['ai_probability'] = basic_results.get('ai_probability', 0)
-                results['analysis_sections']['ai_detection'] = {
-                    'title': 'AI Content Detection',
-                    'content': 'AI service unavailable - using pattern analysis',
-                    'probability': basic_results.get('ai_probability', 0),
-                    'ai_probability': basic_results.get('ai_probability', 0),
-                    'human_probability': basic_results.get('human_probability', 100),
-                    'patterns': basic_results.get('patterns_detected', []),
-                    'status': 'fallback'
-                }
-            
-            # Stage 3: Plagiarism Check
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
-            time.sleep(0.8)
-            
-            plagiarism_service = service_registry.get_service('plagiarism')
-            if plagiarism_service and plagiarism_service.is_available and content:
-                logger.info("Running plagiarism analysis...")
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Searching academic databases...', 'progress': 60, 'step': 4})}\n\n"
-                time.sleep(2.0)  # Plagiarism check takes longer
-                
-                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
-                
-                if plagiarism_results:
-                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
-                    results['analysis_sections']['plagiarism'] = {
-                        'title': 'Plagiarism Detection',
-                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
-                        'sources_found': len(plagiarism_results.get('matches', [])),
-                        'similarity_score': plagiarism_results.get('score', 0) / 100,
-                        'details': plagiarism_results.get('matches', []),
-                        'matched_content': plagiarism_results.get('matches', []),
-                        'status': 'completed'
-                    }
-                    results['metadata']['services_used'].append('plagiarism')
-                    
-                    # Adjust trust score
-                    if plagiarism_results.get('score', 0) > 50:
-                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
-                    
-                    # Send partial results
-                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
-                
-                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
-                time.sleep(1.5)
-            else:
-                logger.warning("Plagiarism service not available")
-                results['analysis_sections']['plagiarism'] = {
-                    'title': 'Plagiarism Detection',
-                    'content': 'Plagiarism checking unavailable in basic mode',
-                    'status': 'unavailable'
-                }
-            
-            # Stage 4: Quality Analysis
-            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
-            time.sleep(1.0)
-            
-            # Add basic quality metrics
-            word_count = len(content.split())
-            sentence_count = len([s for s in content.split('.') if s.strip()])
-            avg_sentence_length = word_count / max(sentence_count, 1)
-            
-            results['analysis_sections']['quality'] = {
-                'title': 'Content Quality Analysis',
-                'metrics': {
-                    'word_count': word_count,
-                    'sentence_count': sentence_count,
-                    'avg_sentence_length': round(avg_sentence_length, 1),
-                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
-                },
-                'status': 'completed'
             }
             
             # Stage 5: Finalize
@@ -2719,6 +2556,7 @@ def api_analyze_news():
     except Exception as e:
         logger.error(f"News analysis error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/trending-news', methods=['GET'])
 def api_trending_news():
     """Get trending news articles"""
@@ -2837,179 +2675,166 @@ def api_login():
                 'usage_status': get_usage_status(user)
             }
         })
-    except Exception as e:
-        logger.error(f"Login error: {str(e)}")
-        return jsonify({'success': False, 'error': 'Login failed'}), 500
-
-@app.route('/api/signup', methods=['POST'])
-@csrf.exempt
-def api_signup():
-    """Signup endpoint"""
-    try:
-        data = request.get_json()
-        email = data.get('email', '')
-        password = data.get('password', '')
-        
-        # Check if user exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            return jsonify({'success': False, 'error': 'User already exists'}), 400
-        
-        # Create new user
-        user = User(
-            email=email,
-            name=email.split('@')[0],
-            subscription_tier='free'
-        )
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Account created successfully',
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'subscription_tier': user.subscription_tier
-            }
-        })
-    except Exception as e:
-        logger.error(f"Signup error: {str(e)}")
-        return jsonify({'success': False, 'error': 'Signup failed'}), 500
-
-@app.route('/api/logout', methods=['POST'])
-@csrf.exempt
-def api_logout():
-    """Logout endpoint"""
-    logout_user()
-    session.clear()
-    return jsonify({'success': True})
-
-@app.route('/api/user/status', methods=['GET'])
-def api_user_status():
-    """Get user authentication status"""
-    # TEMPORARY: Skip all database checks and return pro user
-    logger.info("User status check - returning pro tier (database bypassed)")
-    return jsonify({
-        'authenticated': True,
-        'email': 'test@factsandfakes.ai',
-        'subscription_tier': 'pro',
-        'usage_status': {
-            'tier': 'pro',
-            'usage': {
-                'daily': {'basic': 0, 'pro': 0},
-                'weekly': {'basic': 0, 'pro': 0}
-            },
-            'limits': {
-                'daily': {'basic': -1, 'pro': -1},
-                'weekly': {'basic': -1, 'pro': -1}
-            },
-            'resets': {
-                'daily': datetime.utcnow().isoformat(),
-                'weekly': datetime.utcnow().isoformat()
-            }
-        },
-        'usage_today': 0,
-        'daily_limit': -1
-    })
-
-# Contact and beta signup routes
-
-@app.route('/api/contact', methods=['POST'])
-@csrf.exempt
-def api_contact():
-    """Contact form submission"""
-    try:
-        data = request.get_json()
-        
-        contact = Contact(
-            name=data.get('name', ''),
-            email=data.get('email', ''),
-            message=data.get('message', ''),
-            timestamp=datetime.utcnow()
-        )
-        
-        db.session.add(contact)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Message sent successfully'})
-        
-    except Exception as e:
-        logger.error(f"Contact form error: {str(e)}")
-        return jsonify({'success': False, 'error': 'Failed to send message'}), 500
-
-@app.route('/api/beta-signup', methods=['POST'])
-@csrf.exempt
-def api_beta_signup():
-    """Beta signup endpoint"""
-    try:
-        data = request.get_json()
-        
-        signup = BetaSignup(
-            email=data.get('email', ''),
-            timestamp=datetime.utcnow()
-        )
-        
-        db.session.add(signup)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Beta signup successful'})
-        
-    except Exception as e:
-        logger.error(f"Beta signup error: {str(e)}")
-        return jsonify({'success': False, 'error': 'Signup failed'}), 500
-
-# Error handlers
-
-@app.errorhandler(404)
-def not_found(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    logger.error(f"Internal server error: {str(error)}")
-    return render_template('500.html'), 500
-
-# Application initialization
-
-def create_tables():
-    """Create database tables if they don't exist"""
-    try:
-        with app.app_context():
-            # Import the migration functions
-            from services.database import migrate_database
+    exceptbasic'
+                        },
+                        'quality': {
+                            'title': 'Content Quality Analysis',
+                            'metrics': basic_results.get('metrics', {}),
+                            'status': 'completed'
+                        }
+                    },
+                    'summary': basic_results.get('summary', ''),
+                    'recommendations': basic_results.get('recommendations', []),
+                    'metadata': {
+                        'analysis_time': datetime.utcnow().isoformat(),
+                        'services_used': ['basic_analysis'],
+                        'is_pro': False,
+                        'analysis_tier': 'basic',
+                        'content_type': content_type
+                    }
+                }
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analysis complete!', 'progress': 100, 'step': 6})}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'results': results})}\n\n"
+                return
             
-            # Run full migration
-            if migrate_database():
-                logger.info("Database migration completed successfully")
+            # Initialize results structure
+            results = {
+                'trust_score': 50,
+                'ai_probability': 0,
+                'plagiarism_score': 0,
+                'analysis_sections': {},
+                'summary': '',
+                'recommendations': [],
+                'metadata': {
+                    'analysis_time': datetime.utcnow().isoformat(),
+                    'services_used': [],
+                    'is_pro': is_pro,
+                    'analysis_tier': 'professional' if is_pro else 'basic',
+                    'content_type': content_type
+                }
+            }
+            
+            # Add URL metadata if available
+            if content_type == 'url' and 'url_metadata' in locals():
+                results['metadata']['source'] = url_metadata
+            
+            # Stage 1: Initial processing
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Initializing analysis engine...', 'progress': 10, 'step': 1})}\n\n"
+            time.sleep(1.2)  # More realistic timing
+            
+            # Stage 2: AI Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Detecting AI patterns...', 'progress': 20, 'step': 2})}\n\n"
+            time.sleep(0.8)
+            
+            ai_service = service_registry.get_service('ai_analysis')
+            if ai_service and ai_service.is_available:
+                logger.info("Running AI analysis...")
+                
+                # More detailed progress updates
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing linguistic patterns...', 'progress': 30, 'step': 2})}\n\n"
+                time.sleep(1.5)  # Simulate analysis time
+                
+                ai_results = ai_service.analyze(content, use_openai=is_pro)
+                
+                if ai_results.get('success'):
+                    data = ai_results.get('data', {})
+                    results['ai_probability'] = data.get('ai_probability', 0)
+                    results['analysis_sections']['ai_detection'] = {
+                        'title': 'AI Content Detection',
+                        'content': data.get('analysis', 'Analysis completed'),
+                        'confidence': data.get('confidence', 0.5),
+                        'details': data.get('details', {}),
+                        'probability': data.get('ai_probability', 0),
+                        'ai_probability': data.get('ai_probability', 0),
+                        'human_probability': 100 - data.get('ai_probability', 0),
+                        'patterns': data.get('detected_patterns', {}).get('ai_phrases', 0),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('ai_analysis')
+                    
+                    # Adjust trust score
+                    if data.get('ai_probability', 0) > 70:
+                        results['trust_score'] -= int(data.get('confidence', 0.5) * 30)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'ai_detection': results['analysis_sections']['ai_detection']}})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Calculating AI probability scores...', 'progress': 45, 'step': 3})}\n\n"
+                time.sleep(1.0)
             else:
-                logger.warning("Database migration had issues - check logs")
+                logger.warning("AI service not available - using basic analysis")
+                # Fallback to basic analysis
+                basic_results = perform_realistic_unified_text_analysis(content)
+                results['ai_probability'] = basic_results.get('ai_probability', 0)
+                results['analysis_sections']['ai_detection'] = {
+                    'title': 'AI Content Detection',
+                    'content': 'AI service unavailable - using pattern analysis',
+                    'probability': basic_results.get('ai_probability', 0),
+                    'ai_probability': basic_results.get('ai_probability', 0),
+                    'human_probability': basic_results.get('human_probability', 100),
+                    'patterns': basic_results.get('patterns_detected', []),
+                    'status': 'fallback'
+                }
+            
+            # Stage 3: Plagiarism Check
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Checking for plagiarism...', 'progress': 50, 'step': 4})}\n\n"
+            time.sleep(0.8)
+            
+            plagiarism_service = service_registry.get_service('plagiarism')
+            if plagiarism_service and plagiarism_service.is_available and content:
+                logger.info("Running plagiarism analysis...")
                 
-            # Ensure all tables exist by trying to create them
-            try:
-                db.create_all()
-                logger.info("Database tables verified/created")
-            except Exception as e:
-                logger.warning(f"Table creation warning (may be normal if tables exist): {str(e)}")
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Searching academic databases...', 'progress': 60, 'step': 4})}\n\n"
+                time.sleep(2.0)  # Plagiarism check takes longer
                 
-    except Exception as e:
-        logger.error(f"Database initialization error: {str(e)}")
-        import traceback
-        logger.error(traceback.format_exc())
-
-if __name__ == '__main__':
-    # Initialize database
-    create_tables()
-    
-    # Initialize service architecture
-    if not initialize_services():
-        logger.warning("Service architecture initialization failed - running with limited functionality")
-    
-    # Run application
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') == 'development'
-    
-    logger.info(f"Starting Facts & Fakes AI on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=debug)
-
+                plagiarism_results = plagiarism_service.check_plagiarism(content, use_real_apis=is_pro)
+                
+                if plagiarism_results:
+                    results['plagiarism_score'] = int(plagiarism_results.get('score', 0))
+                    results['analysis_sections']['plagiarism'] = {
+                        'title': 'Plagiarism Detection',
+                        'content': f"Checked {plagiarism_results.get('sources_checked', 0)} sources",
+                        'sources_found': len(plagiarism_results.get('matches', [])),
+                        'similarity_score': plagiarism_results.get('score', 0) / 100,
+                        'details': plagiarism_results.get('matches', []),
+                        'matched_content': plagiarism_results.get('matches', []),
+                        'status': 'completed'
+                    }
+                    results['metadata']['services_used'].append('plagiarism')
+                    
+                    # Adjust trust score
+                    if plagiarism_results.get('score', 0) > 50:
+                        results['trust_score'] -= int(plagiarism_results.get('score', 0) * 0.25)
+                    
+                    # Send partial results
+                    yield f"data: {json.dumps({'type': 'partial', 'results': {'plagiarism': results['analysis_sections']['plagiarism']}})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'progress', 'stage': 'Comparing with online sources...', 'progress': 75, 'step': 4})}\n\n"
+                time.sleep(1.5)
+            else:
+                logger.warning("Plagiarism service not available")
+                results['analysis_sections']['plagiarism'] = {
+                    'title': 'Plagiarism Detection',
+                    'content': 'Plagiarism checking unavailable in basic mode',
+                    'status': 'unavailable'
+                }
+            
+            # Stage 4: Quality Analysis
+            yield f"data: {json.dumps({'type': 'progress', 'stage': 'Analyzing content quality...', 'progress': 80, 'step': 5})}\n\n"
+            time.sleep(1.0)
+            
+            # Add basic quality metrics
+            word_count = len(content.split())
+            sentence_count = len([s for s in content.split('.') if s.strip()])
+            avg_sentence_length = word_count / max(sentence_count, 1)
+            
+            results['analysis_sections']['quality'] = {
+                'title': 'Content Quality Analysis',
+                'metrics': {
+                    'word_count': word_count,
+                    'sentence_count': sentence_count,
+                    'avg_sentence_length': round(avg_sentence_length, 1),
+                    'readability': 'Good' if avg_sentence_length < 20 else 'Complex'
+                },
+                'status': '
