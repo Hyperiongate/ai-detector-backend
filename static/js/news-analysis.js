@@ -1,19 +1,19 @@
-// news-analysis.js - News Analysis Module with Global Function Support
-// FIXED VERSION - Functions properly in global scope
+// news-analysis.js - SIMPLE WORKING VERSION
+// This version makes all functions globally available for onclick handlers
 
-console.log('news-analysis.js starting to load...');
+console.log('news-analysis.js loading...');
 
 // Create namespace
 window.NewsApp = window.NewsApp || {};
 
-// Create analysis object in namespace
+// Create analysis object
 NewsApp.analysis = {
     currentAnalysisData: null,
     analysisInProgress: false,
+    progressInterval: null,
     
-    // Run the analysis
     runAnalysis: async function(url, tier = 'pro') {
-        console.log('Sending analysis request:', { url, tier });
+        console.log('Running analysis for URL:', url);
         
         if (this.analysisInProgress) {
             console.log('Analysis already in progress');
@@ -23,58 +23,29 @@ NewsApp.analysis = {
         this.analysisInProgress = true;
         
         try {
-            // Start progress animation
             this.startProgressAnimation();
-            
-            // Create request body
-            const requestBody = { 
-                content: url,
-                type: 'url',
-                is_pro: tier === 'pro'
-            };
-            
-            console.log('Request body:', JSON.stringify(requestBody, null, 2));
             
             const response = await fetch('/api/analyze-news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    content: url,
+                    type: 'url',
+                    is_pro: tier === 'pro'
+                })
             });
             
-            console.log('Response status:', response.status);
-            
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Failed to parse response:', parseError);
-                throw new Error('Server returned invalid response');
-            }
+            const data = await response.json();
             
             if (!response.ok) {
-                console.error('API Error:', data);
-                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                throw new Error(data.error || 'Analysis failed');
             }
             
-            console.log('Analysis results:', data);
-            
-            if ((data.success && data.results) || data.results || (data.trust_score !== undefined && !data.error)) {
-                this.currentAnalysisData = data;
-                await this.completeProgressAnimation();
-                
-                if (typeof displayRealResults === 'function') {
-                    displayRealResults(data);
-                } else {
-                    console.error('Results display function not found');
-                }
-            } else {
-                throw new Error(data.error || 'Analysis failed - no results returned');
-            }
+            this.currentAnalysisData = data;
+            await this.completeProgressAnimation();
+            window.displayRealResults(data);
             
         } catch (error) {
             console.error('Analysis error:', error);
@@ -85,7 +56,7 @@ NewsApp.analysis = {
     },
     
     runAnalysisText: async function(text, tier = 'pro') {
-        console.log('Sending text analysis request');
+        console.log('Running analysis for text');
         
         if (this.analysisInProgress) {
             console.log('Analysis already in progress');
@@ -97,54 +68,27 @@ NewsApp.analysis = {
         try {
             this.startProgressAnimation();
             
-            const requestBody = { 
-                content: text,
-                type: 'text',
-                is_pro: tier === 'pro'
-            };
-            
-            console.log('Request body:', JSON.stringify(requestBody, null, 2));
-            
             const response = await fetch('/api/analyze-news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    content: text,
+                    type: 'text',
+                    is_pro: tier === 'pro'
+                })
             });
             
-            console.log('Response status:', response.status);
-            
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
-            
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Failed to parse response:', parseError);
-                throw new Error('Server returned invalid response');
-            }
+            const data = await response.json();
             
             if (!response.ok) {
-                console.error('API Error:', data);
-                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                throw new Error(data.error || 'Analysis failed');
             }
             
-            console.log('Analysis results:', data);
-            
-            if ((data.success && data.results) || data.results || (data.trust_score !== undefined && !data.error)) {
-                this.currentAnalysisData = data;
-                await this.completeProgressAnimation();
-                
-                if (typeof displayRealResults === 'function') {
-                    displayRealResults(data);
-                } else {
-                    console.error('Results display function not found');
-                }
-            } else {
-                throw new Error(data.error || 'Analysis failed - no results returned');
-            }
+            this.currentAnalysisData = data;
+            await this.completeProgressAnimation();
+            window.displayRealResults(data);
             
         } catch (error) {
             console.error('Analysis error:', error);
@@ -156,15 +100,21 @@ NewsApp.analysis = {
     
     startProgressAnimation: function() {
         const loadingSection = document.getElementById('loading-section');
+        const resultsSection = document.getElementById('results-section');
+        
         if (loadingSection) {
             loadingSection.style.display = 'block';
-            document.getElementById('results-section').style.display = 'none';
-            
-            document.querySelectorAll('.analysis-stage').forEach(stage => {
-                stage.classList.remove('active', 'complete');
-            });
+        }
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
         }
         
+        // Reset all stages
+        document.querySelectorAll('.analysis-stage').forEach(stage => {
+            stage.classList.remove('active', 'complete');
+        });
+        
+        // Animate stages
         let currentStage = 0;
         const stages = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6'];
         
@@ -192,6 +142,7 @@ NewsApp.analysis = {
         return new Promise((resolve) => {
             if (this.progressInterval) {
                 clearInterval(this.progressInterval);
+                this.progressInterval = null;
             }
             
             document.querySelectorAll('.analysis-stage').forEach(stage => {
@@ -206,17 +157,15 @@ NewsApp.analysis = {
     handleError: function(message) {
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
+            this.progressInterval = null;
         }
         
-        if (typeof showError === 'function') {
-            showError(message);
-        } else {
-            alert('Analysis failed: ' + message);
+        const loadingSection = document.getElementById('loading-section');
+        if (loadingSection) {
+            loadingSection.style.display = 'none';
         }
-    },
-    
-    getCurrentData: function() {
-        return this.currentAnalysisData;
+        
+        window.showError(message);
     },
     
     clearAnalysis: function() {
@@ -224,23 +173,15 @@ NewsApp.analysis = {
         this.analysisInProgress = false;
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
+            this.progressInterval = null;
         }
     }
 };
 
-// Make sure NewsApp.analysis is available globally
-window.NewsApp.analysis = NewsApp.analysis;
-
 // =============================================================================
-// GLOBAL FUNCTIONS FOR HTML ONCLICK HANDLERS
+// GLOBAL FUNCTIONS - These MUST be on window object for onclick to work
 // =============================================================================
 
-console.log('Defining global functions...');
-
-// Global variable for current analysis results
-window.currentAnalysisResults = null;
-
-// Main analysis function
 window.analyzeArticle = async function() {
     console.log('analyzeArticle called');
     const urlInput = document.getElementById('news-url');
@@ -262,17 +203,14 @@ window.analyzeArticle = async function() {
         }
         await NewsApp.analysis.runAnalysisText(text, 'pro');
     }
-    
-    window.currentAnalysisResults = NewsApp.analysis.getCurrentData();
-}
+};
 
-// Reset form
 window.resetForm = function() {
     console.log('resetForm called');
     document.getElementById('news-url').value = '';
     document.getElementById('news-text').value = '';
     
-    switchInputType('url');
+    window.switchInputType('url');
     
     const errorContainer = document.getElementById('error-container');
     if (errorContainer) {
@@ -285,15 +223,13 @@ window.resetForm = function() {
     }
     
     NewsApp.analysis.clearAnalysis();
-    window.currentAnalysisResults = null;
     
     document.querySelector('.input-section').scrollIntoView({ 
         behavior: 'smooth', 
         block: 'center' 
     });
-}
+};
 
-// Switch input type
 window.switchInputType = function(type) {
     console.log('switchInputType called:', type);
     const urlSection = document.getElementById('url-input-section');
@@ -311,9 +247,8 @@ window.switchInputType = function(type) {
         textSection.style.display = 'block';
         tabs[1].classList.add('active');
     }
-}
+};
 
-// Toggle plan comparison
 window.togglePlanComparison = function() {
     console.log('togglePlanComparison called');
     const content = document.getElementById('plan-comparison-content');
@@ -323,9 +258,8 @@ window.togglePlanComparison = function() {
         content.classList.toggle('show');
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
-}
+};
 
-// Toggle resources
 window.toggleResources = function() {
     console.log('toggleResources called');
     const content = document.getElementById('resources-content');
@@ -335,9 +269,8 @@ window.toggleResources = function() {
         content.classList.toggle('show');
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
-}
+};
 
-// Toggle feature preview
 window.toggleFeaturePreview = function() {
     console.log('toggleFeaturePreview called');
     const content = document.getElementById('feature-preview-content');
@@ -352,34 +285,37 @@ window.toggleFeaturePreview = function() {
             if (header) header.classList.add('active');
         }
     }
-}
+};
 
-// Show error
 window.showError = function(message) {
     console.log('showError called:', message);
     const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
     
-    let formattedMessage = message
-        .replace(/\n/g, '<br>')
-        .replace(/•/g, '<br>•');
+    if (errorMessage) {
+        errorMessage.innerHTML = message.replace(/\n/g, '<br>').replace(/•/g, '<br>•');
+    }
     
-    errorMessage.innerHTML = formattedMessage;
-    errorContainer.style.display = 'block';
+    if (errorContainer) {
+        errorContainer.style.display = 'block';
+        errorContainer.scrollIntoView({ behavior: 'smooth' });
+    }
     
-    document.getElementById('results-section').style.display = 'none';
-    
-    errorContainer.scrollIntoView({ behavior: 'smooth' });
-}
+    const resultsSection = document.getElementById('results-section');
+    if (resultsSection) {
+        resultsSection.style.display = 'none';
+    }
+};
 
-// Retry analysis
 window.retryAnalysis = function() {
     console.log('retryAnalysis called');
-    document.getElementById('error-container').style.display = 'none';
-    analyzeArticle();
-}
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) {
+        errorContainer.style.display = 'none';
+    }
+    window.analyzeArticle();
+};
 
-// Toggle dropdown
 window.toggleDropdown = function(header) {
     console.log('toggleDropdown called');
     const content = header.nextElementSibling;
@@ -392,9 +328,8 @@ window.toggleDropdown = function(header) {
         content.classList.add('show');
         header.style.borderColor = 'var(--primary-blue)';
     }
-}
+};
 
-// Show analysis process modal
 window.showAnalysisProcess = function() {
     console.log('showAnalysisProcess called');
     const modal = document.getElementById('analysisProcessModal');
@@ -407,12 +342,11 @@ window.showAnalysisProcess = function() {
             modal.classList.add('show');
         }
     }
-}
+};
 
-// Generate PDF
 window.generatePDF = async function() {
     console.log('generatePDF called');
-    const analysisData = window.currentAnalysisResults || NewsApp.analysis.getCurrentData();
+    const analysisData = NewsApp.analysis.currentAnalysisData;
     
     if (!analysisData) {
         alert('Please run an analysis first');
@@ -457,19 +391,17 @@ window.generatePDF = async function() {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
     }
-}
+};
 
-// Download full report
 window.downloadFullReport = function() {
     console.log('downloadFullReport called');
-    generatePDF();
-}
+    window.generatePDF();
+};
 
-// Display results (simplified version)
 window.displayRealResults = function(results) {
-    console.log('displayRealResults called');
+    console.log('displayRealResults called', results);
     
-    // Show results section
+    // Hide loading, show results
     document.getElementById('loading-section').style.display = 'none';
     document.getElementById('results-section').style.display = 'block';
     
@@ -478,14 +410,14 @@ window.displayRealResults = function(results) {
     document.getElementById('analysis-time').textContent = now.toLocaleString();
     document.getElementById('analysis-id').textContent = results.analysis_id || 'AN-' + Date.now().toString(36).toUpperCase();
     
-    // For now, just show trust score
+    // Update trust score
     const trustScore = results.trust_score || 0;
     const trustScoreEl = document.getElementById('trust-score');
     if (trustScoreEl) {
         trustScoreEl.textContent = trustScore;
     }
     
-    // Show summary
+    // Update summary
     const summaryEl = document.getElementById('overall-summary');
     if (summaryEl) {
         summaryEl.textContent = results.summary || `This article scored ${trustScore}% in our trust analysis.`;
@@ -493,18 +425,14 @@ window.displayRealResults = function(results) {
     
     // Scroll to results
     document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+};
 
 // Navigation functions
 window.ffNav = {
     checkAuthStatus: async function() {
         try {
             const response = await fetch('/api/user/status');
-            
-            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
-                console.log('Auth endpoint not available');
-                return;
-            }
+            if (!response.ok) return;
             
             const data = await response.json();
             
@@ -528,17 +456,22 @@ window.ffNav = {
     init: function() {
         this.checkAuthStatus();
         
-        document.addEventListener('click', function(event) {
-            const userMenu = document.querySelector('.ff-user-menu');
-            if (userMenu && !userMenu.contains(event.target)) {
-                document.getElementById('ffUserDropdown').classList.remove('active');
-            }
-        });
-        
+        // Set active nav link
         const currentPath = window.location.pathname;
         document.querySelectorAll('.ff-nav-link').forEach(link => {
             if (link.getAttribute('href') === currentPath) {
                 link.classList.add('active');
+            }
+        });
+        
+        // Close dropdown on outside click
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.ff-user-menu');
+            if (userMenu && !userMenu.contains(event.target)) {
+                const dropdown = document.getElementById('ffUserDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
             }
         });
     }
@@ -548,12 +481,12 @@ window.ffNav = {
 window.ffToggleMobileMenu = function() {
     const navLinks = document.getElementById('ffNavLinks');
     navLinks.classList.toggle('active');
-}
+};
 
 window.ffToggleUserDropdown = function() {
     const dropdown = document.getElementById('ffUserDropdown');
     dropdown.classList.toggle('active');
-}
+};
 
 window.ffLogout = async function() {
     try {
@@ -562,32 +495,36 @@ window.ffLogout = async function() {
     } catch (error) {
         console.error('Logout failed:', error);
     }
-}
+};
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded - News analysis module loaded');
+    console.log('DOM loaded, initializing...');
     
     // Initialize navigation
     if (window.ffNav) {
         window.ffNav.init();
     }
     
-    // Log what functions are available
-    console.log('Functions available:', {
+    // Verify all functions are available
+    console.log('Function availability check:', {
         togglePlanComparison: typeof window.togglePlanComparison,
-        switchInputType: typeof window.switchInputType,
+        toggleResources: typeof window.toggleResources,
+        toggleFeaturePreview: typeof window.toggleFeaturePreview,
         analyzeArticle: typeof window.analyzeArticle,
-        resetForm: typeof window.resetForm
+        switchInputType: typeof window.switchInputType,
+        resetForm: typeof window.resetForm,
+        showError: typeof window.showError,
+        retryAnalysis: typeof window.retryAnalysis,
+        toggleDropdown: typeof window.toggleDropdown,
+        showAnalysisProcess: typeof window.showAnalysisProcess,
+        generatePDF: typeof window.generatePDF,
+        downloadFullReport: typeof window.downloadFullReport,
+        displayRealResults: typeof window.displayRealResults,
+        ffToggleMobileMenu: typeof window.ffToggleMobileMenu,
+        ffToggleUserDropdown: typeof window.ffToggleUserDropdown,
+        ffLogout: typeof window.ffLogout
     });
 });
 
-console.log('news-analysis.js fully loaded');
-console.log('Global functions now available:', {
-    togglePlanComparison: typeof window.togglePlanComparison,
-    toggleResources: typeof window.toggleResources,
-    toggleFeaturePreview: typeof window.toggleFeaturePreview,
-    analyzeArticle: typeof window.analyzeArticle,
-    switchInputType: typeof window.switchInputType,
-    resetForm: typeof window.resetForm
-});
+console.log('news-analysis.js loaded successfully - all functions should be available');
